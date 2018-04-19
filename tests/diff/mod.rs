@@ -12,7 +12,7 @@ pub fn get_diff(left: &str, right: &str) -> String {
     for i in 0..diffs.len() {
         match diffs[i] {
             Difference::Same(ref x) => {
-                output += &format!(" {}", x);
+                output += &format!(" {}\n", x);
             }
             Difference::Add(ref x) => {
                 match diffs[i - 1] {
@@ -33,12 +33,12 @@ pub fn get_diff(left: &str, right: &str) -> String {
                         output += "\n";
                     }
                     _ => {
-                        output += &format!("+{}", Green.paint(x.as_str()));
+                        output += &format!("+{}\n", Green.paint(x.as_str()));
                     }
                 };
             }
             Difference::Rem(ref x) => {
-                output += &format!("-{}", Red.paint(x.as_str()));
+                output += &format!("-{}\n", Red.paint(x.as_str()));
             }
         }
     }

@@ -1,9 +1,9 @@
-fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {
-    if let Some(annotation) = main_annotation {
-        result.push(format_title_line(
-            &annotation.annotation_type,
-            None,
-            &annotation.label,
-        ));
-    }
-}
+76 | fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {
+77 |     if let Some(annotation) = main_annotation {
+78 |         result.push(format_title_line(
+79 |             &annotation.annotation_type,
+80 |             None,
+81 |             &annotation.label,
+82 |         ));
+83 |     }
+84 | }
