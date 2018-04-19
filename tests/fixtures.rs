@@ -5,7 +5,6 @@ mod snippet;
 extern crate serde_derive;
 extern crate annotate_snippets;
 extern crate glob;
-extern crate serde;
 extern crate serde_yaml;
 
 use annotate_snippets::format_snippet;
@@ -25,12 +24,12 @@ fn read_file(path: &str) -> Result<String, io::Error> {
     Ok(s.trim().to_string())
 }
 
-#[derive(Deserialize)]
-struct Helper(#[serde(with = "SnippetDef")] Snippet);
-
 fn read_fixture<P: AsRef<Path>>(path: P) -> Result<Snippet, Box<Error>> {
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(with = "SnippetDef")] Snippet);
+
     let file = File::open(path)?;
-    let u = serde_yaml::from_reader(file).map(|Helper(a)| a)?;
+    let u = serde_yaml::from_reader(file).map(|Wrapper(a)| a)?;
     Ok(u)
 }
 
