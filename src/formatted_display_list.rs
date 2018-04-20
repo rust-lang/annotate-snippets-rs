@@ -37,6 +37,7 @@ enum FormattedDisplayLine {
         content: String,
     },
     AnnotationLine {
+        lineno: String,
         inline_marks: String,
         content: String,
     },
@@ -53,7 +54,7 @@ impl FormattedDisplayLine {
                 content,
             } => FormattedDisplayLine::SourceLine {
                 lineno: format!("{: >width$}", lineno, width = max_lineno),
-                inline_marks: "".to_string(),
+                inline_marks: Self::format_inline_marks(&inline_marks),
                 content,
             },
             DisplayLine::AnnotationLine {
@@ -61,16 +62,15 @@ impl FormattedDisplayLine {
                 range,
                 label,
             } => FormattedDisplayLine::AnnotationLine {
-                inline_marks: "".to_string(),
-                content: "".to_string(),
+                lineno: " ".repeat(max_lineno),
+                inline_marks: Self::format_inline_marks(&inline_marks),
+                content: Self::format_annotation_content(range, label),
             },
             DisplayLine::FoldLine => FormattedDisplayLine::FoldLine,
         }
     }
-}
 
-impl FormattedDisplayLine {
-    fn format_inline_marks(&self, inline_marks: &[DisplayMark]) -> String {
+    fn format_inline_marks(inline_marks: &[DisplayMark]) -> String {
         format!(
             "{}",
             inline_marks
@@ -78,6 +78,15 @@ impl FormattedDisplayLine {
                 .map(|mark| format!("{}", mark))
                 .collect::<Vec<String>>()
                 .join("")
+        )
+    }
+
+    fn format_annotation_content(range: (usize, usize), label: String) -> String {
+        format!(
+            "{}{} {}",
+            " ".repeat(range.0),
+            "^".repeat(range.1 - range.0),
+            label
         )
     }
 }
@@ -91,7 +100,11 @@ impl fmt::Display for FormattedDisplayLine {
                 content,
             } => write!(f, "{} | {}{}", lineno, inline_marks, content),
             FormattedDisplayLine::RawLine(body) => write!(f, "{}", body),
-            FormattedDisplayLine::AnnotationLine { .. } => write!(f, " xx | Annotation"),
+            FormattedDisplayLine::AnnotationLine {
+                lineno,
+                inline_marks,
+                content,
+            } => write!(f, " {} | {}{}", lineno, inline_marks, content),
             FormattedDisplayLine::FoldLine => write!(f, " ... |"),
         }
     }
