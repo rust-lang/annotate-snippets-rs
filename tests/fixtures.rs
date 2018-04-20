@@ -21,7 +21,7 @@ fn read_file(path: &str) -> Result<String, io::Error> {
     let mut f = try!(File::open(path));
     let mut s = String::new();
     try!(f.read_to_string(&mut s));
-    Ok(s.trim().to_string())
+    Ok(s.trim_right().to_string())
 }
 
 fn read_fixture<P: AsRef<Path>>(path: P) -> Result<Snippet, Box<Error>> {

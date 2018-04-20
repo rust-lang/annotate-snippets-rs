@@ -2,7 +2,7 @@ use snippet::Snippet;
 use std::fmt;
 
 pub struct DisplayList {
-    body: Vec<DisplayLine>,
+    pub body: Vec<DisplayLine>,
 }
 
 impl From<Snippet> for DisplayList {
@@ -21,20 +21,6 @@ impl From<Snippet> for DisplayList {
     }
 }
 
-impl fmt::Display for DisplayList {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            self.body
-                .iter()
-                .map(|line| format!("{}", line))
-                .collect::<Vec<String>>()
-                .join("\n")
-        )
-    }
-}
-
 pub enum DisplayLine {
     RawLine(String),
     SourceLine {
@@ -42,35 +28,25 @@ pub enum DisplayLine {
         inline_marks: Vec<DisplayMark>,
         content: String,
     },
-}
-
-impl DisplayLine {
-    fn format_inline_marks(&self, inline_marks: &[DisplayMark]) -> String {
-        "".to_string()
-    }
-}
-
-impl fmt::Display for DisplayLine {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            DisplayLine::SourceLine {
-                lineno,
-                inline_marks,
-                content,
-            } => write!(
-                f,
-                "{} | {}{}",
-                lineno,
-                self.format_inline_marks(inline_marks),
-                content
-            ),
-            DisplayLine::RawLine(body) => write!(f, "{}", body),
-        }
-    }
+    AnnotationLine {
+        inline_marks: Vec<DisplayMark>,
+        range: (usize, usize),
+        label: String,
+    },
+    FoldLine,
 }
 
 #[derive(Debug)]
 pub enum DisplayMark {
     AnnotationThrough,
     AnnotationStart,
+}
+
+impl fmt::Display for DisplayMark {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DisplayMark::AnnotationThrough => write!(f, "|"),
+            DisplayMark::AnnotationStart => write!(f, "/"),
+        }
+    }
 }
