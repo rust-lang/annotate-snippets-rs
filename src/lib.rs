@@ -1,3 +1,5 @@
+#![feature(drain_filter)]
+
 mod display_list;
 mod format;
 mod formatted_display_list;
