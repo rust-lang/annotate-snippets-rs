@@ -1,27 +1,18 @@
 slice:
   source: |-
-    fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {
-        if let Some(annotation) = main_annotation {
-            result.push(format_title_line(
-                &annotation.annotation_type,
-                None,
-                &annotation.label,
-            ));
+    ) -> Option<String> {
+        for ann in annotations {
+            match (ann.range.0, ann.range.1) {
+                (None, None) => continue,
+                (Some(start), Some(end)) if start > end_index || end < start_index => continue,
+            }
         }
-    }
-  line_start: 96
-title_annotation: 0
-main_annotation: 0
+  line_start: 51
+  origin: "src/format.rs"
+title_annotation_pos: 0
+main_annotation_pos: 0
 annotations:
-  - label: Variable referenced multiple times
+  - label: mismatched types
+    id: E0308
     annotation_type: Error
     range: [null, null]
-  - label: Variable defined here
-    annotation_type: Error
-    range: [101, 111]
-  - label: Referenced here
-    annotation_type: Error
-    range: [187, 197]
-  - label: Referenced again here
-    annotation_type: Error
-    range: [248, 258]

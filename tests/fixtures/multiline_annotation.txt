@@ -1,12 +1,13 @@
- 96 | fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {
- 97 |     if let Some(annotation) = main_annotation {
-    |                 ^^^^^^^^^^ Variable defined here
- 98 |         result.push(format_title_line(
- 99 |             &annotation.annotation_type,
-    |              ^^^^^^^^^^ Referenced here
-100 |             None,
-101 |             &annotation.label,
-    |              ^^^^^^^^^^ Referenced again here
-102 |         ));
-103 |     }
-104 | }
+error[E0308]: mismatched types
+  --> src/format.rs:52:1
+   |
+51 |   ) -> Option<String> {
+   |        -------------- expected `std::option::Option<std::string::String>` because of return type
+52 | /     for ann in annotations {
+53 | |         match (ann.range.0, ann.range.1) {
+54 | |             (None, None) => continue,
+55 | |             (Some(start), Some(end)) if start > end_index || end < start_index => continue,
+56 | |         }
+57 | |     }
+   | |_____^ expected enum `std::option::Option`, found ()
+   |
