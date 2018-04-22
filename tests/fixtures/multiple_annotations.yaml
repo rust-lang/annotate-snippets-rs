@@ -18,10 +18,10 @@ annotations:
     range: [null, null]
   - label: Variable defined here
     annotation_type: Error
-    range: [101, 111]
+    range: [102, 112]
   - label: Referenced here
     annotation_type: Error
-    range: [187, 197]
+    range: [188, 198]
   - label: Referenced again here
     annotation_type: Error
-    range: [248, 258]
+    range: [249, 259]

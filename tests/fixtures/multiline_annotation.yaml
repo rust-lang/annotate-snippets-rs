@@ -16,3 +16,9 @@ annotations:
     id: E0308
     annotation_type: Error
     range: [null, null]
+  - label: expected `std::option::Option<std::string::String>` because of return type
+    annotation_type: Warning
+    range: [6, 20]
+  - label: expected enum `std::option::Option`, found ()
+    annotation_type: Error
+    range: [23, 245]
