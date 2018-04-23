@@ -45,9 +45,10 @@ pub struct AnnotationDef {
     pub annotation_type: AnnotationType,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "AnnotationType")]
-pub enum AnnotationTypeDef {
+enum AnnotationTypeDef {
     Error,
     Warning,
 }

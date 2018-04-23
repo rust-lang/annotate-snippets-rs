@@ -87,14 +87,28 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                 (Some(start), Some(end))
                     if start >= line_start && start <= line_end && end > line_end =>
                 {
-                    match body[body_idx] {
-                        DisplayLine::SourceLine {
-                            ref mut inline_marks,
-                            ..
-                        } => {
-                            inline_marks.push(DisplayMark::AnnotationStart);
+                    if start - line_start == 0 {
+                        match body[body_idx] {
+                            DisplayLine::SourceLine {
+                                ref mut inline_marks,
+                                ..
+                            } => {
+                                inline_marks.push(DisplayMark::AnnotationStart);
+                            }
+                            _ => {}
                         }
-                        _ => {}
+                    } else {
+                        let range = (start - line_start, start - line_start + 1);
+                        body.insert(
+                            body_idx + 1,
+                            DisplayLine::AnnotationLine {
+                                inline_marks: vec![DisplayMark::AnnotationThrough],
+                                range,
+                                label: annotation.label.clone().unwrap_or("".to_string()),
+                                annotation_type: DisplayAnnotationType::MultilineStart,
+                            },
+                        );
+                        annotation_line_count += 1;
                     }
                     false
                 }
@@ -138,6 +152,29 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                 _ => false,
             }
         });
+    }
+
+    // Fold
+    let mut no_annotation_lines_counter = 0;
+    let mut idx = 0;
+    while idx < body.len() {
+        match body[idx] {
+            DisplayLine::AnnotationLine { .. } => {
+                if no_annotation_lines_counter > 10 {
+                    let fold_start = idx - no_annotation_lines_counter + 5;
+                    let fold_end = idx - 2;
+                    let fold_len = fold_end - fold_start;
+
+                    let slice = &[DisplayLine::FoldLine];
+
+                    body.splice(fold_start..fold_end, slice.iter().cloned());
+                    idx -= fold_len - 1;
+                }
+                no_annotation_lines_counter += 0;
+            }
+            _ => no_annotation_lines_counter += 1,
+        }
+        idx += 1;
     }
 
     body.insert(0, DisplayLine::EmptySourceLine);

@@ -160,7 +160,7 @@ impl fmt::Display for FormattedDisplayLine {
                 inline_marks,
                 content,
             } => write!(f, "{} |{}{}", lineno, inline_marks, content),
-            FormattedDisplayLine::FoldLine => write!(f, " ... |"),
+            FormattedDisplayLine::FoldLine => write!(f, "...  |"),
         }
     }
 }
