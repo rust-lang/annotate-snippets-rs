@@ -20,7 +20,7 @@ fn format_header(snippet: &Snippet) -> Vec<DisplayLine> {
         };
         let id = annotation.id.clone().unwrap_or("E0000".to_string());
         let label = annotation.label.clone().unwrap_or("".to_string());
-        header.push(DisplayLine::RawLine(format!(
+        header.push(DisplayLine::Raw(format!(
             "{}[{}]: {}",
             annotation_type, id, label
         )));
@@ -34,12 +34,9 @@ fn format_header(snippet: &Snippet) -> Vec<DisplayLine> {
         let path = snippet.slice.origin.clone().unwrap_or("".to_string());
         let row = 52;
         let col = 1;
-        header.push(DisplayLine::RawLine(format!(
-            "  --> {}:{}:{}",
-            path, row, col
-        )));
+        header.push(DisplayLine::Raw(format!("  --> {}:{}:{}", path, row, col)));
     }
-    return header;
+    header
 }
 
 fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
@@ -50,7 +47,7 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
     let mut line_index_ranges = vec![];
 
     for line in snippet.slice.source.lines() {
-        body.push(DisplayLine::SourceLine {
+        body.push(DisplayLine::Source {
             lineno: current_line,
             inline_marks: vec![],
             content: line.to_string(),
@@ -72,7 +69,7 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                     let range = (start - line_start, end - line_start);
                     body.insert(
                         body_idx + 1,
-                        DisplayLine::AnnotationLine {
+                        DisplayLine::Annotation {
                             inline_marks: vec![],
                             range,
                             label: annotation.label.clone().unwrap_or("".to_string()),
@@ -88,20 +85,18 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                     if start >= line_start && start <= line_end && end > line_end =>
                 {
                     if start - line_start == 0 {
-                        match body[body_idx] {
-                            DisplayLine::SourceLine {
-                                ref mut inline_marks,
-                                ..
-                            } => {
-                                inline_marks.push(DisplayMark::AnnotationStart);
-                            }
-                            _ => {}
+                        if let DisplayLine::Source {
+                            ref mut inline_marks,
+                            ..
+                        } = body[body_idx]
+                        {
+                            inline_marks.push(DisplayMark::AnnotationStart);
                         }
                     } else {
                         let range = (start - line_start, start - line_start + 1);
                         body.insert(
                             body_idx + 1,
-                            DisplayLine::AnnotationLine {
+                            DisplayLine::Annotation {
                                 inline_marks: vec![DisplayMark::AnnotationThrough],
                                 range,
                                 label: annotation.label.clone().unwrap_or("".to_string()),
@@ -113,33 +108,29 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                     false
                 }
                 (Some(start), Some(end)) if start < line_start && end > line_end => {
-                    match body[body_idx] {
-                        DisplayLine::SourceLine {
-                            ref mut inline_marks,
-                            ..
-                        } => {
-                            inline_marks.push(DisplayMark::AnnotationThrough);
-                        }
-                        _ => {}
+                    if let DisplayLine::Source {
+                        ref mut inline_marks,
+                        ..
+                    } = body[body_idx]
+                    {
+                        inline_marks.push(DisplayMark::AnnotationThrough);
                     }
                     false
                 }
                 (Some(start), Some(end))
                     if start < line_start && end >= line_start && end <= line_end =>
                 {
-                    match body[body_idx] {
-                        DisplayLine::SourceLine {
-                            ref mut inline_marks,
-                            ..
-                        } => {
-                            inline_marks.push(DisplayMark::AnnotationThrough);
-                        }
-                        _ => {}
+                    if let DisplayLine::Source {
+                        ref mut inline_marks,
+                        ..
+                    } = body[body_idx]
+                    {
+                        inline_marks.push(DisplayMark::AnnotationThrough);
                     }
                     let range = (end - line_start, end - line_start + 1);
                     body.insert(
                         body_idx + 1,
-                        DisplayLine::AnnotationLine {
+                        DisplayLine::Annotation {
                             inline_marks: vec![DisplayMark::AnnotationThrough],
                             range,
                             label: annotation.label.clone().unwrap_or("".to_string()),
@@ -154,32 +145,33 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
         });
     }
 
-    // Fold
-    let mut no_annotation_lines_counter = 0;
-    let mut idx = 0;
-    while idx < body.len() {
-        match body[idx] {
-            DisplayLine::AnnotationLine { .. } => {
-                if no_annotation_lines_counter > 10 {
-                    let fold_start = idx - no_annotation_lines_counter + 5;
-                    let fold_end = idx - 2;
-                    let fold_len = fold_end - fold_start;
+    if snippet.fold.unwrap_or(false) {
+        let mut no_annotation_lines_counter = 0;
+        let mut idx = 0;
+        while idx < body.len() {
+            match body[idx] {
+                DisplayLine::Annotation { .. } => {
+                    if no_annotation_lines_counter > 10 {
+                        let fold_start = idx - no_annotation_lines_counter + 5;
+                        let fold_end = idx - 2;
+                        let fold_len = fold_end - fold_start;
 
-                    let slice = &[DisplayLine::FoldLine];
+                        let slice = &[DisplayLine::Fold];
 
-                    body.splice(fold_start..fold_end, slice.iter().cloned());
-                    idx -= fold_len - 1;
+                        body.splice(fold_start..fold_end, slice.iter().cloned());
+                        idx -= fold_len - 1;
+                    }
+                    no_annotation_lines_counter += 0;
                 }
-                no_annotation_lines_counter += 0;
+                _ => no_annotation_lines_counter += 1,
             }
-            _ => no_annotation_lines_counter += 1,
+            idx += 1;
         }
-        idx += 1;
     }
 
-    body.insert(0, DisplayLine::EmptySourceLine);
-    body.push(DisplayLine::EmptySourceLine);
-    return body;
+    body.insert(0, DisplayLine::EmptySource);
+    body.push(DisplayLine::EmptySource);
+    body
 }
 
 impl From<Snippet> for DisplayList {
@@ -195,23 +187,23 @@ impl From<Snippet> for DisplayList {
 
 #[derive(Debug, Clone)]
 pub enum DisplayLine {
-    RawLine(String),
-    EmptySourceLine,
-    SourceLine {
+    Raw(String),
+    EmptySource,
+    Source {
         lineno: usize,
         inline_marks: Vec<DisplayMark>,
         content: String,
     },
-    AnnotationLine {
+    Annotation {
         inline_marks: Vec<DisplayMark>,
         range: (usize, usize),
         label: String,
         annotation_type: DisplayAnnotationType,
     },
-    FoldLine,
+    Fold,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum DisplayAnnotationType {
     Error,
     Warning,

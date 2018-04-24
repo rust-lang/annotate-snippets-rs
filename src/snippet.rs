@@ -4,6 +4,7 @@ pub struct Snippet {
     pub annotations: Vec<Annotation>,
     pub main_annotation_pos: Option<usize>,
     pub title_annotation_pos: Option<usize>,
+    pub fold: Option<bool>,
 }
 
 #[derive(Debug)]

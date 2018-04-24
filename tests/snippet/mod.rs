@@ -14,6 +14,7 @@ pub struct SnippetDef {
     pub annotations: Vec<Annotation>,
     pub main_annotation_pos: Option<usize>,
     pub title_annotation_pos: Option<usize>,
+    pub fold: Option<bool>,
 }
 
 fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation>, D::Error>

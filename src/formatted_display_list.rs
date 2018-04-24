@@ -8,7 +8,7 @@ pub struct FormattedDisplayList {
 impl From<DisplayList> for FormattedDisplayList {
     fn from(dl: DisplayList) -> Self {
         let lineno_width = dl.body.iter().fold(0, |max, ref line| match line {
-            DisplayLine::SourceLine { lineno, .. } => {
+            DisplayLine::Source { lineno, .. } => {
                 let width = lineno.to_string().len();
                 if width > max {
                     width
@@ -19,7 +19,7 @@ impl From<DisplayList> for FormattedDisplayList {
             _ => max,
         });
         let inline_marks_width = dl.body.iter().fold(0, |max, ref line| match line {
-            DisplayLine::SourceLine { inline_marks, .. } => {
+            DisplayLine::Source { inline_marks, .. } => {
                 let width = inline_marks.len();
                 if width > max {
                     width + 1
@@ -42,7 +42,7 @@ impl fmt::Display for FormattedDisplayList {
         if let Some((last, elements)) = &self.body.split_last() {
             for line in elements.iter() {
                 line.fmt(f)?;
-                write!(f, "\n")?;
+                writeln!(f)?;
             }
             last.fmt(f)?;
         }
@@ -52,50 +52,50 @@ impl fmt::Display for FormattedDisplayList {
 
 #[derive(Debug)]
 enum FormattedDisplayLine {
-    RawLine(String),
-    EmptySourceLine {
+    Raw(String),
+    EmptySource {
         lineno: String,
     },
-    SourceLine {
-        lineno: String,
-        inline_marks: String,
-        content: String,
-    },
-    AnnotationLine {
+    Source {
         lineno: String,
         inline_marks: String,
         content: String,
     },
-    FoldLine,
+    Annotation {
+        lineno: String,
+        inline_marks: String,
+        content: String,
+    },
+    Fold,
 }
 
 impl FormattedDisplayLine {
     fn format(dl: DisplayLine, lineno_width: usize, inline_marks_width: usize) -> Self {
         match dl {
-            DisplayLine::RawLine(s) => FormattedDisplayLine::RawLine(s),
-            DisplayLine::EmptySourceLine => FormattedDisplayLine::EmptySourceLine {
+            DisplayLine::Raw(s) => FormattedDisplayLine::Raw(s),
+            DisplayLine::EmptySource => FormattedDisplayLine::EmptySource {
                 lineno: " ".repeat(lineno_width),
             },
-            DisplayLine::SourceLine {
+            DisplayLine::Source {
                 lineno,
                 inline_marks,
                 content,
-            } => FormattedDisplayLine::SourceLine {
+            } => FormattedDisplayLine::Source {
                 lineno: format!("{: >width$}", lineno, width = lineno_width),
                 inline_marks: Self::format_inline_marks(&inline_marks, inline_marks_width),
                 content,
             },
-            DisplayLine::AnnotationLine {
+            DisplayLine::Annotation {
                 inline_marks,
                 range,
                 label,
                 annotation_type,
-            } => FormattedDisplayLine::AnnotationLine {
+            } => FormattedDisplayLine::Annotation {
                 lineno: " ".repeat(lineno_width),
                 inline_marks: Self::format_inline_marks(&inline_marks, inline_marks_width),
-                content: Self::format_annotation_content(range, label, annotation_type),
+                content: Self::format_annotation_content(range, &label, annotation_type),
             },
-            DisplayLine::FoldLine => FormattedDisplayLine::FoldLine,
+            DisplayLine::Fold => FormattedDisplayLine::Fold,
         }
     }
 
@@ -113,7 +113,7 @@ impl FormattedDisplayLine {
 
     fn format_annotation_content(
         range: (usize, usize),
-        label: String,
+        label: &str,
         annotation_type: DisplayAnnotationType,
     ) -> String {
         match annotation_type {
@@ -148,19 +148,19 @@ impl FormattedDisplayLine {
 impl fmt::Display for FormattedDisplayLine {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            FormattedDisplayLine::EmptySourceLine { lineno } => write!(f, "{} |", lineno),
-            FormattedDisplayLine::SourceLine {
+            FormattedDisplayLine::EmptySource { lineno } => write!(f, "{} |", lineno),
+            FormattedDisplayLine::Source {
                 lineno,
                 inline_marks,
                 content,
             } => write!(f, "{} |{} {}", lineno, inline_marks, content),
-            FormattedDisplayLine::RawLine(body) => write!(f, "{}", body),
-            FormattedDisplayLine::AnnotationLine {
+            FormattedDisplayLine::Raw(body) => write!(f, "{}", body),
+            FormattedDisplayLine::Annotation {
                 lineno,
                 inline_marks,
                 content,
             } => write!(f, "{} |{}{}", lineno, inline_marks, content),
-            FormattedDisplayLine::FoldLine => write!(f, "...  |"),
+            FormattedDisplayLine::Fold => write!(f, "...  |"),
         }
     }
 }
