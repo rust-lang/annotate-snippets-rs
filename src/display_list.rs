@@ -64,8 +64,8 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
         snippet.annotations.drain_filter(|annotation| {
             let body_idx = idx + annotation_line_count;
             match annotation.range {
-                (Some(start), ..) if start > line_end => false,
-                (Some(start), Some(end)) if start >= line_start && end <= line_end => {
+                Some((start, _)) if start > line_end => false,
+                Some((start, end)) if start >= line_start && end <= line_end => {
                     let range = (start - line_start, end - line_start);
                     body.insert(
                         body_idx + 1,
@@ -81,7 +81,7 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                     annotation_line_count += 1;
                     true
                 }
-                (Some(start), Some(end))
+                Some((start, end))
                     if start >= line_start && start <= line_end && end > line_end =>
                 {
                     if start - line_start == 0 {
@@ -107,7 +107,7 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                     }
                     false
                 }
-                (Some(start), Some(end)) if start < line_start && end > line_end => {
+                Some((start, end)) if start < line_start && end > line_end => {
                     if let DisplayLine::Source {
                         ref mut inline_marks,
                         ..
@@ -117,7 +117,7 @@ fn format_body(mut snippet: Snippet) -> Vec<DisplayLine> {
                     }
                     false
                 }
-                (Some(start), Some(end))
+                Some((start, end))
                     if start < line_start && end >= line_start && end <= line_end =>
                 {
                     if let DisplayLine::Source {

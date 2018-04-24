@@ -31,7 +31,7 @@ annotations:
   - label: mismatched types
     id: E0308
     annotation_type: Error
-    range: [null, null]
+    range: null
   - label: expected `std::option::Option<std::string::String>` because of return type
     annotation_type: Warning
     range: [6, 20]

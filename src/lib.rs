@@ -1,5 +1,5 @@
 #![feature(drain_filter)]
-//! Annotate Snippets is a library for formatting of text or programming code snippets.
+//! A library for formatting of text or programming code snippets.
 //!
 //! It's primary purpose is to build an ASCII-graphical representation of the snippet
 //! with annotations.
@@ -30,8 +30,10 @@
 //! An example input data to produce the above output would be:
 //!
 //! ```
-//! # use annotate_snippets::snippet::{Snippet, Slice, Annotation, AnnotationType};
-//! Snippet {
+//! use annotate_snippets::snippet::{Snippet, Slice, Annotation, AnnotationType};
+//! use annotate_snippets::format_snippet;
+//!
+//! let snippet = Snippet {
 //!     slice: Slice {
 //!         source: r#"
 //!         ) -> Option<String> {
@@ -68,22 +70,23 @@
 //!             label: Some("mismatched types".to_string()),
 //!             id: Some("E0308".to_string()),
 //!             annotation_type: AnnotationType::Error,
-//!             range: (None, None)
+//!             range: None
 //!         },
 //!         Annotation {
 //!             label: Some("expected `Option<String>` because of return type".to_string()),
 //!             id: None,
 //!             annotation_type: AnnotationType::Warning,
-//!             range: (Some(6), Some(20))
+//!             range: Some((6, 20))
 //!         },
 //!         Annotation {
 //!             label: Some("expected enum `std::option::Option".to_string()),
 //!             id: None,
 //!             annotation_type: AnnotationType::Error,
-//!             range: (Some(23), Some(787))
+//!             range: Some((23, 787))
 //!         },
 //!     ]
 //! };
+//! let output = format_snippet(snippet);
 //! ```
 
 mod display_list;

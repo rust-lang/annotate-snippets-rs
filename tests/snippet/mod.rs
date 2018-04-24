@@ -39,7 +39,7 @@ pub struct SliceDef {
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "Annotation")]
 pub struct AnnotationDef {
-    pub range: (Option<usize>, Option<usize>),
+    pub range: Option<(usize, usize)>,
     pub label: Option<String>,
     pub id: Option<String>,
     #[serde(with = "AnnotationTypeDef")]

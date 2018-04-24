@@ -22,7 +22,7 @@ pub enum AnnotationType {
 
 #[derive(Debug)]
 pub struct Annotation {
-    pub range: (Option<usize>, Option<usize>),
+    pub range: Option<(usize, usize)>,
     pub label: Option<String>,
     pub id: Option<String>,
     pub annotation_type: AnnotationType,
