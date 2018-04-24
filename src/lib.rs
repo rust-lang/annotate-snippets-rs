@@ -22,77 +22,10 @@
 //!    | |_____^ expected enum `std::option::Option`, found ()
 //! ```
 //!
-//! # Input
-//!
-//! On the input Annotate Snippets takes a Slice of text, a list of Annotation objects
-//! and some optional meta information.
-//!
-//! An example input data to produce the above output would be:
-//!
-//! ```
-//! use annotate_snippets::snippet::{Snippet, Slice, Annotation, AnnotationType};
-//! use annotate_snippets::format_snippet;
-//!
-//! let snippet = Snippet {
-//!     slice: Slice {
-//!         source: r#"
-//!         ) -> Option<String> {
-//!             for ann in annotations {
-//!                 match (ann.range.0, ann.range.1) {
-//!                     (None, None) => continue,
-//!                     (Some(start), Some(end)) if start > end_index => continue,
-//!                     (Some(start), Some(end)) if start >= start_index => {
-//!                         let label = if let Some(ref label) = ann.label {
-//!                             format!(" {}", label)
-//!                         } else {
-//!                             String::from("")
-//!                         };
-//!
-//!                         return Some(format!(
-//!                             "{}{}{}",
-//!                             " ".repeat(start - start_index),
-//!                             "^".repeat(end - start),
-//!                             label
-//!                         ));
-//!                     }
-//!                     _ => continue,
-//!                 }
-//!             }
-//!         "#.to_string(),
-//!         line_start: 51,
-//!         origin: Some("src/format.rs".to_string())
-//!     },
-//!     title_annotation_pos: Some(0),
-//!     main_annotation_pos: Some(0),
-//!     fold: Some(true),
-//!     annotations: vec![
-//!         Annotation {
-//!             label: Some("mismatched types".to_string()),
-//!             id: Some("E0308".to_string()),
-//!             annotation_type: AnnotationType::Error,
-//!             range: None
-//!         },
-//!         Annotation {
-//!             label: Some("expected `Option<String>` because of return type".to_string()),
-//!             id: None,
-//!             annotation_type: AnnotationType::Warning,
-//!             range: Some((6, 20))
-//!         },
-//!         Annotation {
-//!             label: Some("expected enum `std::option::Option".to_string()),
-//!             id: None,
-//!             annotation_type: AnnotationType::Error,
-//!             range: Some((23, 787))
-//!         },
-//!     ]
-//! };
-//! let output = format_snippet(snippet);
-//! ```
+//! In order to produce such output, the user builds a
+//! [Snippet](self::snippet::Snippet) which has a single public method: `format`.
 
 mod display_list;
-mod format;
 mod formatted_display_list;
 
 pub mod snippet;
-
-pub use format::format_snippet;

@@ -7,7 +7,6 @@ extern crate annotate_snippets;
 extern crate glob;
 extern crate serde_yaml;
 
-use annotate_snippets::format_snippet;
 use annotate_snippets::snippet::Snippet;
 use glob::glob;
 use snippet::SnippetDef;
@@ -44,7 +43,7 @@ fn test_fixtures() {
         let snippet = read_fixture(path_in).expect("Failed to read file");
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
-        let actual_out = format_snippet(snippet);
+        let actual_out = format!("{}", snippet);
 
         assert_eq!(
             expected_out,
