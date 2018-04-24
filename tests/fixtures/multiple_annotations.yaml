@@ -10,12 +10,9 @@ slice:
         }
     }
   line_start: 96
-title_annotation: 0
 main_annotation: 0
+title: null
 annotations:
-  - label: Variable referenced multiple times
-    annotation_type: Error
-    range: null
   - label: Variable defined here
     annotation_type: Error
     range: [102, 112]

@@ -1,7 +1,51 @@
+//! `DisplayList` is an intermittent structure which converts the Snippet structure
+//! into a list of lines that resemble the final output.
+//!
+//! # Example:
+//!
+//! ```
+//! use annotate_snippets::snippet::{Snippet, Slice, Annotation, TitleAnnotation, AnnotationType};
+//! use annotate_snippets::display_list::{DisplayList, DisplayLine};
+//!
+//! let snippet = Snippet {
+//!   slice: Slice {
+//!     source: r#"id: Some()"#.to_string(),
+//!     line_start: 145,
+//!     origin: Some("src/display_list.rs".to_string())
+//!   },
+//!   title: Some(TitleAnnotation {
+//!       id: Some("E0061".to_string()),
+//!       label: Some("this function takes 1 parameter but 0 parameters were supplied".to_string()),
+//!       annotation_type: AnnotationType::Error,
+//!   }),
+//!   main_annotation_pos: Some(0),
+//!   fold: Some(false),
+//!   annotations: vec![
+//!     Annotation {
+//!       label: Some("expected 1 parameter".to_string()),
+//!       annotation_type: AnnotationType::Error,
+//!       range: Some((19, 23))
+//!     }
+//!   ]
+//! };
+//! assert_eq!(DisplayList::from(snippet), DisplayList {
+//!     body: vec![
+//!       DisplayLine::Raw("error[E0061]: this function takes 1 parameter but 0 parameters were supplied".to_string()),
+//!       DisplayLine::Raw("  --> src/display_list.rs:52:1".to_string()),
+//!       DisplayLine::EmptySource,
+//!       DisplayLine::Source {
+//!           lineno: 145,
+//!           inline_marks: vec![],
+//!           content: "id: Some()".to_string()
+//!       },
+//!       DisplayLine::EmptySource
+//!     ]
+//! });
+//! ```
 use snippet::{AnnotationType, Snippet};
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DisplayList {
     pub body: Vec<DisplayLine>,
 }
@@ -9,11 +53,7 @@ pub struct DisplayList {
 fn format_header(snippet: &Snippet) -> Vec<DisplayLine> {
     let mut header = vec![];
 
-    let title_annotation = snippet
-        .title_annotation_pos
-        .and_then(|pos| snippet.annotations.get(pos));
-
-    if let Some(annotation) = title_annotation {
+    if let Some(ref annotation) = snippet.title {
         let annotation_type = match annotation.annotation_type {
             AnnotationType::Error => "error",
             AnnotationType::Warning => "warning",
@@ -185,7 +225,7 @@ impl From<Snippet> for DisplayList {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum DisplayLine {
     Raw(String),
     EmptySource,
@@ -203,7 +243,7 @@ pub enum DisplayLine {
     Fold,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DisplayAnnotationType {
     Error,
     Warning,
@@ -220,7 +260,7 @@ impl From<AnnotationType> for DisplayAnnotationType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DisplayMark {
     AnnotationThrough,
     AnnotationStart,

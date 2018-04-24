@@ -3,7 +3,7 @@
 //! # Example:
 //!
 //! ```
-//! use annotate_snippets::snippet::{Snippet, Slice, Annotation, AnnotationType};
+//! use annotate_snippets::snippet::{Snippet, Slice, Annotation, TitleAnnotation, AnnotationType};
 //!
 //! let snippet = Snippet {
 //!     slice: Slice {
@@ -34,25 +34,21 @@
 //!         line_start: 51,
 //!         origin: Some("src/format.rs".to_string())
 //!     },
-//!     title_annotation_pos: Some(0),
+//!     title: Some(TitleAnnotation {
+//!         label: Some("mismatched types".to_string()),
+//!         id: Some("E0308".to_string()),
+//!         annotation_type: AnnotationType::Error,
+//!     }),
 //!     main_annotation_pos: Some(0),
 //!     fold: Some(true),
 //!     annotations: vec![
 //!         Annotation {
-//!             label: Some("mismatched types".to_string()),
-//!             id: Some("E0308".to_string()),
-//!             annotation_type: AnnotationType::Error,
-//!             range: None
-//!         },
-//!         Annotation {
 //!             label: Some("expected `Option<String>` because of return type".to_string()),
-//!             id: None,
 //!             annotation_type: AnnotationType::Warning,
 //!             range: Some((6, 20))
 //!         },
 //!         Annotation {
 //!             label: Some("expected enum `std::option::Option".to_string()),
-//!             id: None,
 //!             annotation_type: AnnotationType::Error,
 //!             range: Some((23, 787))
 //!         },
@@ -73,9 +69,7 @@ pub struct Snippet {
     /// Index of an Annotation to be used
     /// as a main one in the snippet (for the header part).
     pub main_annotation_pos: Option<usize>,
-    /// Index of an Annotation to be used
-    /// as a title one in the snippet (for the header part).
-    pub title_annotation_pos: Option<usize>,
+    pub title: Option<TitleAnnotation>,
     /// If set explicitly to `true`, the snippet will fold
     /// parts of the slice that don't contain any annotations.
     pub fold: Option<bool>,
@@ -112,7 +106,13 @@ pub enum AnnotationType {
 pub struct Annotation {
     pub range: Option<(usize, usize)>,
     pub label: Option<String>,
+    pub annotation_type: AnnotationType,
+}
+
+#[derive(Debug, Clone)]
+pub struct TitleAnnotation {
     /// Identifier of the annotation. Usually error code like "E0308".
     pub id: Option<String>,
+    pub label: Option<String>,
     pub annotation_type: AnnotationType,
 }

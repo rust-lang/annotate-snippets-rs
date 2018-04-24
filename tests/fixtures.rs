@@ -44,6 +44,8 @@ fn test_fixtures() {
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
         let actual_out = format!("{}", snippet);
+        println!("{}", expected_out);
+        println!("{}", actual_out);
 
         assert_eq!(
             expected_out,

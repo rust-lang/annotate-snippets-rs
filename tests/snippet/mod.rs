@@ -3,7 +3,7 @@ extern crate serde;
 
 use self::serde::de::{Deserialize, Deserializer};
 
-use self::annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet};
+use self::annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, TitleAnnotation};
 
 #[derive(Deserialize)]
 #[serde(remote = "Snippet")]
@@ -13,7 +13,8 @@ pub struct SnippetDef {
     #[serde(deserialize_with = "deserialize_annotations")]
     pub annotations: Vec<Annotation>,
     pub main_annotation_pos: Option<usize>,
-    pub title_annotation_pos: Option<usize>,
+    #[serde(deserialize_with = "deserialize_title_annotation")]
+    pub title: Option<TitleAnnotation>,
     pub fold: Option<bool>,
 }
 
@@ -26,6 +27,19 @@ where
 
     let v = Vec::deserialize(deserializer)?;
     Ok(v.into_iter().map(|Wrapper(a)| a).collect())
+}
+
+fn deserialize_title_annotation<'de, D>(
+    deserializer: D,
+) -> Result<Option<TitleAnnotation>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(with = "TitleAnnotationDef")] TitleAnnotation);
+
+    Option::<Wrapper>::deserialize(deserializer)
+        .map(|opt_wrapped: Option<Wrapper>| opt_wrapped.map(|wrapped: Wrapper| wrapped.0))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -41,7 +55,15 @@ pub struct SliceDef {
 pub struct AnnotationDef {
     pub range: Option<(usize, usize)>,
     pub label: Option<String>,
+    #[serde(with = "AnnotationTypeDef")]
+    pub annotation_type: AnnotationType,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "TitleAnnotation")]
+pub struct TitleAnnotationDef {
     pub id: Option<String>,
+    pub label: Option<String>,
     #[serde(with = "AnnotationTypeDef")]
     pub annotation_type: AnnotationType,
 }

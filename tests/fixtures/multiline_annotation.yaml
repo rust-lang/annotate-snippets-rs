@@ -24,14 +24,13 @@ slice:
         }
   line_start: 51
   origin: "src/format.rs"
-title_annotation_pos: 0
+title:
+  label: mismatched types
+  id: E0308
+  annotation_type: Error
 main_annotation_pos: 0
 fold: true
 annotations:
-  - label: mismatched types
-    id: E0308
-    annotation_type: Error
-    range: null
   - label: expected `std::option::Option<std::string::String>` because of return type
     annotation_type: Warning
     range: [6, 20]
