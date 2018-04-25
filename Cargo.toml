@@ -1,7 +1,19 @@
 [package]
 name = "annotate-snippets"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
+description = "Library for building code annotations"
+license = "Apache-2.0/MIT"
+repository = "https://github.com/zbraniecki/annotate-snippets-rs"
+readme = "README.md"
+keywords = ["code", "analysis", "ascii", "errors", "debug"]
+
+[badges]
+travis-ci = { repository = "zbraniecki/annotate-snippets-rs", branch = "master" }
+coveralls = { repository = "zbraniecki/annotate-snippets-rs", branch = "master", service = "github" }
+appveyor = { repository = "zbraniecki/annotate-snippets-rs" }
+
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 
