@@ -11,7 +11,6 @@ keywords = ["code", "analysis", "ascii", "errors", "debug"]
 [badges]
 travis-ci = { repository = "zbraniecki/annotate-snippets-rs", branch = "master" }
 coveralls = { repository = "zbraniecki/annotate-snippets-rs", branch = "master", service = "github" }
-appveyor = { repository = "zbraniecki/annotate-snippets-rs" }
 
 maintenance = { status = "actively-developed" }
 
