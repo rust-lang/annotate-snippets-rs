@@ -109,6 +109,7 @@ pub struct Annotation {
     pub annotation_type: AnnotationType,
 }
 
+/// An annotation used to describe the whole snippet.
 #[derive(Debug, Clone)]
 pub struct TitleAnnotation {
     /// Identifier of the annotation. Usually error code like "E0308".

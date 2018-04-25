@@ -5,11 +5,11 @@
 //!
 //! ```
 //! use annotate_snippets::snippet::{Snippet, Slice, Annotation, TitleAnnotation, AnnotationType};
-//! use annotate_snippets::display_list::{DisplayList, DisplayLine};
+//! use annotate_snippets::display_list::{DisplayList, DisplayLine, DisplayAnnotationType};
 //!
 //! let snippet = Snippet {
 //!   slice: Slice {
-//!     source: r#"id: Some()"#.to_string(),
+//!     source: "id: Option<>,\nlabel: Option<String>".to_string(),
 //!     line_start: 145,
 //!     origin: Some("src/display_list.rs".to_string())
 //!   },
@@ -24,7 +24,7 @@
 //!     Annotation {
 //!       label: Some("expected 1 parameter".to_string()),
 //!       annotation_type: AnnotationType::Error,
-//!       range: Some((19, 23))
+//!       range: Some((4, 12))
 //!     }
 //!   ]
 //! };
@@ -36,7 +36,18 @@
 //!       DisplayLine::Source {
 //!           lineno: 145,
 //!           inline_marks: vec![],
-//!           content: "id: Some()".to_string()
+//!           content: "id: Option<>,".to_string()
+//!       },
+//!       DisplayLine::Annotation {
+//!           label: "expected 1 parameter".to_string(),
+//!           range: (4, 12),
+//!           inline_marks: vec![],
+//!           annotation_type: DisplayAnnotationType::Error,
+//!       },
+//!       DisplayLine::Source {
+//!           lineno: 146,
+//!           inline_marks: vec![],
+//!           content: "label: Option<String>".to_string()
 //!       },
 //!       DisplayLine::EmptySource
 //!     ]
