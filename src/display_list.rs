@@ -5,7 +5,8 @@
 //!
 //! ```
 //! use annotate_snippets::snippet::{Snippet, Slice, Annotation, TitleAnnotation, AnnotationType};
-//! use annotate_snippets::display_list::{DisplayList, DisplayLine, DisplayAnnotationType};
+//! use annotate_snippets::display_list::{DisplayList, DisplayLine, DisplayAnnotationType,
+//! DisplaySnippetType};
 //!
 //! let snippet = Snippet {
 //!   slice: Slice {
@@ -30,7 +31,11 @@
 //! };
 //! assert_eq!(DisplayList::from(snippet), DisplayList {
 //!     body: vec![
-//!       DisplayLine::Raw("error[E0061]: this function takes 1 parameter but 0 parameters were supplied".to_string()),
+//!       DisplayLine::Description {
+//!         snippet_type: DisplaySnippetType::Error,
+//!         id: "E0061".to_string(),
+//!         label: "this function takes 1 parameter but 0 parameters were supplied".to_string(),
+//!       },
 //!       DisplayLine::Origin {
 //!           path: "src/display_list.rs".to_string(),
 //!           row: 145,
@@ -60,7 +65,6 @@
 //! });
 //! ```
 use snippet::{AnnotationType, Snippet};
-use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub struct DisplayList {
@@ -71,16 +75,13 @@ fn format_header(snippet: &Snippet, body: &Vec<DisplayLine>) -> Vec<DisplayLine>
     let mut header = vec![];
 
     if let Some(ref annotation) = snippet.title {
-        let annotation_type = match annotation.annotation_type {
-            AnnotationType::Error => "error",
-            AnnotationType::Warning => "warning",
-        };
         let id = annotation.id.clone().unwrap_or("".to_string());
         let label = annotation.label.clone().unwrap_or("".to_string());
-        header.push(DisplayLine::Raw(format!(
-            "{}[{}]: {}",
-            annotation_type, id, label
-        )));
+        header.push(DisplayLine::Description {
+            snippet_type: DisplaySnippetType::from(annotation.annotation_type),
+            id,
+            label,
+        })
     }
 
     let main_annotation = snippet
@@ -260,7 +261,11 @@ impl From<Snippet> for DisplayList {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayLine {
-    Raw(String),
+    Description {
+        snippet_type: DisplaySnippetType,
+        id: String,
+        label: String,
+    },
     Origin {
         path: String,
         row: usize,
@@ -300,16 +305,22 @@ impl From<AnnotationType> for DisplayAnnotationType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DisplaySnippetType {
+    Error,
+    Warning,
+}
+
+impl From<AnnotationType> for DisplaySnippetType {
+    fn from(at: AnnotationType) -> Self {
+        match at {
+            AnnotationType::Error => DisplaySnippetType::Error,
+            AnnotationType::Warning => DisplaySnippetType::Warning,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DisplayMark {
     AnnotationThrough,
     AnnotationStart,
-}
-
-impl fmt::Display for DisplayMark {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            DisplayMark::AnnotationThrough => write!(f, "|"),
-            DisplayMark::AnnotationStart => write!(f, "/"),
-        }
-    }
 }
