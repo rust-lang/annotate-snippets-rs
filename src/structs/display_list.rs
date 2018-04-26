@@ -29,47 +29,92 @@
 //!     }
 //!   ]
 //! };
-//! assert_eq!(DisplayList::from(snippet), DisplayList {
-//!     body: vec![
-//!       DisplayLine::Description {
+//! assert_eq!(DisplayList::from(snippet), vec![
+//!     DisplayLine::Description {
 //!         snippet_type: DisplaySnippetType::Error,
 //!         id: "E0061".to_string(),
 //!         label: "this function takes 1 parameter but 0 parameters were supplied".to_string(),
-//!       },
-//!       DisplayLine::Origin {
-//!           path: "src/display_list.rs".to_string(),
-//!           row: 145,
-//!           col: 4,
-//!       },
-//!       DisplayLine::EmptySource,
-//!       DisplayLine::Source {
-//!           lineno: 145,
-//!           inline_marks: vec![],
-//!           content: "id: Option<>,".to_string(),
-//!           range: (0, 14)
-//!       },
-//!       DisplayLine::Annotation {
-//!           label: Some("expected 1 parameter".to_string()),
-//!           range: (4, 12),
-//!           inline_marks: vec![],
-//!           annotation_type: DisplayAnnotationType::Error,
-//!       },
-//!       DisplayLine::Source {
-//!           lineno: 146,
-//!           inline_marks: vec![],
-//!           content: "label: Option<String>".to_string(),
-//!           range: (15, 37)
-//!       },
-//!       DisplayLine::EmptySource
-//!     ]
-//! });
+//!     },
+//!     DisplayLine::Origin {
+//!         path: "src/display_list.rs".to_string(),
+//!         row: 145,
+//!         col: 4,
+//!     },
+//!     DisplayLine::EmptySource,
+//!     DisplayLine::Source {
+//!         lineno: 145,
+//!         inline_marks: vec![],
+//!         content: "id: Option<>,".to_string(),
+//!         range: (0, 14)
+//!     },
+//!     DisplayLine::Annotation {
+//!         label: Some("expected 1 parameter".to_string()),
+//!         range: (4, 12),
+//!         inline_marks: vec![],
+//!         annotation_type: DisplayAnnotationType::Error,
+//!     },
+//!     DisplayLine::Source {
+//!         lineno: 146,
+//!         inline_marks: vec![],
+//!         content: "label: Option<String>".to_string(),
+//!         range: (15, 37)
+//!     },
+//!     DisplayLine::EmptySource
+//! ]);
 //! ```
-use snippet::{AnnotationType, Snippet};
+use structs::snippet::{AnnotationType, Snippet};
 
-#[derive(Debug, PartialEq)]
-pub struct DisplayList {
-    pub body: Vec<DisplayLine>,
+pub type DisplayList = Vec<DisplayLine>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplayLine {
+    Description {
+        snippet_type: DisplaySnippetType,
+        id: String,
+        label: String,
+    },
+    Origin {
+        path: String,
+        row: usize,
+        col: usize,
+    },
+    EmptySource,
+    Source {
+        lineno: usize,
+        inline_marks: Vec<DisplayMark>,
+        content: String,
+        range: (usize, usize),
+    },
+    Annotation {
+        inline_marks: Vec<DisplayMark>,
+        range: (usize, usize),
+        label: Option<String>,
+        annotation_type: DisplayAnnotationType,
+    },
+    Fold,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplayAnnotationType {
+    Error,
+    Warning,
+    MultilineStart,
+    MultilineEnd,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplayMark {
+    AnnotationThrough,
+    AnnotationStart,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplaySnippetType {
+    Error,
+    Warning,
+}
+
+// Formatting
 
 fn format_header(snippet: &Snippet, body: &Vec<DisplayLine>) -> Vec<DisplayLine> {
     let mut header = vec![];
@@ -253,46 +298,8 @@ impl From<Snippet> for DisplayList {
         let body = format_body(&snippet);
         let header = format_header(&snippet, &body);
 
-        DisplayList {
-            body: [&header[..], &body[..]].concat(),
-        }
+        vec![&header[..], &body[..]].concat()
     }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DisplayLine {
-    Description {
-        snippet_type: DisplaySnippetType,
-        id: String,
-        label: String,
-    },
-    Origin {
-        path: String,
-        row: usize,
-        col: usize,
-    },
-    EmptySource,
-    Source {
-        lineno: usize,
-        inline_marks: Vec<DisplayMark>,
-        content: String,
-        range: (usize, usize),
-    },
-    Annotation {
-        inline_marks: Vec<DisplayMark>,
-        range: (usize, usize),
-        label: Option<String>,
-        annotation_type: DisplayAnnotationType,
-    },
-    Fold,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DisplayAnnotationType {
-    Error,
-    Warning,
-    MultilineStart,
-    MultilineEnd,
 }
 
 impl From<AnnotationType> for DisplayAnnotationType {
@@ -304,12 +311,6 @@ impl From<AnnotationType> for DisplayAnnotationType {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DisplaySnippetType {
-    Error,
-    Warning,
-}
-
 impl From<AnnotationType> for DisplaySnippetType {
     fn from(at: AnnotationType) -> Self {
         match at {
@@ -317,10 +318,4 @@ impl From<AnnotationType> for DisplaySnippetType {
             AnnotationType::Warning => DisplaySnippetType::Warning,
         }
     }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DisplayMark {
-    AnnotationThrough,
-    AnnotationStart,
 }

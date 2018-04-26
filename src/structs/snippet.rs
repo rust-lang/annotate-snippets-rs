@@ -57,10 +57,6 @@
 //! let output = format!("{}", snippet);
 //! ```
 
-use display_list::DisplayList;
-use formatted_display_list::FormattedDisplayList;
-use std::fmt;
-
 /// Primary structure provided for formatting
 #[derive(Debug, Clone)]
 pub struct Snippet {
@@ -73,14 +69,6 @@ pub struct Snippet {
     /// If set explicitly to `true`, the snippet will fold
     /// parts of the slice that don't contain any annotations.
     pub fold: Option<bool>,
-}
-
-impl fmt::Display for Snippet {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let dl = DisplayList::from(self.clone());
-        let fdl = FormattedDisplayList::from(dl);
-        write!(f, "{}", fdl)
-    }
 }
 
 /// Structure containing the slice of text to be annotated and

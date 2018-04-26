@@ -1,6 +1,16 @@
-use display_list::{DisplayAnnotationType, DisplayLine, DisplayMark, DisplaySnippetType};
-use formatted_display_list::{FormattedDisplayLine, FormattedDisplayList};
 use std::fmt;
+use structs::display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
+                            DisplaySnippetType};
+use structs::formatted_display_list::{FormattedDisplayLine, FormattedDisplayList};
+use structs::snippet::Snippet;
+
+impl fmt::Display for Snippet {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let dl = DisplayList::from(self.clone());
+        let fdl = FormattedDisplayList::from(dl);
+        write!(f, "{}", fdl)
+    }
+}
 
 impl fmt::Display for FormattedDisplayList {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -12,6 +22,37 @@ impl fmt::Display for FormattedDisplayList {
             last.fmt(f)?;
         }
         Ok(())
+    }
+}
+
+impl From<DisplayList> for FormattedDisplayList {
+    fn from(dl: DisplayList) -> Self {
+        let lineno_width = dl.iter().fold(0, |max, line| match line {
+            DisplayLine::Source { lineno, .. } => {
+                let width = lineno.to_string().len();
+                if width > max {
+                    width
+                } else {
+                    max
+                }
+            }
+            _ => max,
+        });
+        let inline_marks_width = dl.iter().fold(0, |max, line| match line {
+            DisplayLine::Source { inline_marks, .. } => {
+                let width = inline_marks.len();
+                if width > max {
+                    width + 1
+                } else {
+                    max
+                }
+            }
+            _ => max,
+        });
+        let body = dl.into_iter()
+            .map(|line| FormattedDisplayLine::format(line, lineno_width, inline_marks_width))
+            .collect();
+        FormattedDisplayList { body }
     }
 }
 
