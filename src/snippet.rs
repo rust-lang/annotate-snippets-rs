@@ -43,14 +43,14 @@
 //!     fold: Some(true),
 //!     annotations: vec![
 //!         Annotation {
-//!             label: Some("expected `Option<String>` because of return type".to_string()),
+//!             label: "expected `Option<String>` because of return type".to_string(),
 //!             annotation_type: AnnotationType::Warning,
-//!             range: Some((6, 20))
+//!             range: (6, 20)
 //!         },
 //!         Annotation {
-//!             label: Some("expected enum `std::option::Option".to_string()),
+//!             label: "expected enum `std::option::Option".to_string(),
 //!             annotation_type: AnnotationType::Error,
-//!             range: Some((23, 787))
+//!             range: (23, 787)
 //!         },
 //!     ]
 //! };
@@ -104,8 +104,8 @@ pub enum AnnotationType {
 /// An Annotation is a pointer to a place in the Slice which is to be annotated.
 #[derive(Debug, Clone)]
 pub struct Annotation {
-    pub range: Option<(usize, usize)>,
-    pub label: Option<String>,
+    pub range: (usize, usize),
+    pub label: String,
     pub annotation_type: AnnotationType,
 }
 
