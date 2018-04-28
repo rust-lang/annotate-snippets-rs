@@ -54,7 +54,6 @@
 //!         },
 //!     ]
 //! };
-//! let output = format!("{}", snippet);
 //! ```
 
 /// Primary structure provided for formatting

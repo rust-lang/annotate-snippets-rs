@@ -29,7 +29,7 @@
 //!     }
 //!   ]
 //! };
-//! assert_eq!(DisplayList::from(snippet), vec![
+//! assert_eq!(DisplayList::from(snippet).body, vec![
 //!     DisplayLine::Description {
 //!         snippet_type: DisplaySnippetType::Error,
 //!         id: "E0061".to_string(),
@@ -64,7 +64,9 @@
 //! ```
 use structs::snippet::{AnnotationType, Snippet};
 
-pub type DisplayList = Vec<DisplayLine>;
+pub struct DisplayList {
+    pub body: Vec<DisplayLine>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayLine {
@@ -116,7 +118,7 @@ pub enum DisplaySnippetType {
 
 // Formatting
 
-fn format_header(snippet: &Snippet, body: &Vec<DisplayLine>) -> Vec<DisplayLine> {
+fn format_header(snippet: &Snippet, body: &[DisplayLine]) -> Vec<DisplayLine> {
     let mut header = vec![];
 
     if let Some(ref annotation) = snippet.title {
@@ -298,7 +300,7 @@ impl From<Snippet> for DisplayList {
         let body = format_body(&snippet);
         let header = format_header(&snippet, &body);
 
-        vec![&header[..], &body[..]].concat()
+        Self { body: vec![&header[..], &body[..]].concat() }
     }
 }
 

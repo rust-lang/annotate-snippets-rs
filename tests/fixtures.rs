@@ -8,6 +8,7 @@ extern crate glob;
 extern crate serde_yaml;
 
 use annotate_snippets::snippet::Snippet;
+use annotate_snippets::display_list::DisplayList;
 use glob::glob;
 use snippet::SnippetDef;
 use std::error::Error;
@@ -43,7 +44,7 @@ fn test_fixtures() {
         let snippet = read_fixture(path_in).expect("Failed to read file");
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
-        let actual_out = format!("{}", snippet);
+        let actual_out = format!("{}", DisplayList::from(snippet));
         println!("{}", expected_out);
         println!("{}", actual_out);
 
