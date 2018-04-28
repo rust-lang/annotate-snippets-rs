@@ -300,7 +300,9 @@ impl From<Snippet> for DisplayList {
         let body = format_body(&snippet);
         let header = format_header(&snippet, &body);
 
-        Self { body: vec![&header[..], &body[..]].concat() }
+        Self {
+            body: vec![&header[..], &body[..]].concat(),
+        }
     }
 }
 

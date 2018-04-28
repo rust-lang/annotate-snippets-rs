@@ -7,8 +7,8 @@ extern crate annotate_snippets;
 extern crate glob;
 extern crate serde_yaml;
 
-use annotate_snippets::snippet::Snippet;
 use annotate_snippets::display_list::DisplayList;
+use annotate_snippets::snippet::Snippet;
 use glob::glob;
 use snippet::SnippetDef;
 use std::error::Error;

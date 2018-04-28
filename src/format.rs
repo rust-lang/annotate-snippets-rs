@@ -27,7 +27,9 @@ impl fmt::Display for DisplayList {
             }
             _ => max,
         });
-        let body = self.body.clone().into_iter()
+        let body = self.body
+            .clone()
+            .into_iter()
             .map(|line| FormattedDisplayLine::format(line, lineno_width, inline_marks_width))
             .collect();
         let fdl = FormattedDisplayList { body };
