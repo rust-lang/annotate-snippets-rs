@@ -1,9 +1,8 @@
 use std::fmt;
 use structs::display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
                             DisplaySnippetType};
-struct DisplayListFormatting {}
 
-impl DisplayListFormatting {
+trait DisplayListFormatting {
     fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String {
         match snippet_type {
             DisplaySnippetType::Error => "error".to_string(),
@@ -60,7 +59,7 @@ impl DisplayListFormatting {
         }
     }
 
-    pub fn format_line(dl: DisplayLine, lineno_width: usize, inline_marks_width: usize) -> String {
+    fn format_line(dl: DisplayLine, lineno_width: usize, inline_marks_width: usize) -> String {
         match dl {
             DisplayLine::Description {
                 snippet_type,
@@ -68,21 +67,14 @@ impl DisplayListFormatting {
                 label,
             } => format!(
                 "{}[{}]: {}",
-                DisplayListFormatting::format_snippet_type(&snippet_type),
+                Self::format_snippet_type(&snippet_type),
                 id,
                 label
             ),
-            DisplayLine::Origin { path, row, col } => format!(
-                "{}--> {}:{}:{}",
-                " ".repeat(lineno_width),
-                path,
-                row,
-                col
-            ),
-            DisplayLine::EmptySource => format!(
-                "{} |",
-                " ".repeat(lineno_width)
-            ),
+            DisplayLine::Origin { path, row, col } => {
+                format!("{}--> {}:{}:{}", " ".repeat(lineno_width), path, row, col)
+            }
+            DisplayLine::EmptySource => format!("{} |", " ".repeat(lineno_width)),
             DisplayLine::Source {
                 lineno,
                 inline_marks,
@@ -91,16 +83,10 @@ impl DisplayListFormatting {
             } => format!(
                 "{:>width$} |{} {}",
                 lineno,
-                DisplayListFormatting::format_inline_marks(&inline_marks, inline_marks_width),
+                Self::format_inline_marks(&inline_marks, inline_marks_width),
                 content,
                 width = lineno_width,
             ),
-//             FormattedDisplayLine::Annotation {
-//                 lineno,
-//                 inline_marks,
-//                 content,
-//             } => write!(f, "{} |{}{}", lineno, inline_marks, content),
-//             FormattedDisplayLine::Fold => write!(f, "...  |"),
             DisplayLine::Annotation {
                 inline_marks,
                 range,
@@ -109,15 +95,17 @@ impl DisplayListFormatting {
             } => format!(
                 "{} |{}{}",
                 " ".repeat(lineno_width),
-                DisplayListFormatting::format_inline_marks(&inline_marks, inline_marks_width),
-                DisplayListFormatting::format_annotation_content(range, &label, &annotation_type),
+                Self::format_inline_marks(&inline_marks, inline_marks_width),
+                Self::format_annotation_content(range, &label, &annotation_type),
             ),
-            DisplayLine::Fold => format!(
-                "...  |",
-            ),
+            DisplayLine::Fold => format!("...  |",),
         }
     }
 }
+
+struct Formatter {}
+
+impl DisplayListFormatting for Formatter {}
 
 impl fmt::Display for DisplayList {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -146,9 +134,8 @@ impl fmt::Display for DisplayList {
         let body = self.body
             .clone()
             .into_iter()
-            .map(|line| DisplayListFormatting::format_line(line, lineno_width, inline_marks_width))
+            .map(|line| Formatter::format_line(line, lineno_width, inline_marks_width))
             .collect::<Vec<String>>();
-        // let fdl = FormattedDisplayList { body };
         write!(f, "{}", body.join("\n"))
     }
 }
