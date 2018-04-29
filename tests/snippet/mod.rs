@@ -12,7 +12,6 @@ pub struct SnippetDef {
     pub slice: Slice,
     #[serde(deserialize_with = "deserialize_annotations")]
     pub annotations: Vec<Annotation>,
-    pub main_annotation_pos: Option<usize>,
     #[serde(deserialize_with = "deserialize_title_annotation")]
     pub title: Option<TitleAnnotation>,
     pub fold: Option<bool>,

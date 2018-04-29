@@ -19,7 +19,6 @@
 //!       label: Some("this function takes 1 parameter but 0 parameters were supplied".to_string()),
 //!       annotation_type: AnnotationType::Error,
 //!   }),
-//!   main_annotation_pos: Some(0),
 //!   fold: Some(false),
 //!   annotations: vec![
 //!     Annotation {
@@ -131,9 +130,7 @@ fn format_header(snippet: &Snippet, body: &[DisplayLine]) -> Vec<DisplayLine> {
         })
     }
 
-    let main_annotation = snippet
-        .main_annotation_pos
-        .and_then(|pos| snippet.annotations.get(pos));
+    let main_annotation = snippet.annotations.get(0);
 
     if let Some(annotation) = main_annotation {
         let mut col = 1;

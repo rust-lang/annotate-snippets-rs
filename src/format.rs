@@ -3,6 +3,32 @@ use structs::display_list::{DisplayAnnotationType, DisplayLine, DisplayList, Dis
                             DisplaySnippetType};
 use structs::formatted_display_list::{FormattedDisplayLine, FormattedDisplayList};
 
+struct DisplayListFormatting {}
+
+impl DisplayListFormatting {
+    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String {
+        match snippet_type {
+            DisplaySnippetType::Error => "error".to_string(),
+            DisplaySnippetType::Warning => "warning".to_string(),
+        }
+    }
+
+    fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String {
+        format!(
+            "{: >width$}",
+            inline_marks
+                .iter()
+                .map(|mark| match mark {
+                    DisplayMark::AnnotationThrough => "|",
+                    DisplayMark::AnnotationStart => "/",
+                })
+                .collect::<Vec<&str>>()
+                .join(""),
+            width = inline_marks_width
+        )
+    }
+}
+
 impl fmt::Display for DisplayList {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lineno_width = self.body.iter().fold(0, |max, line| match line {
@@ -59,7 +85,7 @@ impl FormattedDisplayLine {
                 label,
             } => FormattedDisplayLine::Raw(format!(
                 "{}[{}]: {}",
-                Self::format_snippet_type(&snippet_type),
+                DisplayListFormatting::format_snippet_type(&snippet_type),
                 id,
                 label
             )),
@@ -80,7 +106,7 @@ impl FormattedDisplayLine {
                 ..
             } => FormattedDisplayLine::Source {
                 lineno: format!("{: >width$}", lineno, width = lineno_width),
-                inline_marks: Self::format_inline_marks(&inline_marks, inline_marks_width),
+                inline_marks: DisplayListFormatting::format_inline_marks(&inline_marks, inline_marks_width),
                 content,
             },
             DisplayLine::Annotation {
@@ -90,33 +116,11 @@ impl FormattedDisplayLine {
                 annotation_type,
             } => FormattedDisplayLine::Annotation {
                 lineno: " ".repeat(lineno_width),
-                inline_marks: Self::format_inline_marks(&inline_marks, inline_marks_width),
+                inline_marks: DisplayListFormatting::format_inline_marks(&inline_marks, inline_marks_width),
                 content: Self::format_annotation_content(range, &label, &annotation_type),
             },
             DisplayLine::Fold => FormattedDisplayLine::Fold,
         }
-    }
-
-    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String {
-        match snippet_type {
-            DisplaySnippetType::Error => "error".to_string(),
-            DisplaySnippetType::Warning => "warning".to_string(),
-        }
-    }
-
-    fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String {
-        format!(
-            "{: >width$}",
-            inline_marks
-                .iter()
-                .map(|mark| match mark {
-                    DisplayMark::AnnotationThrough => "|",
-                    DisplayMark::AnnotationStart => "/",
-                })
-                .collect::<Vec<&str>>()
-                .join(""),
-            width = inline_marks_width
-        )
     }
 
     fn format_annotation_content(

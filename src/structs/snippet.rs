@@ -39,7 +39,6 @@
 //!         id: Some("E0308".to_string()),
 //!         annotation_type: AnnotationType::Error,
 //!     }),
-//!     main_annotation_pos: Some(0),
 //!     fold: Some(true),
 //!     annotations: vec![
 //!         Annotation {
@@ -61,9 +60,6 @@
 pub struct Snippet {
     pub slice: Slice,
     pub annotations: Vec<Annotation>,
-    /// Index of an Annotation to be used
-    /// as a main one in the snippet (for the header part).
-    pub main_annotation_pos: Option<usize>,
     pub title: Option<TitleAnnotation>,
     /// If set explicitly to `true`, the snippet will fold
     /// parts of the slice that don't contain any annotations.
