@@ -61,7 +61,7 @@
 //!     DisplayLine::EmptySource
 //! ]);
 //! ```
-use structs::snippet::{AnnotationType, Snippet};
+use snippet::{AnnotationType, Snippet};
 
 pub struct DisplayList {
     pub body: Vec<DisplayLine>,

@@ -1,10 +1,17 @@
 use std::fmt;
-use structs::display_list::{DisplayLine, DisplayList};
+use display_list::{DisplayLine, DisplayList, DisplaySnippetType};
 use display_list_formatting::DisplayListFormatting;
 
 struct Formatter {}
 
-impl DisplayListFormatting for Formatter {}
+impl DisplayListFormatting for Formatter {
+    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String {
+        match snippet_type {
+            DisplaySnippetType::Error => "error".to_string(),
+            DisplaySnippetType::Warning => "warning".to_string(),
+        }
+    }
+}
 
 impl fmt::Display for DisplayList {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -30,11 +37,10 @@ impl fmt::Display for DisplayList {
             }
             _ => max,
         });
-        let body = self.body
-            .clone()
-            .into_iter()
-            .map(|line| Formatter::format_line(line, lineno_width, inline_marks_width))
-            .collect::<Vec<String>>();
-        write!(f, "{}", body.join("\n"))
+        
+        for line in &self.body {
+            Formatter::format_line(f, line, lineno_width, inline_marks_width)?;
+        }
+        Ok(())
     }
 }

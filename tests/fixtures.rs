@@ -46,11 +46,11 @@ fn test_fixtures() {
 
         let actual_out = format!("{}", DisplayList::from(snippet));
         println!("{}", expected_out);
-        println!("{}", actual_out);
+        println!("{}", actual_out.trim_right());
 
         assert_eq!(
             expected_out,
-            actual_out,
+            actual_out.trim_right(),
             "\n\n\nWhile parsing: {}\nThe diff is:\n\n\n{}\n\n\n",
             path_in,
             diff::get_diff(expected_out.as_str(), actual_out.as_str())

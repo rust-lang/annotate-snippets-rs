@@ -1,17 +1,13 @@
-use structs::display_list::{DisplayAnnotationType, DisplayLine, DisplayMark,
+use std::fmt;
+use display_list::{DisplayAnnotationType, DisplayLine, DisplayMark,
                             DisplaySnippetType};
 
 pub trait DisplayListFormatting {
-    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String {
-        match snippet_type {
-            DisplaySnippetType::Error => "error".to_string(),
-            DisplaySnippetType::Warning => "warning".to_string(),
-        }
-    }
+    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String;
 
     fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String {
         format!(
-            "{: >width$}",
+            "{:>width$}",
             inline_marks
                 .iter()
                 .map(|mark| match mark {
@@ -25,7 +21,7 @@ pub trait DisplayListFormatting {
     }
 
     fn format_annotation_content(
-        range: (usize, usize),
+        range: &(usize, usize),
         label: &Option<String>,
         annotation_type: &DisplayAnnotationType,
     ) -> String {
@@ -58,28 +54,28 @@ pub trait DisplayListFormatting {
         }
     }
 
-    fn format_line(dl: DisplayLine, lineno_width: usize, inline_marks_width: usize) -> String {
+    fn format_line(f: &mut fmt::Formatter, dl: &DisplayLine, lineno_width: usize, inline_marks_width: usize) -> fmt::Result {
         match dl {
             DisplayLine::Description {
                 snippet_type,
                 id,
                 label,
-            } => format!(
+            } => writeln!(f,
                 "{}[{}]: {}",
                 Self::format_snippet_type(&snippet_type),
                 id,
                 label
             ),
             DisplayLine::Origin { path, row, col } => {
-                format!("{}--> {}:{}:{}", " ".repeat(lineno_width), path, row, col)
+                writeln!(f, "{}--> {}:{}:{}", " ".repeat(lineno_width), path, row, col)
             }
-            DisplayLine::EmptySource => format!("{} |", " ".repeat(lineno_width)),
+            DisplayLine::EmptySource => writeln!(f, "{} |", " ".repeat(lineno_width)),
             DisplayLine::Source {
                 lineno,
                 inline_marks,
                 content,
                 ..
-            } => format!(
+            } => writeln!(f,
                 "{:>width$} |{} {}",
                 lineno,
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
@@ -91,46 +87,13 @@ pub trait DisplayListFormatting {
                 range,
                 label,
                 annotation_type,
-            } => format!(
+            } => writeln!(f,
                 "{} |{}{}",
                 " ".repeat(lineno_width),
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
                 Self::format_annotation_content(range, &label, &annotation_type),
             ),
-            DisplayLine::Fold => format!("...  |",),
+            DisplayLine::Fold => writeln!(f, "...  |",),
         }
     }
 }
-
-// impl fmt::Display for DisplayList {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         let lineno_width = self.body.iter().fold(0, |max, line| match line {
-//             DisplayLine::Source { lineno, .. } => {
-//                 let width = lineno.to_string().len();
-//                 if width > max {
-//                     width
-//                 } else {
-//                     max
-//                 }
-//             }
-//             _ => max,
-//         });
-//         let inline_marks_width = self.body.iter().fold(0, |max, line| match line {
-//             DisplayLine::Source { inline_marks, .. } => {
-//                 let width = inline_marks.len();
-//                 if width > max {
-//                     width + 1
-//                 } else {
-//                     max
-//                 }
-//             }
-//             _ => max,
-//         });
-//         let body = self.body
-//             .clone()
-//             .into_iter()
-//             .map(|line| Formatter::format_line(line, lineno_width, inline_marks_width))
-//             .collect::<Vec<String>>();
-//         write!(f, "{}", body.join("\n"))
-//     }
-// }
