@@ -15,6 +15,9 @@ coveralls = { repository = "zbraniecki/annotate-snippets-rs", branch = "master",
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+#ansi_term = { version = "0.11.0", optional = true }
+ansi_term = "0.11.0"
+
 
 [dev-dependencies]
 glob = "0.2"

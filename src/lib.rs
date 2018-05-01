@@ -27,5 +27,5 @@
 
 pub mod display_list;
 pub mod display_list_formatting;
-pub mod format;
+pub mod format_color;
 pub mod snippet;
