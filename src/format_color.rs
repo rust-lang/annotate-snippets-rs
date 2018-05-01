@@ -1,6 +1,7 @@
 extern crate ansi_term;
 
-use self::ansi_term::Color::{Fixed, White};
+use self::ansi_term::Color::Fixed;
+use self::ansi_term::Style;
 use display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
                    DisplaySnippetType};
 use display_list_formatting::DisplayListFormatting;
@@ -74,21 +75,38 @@ impl DisplayListFormatting for Formatter {
         match dl {
             DisplayLine::Description {
                 snippet_type,
-                id,
+                id: Some(id),
                 label,
             } => {
                 let color = match snippet_type {
                     DisplaySnippetType::Error => Fixed(9),
                     DisplaySnippetType::Warning => Fixed(11),
                 };
-                writeln!(f,
+                writeln!(
+                    f,
                     "{}{}",
                     color.bold().paint(format!(
                         "{}[{}]",
                         Self::format_snippet_type(&snippet_type),
                         id
                     )),
-                    White.bold().paint(format!(": {}", label))
+                    Style::new().bold().paint(format!(": {}", label))
+                )
+            }
+            DisplayLine::Description {
+                snippet_type,
+                id: None,
+                label,
+            } => {
+                let color = match snippet_type {
+                    DisplaySnippetType::Error => Fixed(9),
+                    DisplaySnippetType::Warning => Fixed(11),
+                };
+                writeln!(
+                    f,
+                    "{}{}",
+                    color.bold().paint(Self::format_snippet_type(&snippet_type)),
+                    Style::new().bold().paint(format!(": {}", label))
                 )
             }
             DisplayLine::Origin { path, row, col } => writeln!(
@@ -118,7 +136,7 @@ impl DisplayListFormatting for Formatter {
                     Self::format_inline_marks(&inline_marks, inline_marks_width),
                     content,
                 )
-            },
+            }
             DisplayLine::Annotation {
                 inline_marks,
                 range,

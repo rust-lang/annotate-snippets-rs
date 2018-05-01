@@ -71,7 +71,7 @@ impl DisplayListFormatting for Formatter {
         match dl {
             DisplayLine::Description {
                 snippet_type,
-                id,
+                id: Some(id),
                 label,
             } => writeln!(
                 f,
@@ -80,6 +80,11 @@ impl DisplayListFormatting for Formatter {
                 id,
                 label
             ),
+            DisplayLine::Description {
+                snippet_type,
+                id: None,
+                label,
+            } => writeln!(f, "{}: {}", Self::format_snippet_type(&snippet_type), label),
             DisplayLine::Origin { path, row, col } => writeln!(
                 f,
                 "{}--> {}:{}:{}",

@@ -1,7 +1,7 @@
 extern crate annotate_snippets;
 
-use annotate_snippets::snippet::{Snippet, Slice, Annotation, TitleAnnotation, AnnotationType};
 use annotate_snippets::display_list::DisplayList;
+use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, TitleAnnotation};
 
 fn main() {
     let snippet = Snippet {
@@ -28,28 +28,28 @@ fn main() {
             _ => continue,
         }
     }"#.to_string(),
-         line_start: 51,
-         origin: Some("src/format.rs".to_string())
-         },
-         title: Some(TitleAnnotation {
-             label: Some("mismatched types".to_string()),
-             id: Some("E0308".to_string()),
-             annotation_type: AnnotationType::Error,
-         }),
-         fold: Some(false),
-         annotations: vec![
-             Annotation {
-                 label: "expected `Option<String>` because of return type".to_string(),
-                 annotation_type: AnnotationType::Warning,
-                 range: (6, 20)
-             },
-             Annotation {
-                 label: "expected enum `std::option::Option".to_string(),
-                 annotation_type: AnnotationType::Error,
-                 range: (23, 746)
-             },
-         ]
-        };
+            line_start: 51,
+            origin: Some("src/format.rs".to_string()),
+        },
+        title: Some(TitleAnnotation {
+            label: Some("mismatched types".to_string()),
+            id: Some("E0308".to_string()),
+            annotation_type: AnnotationType::Error,
+        }),
+        fold: Some(true),
+        annotations: vec![
+            Annotation {
+                label: "expected `Option<String>` because of return type".to_string(),
+                annotation_type: AnnotationType::Warning,
+                range: (6, 20),
+            },
+            Annotation {
+                label: "expected enum `std::option::Option".to_string(),
+                annotation_type: AnnotationType::Error,
+                range: (23, 746),
+            },
+        ],
+    };
 
     println!("{}", DisplayList::from(snippet));
 }

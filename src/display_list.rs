@@ -31,7 +31,7 @@
 //! assert_eq!(DisplayList::from(snippet).body, vec![
 //!     DisplayLine::Description {
 //!         snippet_type: DisplaySnippetType::Error,
-//!         id: "E0061".to_string(),
+//!         id: Some("E0061".to_string()),
 //!         label: "this function takes 1 parameter but 0 parameters were supplied".to_string(),
 //!     },
 //!     DisplayLine::Origin {
@@ -71,7 +71,7 @@ pub struct DisplayList {
 pub enum DisplayLine {
     Description {
         snippet_type: DisplaySnippetType,
-        id: String,
+        id: Option<String>,
         label: String,
     },
     Origin {
@@ -123,11 +123,10 @@ fn format_header(snippet: &Snippet, body: &[DisplayLine]) -> Vec<DisplayLine> {
     let mut header = vec![];
 
     if let Some(ref annotation) = snippet.title {
-        let id = annotation.id.clone().unwrap_or("".to_string());
         let label = annotation.label.clone().unwrap_or("".to_string());
         header.push(DisplayLine::Description {
             snippet_type: DisplaySnippetType::from(annotation.annotation_type),
-            id,
+            id: annotation.id.clone(),
             label,
         })
     }
@@ -234,7 +233,7 @@ fn format_body(snippet: &Snippet) -> Vec<DisplayLine> {
             let body_idx = idx + annotation_line_count;
             match annotation.range {
                 (start, _) if start > line_end => false,
-                (start, end) if start >= line_start && end <= line_end => {
+                (start, end) if start >= line_start && end <= line_end + 1 => {
                     let range = (start - line_start, end - line_start);
                     body.insert(
                         body_idx + 1,

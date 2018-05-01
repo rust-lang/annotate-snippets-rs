@@ -1,0 +1,18 @@
+slice:
+  source: |1
+           })
+
+           for line in &self.body {
+  line_start: 169
+  origin: src/format_color.rs
+main_annotation: 0
+title:
+  label: expected one of `.`, `;`, `?`, or an operator, found `for`
+  annotation_type: Error
+annotations:
+  - label: unexpected token
+    annotation_type: Error
+    range: [23, 26]
+  - label: expected one of `.`, `;`, `?`, or an operator here
+    annotation_type: Warning
+    range: [11, 12]

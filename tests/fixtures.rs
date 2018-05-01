@@ -35,7 +35,7 @@ fn read_fixture<P: AsRef<Path>>(path: P) -> Result<Snippet, Box<Error>> {
 
 #[test]
 fn test_fixtures() {
-    for entry in glob("./tests/fixtures/**/*.yaml").expect("Failed to read glob pattern") {
+    for entry in glob("./tests/fixtures/no-color/**/*.yaml").expect("Failed to read glob pattern") {
         let p = entry.expect("Error while getting an entry");
         let path_in = p.to_str().expect("Can't print path");
 
