@@ -1,6 +1,6 @@
-use std::fmt;
 use display_list::{DisplayLine, DisplayList, DisplaySnippetType};
 use display_list_formatting::DisplayListFormatting;
+use std::fmt;
 
 struct Formatter {}
 
@@ -37,7 +37,7 @@ impl fmt::Display for DisplayList {
             }
             _ => max,
         });
-        
+
         for line in &self.body {
             Formatter::format_line(f, line, lineno_width, inline_marks_width)?;
         }

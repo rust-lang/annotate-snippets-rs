@@ -1,6 +1,5 @@
+use display_list::{DisplayAnnotationType, DisplayLine, DisplayMark, DisplaySnippetType};
 use std::fmt;
-use display_list::{DisplayAnnotationType, DisplayLine, DisplayMark,
-                            DisplaySnippetType};
 
 pub trait DisplayListFormatting {
     fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String;
@@ -54,28 +53,40 @@ pub trait DisplayListFormatting {
         }
     }
 
-    fn format_line(f: &mut fmt::Formatter, dl: &DisplayLine, lineno_width: usize, inline_marks_width: usize) -> fmt::Result {
+    fn format_line(
+        f: &mut fmt::Formatter,
+        dl: &DisplayLine,
+        lineno_width: usize,
+        inline_marks_width: usize,
+    ) -> fmt::Result {
         match dl {
             DisplayLine::Description {
                 snippet_type,
                 id,
                 label,
-            } => writeln!(f,
+            } => writeln!(
+                f,
                 "{}[{}]: {}",
                 Self::format_snippet_type(&snippet_type),
                 id,
                 label
             ),
-            DisplayLine::Origin { path, row, col } => {
-                writeln!(f, "{}--> {}:{}:{}", " ".repeat(lineno_width), path, row, col)
-            }
+            DisplayLine::Origin { path, row, col } => writeln!(
+                f,
+                "{}--> {}:{}:{}",
+                " ".repeat(lineno_width),
+                path,
+                row,
+                col
+            ),
             DisplayLine::EmptySource => writeln!(f, "{} |", " ".repeat(lineno_width)),
             DisplayLine::Source {
                 lineno,
                 inline_marks,
                 content,
                 ..
-            } => writeln!(f,
+            } => writeln!(
+                f,
                 "{:>width$} |{} {}",
                 lineno,
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
@@ -87,13 +98,18 @@ pub trait DisplayListFormatting {
                 range,
                 label,
                 annotation_type,
-            } => writeln!(f,
+            } => writeln!(
+                f,
                 "{} |{}{}",
                 " ".repeat(lineno_width),
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
                 Self::format_annotation_content(range, &label, &annotation_type),
             ),
-            DisplayLine::Fold => writeln!(f, "...  |",),
+            DisplayLine::Fold { inline_marks } => writeln!(
+                f,
+                "... {}",
+                Self::format_inline_marks(&inline_marks, inline_marks_width),
+            ),
         }
     }
 }

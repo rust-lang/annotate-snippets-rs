@@ -92,7 +92,9 @@ pub enum DisplayLine {
         label: Option<String>,
         annotation_type: DisplayAnnotationType,
     },
-    Fold,
+    Fold {
+        inline_marks: Vec<DisplayMark>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -154,6 +156,53 @@ fn format_header(snippet: &Snippet, body: &[DisplayLine]) -> Vec<DisplayLine> {
         }
     }
     header
+}
+
+fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
+    let mut new_body = vec![];
+
+    let mut no_annotation_lines_counter = 0;
+    let mut idx = 0;
+
+    while idx < body.len() {
+        match body[idx] {
+            DisplayLine::Annotation {
+                ref inline_marks, ..
+            } => {
+                if no_annotation_lines_counter > 10 {
+                    let fold_start = idx - no_annotation_lines_counter;
+                    let fold_end = idx;
+                    for i in fold_start..fold_start + 4 {
+                        new_body.push(body[i].clone());
+                    }
+                    new_body.push(DisplayLine::Fold {
+                        inline_marks: inline_marks.clone(),
+                    });
+                    for i in fold_end - 2..fold_end {
+                        new_body.push(body[i].clone());
+                    }
+                } else {
+                    let start = idx - no_annotation_lines_counter;
+                    for i in start..idx {
+                        new_body.push(body[i].clone());
+                    }
+                }
+                no_annotation_lines_counter = 0;
+            }
+            DisplayLine::Source { .. } => {
+                no_annotation_lines_counter += 1;
+                idx += 1;
+                continue;
+            }
+            _ => {
+                no_annotation_lines_counter += 1;
+            }
+        }
+        new_body.push(body[idx].clone());
+        idx += 1;
+    }
+
+    return new_body;
 }
 
 fn format_body(snippet: &Snippet) -> Vec<DisplayLine> {
@@ -262,27 +311,7 @@ fn format_body(snippet: &Snippet) -> Vec<DisplayLine> {
     }
 
     if snippet.fold.unwrap_or(false) {
-        let mut no_annotation_lines_counter = 0;
-        let mut idx = 0;
-        while idx < body.len() {
-            match body[idx] {
-                DisplayLine::Annotation { .. } => {
-                    if no_annotation_lines_counter > 10 {
-                        let fold_start = idx - no_annotation_lines_counter + 5;
-                        let fold_end = idx - 2;
-                        let fold_len = fold_end - fold_start;
-
-                        let slice = &[DisplayLine::Fold];
-
-                        body.splice(fold_start..fold_end, slice.iter().cloned());
-                        idx -= fold_len - 1;
-                    }
-                    no_annotation_lines_counter += 0;
-                }
-                _ => no_annotation_lines_counter += 1,
-            }
-            idx += 1;
-        }
+        body = fold_body(&body);
     }
 
     body.insert(0, DisplayLine::EmptySource);
