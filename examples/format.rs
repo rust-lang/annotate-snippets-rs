@@ -43,11 +43,11 @@ fn main() {
                  annotation_type: AnnotationType::Warning,
                  range: (6, 20)
              },
-             // Annotation {
-             //     label: "expected enum `std::option::Option".to_string(),
-             //     annotation_type: AnnotationType::Error,
-             //     range: (23, 787)
-             // },
+             Annotation {
+                 label: "expected enum `std::option::Option".to_string(),
+                 annotation_type: AnnotationType::Error,
+                 range: (23, 746)
+             },
          ]
         };
 

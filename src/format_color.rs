@@ -41,14 +41,14 @@ impl DisplayListFormatting for Formatter {
             DisplayAnnotationType::Error => format!(
                 "{}{}{}",
                 " ".repeat(range.0),
-                "^".repeat(range.1 - range.0),
-                label
+                Fixed(9).bold().paint("^".repeat(range.1 - range.0)),
+                Fixed(9).bold().paint(label)
             ),
             DisplayAnnotationType::Warning => format!(
                 "{}{}{}",
                 " ".repeat(range.0),
-                "-".repeat(range.1 - range.0),
-                label
+                Fixed(11).bold().paint("-".repeat(range.1 - range.0)),
+                Fixed(11).bold().paint(label)
             ),
             DisplayAnnotationType::MultilineStart => format!(
                 "{}{}{}",
@@ -109,7 +109,6 @@ impl DisplayListFormatting for Formatter {
                 inline_marks,
                 content,
                 ..
-            //result += &format!("{} {}\n", Fixed(12).bold().paint(format!("{} |", ln)), line);
             } => {
                 let prefix = format!("{:>width$} |", lineno, width = lineno_width);
                 writeln!(
