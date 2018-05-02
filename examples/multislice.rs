@@ -1,15 +1,16 @@
 extern crate annotate_snippets;
 
 use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::snippet::{AnnotationType, Slice, Snippet, TitleAnnotation};
+use annotate_snippets::snippet::{AnnotationType, Slice, Snippet, Annotation};
 
 fn main() {
     let snippet = Snippet {
-        title: Some(TitleAnnotation {
+        title: Some(Annotation {
             label: Some("mismatched types".to_string()),
             id: None,
             annotation_type: AnnotationType::Error,
         }),
+        footer: None,
         slices: vec![
             Slice {
                 source: "Foo".to_string(),

@@ -3,17 +3,19 @@ extern crate ansi_term;
 use self::ansi_term::Color::Fixed;
 use self::ansi_term::Style;
 use display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
-                   DisplaySnippetType, DisplayHeaderType};
+                   DisplayAnnotationPart, DisplayHeaderType};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
 struct Formatter {}
 
 impl DisplayListFormatting for Formatter {
-    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String {
-        match snippet_type {
-            DisplaySnippetType::Error => "error".to_string(),
-            DisplaySnippetType::Warning => "warning".to_string(),
+    fn format_annotation_type(annotation_type: &DisplayAnnotationType) -> String {
+        match annotation_type {
+            DisplayAnnotationType::Error => "error".to_string(),
+            DisplayAnnotationType::Warning => "warning".to_string(),
+            DisplayAnnotationType::Note => "note".to_string(),
+            DisplayAnnotationType::Help => "help".to_string(),
         }
     }
 
@@ -36,34 +38,31 @@ impl DisplayListFormatting for Formatter {
         range: &(usize, usize),
         label: &Option<String>,
         annotation_type: &DisplayAnnotationType,
+        annotation_part: &DisplayAnnotationPart,
     ) -> String {
         let label = label.clone().map_or("".to_string(), |l| format!(" {}", l));
-        match annotation_type {
-            DisplayAnnotationType::Error => format!(
-                "{}{}{}",
-                " ".repeat(range.0),
-                Fixed(9).bold().paint("^".repeat(range.1 - range.0)),
-                Fixed(9).bold().paint(label)
-            ),
-            DisplayAnnotationType::Warning => format!(
-                "{}{}{}",
-                " ".repeat(range.0),
-                Fixed(11).bold().paint("-".repeat(range.1 - range.0)),
-                Fixed(11).bold().paint(label)
-            ),
-            DisplayAnnotationType::MultilineStart => format!(
-                "{}{}{}",
-                "_".repeat(range.0),
-                "^".repeat(range.1 - range.0),
-                label
-            ),
-            DisplayAnnotationType::MultilineEnd => format!(
-                "{}{}{}",
-                "_".repeat(range.0),
-                "^".repeat(range.1 - range.0),
-                label
-            ),
-        }
+        let prefix = match annotation_part {
+            DisplayAnnotationPart::Singleline => " ",
+            DisplayAnnotationPart::MultilineStart => "_",
+            DisplayAnnotationPart::MultilineEnd => "_",
+        }; 
+        let mark = match annotation_type {
+            DisplayAnnotationType::Error => "^",
+            DisplayAnnotationType::Warning => "-",
+            DisplayAnnotationType::Note => "-",
+            DisplayAnnotationType::Help => "-",
+        };
+        let color = match annotation_type {
+            DisplayAnnotationType::Error => Fixed(9).bold(),
+            DisplayAnnotationType::Warning => Fixed(11).bold(),
+            DisplayAnnotationType::Note => Style::new().bold(),
+            DisplayAnnotationType::Help => Fixed(14).bold(),
+        };
+        format!("{}{}{}",
+          prefix.repeat(range.0),
+          color.paint(mark.repeat(range.1 - range.0)),
+          color.paint(label),
+        )
     }
 
     fn format_line(
@@ -73,39 +72,26 @@ impl DisplayListFormatting for Formatter {
         inline_marks_width: usize,
     ) -> fmt::Result {
         match dl {
-            DisplayLine::Description {
-                snippet_type,
-                id: Some(id),
+            DisplayLine::Annotation {
+                annotation_type,
+                id,
                 label,
             } => {
-                let color = match snippet_type {
-                    DisplaySnippetType::Error => Fixed(9),
-                    DisplaySnippetType::Warning => Fixed(11),
+                let color = match annotation_type {
+                    DisplayAnnotationType::Error => Fixed(9).bold(),
+                    DisplayAnnotationType::Warning => Fixed(11).bold(),
+                    DisplayAnnotationType::Note => Style::new().bold(),
+                    DisplayAnnotationType::Help => Fixed(14).bold(),
+                };
+                let name = if let Some(id) = id {
+                    format!("{}[{}]", Self::format_annotation_type(&annotation_type), id)
+                } else {
+                    Self::format_annotation_type(&annotation_type)
                 };
                 writeln!(
                     f,
                     "{}{}",
-                    color.bold().paint(format!(
-                        "{}[{}]",
-                        Self::format_snippet_type(&snippet_type),
-                        id
-                    )),
-                    Style::new().bold().paint(format!(": {}", label))
-                )
-            }
-            DisplayLine::Description {
-                snippet_type,
-                id: None,
-                label,
-            } => {
-                let color = match snippet_type {
-                    DisplaySnippetType::Error => Fixed(9),
-                    DisplaySnippetType::Warning => Fixed(11),
-                };
-                writeln!(
-                    f,
-                    "{}{}",
-                    color.bold().paint(Self::format_snippet_type(&snippet_type)),
+                    color.bold().paint(name),
                     Style::new().bold().paint(format!(": {}", label))
                 )
             }
@@ -151,11 +137,12 @@ impl DisplayListFormatting for Formatter {
                     content,
                 )
             }
-            DisplayLine::Annotation {
+            DisplayLine::SourceAnnotation {
                 inline_marks,
                 range,
                 label,
                 annotation_type,
+                annotation_part,
             } => {
                 let prefix = format!("{} |", " ".repeat(lineno_width));
                 writeln!(
@@ -163,7 +150,7 @@ impl DisplayListFormatting for Formatter {
                     "{}{}{}",
                     Fixed(12).bold().paint(prefix),
                     Self::format_inline_marks(&inline_marks, inline_marks_width),
-                    Self::format_annotation_content(range, &label, &annotation_type),
+                    Self::format_annotation_content(range, &label, &annotation_type, &annotation_part),
                 )
             }
             DisplayLine::Fold { inline_marks } => writeln!(
@@ -171,6 +158,25 @@ impl DisplayListFormatting for Formatter {
                 "... {}",
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
             ),
+            DisplayLine::AlignedAnnotation {
+                label,
+                annotation_type,
+            } => {
+                let color = match annotation_type {
+                    DisplayAnnotationType::Error => Fixed(9).bold(),
+                    DisplayAnnotationType::Warning => Fixed(11).bold(),
+                    DisplayAnnotationType::Note => Style::new().bold(),
+                    DisplayAnnotationType::Help => Fixed(14).bold(),
+                };
+                let prefix = format!("{} =", " ".repeat(lineno_width));
+                writeln!(
+                    f,
+                    "{} {}: {}",
+                    Fixed(12).bold().paint(prefix),
+                    color.paint(Self::format_annotation_type(annotation_type)),
+                    label
+                )
+            }
         }
     }
 }

@@ -1,7 +1,8 @@
 /// Primary structure provided for formatting
 #[derive(Debug, Clone)]
 pub struct Snippet {
-    pub title: Option<TitleAnnotation>,
+    pub title: Option<Annotation>,
+    pub footer: Option<Annotation>,
     pub slices: Vec<Slice>,
 }
 
@@ -12,7 +13,7 @@ pub struct Slice {
     pub source: String,
     pub line_start: usize,
     pub origin: Option<String>,
-    pub annotations: Vec<Annotation>,
+    pub annotations: Vec<SourceAnnotation>,
     /// If set explicitly to `true`, the snippet will fold
     /// parts of the slice that don't contain any annotations.
     pub fold: bool,
@@ -25,19 +26,19 @@ pub enum AnnotationType {
     Error,
     /// Warning annotations are displayed using blue color and "-" character.
     Warning,
+    Note,
+    Help,
 }
 
-/// An Annotation is a pointer to a place in the Slice which is to be annotated.
 #[derive(Debug, Clone)]
-pub struct Annotation {
+pub struct SourceAnnotation {
     pub range: (usize, usize),
     pub label: String,
     pub annotation_type: AnnotationType,
 }
 
-/// An annotation used to describe the whole snippet.
 #[derive(Debug, Clone)]
-pub struct TitleAnnotation {
+pub struct Annotation {
     /// Identifier of the annotation. Usually error code like "E0308".
     pub id: Option<String>,
     pub label: Option<String>,

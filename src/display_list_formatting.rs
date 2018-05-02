@@ -1,8 +1,8 @@
-use display_list::{DisplayAnnotationType, DisplayLine, DisplayMark, DisplaySnippetType};
+use display_list::{DisplayLine, DisplayMark, DisplayAnnotationType, DisplayAnnotationPart};
 use std::fmt;
 
 pub trait DisplayListFormatting {
-    fn format_snippet_type(snippet_type: &DisplaySnippetType) -> String;
+    fn format_annotation_type(annotation_type: &DisplayAnnotationType) -> String;
 
     fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String;
 
@@ -10,6 +10,7 @@ pub trait DisplayListFormatting {
         range: &(usize, usize),
         label: &Option<String>,
         annotation_type: &DisplayAnnotationType,
+        annotation_part: &DisplayAnnotationPart,
     ) -> String;
 
     fn format_line(

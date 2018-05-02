@@ -8,7 +8,7 @@ slices:
     fold: false
     annotations:
       - label: missing fields `lineno`, `content`
-        annotation_type: Warning
+        annotation_type: Error
         range: [32, 130]
 title:
   label: pattern does not mention fields `lineno`, `content`

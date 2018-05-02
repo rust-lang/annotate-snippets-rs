@@ -1,7 +1,7 @@
 extern crate annotate_snippets;
 
 use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, TitleAnnotation};
+use annotate_snippets::snippet::{SourceAnnotation, AnnotationType, Slice, Snippet, Annotation};
 
 fn main() {
     let snippet = Snippet {
@@ -32,23 +32,24 @@ fn main() {
             origin: Some("src/format.rs".to_string()),
             fold: true,
             annotations: vec![
-                Annotation {
+                SourceAnnotation {
                     label: "expected `Option<String>` because of return type".to_string(),
                     annotation_type: AnnotationType::Warning,
                     range: (6, 20),
                 },
-                Annotation {
+                SourceAnnotation {
                     label: "expected enum `std::option::Option".to_string(),
                     annotation_type: AnnotationType::Error,
                     range: (23, 746),
                 },
             ],
         }],
-        title: Some(TitleAnnotation {
+        title: Some(Annotation {
             label: Some("mismatched types".to_string()),
             id: Some("E0308".to_string()),
             annotation_type: AnnotationType::Error,
         }),
+        footer: None,
     };
 
     println!("{}", DisplayList::from(snippet));

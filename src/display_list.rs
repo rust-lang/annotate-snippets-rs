@@ -1,4 +1,4 @@
-use snippet::{AnnotationType, Slice, Snippet, TitleAnnotation};
+use snippet::{AnnotationType, Slice, Snippet, Annotation};
 
 pub struct DisplayList {
     pub body: Vec<DisplayLine>,
@@ -6,10 +6,14 @@ pub struct DisplayList {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayLine {
-    Description {
-        snippet_type: DisplaySnippetType,
-        id: Option<String>,
+    AlignedAnnotation {
         label: String,
+        annotation_type: DisplayAnnotationType,
+    },
+    Annotation {
+        label: String,
+        id: Option<String>,
+        annotation_type: DisplayAnnotationType,
     },
     Origin {
         path: String,
@@ -23,11 +27,12 @@ pub enum DisplayLine {
         content: String,
         range: (usize, usize),
     },
-    Annotation {
+    SourceAnnotation {
         inline_marks: Vec<DisplayMark>,
         range: (usize, usize),
         label: Option<String>,
         annotation_type: DisplayAnnotationType,
+        annotation_part: DisplayAnnotationPart,
     },
     Fold {
         inline_marks: Vec<DisplayMark>,
@@ -35,9 +40,8 @@ pub enum DisplayLine {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplayAnnotationType {
-    Error,
-    Warning,
+pub enum DisplayAnnotationPart {
+    Singleline,
     MultilineStart,
     MultilineEnd,
 }
@@ -49,9 +53,11 @@ pub enum DisplayMark {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplaySnippetType {
+pub enum DisplayAnnotationType {
     Error,
     Warning,
+    Note,
+    Help,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -62,11 +68,19 @@ pub enum DisplayHeaderType {
 
 // Formatting
 
-fn format_title(annotation: &TitleAnnotation) -> DisplayLine {
+fn format_title(annotation: &Annotation) -> DisplayLine {
     let label = annotation.label.clone().unwrap_or("".to_string());
-    DisplayLine::Description {
-        snippet_type: DisplaySnippetType::from(annotation.annotation_type),
+    DisplayLine::Annotation {
+        annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
         id: annotation.id.clone(),
+        label,
+    }
+}
+
+fn format_annotation(annotation: &Annotation) -> DisplayLine {
+    let label = annotation.label.clone().unwrap_or("".to_string());
+    DisplayLine::AlignedAnnotation {
+        annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
         label,
     }
 }
@@ -132,7 +146,7 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
 
     while idx < body.len() {
         match body[idx] {
-            DisplayLine::Annotation {
+            DisplayLine::SourceAnnotation {
                 ref inline_marks, ..
             } => {
                 if no_annotation_lines_counter > 10 {
@@ -204,13 +218,14 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
                     let range = (start - line_start, end - line_start);
                     body.insert(
                         body_idx + 1,
-                        DisplayLine::Annotation {
+                        DisplayLine::SourceAnnotation {
                             inline_marks: vec![],
                             range,
                             label: Some(annotation.label.clone()),
                             annotation_type: DisplayAnnotationType::from(
                                 annotation.annotation_type,
                             ),
+                            annotation_part: DisplayAnnotationPart::Singleline,
                         },
                     );
                     annotation_line_count += 1;
@@ -229,11 +244,14 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
                         let range = (start - line_start, start - line_start + 1);
                         body.insert(
                             body_idx + 1,
-                            DisplayLine::Annotation {
+                            DisplayLine::SourceAnnotation {
                                 inline_marks: vec![],
                                 range,
                                 label: None,
-                                annotation_type: DisplayAnnotationType::MultilineStart,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                                annotation_part: DisplayAnnotationPart::MultilineStart,
                             },
                         );
                         annotation_line_count += 1;
@@ -261,11 +279,14 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
                     let range = (end - line_start, end - line_start + 1);
                     body.insert(
                         body_idx + 1,
-                        DisplayLine::Annotation {
+                        DisplayLine::SourceAnnotation {
                             inline_marks: vec![DisplayMark::AnnotationThrough],
                             range,
                             label: Some(annotation.label.clone()),
-                            annotation_type: DisplayAnnotationType::MultilineEnd,
+                            annotation_type: DisplayAnnotationType::from(
+                                annotation.annotation_type,
+                            ),
+                            annotation_part: DisplayAnnotationPart::MultilineEnd,
                         },
                     );
                     annotation_line_count += 1;
@@ -299,6 +320,9 @@ impl From<Snippet> for DisplayList {
             body.append(&mut format_slice(&slice, slice_idx == 0));
             slice_idx += 1;
         }
+        if let Some(annotation) = snippet.footer {
+            body.push(format_annotation(&annotation));
+        }
 
         Self { body }
     }
@@ -309,15 +333,8 @@ impl From<AnnotationType> for DisplayAnnotationType {
         match at {
             AnnotationType::Error => DisplayAnnotationType::Error,
             AnnotationType::Warning => DisplayAnnotationType::Warning,
-        }
-    }
-}
-
-impl From<AnnotationType> for DisplaySnippetType {
-    fn from(at: AnnotationType) -> Self {
-        match at {
-            AnnotationType::Error => DisplaySnippetType::Error,
-            AnnotationType::Warning => DisplaySnippetType::Warning,
+            AnnotationType::Note => DisplayAnnotationType::Note,
+            AnnotationType::Help => DisplayAnnotationType::Help,
         }
     }
 }
