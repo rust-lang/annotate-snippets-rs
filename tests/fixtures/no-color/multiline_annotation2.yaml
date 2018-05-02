@@ -1,17 +1,16 @@
-slice:
-  source: |1
-                           if let DisplayLine::Source {
-                               ref mut inline_marks,
-                           } = body[body_idx]
-  line_start: 139
-  origin: "src/display_list.rs"
+slices:
+  - source: |1
+                             if let DisplayLine::Source {
+                                 ref mut inline_marks,
+                             } = body[body_idx]
+    line_start: 139
+    origin: "src/display_list.rs"
+    fold: false
+    annotations:
+      - label: missing fields `lineno`, `content`
+        annotation_type: Warning
+        range: [32, 130]
 title:
   label: pattern does not mention fields `lineno`, `content`
   id: E0027
   annotation_type: Error
-main_annotation_pos: 0
-fold: false
-annotations:
-  - label: missing fields `lineno`, `content`
-    annotation_type: Warning
-    range: [32, 130]

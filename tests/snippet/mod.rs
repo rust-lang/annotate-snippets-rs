@@ -8,21 +8,18 @@ use self::annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippe
 #[derive(Deserialize)]
 #[serde(remote = "Snippet")]
 pub struct SnippetDef {
-    #[serde(with = "SliceDef")]
-    pub slice: Slice,
-    #[serde(deserialize_with = "deserialize_annotations")]
-    pub annotations: Vec<Annotation>,
     #[serde(deserialize_with = "deserialize_title_annotation")]
     pub title: Option<TitleAnnotation>,
-    pub fold: Option<bool>,
+    #[serde(deserialize_with = "deserialize_slices")]
+    pub slices: Vec<Slice>,
 }
 
-fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation>, D::Error>
+fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
-    struct Wrapper(#[serde(with = "AnnotationDef")] Annotation);
+    struct Wrapper(#[serde(with = "SliceDef")] Slice);
 
     let v = Vec::deserialize(deserializer)?;
     Ok(v.into_iter().map(|Wrapper(a)| a).collect())
@@ -41,12 +38,27 @@ where
         .map(|opt_wrapped: Option<Wrapper>| opt_wrapped.map(|wrapped: Wrapper| wrapped.0))
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 #[serde(remote = "Slice")]
 pub struct SliceDef {
     pub source: String,
     pub line_start: usize,
     pub origin: Option<String>,
+    #[serde(deserialize_with = "deserialize_annotations")]
+    pub annotations: Vec<Annotation>,
+    #[serde(default)]
+    pub fold: bool,
+}
+
+fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(with = "AnnotationDef")] Annotation);
+
+    let v = Vec::deserialize(deserializer)?;
+    Ok(v.into_iter().map(|Wrapper(a)| a).collect())
 }
 
 #[derive(Serialize, Deserialize)]

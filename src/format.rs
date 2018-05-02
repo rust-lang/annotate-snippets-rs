@@ -1,5 +1,5 @@
-use display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
-                   DisplaySnippetType};
+use display_list::{DisplayAnnotationType, DisplayHeaderType, DisplayLine, DisplayList,
+                   DisplayMark, DisplaySnippetType};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
@@ -85,14 +85,29 @@ impl DisplayListFormatting for Formatter {
                 id: None,
                 label,
             } => writeln!(f, "{}: {}", Self::format_snippet_type(&snippet_type), label),
-            DisplayLine::Origin { path, row, col } => writeln!(
-                f,
-                "{}--> {}:{}:{}",
-                " ".repeat(lineno_width),
+            DisplayLine::Origin {
                 path,
-                row,
-                col
-            ),
+                pos,
+                header_type,
+            } => {
+                let header_sigil = match header_type {
+                    DisplayHeaderType::Initial => "-->",
+                    DisplayHeaderType::Continuation => ":::",
+                };
+                if let Some((row, col)) = pos {
+                    writeln!(
+                        f,
+                        "{}{} {}:{}:{}",
+                        " ".repeat(lineno_width),
+                        header_sigil,
+                        path,
+                        row,
+                        col
+                    )
+                } else {
+                    writeln!(f, "{}{} {}", " ".repeat(lineno_width), header_sigil, path,)
+                }
+            }
             DisplayLine::EmptySource => writeln!(f, "{} |", " ".repeat(lineno_width)),
             DisplayLine::Source {
                 lineno,

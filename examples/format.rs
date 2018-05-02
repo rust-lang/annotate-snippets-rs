@@ -5,7 +5,7 @@ use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, Tit
 
 fn main() {
     let snippet = Snippet {
-        slice: Slice {
+        slices: vec![Slice {
             source: r#") -> Option<String> {
     for ann in annotations {
         match (ann.range.0, ann.range.1) {
@@ -30,25 +30,25 @@ fn main() {
     }"#.to_string(),
             line_start: 51,
             origin: Some("src/format.rs".to_string()),
-        },
+            fold: true,
+            annotations: vec![
+                Annotation {
+                    label: "expected `Option<String>` because of return type".to_string(),
+                    annotation_type: AnnotationType::Warning,
+                    range: (6, 20),
+                },
+                Annotation {
+                    label: "expected enum `std::option::Option".to_string(),
+                    annotation_type: AnnotationType::Error,
+                    range: (23, 746),
+                },
+            ],
+        }],
         title: Some(TitleAnnotation {
             label: Some("mismatched types".to_string()),
             id: Some("E0308".to_string()),
             annotation_type: AnnotationType::Error,
         }),
-        fold: Some(true),
-        annotations: vec![
-            Annotation {
-                label: "expected `Option<String>` because of return type".to_string(),
-                annotation_type: AnnotationType::Warning,
-                range: (6, 20),
-            },
-            Annotation {
-                label: "expected enum `std::option::Option".to_string(),
-                annotation_type: AnnotationType::Error,
-                range: (23, 746),
-            },
-        ],
     };
 
     println!("{}", DisplayList::from(snippet));

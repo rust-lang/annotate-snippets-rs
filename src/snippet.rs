@@ -1,69 +1,8 @@
-//! Snippet module contains structures used to generate the Snippet to be formatted.
-//!
-//! # Example:
-//!
-//! ```
-//! use annotate_snippets::snippet::{Snippet, Slice, Annotation, TitleAnnotation, AnnotationType};
-//!
-//! let snippet = Snippet {
-//!     slice: Slice {
-//!         source: r#"
-//!         ) -> Option<String> {
-//!             for ann in annotations {
-//!                 match (ann.range.0, ann.range.1) {
-//!                     (None, None) => continue,
-//!                     (Some(start), Some(end)) if start > end_index => continue,
-//!                     (Some(start), Some(end)) if start >= start_index => {
-//!                         let label = if let Some(ref label) = ann.label {
-//!                             format!(" {}", label)
-//!                         } else {
-//!                             String::from("")
-//!                         };
-//!
-//!                         return Some(format!(
-//!                             "{}{}{}",
-//!                             " ".repeat(start - start_index),
-//!                             "^".repeat(end - start),
-//!                             label
-//!                         ));
-//!                     }
-//!                     _ => continue,
-//!                 }
-//!             }
-//!         "#.to_string(),
-//!         line_start: 51,
-//!         origin: Some("src/format.rs".to_string())
-//!     },
-//!     title: Some(TitleAnnotation {
-//!         label: Some("mismatched types".to_string()),
-//!         id: Some("E0308".to_string()),
-//!         annotation_type: AnnotationType::Error,
-//!     }),
-//!     fold: Some(true),
-//!     annotations: vec![
-//!         Annotation {
-//!             label: "expected `Option<String>` because of return type".to_string(),
-//!             annotation_type: AnnotationType::Warning,
-//!             range: (6, 20)
-//!         },
-//!         Annotation {
-//!             label: "expected enum `std::option::Option".to_string(),
-//!             annotation_type: AnnotationType::Error,
-//!             range: (23, 787)
-//!         },
-//!     ]
-//! };
-//! ```
-
 /// Primary structure provided for formatting
 #[derive(Debug, Clone)]
 pub struct Snippet {
-    pub slice: Slice,
-    pub annotations: Vec<Annotation>,
     pub title: Option<TitleAnnotation>,
-    /// If set explicitly to `true`, the snippet will fold
-    /// parts of the slice that don't contain any annotations.
-    pub fold: Option<bool>,
+    pub slices: Vec<Slice>,
 }
 
 /// Structure containing the slice of text to be annotated and
@@ -73,6 +12,10 @@ pub struct Slice {
     pub source: String,
     pub line_start: usize,
     pub origin: Option<String>,
+    pub annotations: Vec<Annotation>,
+    /// If set explicitly to `true`, the snippet will fold
+    /// parts of the slice that don't contain any annotations.
+    pub fold: bool,
 }
 
 /// Types of annotations.
