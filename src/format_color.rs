@@ -2,8 +2,8 @@ extern crate ansi_term;
 
 use self::ansi_term::Color::Fixed;
 use self::ansi_term::Style;
-use display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
-                   DisplayAnnotationPart, DisplayHeaderType};
+use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
+                   DisplayList, DisplayMark, DisplayTextFragment, DisplayTextStyle};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
@@ -36,16 +36,20 @@ impl DisplayListFormatting for Formatter {
 
     fn format_annotation_content(
         range: &(usize, usize),
-        label: &Option<String>,
+        label: &[DisplayTextFragment],
         annotation_type: &DisplayAnnotationType,
         annotation_part: &DisplayAnnotationPart,
     ) -> String {
-        let label = label.clone().map_or("".to_string(), |l| format!(" {}", l));
+        let label = if label.is_empty() {
+            "".to_string()
+        } else {
+            format!(" {}", Self::format_label(label))
+        };
         let prefix = match annotation_part {
             DisplayAnnotationPart::Singleline => " ",
             DisplayAnnotationPart::MultilineStart => "_",
             DisplayAnnotationPart::MultilineEnd => "_",
-        }; 
+        };
         let mark = match annotation_type {
             DisplayAnnotationType::Error => "^",
             DisplayAnnotationType::Warning => "-",
@@ -58,11 +62,25 @@ impl DisplayListFormatting for Formatter {
             DisplayAnnotationType::Note => Style::new().bold(),
             DisplayAnnotationType::Help => Fixed(14).bold(),
         };
-        format!("{}{}{}",
-          prefix.repeat(range.0),
-          color.paint(mark.repeat(range.1 - range.0)),
-          color.paint(label),
+        format!(
+            "{}{}{}",
+            prefix.repeat(range.0),
+            color.paint(mark.repeat(range.1 - range.0)),
+            color.paint(label),
         )
+    }
+
+    fn format_label(label: &[DisplayTextFragment]) -> String {
+        label
+            .iter()
+            .map(|fragment| match fragment.style {
+                DisplayTextStyle::Regular => fragment.content.clone(),
+                DisplayTextStyle::Emphasis => {
+                    format!("{}", Style::new().bold().paint(fragment.content.clone()))
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("")
     }
 
     fn format_line(
@@ -75,6 +93,7 @@ impl DisplayListFormatting for Formatter {
             DisplayLine::Annotation {
                 annotation_type,
                 id,
+                aligned,
                 label,
             } => {
                 let color = match annotation_type {
@@ -88,12 +107,29 @@ impl DisplayListFormatting for Formatter {
                 } else {
                     Self::format_annotation_type(&annotation_type)
                 };
-                writeln!(
-                    f,
-                    "{}{}",
-                    color.bold().paint(name),
-                    Style::new().bold().paint(format!(": {}", label))
-                )
+                let prefix = if *aligned {
+                    format!("{} = ", " ".repeat(lineno_width))
+                } else {
+                    "".to_string()
+                };
+                if let Some((first, rest)) = Self::format_label(label)
+                    .lines()
+                    .collect::<Vec<&str>>()
+                    .split_first()
+                {
+                    let indent = prefix.len() + name.len() + 2;
+                    writeln!(
+                        f,
+                        "{}{}{}",
+                        Fixed(12).bold().paint(prefix),
+                        color.bold().paint(name),
+                        format!(": {}", first)
+                    )?;
+                    for line in rest {
+                        writeln!(f, "{}{}", " ".repeat(indent), format!("{}", line))?;
+                    }
+                }
+                Ok(())
             }
             DisplayLine::Origin {
                 path,
@@ -115,7 +151,13 @@ impl DisplayListFormatting for Formatter {
                         col
                     )
                 } else {
-                    writeln!(f, "{}{} {}", " ".repeat(lineno_width), Fixed(12).bold().paint(header_sigil), path,)
+                    writeln!(
+                        f,
+                        "{}{} {}",
+                        " ".repeat(lineno_width),
+                        Fixed(12).bold().paint(header_sigil),
+                        path,
+                    )
                 }
             }
             DisplayLine::EmptySource => {
@@ -150,7 +192,12 @@ impl DisplayListFormatting for Formatter {
                     "{}{}{}",
                     Fixed(12).bold().paint(prefix),
                     Self::format_inline_marks(&inline_marks, inline_marks_width),
-                    Self::format_annotation_content(range, &label, &annotation_type, &annotation_part),
+                    Self::format_annotation_content(
+                        range,
+                        &label,
+                        &annotation_type,
+                        &annotation_part
+                    ),
                 )
             }
             DisplayLine::Fold { inline_marks } => writeln!(
@@ -158,25 +205,6 @@ impl DisplayListFormatting for Formatter {
                 "... {}",
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
             ),
-            DisplayLine::AlignedAnnotation {
-                label,
-                annotation_type,
-            } => {
-                let color = match annotation_type {
-                    DisplayAnnotationType::Error => Fixed(9).bold(),
-                    DisplayAnnotationType::Warning => Fixed(11).bold(),
-                    DisplayAnnotationType::Note => Style::new().bold(),
-                    DisplayAnnotationType::Help => Fixed(14).bold(),
-                };
-                let prefix = format!("{} =", " ".repeat(lineno_width));
-                writeln!(
-                    f,
-                    "{} {}: {}",
-                    Fixed(12).bold().paint(prefix),
-                    color.paint(Self::format_annotation_type(annotation_type)),
-                    label
-                )
-            }
         }
     }
 }

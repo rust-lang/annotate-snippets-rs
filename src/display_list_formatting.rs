@@ -1,4 +1,5 @@
-use display_list::{DisplayLine, DisplayMark, DisplayAnnotationType, DisplayAnnotationPart};
+use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayLine, DisplayMark,
+                   DisplayTextFragment};
 use std::fmt;
 
 pub trait DisplayListFormatting {
@@ -8,10 +9,12 @@ pub trait DisplayListFormatting {
 
     fn format_annotation_content(
         range: &(usize, usize),
-        label: &Option<String>,
+        label: &[DisplayTextFragment],
         annotation_type: &DisplayAnnotationType,
         annotation_part: &DisplayAnnotationPart,
     ) -> String;
+
+    fn format_label(label: &[DisplayTextFragment]) -> String;
 
     fn format_line(
         f: &mut fmt::Formatter,

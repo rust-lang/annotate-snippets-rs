@@ -3,7 +3,8 @@ extern crate serde;
 
 use self::serde::de::{Deserialize, Deserializer};
 
-use self::annotate_snippets::snippet::{SourceAnnotation, AnnotationType, Slice, Snippet, Annotation};
+use self::annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet,
+                                       SourceAnnotation};
 
 #[derive(Deserialize)]
 #[serde(remote = "Snippet")]
@@ -29,9 +30,7 @@ where
     Ok(v.into_iter().map(|Wrapper(a)| a).collect())
 }
 
-fn deserialize_annotation<'de, D>(
-    deserializer: D,
-) -> Result<Option<Annotation>, D::Error>
+fn deserialize_annotation<'de, D>(deserializer: D) -> Result<Option<Annotation>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -54,7 +53,9 @@ pub struct SliceDef {
     pub fold: bool,
 }
 
-fn deserialize_source_annotations<'de, D>(deserializer: D) -> Result<Vec<SourceAnnotation>, D::Error>
+fn deserialize_source_annotations<'de, D>(
+    deserializer: D,
+) -> Result<Vec<SourceAnnotation>, D::Error>
 where
     D: Deserializer<'de>,
 {

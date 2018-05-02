@@ -1,5 +1,5 @@
-use display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
-                   DisplayAnnotationPart, DisplayHeaderType};
+use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
+                   DisplayList, DisplayMark, DisplayTextFragment};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
@@ -32,27 +32,40 @@ impl DisplayListFormatting for Formatter {
 
     fn format_annotation_content(
         range: &(usize, usize),
-        label: &Option<String>,
+        label: &[DisplayTextFragment],
         annotation_type: &DisplayAnnotationType,
         annotation_part: &DisplayAnnotationPart,
     ) -> String {
-        let label = label.clone().map_or("".to_string(), |l| format!(" {}", l));
+        let label = if label.is_empty() {
+            "".to_string()
+        } else {
+            format!(" {}", Self::format_label(label))
+        };
         let prefix = match annotation_part {
             DisplayAnnotationPart::Singleline => " ",
             DisplayAnnotationPart::MultilineStart => "_",
             DisplayAnnotationPart::MultilineEnd => "_",
-        }; 
+        };
         let mark = match annotation_type {
             DisplayAnnotationType::Error => "^",
             DisplayAnnotationType::Warning => "-",
             DisplayAnnotationType::Note => "-",
             DisplayAnnotationType::Help => "-",
         };
-        format!("{}{}{}",
-          prefix.repeat(range.0),
-          mark.repeat(range.1 - range.0),
-          label,
+        format!(
+            "{}{}{}",
+            prefix.repeat(range.0),
+            mark.repeat(range.1 - range.0),
+            label,
         )
+    }
+
+    fn format_label(label: &[DisplayTextFragment]) -> String {
+        label
+            .iter()
+            .map(|fragment| fragment.content.as_str())
+            .collect::<Vec<&str>>()
+            .join("")
     }
 
     fn format_line(
@@ -65,6 +78,7 @@ impl DisplayListFormatting for Formatter {
             DisplayLine::Annotation {
                 annotation_type,
                 id,
+                aligned,
                 label,
             } => {
                 let name = if let Some(id) = id {
@@ -72,11 +86,17 @@ impl DisplayListFormatting for Formatter {
                 } else {
                     Self::format_annotation_type(&annotation_type)
                 };
+                let prefix = if *aligned {
+                    format!("{} = ", " ".repeat(lineno_width))
+                } else {
+                    "".to_string()
+                };
                 writeln!(
                     f,
-                    "{}{}",
+                    "{}{}{}",
+                    prefix,
                     name,
-                    format!(": {}", label)
+                    format!(": {}", Self::format_label(label))
                 )
             }
             DisplayLine::Origin {
@@ -129,7 +149,12 @@ impl DisplayListFormatting for Formatter {
                     "{}{}{}",
                     prefix,
                     Self::format_inline_marks(&inline_marks, inline_marks_width),
-                    Self::format_annotation_content(range, &label, &annotation_type, &annotation_part),
+                    Self::format_annotation_content(
+                        range,
+                        &label,
+                        &annotation_type,
+                        &annotation_part
+                    ),
                 )
             }
             DisplayLine::Fold { inline_marks } => writeln!(
@@ -137,19 +162,6 @@ impl DisplayListFormatting for Formatter {
                 "... {}",
                 Self::format_inline_marks(&inline_marks, inline_marks_width),
             ),
-            DisplayLine::AlignedAnnotation {
-                label,
-                annotation_type,
-            } => {
-                let prefix = format!("{} =", " ".repeat(lineno_width));
-                writeln!(
-                    f,
-                    "{} {}: {}",
-                    prefix,
-                    Self::format_annotation_type(annotation_type),
-                    label
-                )
-            }
         }
     }
 }

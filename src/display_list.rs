@@ -1,4 +1,4 @@
-use snippet::{AnnotationType, Slice, Snippet, Annotation};
+use snippet::{Annotation, AnnotationType, Slice, Snippet};
 
 pub struct DisplayList {
     pub body: Vec<DisplayLine>,
@@ -6,13 +6,10 @@ pub struct DisplayList {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayLine {
-    AlignedAnnotation {
-        label: String,
-        annotation_type: DisplayAnnotationType,
-    },
     Annotation {
-        label: String,
+        label: Vec<DisplayTextFragment>,
         id: Option<String>,
+        aligned: bool,
         annotation_type: DisplayAnnotationType,
     },
     Origin {
@@ -30,13 +27,25 @@ pub enum DisplayLine {
     SourceAnnotation {
         inline_marks: Vec<DisplayMark>,
         range: (usize, usize),
-        label: Option<String>,
+        label: Vec<DisplayTextFragment>,
         annotation_type: DisplayAnnotationType,
         annotation_part: DisplayAnnotationPart,
     },
     Fold {
         inline_marks: Vec<DisplayMark>,
     },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DisplayTextFragment {
+    pub content: String,
+    pub style: DisplayTextStyle,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DisplayTextStyle {
+    Regular,
+    Emphasis,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -68,25 +77,52 @@ pub enum DisplayHeaderType {
 
 // Formatting
 
+fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<DisplayTextFragment> {
+    let mut result = vec![];
+    if let Some(label) = label {
+        let elements: Vec<&str> = label.split("__").collect();
+        let mut idx = 0;
+        for element in elements {
+            let element_style = match style {
+                Some(s) => s,
+                None => if idx % 2 == 0 {
+                    DisplayTextStyle::Regular
+                } else {
+                    DisplayTextStyle::Emphasis
+                },
+            };
+            result.push(DisplayTextFragment {
+                content: element.to_string(),
+                style: element_style,
+            });
+            idx += 1;
+        }
+    }
+    return result;
+}
+
 fn format_title(annotation: &Annotation) -> DisplayLine {
     let label = annotation.label.clone().unwrap_or("".to_string());
     DisplayLine::Annotation {
         annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
         id: annotation.id.clone(),
-        label,
+        aligned: false,
+        label: format_label(Some(&label), Some(DisplayTextStyle::Emphasis)),
     }
 }
 
 fn format_annotation(annotation: &Annotation) -> DisplayLine {
     let label = annotation.label.clone().unwrap_or("".to_string());
-    DisplayLine::AlignedAnnotation {
+    DisplayLine::Annotation {
         annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
-        label,
+        aligned: true,
+        id: None,
+        label: format_label(Some(&label), None),
     }
 }
 
-fn format_slice(slice: &Slice, is_first: bool) -> Vec<DisplayLine> {
-    let mut body = format_body(slice);
+fn format_slice(slice: &Slice, is_first: bool, has_footer: bool) -> Vec<DisplayLine> {
+    let mut body = format_body(slice, has_footer);
     let mut result = vec![];
 
     let header = format_header(slice, &body, is_first);
@@ -185,7 +221,7 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
     return new_body;
 }
 
-fn format_body(slice: &Slice) -> Vec<DisplayLine> {
+fn format_body(slice: &Slice, has_footer: bool) -> Vec<DisplayLine> {
     let mut body = vec![];
 
     let mut current_line = slice.line_start;
@@ -221,7 +257,7 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
                         DisplayLine::SourceAnnotation {
                             inline_marks: vec![],
                             range,
-                            label: Some(annotation.label.clone()),
+                            label: format_label(Some(&annotation.label), None),
                             annotation_type: DisplayAnnotationType::from(
                                 annotation.annotation_type,
                             ),
@@ -247,7 +283,7 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
                             DisplayLine::SourceAnnotation {
                                 inline_marks: vec![],
                                 range,
-                                label: None,
+                                label: vec![],
                                 annotation_type: DisplayAnnotationType::from(
                                     annotation.annotation_type,
                                 ),
@@ -282,7 +318,7 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
                         DisplayLine::SourceAnnotation {
                             inline_marks: vec![DisplayMark::AnnotationThrough],
                             range,
-                            label: Some(annotation.label.clone()),
+                            label: format_label(Some(&annotation.label), None),
                             annotation_type: DisplayAnnotationType::from(
                                 annotation.annotation_type,
                             ),
@@ -302,7 +338,9 @@ fn format_body(slice: &Slice) -> Vec<DisplayLine> {
     }
 
     body.insert(0, DisplayLine::EmptySource);
-    if let Some(DisplayLine::Source { .. }) = body.last() {
+    if has_footer {
+        body.push(DisplayLine::EmptySource);
+    } else if let Some(DisplayLine::Source { .. }) = body.last() {
         body.push(DisplayLine::EmptySource);
     }
     body
@@ -317,7 +355,11 @@ impl From<Snippet> for DisplayList {
 
         let mut slice_idx = 0;
         for slice in snippet.slices {
-            body.append(&mut format_slice(&slice, slice_idx == 0));
+            body.append(&mut format_slice(
+                &slice,
+                slice_idx == 0,
+                snippet.footer.is_some(),
+            ));
             slice_idx += 1;
         }
         if let Some(annotation) = snippet.footer {
