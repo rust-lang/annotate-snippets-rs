@@ -10,14 +10,14 @@ fn main() {
             id: Some("E0308".to_string()),
             annotation_type: AnnotationType::Error,
         }),
-        footer: Some(Annotation {
+        footer: vec![Annotation {
             label: Some(
                 "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`"
                     .to_string(),
             ),
             id: None,
             annotation_type: AnnotationType::Note,
-        }),
+        }],
         slices: vec![Slice {
             source: "        slices: vec![\"A\",".to_string(),
             line_start: 13,

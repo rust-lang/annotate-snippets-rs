@@ -358,11 +358,12 @@ impl From<Snippet> for DisplayList {
             body.append(&mut format_slice(
                 &slice,
                 slice_idx == 0,
-                snippet.footer.is_some(),
+                !snippet.footer.is_empty(),
             ));
             slice_idx += 1;
         }
-        if let Some(annotation) = snippet.footer {
+
+        for annotation in snippet.footer {
             body.push(format_annotation(&annotation));
         }
 

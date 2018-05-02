@@ -2,7 +2,7 @@
 #[derive(Debug, Clone)]
 pub struct Snippet {
     pub title: Option<Annotation>,
-    pub footer: Option<Annotation>,
+    pub footer: Vec<Annotation>,
     pub slices: Vec<Slice>,
 }
 

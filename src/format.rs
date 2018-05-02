@@ -97,19 +97,12 @@ impl DisplayListFormatting for Formatter {
                     .split_first()
                 {
                     let indent = prefix.len() + name.len() + 2;
-                    writeln!(
-                        f,
-                        "{}{}{}",
-                        prefix,
-                        name,
-                        format!(": {}", first)
-                    )?;
+                    writeln!(f, "{}{}{}", prefix, name, format!(": {}", first))?;
                     for line in rest {
                         writeln!(f, "{}{}", " ".repeat(indent), format!("{}", line))?;
                     }
                 }
                 Ok(())
-                
             }
             DisplayLine::Origin {
                 path,

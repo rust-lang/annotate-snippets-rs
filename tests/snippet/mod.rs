@@ -12,9 +12,9 @@ pub struct SnippetDef {
     #[serde(deserialize_with = "deserialize_annotation")]
     #[serde(default)]
     pub title: Option<Annotation>,
-    #[serde(deserialize_with = "deserialize_annotation")]
+    #[serde(deserialize_with = "deserialize_annotations")]
     #[serde(default)]
-    pub footer: Option<Annotation>,
+    pub footer: Vec<Annotation>,
     #[serde(deserialize_with = "deserialize_slices")]
     pub slices: Vec<Slice>,
 }
@@ -39,6 +39,17 @@ where
 
     Option::<Wrapper>::deserialize(deserializer)
         .map(|opt_wrapped: Option<Wrapper>| opt_wrapped.map(|wrapped: Wrapper| wrapped.0))
+}
+
+fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(with = "AnnotationDef")] Annotation);
+
+    let v = Vec::deserialize(deserializer)?;
+    Ok(v.into_iter().map(|Wrapper(a)| a).collect())
 }
 
 #[derive(Deserialize)]

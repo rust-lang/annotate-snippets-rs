@@ -10,7 +10,7 @@ fn main() {
             id: None,
             annotation_type: AnnotationType::Error,
         }),
-        footer: None,
+        footer: vec![],
         slices: vec![
             Slice {
                 source: "Foo".to_string(),

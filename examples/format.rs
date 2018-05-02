@@ -49,7 +49,7 @@ fn main() {
             id: Some("E0308".to_string()),
             annotation_type: AnnotationType::Error,
         }),
-        footer: None,
+        footer: vec![],
     };
 
     println!("{}", DisplayList::from(snippet));
