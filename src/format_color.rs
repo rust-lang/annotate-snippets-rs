@@ -3,7 +3,7 @@ extern crate ansi_term;
 use self::ansi_term::Color::Fixed;
 use self::ansi_term::Style;
 use display_list::{DisplayAnnotationType, DisplayLine, DisplayList, DisplayMark,
-                   DisplaySnippetType};
+                   DisplaySnippetType, DisplayHeaderType};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
@@ -109,15 +109,29 @@ impl DisplayListFormatting for Formatter {
                     Style::new().bold().paint(format!(": {}", label))
                 )
             }
-            DisplayLine::Origin { path, row, col } => writeln!(
-                f,
-                "{}{} {}:{}:{}",
-                " ".repeat(lineno_width),
-                Fixed(12).bold().paint("-->"),
+            DisplayLine::Origin {
                 path,
-                row,
-                col
-            ),
+                pos,
+                header_type,
+            } => {
+                let header_sigil = match header_type {
+                    DisplayHeaderType::Initial => "-->",
+                    DisplayHeaderType::Continuation => ":::",
+                };
+                if let Some((row, col)) = pos {
+                    writeln!(
+                        f,
+                        "{}{} {}:{}:{}",
+                        " ".repeat(lineno_width),
+                        Fixed(12).bold().paint(header_sigil),
+                        path,
+                        row,
+                        col
+                    )
+                } else {
+                    writeln!(f, "{}{} {}", " ".repeat(lineno_width), Fixed(12).bold().paint(header_sigil), path,)
+                }
+            }
             DisplayLine::EmptySource => {
                 let prefix = format!("{} |", " ".repeat(lineno_width));
                 writeln!(f, "{}", Fixed(12).bold().paint(prefix))

@@ -1,7 +1,7 @@
 extern crate annotate_snippets;
 
 use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, TitleAnnotation};
+use annotate_snippets::snippet::{AnnotationType, Slice, Snippet, TitleAnnotation};
 
 fn main() {
     let snippet = Snippet {
