@@ -26,8 +26,8 @@ fn main() {
             annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
                     .to_string(),
-                annotation_type: AnnotationType::Error,
                 range: (22, 25),
+                annotation_type: AnnotationType::Error,
             }],
         }],
     };

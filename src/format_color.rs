@@ -14,6 +14,7 @@ impl DisplayListFormatting for Formatter {
         match annotation_type {
             DisplayAnnotationType::Error => "error".to_string(),
             DisplayAnnotationType::Warning => "warning".to_string(),
+            DisplayAnnotationType::Info => "info".to_string(),
             DisplayAnnotationType::Note => "note".to_string(),
             DisplayAnnotationType::Help => "help".to_string(),
         }
@@ -51,12 +52,14 @@ impl DisplayListFormatting for Formatter {
         let mark = match annotation_type {
             DisplayAnnotationType::Error => "^",
             DisplayAnnotationType::Warning => "-",
+            DisplayAnnotationType::Info => "-",
             DisplayAnnotationType::Note => "-",
             DisplayAnnotationType::Help => "-",
         };
         let color = match annotation_type {
             DisplayAnnotationType::Error => Fixed(9).bold(),
             DisplayAnnotationType::Warning => Fixed(11).bold(),
+            DisplayAnnotationType::Info => Fixed(12).bold(),
             DisplayAnnotationType::Note => Style::new().bold(),
             DisplayAnnotationType::Help => Fixed(14).bold(),
         };
@@ -133,6 +136,7 @@ impl DisplayListFormatting for Formatter {
                 let color = match annotation_type {
                     DisplayAnnotationType::Error => Fixed(9).bold(),
                     DisplayAnnotationType::Warning => Fixed(11).bold(),
+                    DisplayAnnotationType::Info => Fixed(12).bold(),
                     DisplayAnnotationType::Note => Style::new().bold(),
                     DisplayAnnotationType::Help => Fixed(14).bold(),
                 };

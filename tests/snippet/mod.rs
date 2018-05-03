@@ -101,6 +101,7 @@ pub struct AnnotationDef {
 enum AnnotationTypeDef {
     Error,
     Warning,
+    Info,
     Note,
     Help,
 }

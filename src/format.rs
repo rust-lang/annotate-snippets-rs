@@ -10,6 +10,7 @@ impl DisplayListFormatting for Formatter {
         match annotation_type {
             DisplayAnnotationType::Error => "error".to_string(),
             DisplayAnnotationType::Warning => "warning".to_string(),
+            DisplayAnnotationType::Info => "info".to_string(),
             DisplayAnnotationType::Note => "note".to_string(),
             DisplayAnnotationType::Help => "help".to_string(),
         }
@@ -47,6 +48,7 @@ impl DisplayListFormatting for Formatter {
         let mark = match annotation_type {
             DisplayAnnotationType::Error => "^",
             DisplayAnnotationType::Warning => "-",
+            DisplayAnnotationType::Info => "-",
             DisplayAnnotationType::Note => "-",
             DisplayAnnotationType::Help => "-",
         };

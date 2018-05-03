@@ -65,6 +65,7 @@ pub enum DisplayMark {
 pub enum DisplayAnnotationType {
     Error,
     Warning,
+    Info,
     Note,
     Help,
 }
@@ -185,16 +186,26 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
             DisplayLine::SourceAnnotation {
                 ref inline_marks, ..
             } => {
-                if no_annotation_lines_counter > 10 {
+                if no_annotation_lines_counter > 2 {
                     let fold_start = idx - no_annotation_lines_counter;
                     let fold_end = idx;
-                    for i in fold_start..fold_start + 4 {
+                    let pre_len = if no_annotation_lines_counter > 8 {
+                        4
+                    } else {
+                        0
+                    };
+                    let post_len = if no_annotation_lines_counter > 8 {
+                        2
+                    } else {
+                        1
+                    };
+                    for i in fold_start..fold_start + pre_len {
                         new_body.push(body[i].clone());
                     }
                     new_body.push(DisplayLine::Fold {
                         inline_marks: inline_marks.clone(),
                     });
-                    for i in fold_end - 2..fold_end {
+                    for i in fold_end - post_len..fold_end {
                         new_body.push(body[i].clone());
                     }
                 } else {
@@ -376,6 +387,7 @@ impl From<AnnotationType> for DisplayAnnotationType {
         match at {
             AnnotationType::Error => DisplayAnnotationType::Error,
             AnnotationType::Warning => DisplayAnnotationType::Warning,
+            AnnotationType::Info => DisplayAnnotationType::Info,
             AnnotationType::Note => DisplayAnnotationType::Note,
             AnnotationType::Help => DisplayAnnotationType::Help,
         }

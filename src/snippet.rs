@@ -26,6 +26,7 @@ pub enum AnnotationType {
     Error,
     /// Warning annotations are displayed using blue color and "-" character.
     Warning,
+    Info,
     Note,
     Help,
 }
