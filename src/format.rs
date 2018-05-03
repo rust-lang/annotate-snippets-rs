@@ -1,96 +1,28 @@
-use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
-                   DisplayList, DisplayMark, DisplayMarkType, DisplayTextFragment};
+use display_list::{DisplayAnnotationType, DisplayHeaderType, DisplayLine, DisplayList,
+                   DisplayTextFragment};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
 struct Formatter {}
 
+fn repeat_char(c: char, n: usize) -> String {
+    let mut s = String::with_capacity(c.len_utf8());
+    s.push(c);
+    return s.repeat(n);
+}
+
 impl DisplayListFormatting for Formatter {
-    fn format_annotation_type(annotation_type: &DisplayAnnotationType) -> String {
-        match annotation_type {
-            DisplayAnnotationType::Error => "error".to_string(),
-            DisplayAnnotationType::Warning => "warning".to_string(),
-            DisplayAnnotationType::Info => "info".to_string(),
-            DisplayAnnotationType::Note => "note".to_string(),
-            DisplayAnnotationType::Help => "help".to_string(),
-        }
-    }
-
-    fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String {
-        format!(
-            "{:>width$}",
-            inline_marks
-                .iter()
-                .map(|mark| {
-                    let sigil = match mark.mark_type {
-                        DisplayMarkType::AnnotationThrough => "|",
-                        DisplayMarkType::AnnotationStart => "/",
-                    };
-                    sigil
-                })
-                .collect::<Vec<&str>>()
-                .join(""),
-            width = inline_marks_width
-        )
-    }
-
-    fn format_source_annotation_lines(
-        f: &mut fmt::Formatter,
-        lineno_width: usize,
-        inline_marks: String,
+    fn format_source_annotation_parts(
+        _annotation_type: &DisplayAnnotationType,
+        indent_char: char,
+        mark: char,
         range: &(usize, usize),
-        label: &[DisplayTextFragment],
-        annotation_type: &DisplayAnnotationType,
-        annotation_part: &DisplayAnnotationPart,
-    ) -> fmt::Result {
-        let indent_char = match annotation_part {
-            DisplayAnnotationPart::Singleline => " ",
-            DisplayAnnotationPart::MultilineStart => "_",
-            DisplayAnnotationPart::MultilineEnd => "_",
-        };
-        let mark = match annotation_type {
-            DisplayAnnotationType::Error => "^",
-            DisplayAnnotationType::Warning => "-",
-            DisplayAnnotationType::Info => "-",
-            DisplayAnnotationType::Note => "-",
-            DisplayAnnotationType::Help => "-",
-        };
-        if let Some((first, rest)) = Self::format_label(label)
-            .lines()
-            .collect::<Vec<&str>>()
-            .split_first()
-        {
-            let indent = range.1;
-            writeln!(
-                f,
-                "{}{}{}{} {}",
-                format!("{} |", " ".repeat(lineno_width)),
-                inline_marks,
-                indent_char.repeat(range.0),
-                mark.repeat(range.1 - range.0),
-                first,
-            )?;
-            for line in rest {
-                writeln!(
-                    f,
-                    "{}{}{} {}",
-                    format!("{} |", " ".repeat(lineno_width)),
-                    inline_marks,
-                    " ".repeat(indent),
-                    line,
-                )?;
-            }
-        } else {
-            writeln!(
-                f,
-                "{}{}{}{}",
-                format!("{} |", " ".repeat(lineno_width)),
-                inline_marks,
-                indent_char.repeat(range.0),
-                mark.repeat(range.1 - range.0),
-            )?;
-        }
-        Ok(())
+        lineno_width: usize,
+    ) -> (String, String, String) {
+        let lineno = format!("{} |", " ".repeat(lineno_width));
+        let indent = repeat_char(indent_char, range.0);
+        let pointer = repeat_char(mark, range.1 - range.0);
+        return (lineno, indent, pointer);
     }
 
     fn format_label(label: &[DisplayTextFragment]) -> String {

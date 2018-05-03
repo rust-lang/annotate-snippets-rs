@@ -3,70 +3,38 @@ extern crate ansi_term;
 use self::ansi_term::Color::Fixed;
 use self::ansi_term::Style;
 use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
-                   DisplayList, DisplayMark, DisplayMarkType, DisplayTextFragment,
-                   DisplayTextStyle};
+                   DisplayList, DisplayMark, DisplayTextFragment, DisplayTextStyle};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
 struct Formatter {}
 
+fn repeat_char(c: char, n: usize) -> String {
+    let mut s = String::with_capacity(c.len_utf8());
+    s.push(c);
+    return s.repeat(n);
+}
+
 impl DisplayListFormatting for Formatter {
-    fn format_annotation_type(annotation_type: &DisplayAnnotationType) -> String {
-        match annotation_type {
-            DisplayAnnotationType::Error => "error".to_string(),
-            DisplayAnnotationType::Warning => "warning".to_string(),
-            DisplayAnnotationType::Info => "info".to_string(),
-            DisplayAnnotationType::Note => "note".to_string(),
-            DisplayAnnotationType::Help => "help".to_string(),
-        }
+    fn format_inline_mark(inline_mark: &DisplayMark) -> String {
+        let sigil = Self::get_inline_mark(inline_mark);
+        let color = match inline_mark.annotation_type {
+            DisplayAnnotationType::Error => Fixed(9).bold(),
+            DisplayAnnotationType::Warning => Fixed(11).bold(),
+            DisplayAnnotationType::Info => Fixed(12).bold(),
+            DisplayAnnotationType::Note => Style::new().bold(),
+            DisplayAnnotationType::Help => Fixed(14).bold(),
+        };
+        format!("{}", color.paint(sigil))
     }
 
-    fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String {
-        format!(
-            "{}{}",
-            " ".repeat(inline_marks_width - inline_marks.len()),
-            inline_marks
-                .iter()
-                .map(|mark| {
-                    let sigil = match mark.mark_type {
-                        DisplayMarkType::AnnotationThrough => "|",
-                        DisplayMarkType::AnnotationStart => "/",
-                    };
-                    let color = match mark.annotation_type {
-                        DisplayAnnotationType::Error => Fixed(9).bold(),
-                        DisplayAnnotationType::Warning => Fixed(11).bold(),
-                        DisplayAnnotationType::Info => Fixed(12).bold(),
-                        DisplayAnnotationType::Note => Style::new().bold(),
-                        DisplayAnnotationType::Help => Fixed(14).bold(),
-                    };
-                    format!("{}", color.paint(sigil))
-                })
-                .collect::<Vec<String>>()
-                .join(""),
-        )
-    }
-
-    fn format_source_annotation_lines(
-        f: &mut fmt::Formatter,
-        lineno_width: usize,
-        inline_marks: String,
-        range: &(usize, usize),
-        label: &[DisplayTextFragment],
+    fn format_source_annotation_parts(
         annotation_type: &DisplayAnnotationType,
-        annotation_part: &DisplayAnnotationPart,
-    ) -> fmt::Result {
-        let indent_char = match annotation_part {
-            DisplayAnnotationPart::Singleline => " ",
-            DisplayAnnotationPart::MultilineStart => "_",
-            DisplayAnnotationPart::MultilineEnd => "_",
-        };
-        let mark = match annotation_type {
-            DisplayAnnotationType::Error => "^",
-            DisplayAnnotationType::Warning => "-",
-            DisplayAnnotationType::Info => "-",
-            DisplayAnnotationType::Note => "-",
-            DisplayAnnotationType::Help => "-",
-        };
+        indent_char: char,
+        mark: char,
+        range: &(usize, usize),
+        lineno_width: usize,
+    ) -> (String, String, String) {
         let color = match annotation_type {
             DisplayAnnotationType::Error => Fixed(9).bold(),
             DisplayAnnotationType::Warning => Fixed(11).bold(),
@@ -74,52 +42,30 @@ impl DisplayListFormatting for Formatter {
             DisplayAnnotationType::Note => Style::new().bold(),
             DisplayAnnotationType::Help => Fixed(14).bold(),
         };
-        let indent = if indent_char == " " {
-            indent_char.repeat(range.0)
+        let lineno = format!(
+            "{}",
+            Fixed(12)
+                .bold()
+                .paint(format!("{} |", " ".repeat(lineno_width)))
+        );
+        let indent = if indent_char == ' ' {
+            repeat_char(indent_char, range.0)
         } else {
-            format!("{}", color.paint(indent_char.repeat(range.0)))
+            format!("{}", color.paint(repeat_char(indent_char, range.0)))
         };
-        if let Some((first, rest)) = Self::format_label(label)
-            .lines()
-            .collect::<Vec<&str>>()
-            .split_first()
-        {
-            writeln!(
-                f,
-                "{}{}{}{} {}",
-                Fixed(12)
-                    .bold()
-                    .paint(format!("{} |", " ".repeat(lineno_width))),
-                inline_marks,
-                indent,
-                color.paint(mark.repeat(range.1 - range.0)),
-                color.paint(*first),
-            )?;
-            for line in rest {
-                writeln!(
-                    f,
-                    "{}{}{} {}",
-                    Fixed(12)
-                        .bold()
-                        .paint(format!("{} |", " ".repeat(lineno_width))),
-                    inline_marks,
-                    " ".repeat(range.1),
-                    color.paint(*line),
-                )?;
-            }
-        } else {
-            writeln!(
-                f,
-                "{}{}{}{}",
-                Fixed(12)
-                    .bold()
-                    .paint(format!("{} |", " ".repeat(lineno_width))),
-                inline_marks,
-                indent,
-                color.paint(mark.repeat(range.1 - range.0)),
-            )?;
-        }
-        Ok(())
+        let pointer = format!("{}", color.paint(repeat_char(mark, range.1 - range.0)));
+        return (lineno, indent, pointer);
+    }
+
+    fn format_label_line(annotation_type: &DisplayAnnotationType, line: &str) -> String {
+        let color = match annotation_type {
+            DisplayAnnotationType::Error => Fixed(9).bold(),
+            DisplayAnnotationType::Warning => Fixed(11).bold(),
+            DisplayAnnotationType::Info => Fixed(12).bold(),
+            DisplayAnnotationType::Note => Style::new().bold(),
+            DisplayAnnotationType::Help => Fixed(14).bold(),
+        };
+        return format!("{}", color.paint(line));
     }
 
     fn format_label(label: &[DisplayTextFragment]) -> String {
