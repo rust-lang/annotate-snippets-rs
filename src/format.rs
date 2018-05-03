@@ -18,7 +18,7 @@ impl DisplayListFormatting for Formatter {
 
     fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String {
         format!(
-            "{:>width$}",
+            " {:>width$}",
             inline_marks
                 .iter()
                 .map(|mark| {
@@ -215,7 +215,7 @@ impl fmt::Display for DisplayList {
             DisplayLine::Source { inline_marks, .. } => {
                 let width = inline_marks.len();
                 if width > max {
-                    width + 1
+                    width
                 } else {
                     max
                 }

@@ -30,7 +30,7 @@ fn main() {
     }"#.to_string(),
             line_start: 51,
             origin: Some("src/format.rs".to_string()),
-            fold: true,
+            fold: false,
             annotations: vec![
                 SourceAnnotation {
                     label: "expected `Option<String>` because of return type".to_string(),
@@ -38,7 +38,7 @@ fn main() {
                     range: (6, 20),
                 },
                 SourceAnnotation {
-                    label: "expected enum `std::option::Option".to_string(),
+                    label: "expected enum `std::option::Option`".to_string(),
                     annotation_type: AnnotationType::Error,
                     range: (23, 746),
                 },
