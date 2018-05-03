@@ -34,18 +34,16 @@ impl DisplayListFormatting for Formatter {
         )
     }
 
-    fn format_annotation_content(
+    fn format_source_annotation_lines(
+        f: &mut fmt::Formatter,
+        lineno_width: usize,
+        inline_marks: String,
         range: &(usize, usize),
         label: &[DisplayTextFragment],
         annotation_type: &DisplayAnnotationType,
         annotation_part: &DisplayAnnotationPart,
-    ) -> String {
-        let label = if label.is_empty() {
-            "".to_string()
-        } else {
-            format!(" {}", Self::format_label(label))
-        };
-        let prefix = match annotation_part {
+    ) -> fmt::Result {
+        let indent_char = match annotation_part {
             DisplayAnnotationPart::Singleline => " ",
             DisplayAnnotationPart::MultilineStart => "_",
             DisplayAnnotationPart::MultilineEnd => "_",
@@ -62,12 +60,48 @@ impl DisplayListFormatting for Formatter {
             DisplayAnnotationType::Note => Style::new().bold(),
             DisplayAnnotationType::Help => Fixed(14).bold(),
         };
-        format!(
-            "{}{}{}",
-            prefix.repeat(range.0),
-            color.paint(mark.repeat(range.1 - range.0)),
-            color.paint(label),
-        )
+        if let Some((first, rest)) = Self::format_label(label)
+            .lines()
+            .collect::<Vec<&str>>()
+            .split_first()
+        {
+            let indent = range.1;
+            writeln!(
+                f,
+                "{}{}{}{} {}",
+                Fixed(12)
+                    .bold()
+                    .paint(format!("{} |", " ".repeat(lineno_width))),
+                inline_marks,
+                indent_char.repeat(range.0),
+                color.paint(mark.repeat(range.1 - range.0)),
+                color.paint(*first),
+            )?;
+            for line in rest {
+                writeln!(
+                    f,
+                    "{}{}{} {}",
+                    Fixed(12)
+                        .bold()
+                        .paint(format!("{} |", " ".repeat(lineno_width))),
+                    inline_marks,
+                    " ".repeat(indent),
+                    color.paint(*line),
+                )?;
+            }
+        } else {
+            writeln!(
+                f,
+                "{}{}{}{}",
+                Fixed(12)
+                    .bold()
+                    .paint(format!("{} |", " ".repeat(lineno_width))),
+                inline_marks,
+                indent_char.repeat(range.0),
+                color.paint(mark.repeat(range.1 - range.0)),
+            )?;
+        }
+        Ok(())
     }
 
     fn format_label(label: &[DisplayTextFragment]) -> String {
@@ -185,21 +219,15 @@ impl DisplayListFormatting for Formatter {
                 label,
                 annotation_type,
                 annotation_part,
-            } => {
-                let prefix = format!("{} |", " ".repeat(lineno_width));
-                writeln!(
-                    f,
-                    "{}{}{}",
-                    Fixed(12).bold().paint(prefix),
-                    Self::format_inline_marks(&inline_marks, inline_marks_width),
-                    Self::format_annotation_content(
-                        range,
-                        &label,
-                        &annotation_type,
-                        &annotation_part
-                    ),
-                )
-            }
+            } => Self::format_source_annotation_lines(
+                f,
+                lineno_width,
+                Self::format_inline_marks(&inline_marks, inline_marks_width),
+                range,
+                &label,
+                &annotation_type,
+                &annotation_part,
+            ),
             DisplayLine::Fold { inline_marks } => writeln!(
                 f,
                 "... {}",

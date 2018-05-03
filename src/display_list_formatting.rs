@@ -7,12 +7,15 @@ pub trait DisplayListFormatting {
 
     fn format_inline_marks(inline_marks: &[DisplayMark], inline_marks_width: usize) -> String;
 
-    fn format_annotation_content(
+    fn format_source_annotation_lines(
+        f: &mut fmt::Formatter,
+        lineno_width: usize,
+        inline_marks: String,
         range: &(usize, usize),
         label: &[DisplayTextFragment],
         annotation_type: &DisplayAnnotationType,
         annotation_part: &DisplayAnnotationPart,
-    ) -> String;
+    ) -> fmt::Result;
 
     fn format_label(label: &[DisplayTextFragment]) -> String;
 
