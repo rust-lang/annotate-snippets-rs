@@ -3,7 +3,8 @@ extern crate ansi_term;
 use self::ansi_term::Color::Fixed;
 use self::ansi_term::Style;
 use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
-                   DisplayList, DisplayMark, DisplayTextFragment, DisplayTextStyle};
+                   DisplayList, DisplayMark, DisplayMarkType, DisplayTextFragment,
+                   DisplayTextStyle};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
@@ -25,11 +26,21 @@ impl DisplayListFormatting for Formatter {
             "{:>width$}",
             inline_marks
                 .iter()
-                .map(|mark| match mark {
-                    DisplayMark::AnnotationThrough => "|",
-                    DisplayMark::AnnotationStart => "/",
+                .map(|mark| {
+                    let sigil = match mark.mark_type {
+                        DisplayMarkType::AnnotationThrough => "|",
+                        DisplayMarkType::AnnotationStart => "/",
+                    };
+                    let color = match mark.annotation_type {
+                        DisplayAnnotationType::Error => Fixed(9).bold(),
+                        DisplayAnnotationType::Warning => Fixed(11).bold(),
+                        DisplayAnnotationType::Info => Fixed(12).bold(),
+                        DisplayAnnotationType::Note => Style::new().bold(),
+                        DisplayAnnotationType::Help => Fixed(14).bold(),
+                    };
+                    format!("{}", color.paint(sigil))
                 })
-                .collect::<Vec<&str>>()
+                .collect::<Vec<String>>()
                 .join(""),
             width = inline_marks_width
         )
@@ -63,12 +74,16 @@ impl DisplayListFormatting for Formatter {
             DisplayAnnotationType::Note => Style::new().bold(),
             DisplayAnnotationType::Help => Fixed(14).bold(),
         };
+        let indent = if indent_char == " " {
+            indent_char.repeat(range.0)
+        } else {
+            format!("{}", color.paint(indent_char.repeat(range.0)))
+        };
         if let Some((first, rest)) = Self::format_label(label)
             .lines()
             .collect::<Vec<&str>>()
             .split_first()
         {
-            let indent = range.1;
             writeln!(
                 f,
                 "{}{}{}{} {}",
@@ -76,7 +91,7 @@ impl DisplayListFormatting for Formatter {
                     .bold()
                     .paint(format!("{} |", " ".repeat(lineno_width))),
                 inline_marks,
-                indent_char.repeat(range.0),
+                indent,
                 color.paint(mark.repeat(range.1 - range.0)),
                 color.paint(*first),
             )?;
@@ -88,7 +103,7 @@ impl DisplayListFormatting for Formatter {
                         .bold()
                         .paint(format!("{} |", " ".repeat(lineno_width))),
                     inline_marks,
-                    " ".repeat(indent),
+                    " ".repeat(range.1),
                     color.paint(*line),
                 )?;
             }
@@ -100,7 +115,7 @@ impl DisplayListFormatting for Formatter {
                     .bold()
                     .paint(format!("{} |", " ".repeat(lineno_width))),
                 inline_marks,
-                indent_char.repeat(range.0),
+                indent,
                 color.paint(mark.repeat(range.1 - range.0)),
             )?;
         }

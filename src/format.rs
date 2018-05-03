@@ -1,5 +1,5 @@
 use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
-                   DisplayList, DisplayMark, DisplayTextFragment};
+                   DisplayList, DisplayMark, DisplayMarkType, DisplayTextFragment};
 use display_list_formatting::DisplayListFormatting;
 use std::fmt;
 
@@ -21,9 +21,12 @@ impl DisplayListFormatting for Formatter {
             "{:>width$}",
             inline_marks
                 .iter()
-                .map(|mark| match mark {
-                    DisplayMark::AnnotationThrough => "|",
-                    DisplayMark::AnnotationStart => "/",
+                .map(|mark| {
+                    let sigil = match mark.mark_type {
+                        DisplayMarkType::AnnotationThrough => "|",
+                        DisplayMarkType::AnnotationStart => "/",
+                    };
+                    sigil
                 })
                 .collect::<Vec<&str>>()
                 .join(""),

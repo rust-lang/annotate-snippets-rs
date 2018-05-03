@@ -56,7 +56,13 @@ pub enum DisplayAnnotationPart {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplayMark {
+pub struct DisplayMark {
+    pub mark_type: DisplayMarkType,
+    pub annotation_type: DisplayAnnotationType,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplayMarkType {
     AnnotationThrough,
     AnnotationStart,
 }
@@ -285,7 +291,12 @@ fn format_body(slice: &Slice, has_footer: bool) -> Vec<DisplayLine> {
                             ..
                         } = body[body_idx]
                         {
-                            inline_marks.push(DisplayMark::AnnotationStart);
+                            inline_marks.push(DisplayMark {
+                                mark_type: DisplayMarkType::AnnotationStart,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                            });
                         }
                     } else {
                         let range = (start - line_start, start - line_start + 1);
@@ -311,7 +322,12 @@ fn format_body(slice: &Slice, has_footer: bool) -> Vec<DisplayLine> {
                         ..
                     } = body[body_idx]
                     {
-                        inline_marks.push(DisplayMark::AnnotationThrough);
+                        inline_marks.push(DisplayMark {
+                            mark_type: DisplayMarkType::AnnotationThrough,
+                            annotation_type: DisplayAnnotationType::from(
+                                annotation.annotation_type,
+                            ),
+                        });
                     }
                     false
                 }
@@ -321,13 +337,23 @@ fn format_body(slice: &Slice, has_footer: bool) -> Vec<DisplayLine> {
                         ..
                     } = body[body_idx]
                     {
-                        inline_marks.push(DisplayMark::AnnotationThrough);
+                        inline_marks.push(DisplayMark {
+                            mark_type: DisplayMarkType::AnnotationThrough,
+                            annotation_type: DisplayAnnotationType::from(
+                                annotation.annotation_type,
+                            ),
+                        });
                     }
                     let range = (end - line_start, end - line_start + 1);
                     body.insert(
                         body_idx + 1,
                         DisplayLine::SourceAnnotation {
-                            inline_marks: vec![DisplayMark::AnnotationThrough],
+                            inline_marks: vec![DisplayMark {
+                                mark_type: DisplayMarkType::AnnotationThrough,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                            }],
                             range,
                             label: format_label(Some(&annotation.label), None),
                             annotation_type: DisplayAnnotationType::from(
