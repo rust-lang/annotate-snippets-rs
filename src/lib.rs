@@ -27,7 +27,6 @@
 
 pub mod display_list;
 pub mod display_list_formatting;
-#[cfg(not(feature = "ansi_term"))]
 pub mod format;
 #[cfg(feature = "ansi_term")]
 pub mod format_color;
