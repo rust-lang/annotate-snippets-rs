@@ -25,9 +25,7 @@
 //! In order to produce such output, the user builds a
 //! [Snippet](self::snippet::Snippet) which has a single public method: `format`.
 
-pub mod display_list;
-pub mod display_list_formatting;
-pub mod format;
-#[cfg(feature = "ansi_term")]
-pub mod format_color;
 pub mod snippet;
+pub mod display_list;
+pub mod formatter;
+pub mod stylesheets;

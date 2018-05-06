@@ -1,4 +1,4 @@
-use display_list_formatting::{Style, StyleClass, Stylesheet};
+use formatter::style::{Style, StyleClass, Stylesheet};
 
 pub struct NoOpStyle {}
 

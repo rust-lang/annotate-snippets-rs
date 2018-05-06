@@ -1,30 +1,15 @@
+pub mod style;
+
 use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
                    DisplayList, DisplayMark, DisplayMarkType, DisplayTextFragment,
                    DisplayTextStyle};
 use std::fmt;
 
-use format::NoColorStylesheet;
+use self::style::{StyleClass, Stylesheet};
+
+use stylesheets::no_color::NoColorStylesheet;
 #[cfg(feature = "ansi_term")]
-use format_color::AnsiTermStylesheet;
-
-pub enum StyleClass {
-    Error,
-    Warning,
-    Info,
-    Note,
-    Help,
-
-    LineNo,
-}
-
-pub trait Style {
-    fn paint(&self, text: String) -> String;
-    fn bold(&self) -> Box<Style>;
-}
-
-pub trait Stylesheet {
-    fn get_style(&self, class: StyleClass) -> Box<Style>;
-}
+use stylesheets::color::AnsiTermStylesheet;
 
 pub struct DisplayListFormatter {
     stylesheet: Box<Stylesheet>,

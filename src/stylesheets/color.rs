@@ -1,8 +1,9 @@
+use formatter::style::{Style, StyleClass, Stylesheet};
+
 extern crate ansi_term;
 
 use self::ansi_term::Color::Fixed;
 use self::ansi_term::Style as AnsiTermStyle;
-use display_list_formatting::{Style, StyleClass, Stylesheet};
 
 struct AnsiTermStyleWrapper {
     style: AnsiTermStyle,
