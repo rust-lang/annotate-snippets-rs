@@ -9,7 +9,7 @@ slices:
     annotations:
       - label: missing fields `lineno`, `content`
         annotation_type: Error
-        range: [32, 130]
+        range: [31, 129]
 title:
   label: pattern does not mention fields `lineno`, `content`
   id: E0027

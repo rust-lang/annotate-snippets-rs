@@ -1,22 +1,25 @@
 pub mod style;
 
-use display_list::{DisplayAnnotationPart, DisplayAnnotationType, DisplayHeaderType, DisplayLine,
-                   DisplayList, DisplayMark, DisplayMarkType, DisplayTextFragment,
-                   DisplayTextStyle};
-use std::fmt;
+use display_list::*;
 
 use self::style::{StyleClass, Stylesheet};
 
-use stylesheets::no_color::NoColorStylesheet;
 #[cfg(feature = "ansi_term")]
 use stylesheets::color::AnsiTermStylesheet;
+use stylesheets::no_color::NoColorStylesheet;
+
+fn repeat_char(c: char, n: usize) -> String {
+    let mut s = String::with_capacity(c.len_utf8());
+    s.push(c);
+    s.repeat(n)
+}
 
 pub struct DisplayListFormatter {
     stylesheet: Box<Stylesheet>,
 }
 
 impl DisplayListFormatter {
-    fn new(color: bool) -> Self {
+    pub fn new(color: bool) -> Self {
         if color {
             Self {
                 #[cfg(feature = "ansi_term")]
@@ -31,6 +34,40 @@ impl DisplayListFormatter {
         }
     }
 
+    pub fn format(&self, dl: DisplayList) -> String {
+        let lineno_width = dl.body.iter().fold(0, |max, line| match line {
+            DisplayLine::Source {
+                lineno: Some(lineno),
+                ..
+            } => {
+                let width = lineno.to_string().len();
+                if width > max {
+                    width
+                } else {
+                    max
+                }
+            }
+            _ => max,
+        });
+        let inline_marks_width = dl.body.iter().fold(0, |max, line| match line {
+            DisplayLine::Source { inline_marks, .. } => {
+                let width = inline_marks.len();
+                if width > max {
+                    width
+                } else {
+                    max
+                }
+            }
+            _ => max,
+        });
+
+        dl.body
+            .iter()
+            .map(|line| self.format_line(line, lineno_width, inline_marks_width))
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
+
     fn format_annotation_type(&self, annotation_type: &DisplayAnnotationType) -> String {
         match annotation_type {
             DisplayAnnotationType::Error => "error".to_string(),
@@ -38,91 +75,242 @@ impl DisplayListFormatter {
             DisplayAnnotationType::Info => "info".to_string(),
             DisplayAnnotationType::Note => "note".to_string(),
             DisplayAnnotationType::Help => "help".to_string(),
+            DisplayAnnotationType::None => "".to_string(),
         }
     }
 
-    fn format_source_annotation_lines(
+    fn format_label(&self, label: &[DisplayTextFragment]) -> String {
+        let emphasis_style = self.stylesheet.get_style(StyleClass::Emphasis);
+        label
+            .iter()
+            .map(|fragment| match fragment.style {
+                DisplayTextStyle::Regular => fragment.content.clone(),
+                DisplayTextStyle::Emphasis => emphasis_style.paint(fragment.content.clone()),
+            })
+            .collect::<Vec<String>>()
+            .join("")
+    }
+
+    fn format_annotation(
         &self,
-        f: &mut fmt::Formatter,
-        lineno_width: usize,
-        inline_marks: String,
-        range: &(usize, usize),
-        label: &[DisplayTextFragment],
-        annotation_type: &DisplayAnnotationType,
-        annotation_part: &DisplayAnnotationPart,
-    ) -> fmt::Result {
-        let indent_char = match annotation_part {
-            DisplayAnnotationPart::Singleline => " ",
-            DisplayAnnotationPart::MultilineStart => "_",
-            DisplayAnnotationPart::MultilineEnd => "_",
-        };
-        let mark = match annotation_type {
-            DisplayAnnotationType::Error => "^",
-            DisplayAnnotationType::Warning => "-",
-            DisplayAnnotationType::Info => "-",
-            DisplayAnnotationType::Note => "-",
-            DisplayAnnotationType::Help => "-",
-        };
-        let style = match annotation_type {
+        annotation: &Annotation,
+        continuation: bool,
+        in_source: bool,
+    ) -> String {
+        let style = match annotation.annotation_type {
             DisplayAnnotationType::Error => StyleClass::Error,
             DisplayAnnotationType::Warning => StyleClass::Warning,
             DisplayAnnotationType::Info => StyleClass::Info,
             DisplayAnnotationType::Note => StyleClass::Note,
             DisplayAnnotationType::Help => StyleClass::Help,
+            DisplayAnnotationType::None => StyleClass::None,
         };
         let color = self.stylesheet.get_style(style);
-        let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
-        let indent = if indent_char == " " {
-            indent_char.repeat(range.0)
+        let formatted_type = self.format_annotation_type(&annotation.annotation_type);
+        let label = self.format_label(&annotation.label);
+
+        let label_part = if label.is_empty() {
+            "".to_string()
+        } else if in_source {
+            color.paint(format!(": {}", self.format_label(&annotation.label)))
         } else {
-            format!("{}", color.paint(indent_char.repeat(range.0)))
+            format!(": {}", self.format_label(&annotation.label))
         };
-        if let Some((first, rest)) = self.format_label(label)
-            .lines()
-            .collect::<Vec<&str>>()
-            .split_first()
-        {
-            writeln!(
-                f,
-                "{}{}{}{} {}",
-                lineno_color.paint(format!("{} |", " ".repeat(lineno_width))),
-                inline_marks,
-                indent,
-                color.paint(mark.repeat(range.1 - range.0)),
-                color.paint(String::from(*first)),
-            )?;
-            for line in rest {
-                writeln!(
-                    f,
-                    "{}{}{} {}",
-                    lineno_color.paint(format!("{} |", " ".repeat(lineno_width))),
-                    inline_marks,
-                    " ".repeat(range.1),
-                    color.paint(String::from(*line)),
-                )?;
-            }
-        } else {
-            writeln!(
-                f,
-                "{}{}{}{}",
-                lineno_color.paint(format!("{} |", " ".repeat(lineno_width))),
-                inline_marks,
-                indent,
-                color.paint(mark.repeat(range.1 - range.0)),
-            )?;
+        if continuation {
+            let indent = if let Some(ref id) = annotation.id {
+                formatted_type.len() + id.len() + 4
+            } else if !formatted_type.is_empty() {
+                formatted_type.len() + 2
+            } else {
+                2
+            };
+            return format!("{}{}", repeat_char(' ', indent), label);
         }
-        Ok(())
+        if let Some(ref id) = annotation.id {
+            format!(
+                "{}{}",
+                color.paint(format!("{}[{}]", formatted_type, id)),
+                label_part
+            )
+        } else if !formatted_type.is_empty() {
+            format!(
+                "{}{}",
+                color.paint(format!("{}", formatted_type)),
+                label_part
+            )
+        } else {
+            label
+        }
     }
 
-    fn format_label(&self, label: &[DisplayTextFragment]) -> String {
-        label
-            .iter()
-            .map(|fragment| match fragment.style {
-                DisplayTextStyle::Regular => fragment.content.clone(),
-                DisplayTextStyle::Emphasis => format!("{}", fragment.content.clone()),
-            })
-            .collect::<Vec<String>>()
-            .join("")
+    fn format_source_line(&self, line: &DisplaySourceLine) -> Option<String> {
+        match line {
+            DisplaySourceLine::Empty => None,
+            DisplaySourceLine::Content { text, .. } => Some(format!(" {}", text)),
+            DisplaySourceLine::Annotation {
+                range,
+                annotation,
+                annotation_type,
+                annotation_part,
+            } => {
+                let indent_char = match annotation_part {
+                    DisplayAnnotationPart::Standalone => ' ',
+                    DisplayAnnotationPart::LabelContinuation => ' ',
+                    DisplayAnnotationPart::Consequitive => ' ',
+                    DisplayAnnotationPart::MultilineStart => '_',
+                    DisplayAnnotationPart::MultilineEnd => '_',
+                };
+                let mark = match annotation_type {
+                    DisplayAnnotationType::Error => '^',
+                    DisplayAnnotationType::Warning => '-',
+                    DisplayAnnotationType::Info => '-',
+                    DisplayAnnotationType::Note => '-',
+                    DisplayAnnotationType::Help => '-',
+                    DisplayAnnotationType::None => ' ',
+                };
+                let style = match annotation_type {
+                    DisplayAnnotationType::Error => StyleClass::Error,
+                    DisplayAnnotationType::Warning => StyleClass::Warning,
+                    DisplayAnnotationType::Info => StyleClass::Info,
+                    DisplayAnnotationType::Note => StyleClass::Note,
+                    DisplayAnnotationType::Help => StyleClass::Help,
+                    DisplayAnnotationType::None => StyleClass::None,
+                };
+                let color = self.stylesheet.get_style(style);
+                let indent_length = match annotation_part {
+                    DisplayAnnotationPart::LabelContinuation => range.1,
+                    DisplayAnnotationPart::Consequitive => range.1,
+                    _ => range.0,
+                };
+                let indent = color.paint(repeat_char(indent_char, indent_length + 1));
+                let marks = color.paint(repeat_char(mark, range.1 - indent_length));
+                let annotation = self.format_annotation(
+                    annotation,
+                    annotation_part == &DisplayAnnotationPart::LabelContinuation,
+                    true,
+                );
+                if annotation.is_empty() {
+                    return Some(format!("{}{}", indent, marks));
+                }
+                return Some(format!("{}{} {}", indent, marks, color.paint(annotation)));
+            }
+        }
+    }
+
+    fn format_lineno(&self, lineno: Option<usize>, lineno_width: usize) -> String {
+        match lineno {
+            Some(n) => format!("{:>width$}", n, width = lineno_width),
+            None => repeat_char(' ', lineno_width),
+        }
+    }
+
+    fn format_raw_line(&self, line: &DisplayRawLine, lineno_width: usize) -> String {
+        match line {
+            DisplayRawLine::Origin {
+                path,
+                pos,
+                header_type,
+            } => {
+                let header_sigil = match header_type {
+                    DisplayHeaderType::Initial => String::from("-->"),
+                    DisplayHeaderType::Continuation => String::from(":::"),
+                };
+                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+
+                if let Some((col, row)) = pos {
+                    format!(
+                        "{}{} {}:{}:{}",
+                        repeat_char(' ', lineno_width),
+                        lineno_color.paint(header_sigil),
+                        path,
+                        col,
+                        row
+                    )
+                } else {
+                    format!(
+                        "{}{} {}",
+                        repeat_char(' ', lineno_width),
+                        lineno_color.paint(header_sigil),
+                        path
+                    )
+                }
+            }
+            DisplayRawLine::Annotation {
+                annotation,
+                source_aligned,
+                continuation,
+            } => {
+                if *source_aligned {
+                    if *continuation {
+                        format!(
+                            "{}{}",
+                            repeat_char(' ', lineno_width + 3),
+                            self.format_annotation(annotation, *continuation, false)
+                        )
+                    } else {
+                        let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                        format!(
+                            "{} {} {}",
+                            repeat_char(' ', lineno_width),
+                            lineno_color.paint("=".to_string()),
+                            self.format_annotation(annotation, *continuation, false)
+                        )
+                    }
+                } else {
+                    format!(
+                        "{}",
+                        self.format_annotation(annotation, *continuation, false)
+                    )
+                }
+            }
+        }
+    }
+
+    fn format_line(
+        &self,
+        dl: &DisplayLine,
+        lineno_width: usize,
+        inline_marks_width: usize,
+    ) -> String {
+        match dl {
+            DisplayLine::Source {
+                lineno,
+                inline_marks,
+                line,
+            } => {
+                let lineno = self.format_lineno(*lineno, lineno_width);
+                let marks = self.format_inline_marks(inline_marks, inline_marks_width);
+                let lf = self.format_source_line(line);
+                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+
+                let mut prefix = lineno_color.paint(format!("{} |", lineno));
+
+                match lf {
+                    Some(lf) => {
+                        if !marks.is_empty() {
+                            prefix.push_str(&format!(" {}", marks));
+                        }
+                        format!("{}{}", prefix, lf)
+                    }
+                    None => {
+                        if !marks.trim().is_empty() {
+                            prefix.push_str(&format!(" {}", marks));
+                        }
+                        format!("{}", prefix)
+                    }
+                }
+            }
+            DisplayLine::Fold { inline_marks } => {
+                let marks = self.format_inline_marks(inline_marks, inline_marks_width);
+                let indent = lineno_width;
+                if marks.trim().is_empty() {
+                    String::from("...")
+                } else {
+                    format!("...{}{}", repeat_char(' ', indent), marks)
+                }
+            }
+            DisplayLine::Raw(line) => self.format_raw_line(line, lineno_width),
+        }
     }
 
     fn format_inline_marks(
@@ -146,6 +334,7 @@ impl DisplayListFormatter {
                         DisplayAnnotationType::Info => StyleClass::Info,
                         DisplayAnnotationType::Note => StyleClass::Note,
                         DisplayAnnotationType::Help => StyleClass::Help,
+                        DisplayAnnotationType::None => StyleClass::None,
                     };
                     let color = self.stylesheet.get_style(style);
                     format!("{}", color.paint(String::from(sigil)))
@@ -153,166 +342,5 @@ impl DisplayListFormatter {
                 .collect::<Vec<String>>()
                 .join(""),
         )
-    }
-
-    fn format_line(
-        &self,
-        f: &mut fmt::Formatter,
-        dl: &DisplayLine,
-        lineno_width: usize,
-        inline_marks_width: usize,
-    ) -> fmt::Result {
-        match dl {
-            DisplayLine::Annotation {
-                annotation_type,
-                id,
-                aligned,
-                label,
-            } => {
-                let style = match annotation_type {
-                    DisplayAnnotationType::Error => StyleClass::Error,
-                    DisplayAnnotationType::Warning => StyleClass::Warning,
-                    DisplayAnnotationType::Info => StyleClass::Info,
-                    DisplayAnnotationType::Note => StyleClass::Note,
-                    DisplayAnnotationType::Help => StyleClass::Help,
-                };
-                let color = self.stylesheet.get_style(style);
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
-                let formatted_type = self.format_annotation_type(&annotation_type);
-                let name = if let Some(id) = id {
-                    format!("{}[{}]", formatted_type, id)
-                } else {
-                    formatted_type
-                };
-                let prefix = if *aligned {
-                    format!("{} = ", " ".repeat(lineno_width))
-                } else {
-                    "".to_string()
-                };
-                if let Some((first, rest)) = self.format_label(label)
-                    .lines()
-                    .collect::<Vec<&str>>()
-                    .split_first()
-                {
-                    let indent = prefix.len() + name.len() + 2;
-                    writeln!(
-                        f,
-                        "{}{}{}",
-                        lineno_color.bold().paint(prefix),
-                        color.bold().paint(name),
-                        format!(": {}", first)
-                    )?;
-                    for line in rest {
-                        writeln!(f, "{}{}", " ".repeat(indent), format!("{}", line))?;
-                    }
-                }
-            }
-            DisplayLine::Origin {
-                path,
-                pos,
-                header_type,
-            } => {
-                let header_sigil = match header_type {
-                    DisplayHeaderType::Initial => String::from("-->"),
-                    DisplayHeaderType::Continuation => String::from(":::"),
-                };
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
-                if let Some((row, col)) = pos {
-                    writeln!(
-                        f,
-                        "{}{} {}:{}:{}",
-                        " ".repeat(lineno_width),
-                        lineno_color.paint(header_sigil),
-                        path,
-                        row,
-                        col
-                    )?;
-                } else {
-                    writeln!(
-                        f,
-                        "{}{} {}",
-                        " ".repeat(lineno_width),
-                        lineno_color.paint(header_sigil),
-                        path,
-                    )?;
-                }
-            }
-            DisplayLine::EmptySource => {
-                let prefix = format!("{} |", " ".repeat(lineno_width));
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
-                writeln!(f, "{}", lineno_color.paint(prefix))?;
-            }
-            DisplayLine::Source {
-                lineno,
-                inline_marks,
-                content,
-                ..
-            } => {
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
-                let prefix = format!("{:>width$} |", lineno, width = lineno_width);
-                writeln!(
-                    f,
-                    "{}{} {}",
-                    lineno_color.paint(prefix),
-                    self.format_inline_marks(&inline_marks, inline_marks_width),
-                    content,
-                )?;
-            }
-            DisplayLine::SourceAnnotation {
-                inline_marks,
-                range,
-                label,
-                annotation_type,
-                annotation_part,
-            } => self.format_source_annotation_lines(
-                f,
-                lineno_width,
-                self.format_inline_marks(&inline_marks, inline_marks_width),
-                range,
-                &label,
-                &annotation_type,
-                &annotation_part,
-            )?,
-            DisplayLine::Fold { inline_marks } => writeln!(
-                f,
-                "... {}",
-                self.format_inline_marks(&inline_marks, inline_marks_width),
-            )?,
-        }
-        Ok(())
-    }
-}
-
-impl fmt::Display for DisplayList {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let lineno_width = self.body.iter().fold(0, |max, line| match line {
-            DisplayLine::Source { lineno, .. } => {
-                let width = lineno.to_string().len();
-                if width > max {
-                    width
-                } else {
-                    max
-                }
-            }
-            _ => max,
-        });
-        let inline_marks_width = self.body.iter().fold(0, |max, line| match line {
-            DisplayLine::Source { inline_marks, .. } => {
-                let width = inline_marks.len();
-                if width > max {
-                    width + 1
-                } else {
-                    max
-                }
-            }
-            _ => max,
-        });
-
-        let dlf = DisplayListFormatter::new(true);
-
-        for line in &self.body {
-            dlf.format_line(f, line, lineno_width, inline_marks_width)?;
-        }
-        Ok(())
     }
 }

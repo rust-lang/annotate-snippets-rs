@@ -8,10 +8,10 @@ slices:
     annotations:
       - label: unexpected token
         annotation_type: Error
-        range: [23, 26]
+        range: [22, 25]
       - label: expected one of `.`, `;`, `?`, or an operator here
         annotation_type: Warning
-        range: [11, 12]
+        range: [10, 11]
 title:
   label: expected one of `.`, `;`, `?`, or an operator, found `for`
   annotation_type: Error

@@ -1,36 +1,60 @@
+#[derive(Debug, Clone, PartialEq)]
 pub struct DisplayList {
     pub body: Vec<DisplayLine>,
 }
 
+impl From<Vec<DisplayLine>> for DisplayList {
+    fn from(body: Vec<DisplayLine>) -> Self {
+        Self { body }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Annotation {
+    pub annotation_type: DisplayAnnotationType,
+    pub id: Option<String>,
+    pub label: Vec<DisplayTextFragment>,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayLine {
-    Annotation {
-        label: Vec<DisplayTextFragment>,
-        id: Option<String>,
-        aligned: bool,
-        annotation_type: DisplayAnnotationType,
+    Source {
+        lineno: Option<usize>,
+        inline_marks: Vec<DisplayMark>,
+        line: DisplaySourceLine,
     },
+    Fold {
+        inline_marks: Vec<DisplayMark>,
+    },
+    Raw(DisplayRawLine),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplaySourceLine {
+    Content {
+        text: String,
+        range: (usize, usize),
+    },
+    Annotation {
+        annotation: Annotation,
+        range: (usize, usize),
+        annotation_type: DisplayAnnotationType,
+        annotation_part: DisplayAnnotationPart,
+    },
+    Empty,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DisplayRawLine {
     Origin {
         path: String,
         pos: Option<(usize, usize)>,
         header_type: DisplayHeaderType,
     },
-    EmptySource,
-    Source {
-        lineno: usize,
-        inline_marks: Vec<DisplayMark>,
-        content: String,
-        range: (usize, usize),
-    },
-    SourceAnnotation {
-        inline_marks: Vec<DisplayMark>,
-        range: (usize, usize),
-        label: Vec<DisplayTextFragment>,
-        annotation_type: DisplayAnnotationType,
-        annotation_part: DisplayAnnotationPart,
-    },
-    Fold {
-        inline_marks: Vec<DisplayMark>,
+    Annotation {
+        annotation: Annotation,
+        source_aligned: bool,
+        continuation: bool,
     },
 }
 
@@ -48,7 +72,9 @@ pub enum DisplayTextStyle {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayAnnotationPart {
-    Singleline,
+    Standalone,
+    LabelContinuation,
+    Consequitive,
     MultilineStart,
     MultilineEnd,
 }
@@ -67,6 +93,7 @@ pub enum DisplayMarkType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayAnnotationType {
+    None,
     Error,
     Warning,
     Info,

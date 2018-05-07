@@ -1,4 +1,4 @@
-mod ds_struct;
-mod ds_from_snippet;
+mod from_snippet;
+mod structs;
 
-pub use self::ds_struct::*;
+pub use self::structs::*;

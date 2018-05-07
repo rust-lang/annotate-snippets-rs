@@ -1,6 +1,7 @@
 extern crate annotate_snippets;
 
 use annotate_snippets::display_list::DisplayList;
+use annotate_snippets::formatter::DisplayListFormatter;
 use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
 
 fn main() {
@@ -26,11 +27,13 @@ fn main() {
             annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
                     .to_string(),
-                range: (22, 25),
+                range: (21, 24),
                 annotation_type: AnnotationType::Error,
             }],
         }],
     };
 
-    println!("{}", DisplayList::from(snippet));
+    let dl = DisplayList::from(snippet);
+    let dlf = DisplayListFormatter::new(true);
+    println!("{}", dlf.format(dl));
 }

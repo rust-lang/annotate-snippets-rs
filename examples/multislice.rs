@@ -1,6 +1,7 @@
 extern crate annotate_snippets;
 
 use annotate_snippets::display_list::DisplayList;
+use annotate_snippets::formatter::DisplayListFormatter;
 use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet};
 
 fn main() {
@@ -29,5 +30,7 @@ fn main() {
         ],
     };
 
-    println!("{}", DisplayList::from(snippet));
+    let dl = DisplayList::from(snippet);
+    let dlf = DisplayListFormatter::new(true);
+    println!("{}", dlf.format(dl));
 }

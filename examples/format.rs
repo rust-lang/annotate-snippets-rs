@@ -1,6 +1,7 @@
 extern crate annotate_snippets;
 
 use annotate_snippets::display_list::DisplayList;
+use annotate_snippets::formatter::DisplayListFormatter;
 use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
 
 fn main() {
@@ -35,12 +36,12 @@ fn main() {
                 SourceAnnotation {
                     label: "expected `Option<String>` because of return type".to_string(),
                     annotation_type: AnnotationType::Warning,
-                    range: (6, 20),
+                    range: (5, 19),
                 },
                 SourceAnnotation {
                     label: "expected enum `std::option::Option`".to_string(),
                     annotation_type: AnnotationType::Error,
-                    range: (23, 746),
+                    range: (23, 745),
                 },
             ],
         }],
@@ -52,5 +53,7 @@ fn main() {
         footer: vec![],
     };
 
-    println!("{}", DisplayList::from(snippet));
+    let dl = DisplayList::from(snippet);
+    let dlf = DisplayListFormatter::new(true);
+    println!("{}", dlf.format(dl));
 }

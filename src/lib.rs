@@ -25,7 +25,7 @@
 //! In order to produce such output, the user builds a
 //! [Snippet](self::snippet::Snippet) which has a single public method: `format`.
 
-pub mod snippet;
 pub mod display_list;
 pub mod formatter;
+pub mod snippet;
 pub mod stylesheets;

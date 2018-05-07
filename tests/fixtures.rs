@@ -8,6 +8,7 @@ extern crate glob;
 extern crate serde_yaml;
 
 use annotate_snippets::display_list::DisplayList;
+use annotate_snippets::formatter::DisplayListFormatter;
 use annotate_snippets::snippet::Snippet;
 use glob::glob;
 use snippet::SnippetDef;
@@ -44,7 +45,9 @@ fn test_fixtures() {
         let snippet = read_fixture(path_in).expect("Failed to read file");
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
-        let actual_out = format!("{}", DisplayList::from(snippet));
+        let dl = DisplayList::from(snippet);
+        let dlf = DisplayListFormatter::new(true);
+        let actual_out = dlf.format(dl);
         println!("{}", expected_out);
         println!("{}", actual_out.trim_right());
 

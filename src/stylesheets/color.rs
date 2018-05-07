@@ -33,6 +33,10 @@ impl Stylesheet for AnsiTermStylesheet {
             StyleClass::Help => Fixed(14).bold(),
 
             StyleClass::LineNo => Fixed(12).bold(),
+
+            StyleClass::Emphasis => AnsiTermStyle::new().bold(),
+
+            StyleClass::None => AnsiTermStyle::new(),
         };
         Box::new(AnsiTermStyleWrapper {
             style: ansi_term_style,

@@ -28,10 +28,10 @@ slices:
     annotations:
       - label: expected `std::option::Option<std::string::String>` because of return type
         annotation_type: Warning
-        range: [6, 20]
+        range: [5, 19]
       - label: expected enum `std::option::Option`, found ()
         annotation_type: Error
-        range: [23, 787]
+        range: [23, 786]
 title:
   label: mismatched types
   id: E0308

@@ -6,6 +6,10 @@ pub enum StyleClass {
     Help,
 
     LineNo,
+
+    Emphasis,
+
+    None,
 }
 
 pub trait Style {
