@@ -1,3 +1,10 @@
+//! DisplayListFormatter is a module handling the formatting of a
+//! [DisplayList](super::display_list::DisplayList) into
+//! a formatted string.
+//!
+//! Besides formatting into a string it also uses a `style::Stylesheet` to
+//! provide additional styling like colors and emphasis to the text.
+
 pub mod style;
 
 use display_list::*;
@@ -14,6 +21,32 @@ fn repeat_char(c: char, n: usize) -> String {
     s.repeat(n)
 }
 
+/// DisplayListFormatter' constructor accepts a single argument which
+/// allows the formatter to optionally apply colors and emphasis
+/// using `ansi_term` crate.
+///
+/// Example:
+///
+/// ```
+/// use annotate_snippets::formatter::DisplayListFormatter;
+/// use annotate_snippets::display_list::{DisplayList, DisplayLine, DisplaySourceLine};
+///
+/// let dlf = DisplayListFormatter::new(false); // Don't use colors
+///
+/// let dl = DisplayList {
+///     body: vec![
+///         DisplayLine::Source {
+///             lineno: Some(192),
+///             inline_marks: vec![],
+///             line: DisplaySourceLine::Content {
+///                 text: "Example line of text".into(),
+///                 range: (0, 21)
+///             }
+///         }
+///     ]
+/// };
+/// assert_eq!(dlf.format(dl), "192 | Example line of text");
+/// ```
 pub struct DisplayListFormatter {
     stylesheet: Box<Stylesheet>,
 }
