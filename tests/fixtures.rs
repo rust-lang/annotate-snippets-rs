@@ -1,10 +1,10 @@
 mod diff;
 mod snippet;
 
-#[macro_use]
-extern crate serde_derive;
 extern crate annotate_snippets;
 extern crate glob;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_yaml;
 
 use annotate_snippets::display_list::DisplayList;

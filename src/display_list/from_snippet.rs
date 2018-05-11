@@ -307,12 +307,14 @@ fn format_body(slice: &snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
                         body_idx + 1,
                         DisplayLine::Source {
                             lineno: None,
-                            inline_marks: vec![DisplayMark {
-                                mark_type: DisplayMarkType::AnnotationThrough,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
-                            }],
+                            inline_marks: vec![
+                                DisplayMark {
+                                    mark_type: DisplayMarkType::AnnotationThrough,
+                                    annotation_type: DisplayAnnotationType::from(
+                                        annotation.annotation_type,
+                                    ),
+                                },
+                            ],
                             line: DisplaySourceLine::Annotation {
                                 annotation: Annotation {
                                     annotation_type,
