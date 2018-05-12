@@ -15,7 +15,7 @@ fn test_source_empty() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), " |");
+    assert_eq!(dlf.format(&dl), " |");
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn test_source_content() {
     let dlf = DisplayListFormatter::new(false);
 
     assert_eq!(
-        dlf.format(dl),
+        dlf.format(&dl),
         "56 | This is an example\n57 | of content lines"
     );
 }
@@ -73,7 +73,7 @@ fn test_source_annotation_standalone_singleline() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), " | ^^^^^ Example string");
+    assert_eq!(dlf.format(&dl), " | ^^^^^ Example string");
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn test_source_annotation_standalone_multiline() {
     let dlf = DisplayListFormatter::new(false);
 
     assert_eq!(
-        dlf.format(dl),
+        dlf.format(&dl),
         " | ----- help: Example string\n |             Second line"
     );
 }
@@ -267,7 +267,7 @@ fn test_source_annotation_standalone_multi_annotation() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), " | ----- info: Example string\n |             Second line\n |       warning: This is a note\n |                Second line of the warning\n | ----- info: This is an info\n | ----- help: This is help\n |  This is an annotation of type none");
+    assert_eq!(dlf.format(&dl), " | ----- info: Example string\n |             Second line\n |       warning: This is a note\n |                Second line of the warning\n | ----- info: This is an info\n | ----- help: This is help\n |  This is an annotation of type none");
 }
 
 #[test]
@@ -297,7 +297,7 @@ fn test_fold_line() {
     let dlf = DisplayListFormatter::new(false);
 
     assert_eq!(
-        dlf.format(dl),
+        dlf.format(&dl),
         "    5 | This is line 5\n...\n10021 | ... and now we're at line 10021"
     );
 }
@@ -314,7 +314,7 @@ fn test_raw_origin_initial_nopos() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), "--> src/test.rs");
+    assert_eq!(dlf.format(&dl), "--> src/test.rs");
 }
 
 #[test]
@@ -329,7 +329,7 @@ fn test_raw_origin_initial_pos() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), "--> src/test.rs:23:15");
+    assert_eq!(dlf.format(&dl), "--> src/test.rs:23:15");
 }
 
 #[test]
@@ -344,7 +344,7 @@ fn test_raw_origin_continuation() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), "::: src/test.rs:23:15");
+    assert_eq!(dlf.format(&dl), "::: src/test.rs:23:15");
 }
 
 #[test]
@@ -368,7 +368,7 @@ fn test_raw_annotation_unaligned() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), "error[E0001]: This is an error");
+    assert_eq!(dlf.format(&dl), "error[E0001]: This is an error");
 }
 
 #[test]
@@ -407,7 +407,7 @@ fn test_raw_annotation_unaligned_multiline() {
     let dlf = DisplayListFormatter::new(false);
 
     assert_eq!(
-        dlf.format(dl),
+        dlf.format(&dl),
         "warning[E0001]: This is an error\n                Second line of the error"
     );
 }
@@ -433,7 +433,7 @@ fn test_raw_annotation_aligned() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), " = error[E0001]: This is an error");
+    assert_eq!(dlf.format(&dl), " = error[E0001]: This is an error");
 }
 
 #[test]
@@ -472,7 +472,7 @@ fn test_raw_annotation_aligned_multiline() {
     let dlf = DisplayListFormatter::new(false);
 
     assert_eq!(
-        dlf.format(dl),
+        dlf.format(&dl),
         " = warning[E0001]: This is an error\n                   Second line of the error"
     );
 }
@@ -527,7 +527,7 @@ fn test_different_annotation_types() {
     let dlf = DisplayListFormatter::new(false);
 
     assert_eq!(
-        dlf.format(dl),
+        dlf.format(&dl),
         "note: This is a note\nThis is just a string\n  Second line of none type annotation",
     );
 }
@@ -549,5 +549,5 @@ fn test_inline_marks_empty_line() {
 
     let dlf = DisplayListFormatter::new(false);
 
-    assert_eq!(dlf.format(dl), " | |",);
+    assert_eq!(dlf.format(&dl), " | |",);
 }

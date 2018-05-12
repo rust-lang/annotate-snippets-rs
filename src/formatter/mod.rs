@@ -45,13 +45,16 @@ fn repeat_char(c: char, n: usize) -> String {
 ///         }
 ///     ]
 /// };
-/// assert_eq!(dlf.format(dl), "192 | Example line of text");
+/// assert_eq!(dlf.format(&dl), "192 | Example line of text");
 /// ```
 pub struct DisplayListFormatter {
     stylesheet: Box<Stylesheet>,
 }
 
 impl DisplayListFormatter {
+    /// Constructor for the struct. The argument `color` selects
+    /// the stylesheet depending on the user preferences and `ansi_term`
+    /// crate availability.
     pub fn new(color: bool) -> Self {
         if color {
             Self {
@@ -67,7 +70,8 @@ impl DisplayListFormatter {
         }
     }
 
-    pub fn format(&self, dl: DisplayList) -> String {
+    /// Formats a `DisplayList` into a String.
+    pub fn format(&self, dl: &DisplayList) -> String {
         let lineno_width = dl.body.iter().fold(0, |max, line| match line {
             DisplayLine::Source {
                 lineno: Some(lineno),
@@ -166,11 +170,7 @@ impl DisplayListFormatter {
                 label_part
             )
         } else if !formatted_type.is_empty() {
-            format!(
-                "{}{}",
-                color.paint(format!("{}", formatted_type)),
-                label_part
-            )
+            format!("{}{}", color.paint(formatted_type), label_part)
         } else {
             label
         }
@@ -290,10 +290,7 @@ impl DisplayListFormatter {
                         )
                     }
                 } else {
-                    format!(
-                        "{}",
-                        self.format_annotation(annotation, *continuation, false)
-                    )
+                    self.format_annotation(annotation, *continuation, false)
                 }
             }
         }
@@ -329,7 +326,7 @@ impl DisplayListFormatter {
                         if !marks.trim().is_empty() {
                             prefix.push_str(&format!(" {}", marks));
                         }
-                        format!("{}", prefix)
+                        prefix
                     }
                 }
             }
@@ -370,7 +367,7 @@ impl DisplayListFormatter {
                         DisplayAnnotationType::None => StyleClass::None,
                     };
                     let color = self.stylesheet.get_style(style);
-                    format!("{}", color.paint(String::from(sigil)))
+                    color.paint(String::from(sigil))
                 })
                 .collect::<Vec<String>>()
                 .join(""),

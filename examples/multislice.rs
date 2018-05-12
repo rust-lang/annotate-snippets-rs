@@ -32,5 +32,5 @@ fn main() {
 
     let dl = DisplayList::from(snippet);
     let dlf = DisplayListFormatter::new(true);
-    println!("{}", dlf.format(dl));
+    println!("{}", dlf.format(&dl));
 }

@@ -47,7 +47,7 @@ fn test_fixtures() {
 
         let dl = DisplayList::from(snippet);
         let dlf = DisplayListFormatter::new(true);
-        let actual_out = dlf.format(dl);
+        let actual_out = dlf.format(&dl);
         println!("{}", expected_out);
         println!("{}", actual_out.trim_right());
 
