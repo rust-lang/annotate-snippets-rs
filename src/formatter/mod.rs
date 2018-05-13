@@ -203,7 +203,7 @@ impl DisplayListFormatter {
                 if annotation.is_empty() {
                     return Some(format!("{}{}", indent, marks));
                 }
-                return Some(format!("{}{} {}", indent, marks, color.paint(&annotation)));
+                Some(format!("{}{} {}", indent, marks, color.paint(&annotation)))
             }
         }
     }

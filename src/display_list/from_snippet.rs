@@ -5,8 +5,7 @@ fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<Dis
     let mut result = vec![];
     if let Some(label) = label {
         let elements: Vec<&str> = label.split("__").collect();
-        let mut idx = 0;
-        for element in elements {
+        for (idx, element) in elements.iter().enumerate() {
             let element_style = match style {
                 Some(s) => s,
                 None => if idx % 2 == 0 {
@@ -19,10 +18,9 @@ fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<Dis
                 content: element.to_string(),
                 style: element_style,
             });
-            idx += 1;
         }
     }
-    return result;
+    result
 }
 
 fn format_title(annotation: &snippet::Annotation) -> DisplayLine {
@@ -84,11 +82,11 @@ fn format_header(
         let mut col = 1;
         let mut row = slice.line_start;
 
-        for idx in 0..body.len() {
+        for item in body.iter() {
             if let DisplayLine::Source {
                 line: DisplaySourceLine::Content { range, .. },
                 ..
-            } = body[idx]
+            } = item
             {
                 if annotation.range.0 >= range.0 && annotation.range.0 <= range.1 {
                     col = annotation.range.0 - range.0;
@@ -104,14 +102,13 @@ fn format_header(
                 header_type: display_header,
             }));
         }
-    } else {
-        if let Some(ref path) = slice.origin {
-            return Some(DisplayLine::Raw(DisplayRawLine::Origin {
-                path: path.to_string(),
-                pos: None,
-                header_type: display_header,
-            }));
-        }
+    }
+    if let Some(ref path) = slice.origin {
+        return Some(DisplayLine::Raw(DisplayRawLine::Origin {
+            path: path.to_string(),
+            pos: None,
+            header_type: display_header,
+        }));
     }
     None
 }
@@ -142,19 +139,19 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
                     } else {
                         1
                     };
-                    for i in fold_start..fold_start + pre_len {
-                        new_body.push(body[i].clone());
-                    }
+                    for item in body.iter().take(fold_start + pre_len).skip(fold_start) {
+                        new_body.push(item.clone());
+                    };
                     new_body.push(DisplayLine::Fold {
                         inline_marks: inline_marks.clone(),
                     });
-                    for i in fold_end - post_len..fold_end {
-                        new_body.push(body[i].clone());
+                    for item in body.iter().take(fold_end).skip(fold_end - post_len) {
+                        new_body.push(item.clone());
                     }
                 } else {
                     let start = idx - no_annotation_lines_counter;
-                    for i in start..idx {
-                        new_body.push(body[i].clone());
+                    for item in body.iter().take(idx).skip(start) {
+                        new_body.push(item.clone());
                     }
                 }
                 no_annotation_lines_counter = 0;
@@ -172,7 +169,7 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
         idx += 1;
     }
 
-    return new_body;
+    new_body
 }
 
 fn format_body(slice: &snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
@@ -372,14 +369,12 @@ impl From<snippet::Snippet> for DisplayList {
             body.push(format_title(&annotation));
         }
 
-        let mut slice_idx = 0;
-        for slice in snippet.slices {
+        for (idx, slice) in snippet.slices.iter().enumerate() {
             body.append(&mut format_slice(
                 &slice,
-                slice_idx == 0,
+                idx == 0,
                 !snippet.footer.is_empty(),
             ));
-            slice_idx += 1;
         }
 
         for annotation in snippet.footer {
