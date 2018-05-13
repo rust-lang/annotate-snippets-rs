@@ -141,7 +141,7 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
                     };
                     for item in body.iter().take(fold_start + pre_len).skip(fold_start) {
                         new_body.push(item.clone());
-                    };
+                    }
                     new_body.push(DisplayLine::Fold {
                         inline_marks: inline_marks.clone(),
                     });

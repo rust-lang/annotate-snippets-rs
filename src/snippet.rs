@@ -1,3 +1,5 @@
+//! Structures used as an input for the library.
+
 /// Primary structure provided for formatting
 #[derive(Debug, Clone)]
 pub struct Snippet {
@@ -31,6 +33,7 @@ pub enum AnnotationType {
     Help,
 }
 
+/// An annotation for a `Slice`.
 #[derive(Debug, Clone)]
 pub struct SourceAnnotation {
     pub range: (usize, usize),
@@ -38,6 +41,7 @@ pub struct SourceAnnotation {
     pub annotation_type: AnnotationType,
 }
 
+/// An annotation for a `Snippet`.
 #[derive(Debug, Clone)]
 pub struct Annotation {
     /// Identifier of the annotation. Usually error code like "E0308".

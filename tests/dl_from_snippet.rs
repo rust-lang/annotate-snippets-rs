@@ -235,36 +235,40 @@ fn test_format_slice_annotation_standalone() {
 fn test_format_label() {
     let input = snippet::Snippet {
         title: None,
-        footer: vec![snippet::Annotation {
-            id: None,
-            label: Some("This __is__ a title".to_string()),
-            annotation_type: snippet::AnnotationType::Error,
-        }],
+        footer: vec![
+            snippet::Annotation {
+                id: None,
+                label: Some("This __is__ a title".to_string()),
+                annotation_type: snippet::AnnotationType::Error,
+            },
+        ],
         slices: vec![],
     };
     let output = dl::DisplayList {
-        body: vec![dl::DisplayLine::Raw(dl::DisplayRawLine::Annotation {
-            annotation: dl::Annotation {
-                annotation_type: dl::DisplayAnnotationType::Error,
-                id: None,
-                label: vec![
-                    dl::DisplayTextFragment {
-                        content: "This ".to_string(),
-                        style: dl::DisplayTextStyle::Regular,
-                    },
-                    dl::DisplayTextFragment {
-                        content: "is".to_string(),
-                        style: dl::DisplayTextStyle::Emphasis,
-                    },
-                    dl::DisplayTextFragment {
-                        content: " a title".to_string(),
-                        style: dl::DisplayTextStyle::Regular,
-                    },
-                ],
-            },
-            source_aligned: true,
-            continuation: false,
-        })],
+        body: vec![
+            dl::DisplayLine::Raw(dl::DisplayRawLine::Annotation {
+                annotation: dl::Annotation {
+                    annotation_type: dl::DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![
+                        dl::DisplayTextFragment {
+                            content: "This ".to_string(),
+                            style: dl::DisplayTextStyle::Regular,
+                        },
+                        dl::DisplayTextFragment {
+                            content: "is".to_string(),
+                            style: dl::DisplayTextStyle::Emphasis,
+                        },
+                        dl::DisplayTextFragment {
+                            content: " a title".to_string(),
+                            style: dl::DisplayTextStyle::Regular,
+                        },
+                    ],
+                },
+                source_aligned: true,
+                continuation: false,
+            }),
+        ],
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
