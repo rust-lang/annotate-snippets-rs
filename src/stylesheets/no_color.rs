@@ -3,8 +3,8 @@ use formatter::style::{Style, StyleClass, Stylesheet};
 pub struct NoOpStyle {}
 
 impl Style for NoOpStyle {
-    fn paint(&self, text: String) -> String {
-        text
+    fn paint(&self, text: &str) -> String {
+        text.to_string()
     }
 
     fn bold(&self) -> Box<Style> {

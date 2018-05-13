@@ -10,7 +10,7 @@ struct AnsiTermStyleWrapper {
 }
 
 impl Style for AnsiTermStyleWrapper {
-    fn paint(&self, text: String) -> String {
+    fn paint(&self, text: &str) -> String {
         format!("{}", self.style.paint(text))
     }
 

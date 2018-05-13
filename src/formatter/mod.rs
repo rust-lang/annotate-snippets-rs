@@ -7,9 +7,9 @@
 
 pub mod style;
 
+use std::cmp;
 use display_list::*;
-
-use self::style::{StyleClass, Stylesheet};
+use self::style::{Style, StyleClass, Stylesheet};
 
 #[cfg(feature = "ansi_term")]
 use stylesheets::color::AnsiTermStylesheet;
@@ -76,25 +76,11 @@ impl DisplayListFormatter {
             DisplayLine::Source {
                 lineno: Some(lineno),
                 ..
-            } => {
-                let width = lineno.to_string().len();
-                if width > max {
-                    width
-                } else {
-                    max
-                }
-            }
+            } => cmp::max(lineno.to_string().len(), max),
             _ => max,
         });
         let inline_marks_width = dl.body.iter().fold(0, |max, line| match line {
-            DisplayLine::Source { inline_marks, .. } => {
-                let width = inline_marks.len();
-                if width > max {
-                    width
-                } else {
-                    max
-                }
-            }
+            DisplayLine::Source { inline_marks, .. } => cmp::max(inline_marks.len(), max),
             _ => max,
         });
 
@@ -105,15 +91,26 @@ impl DisplayListFormatter {
             .join("\n")
     }
 
-    fn format_annotation_type(&self, annotation_type: &DisplayAnnotationType) -> String {
+    fn format_annotation_type(&self, annotation_type: &DisplayAnnotationType) -> &'static str {
         match annotation_type {
-            DisplayAnnotationType::Error => "error".to_string(),
-            DisplayAnnotationType::Warning => "warning".to_string(),
-            DisplayAnnotationType::Info => "info".to_string(),
-            DisplayAnnotationType::Note => "note".to_string(),
-            DisplayAnnotationType::Help => "help".to_string(),
-            DisplayAnnotationType::None => "".to_string(),
+            DisplayAnnotationType::Error => "error",
+            DisplayAnnotationType::Warning => "warning",
+            DisplayAnnotationType::Info => "info",
+            DisplayAnnotationType::Note => "note",
+            DisplayAnnotationType::Help => "help",
+            DisplayAnnotationType::None => "",
         }
+    }
+
+    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> Box<Style> {
+        self.stylesheet.get_style(match annotation_type {
+            DisplayAnnotationType::Error => StyleClass::Error,
+            DisplayAnnotationType::Warning => StyleClass::Warning,
+            DisplayAnnotationType::Info => StyleClass::Info,
+            DisplayAnnotationType::Note => StyleClass::Note,
+            DisplayAnnotationType::Help => StyleClass::Help,
+            DisplayAnnotationType::None => StyleClass::None,
+        })
     }
 
     fn format_label(&self, label: &[DisplayTextFragment]) -> String {
@@ -122,7 +119,7 @@ impl DisplayListFormatter {
             .iter()
             .map(|fragment| match fragment.style {
                 DisplayTextStyle::Regular => fragment.content.clone(),
-                DisplayTextStyle::Emphasis => emphasis_style.paint(fragment.content.clone()),
+                DisplayTextStyle::Emphasis => emphasis_style.paint(&fragment.content),
             })
             .collect::<Vec<String>>()
             .join("")
@@ -134,43 +131,32 @@ impl DisplayListFormatter {
         continuation: bool,
         in_source: bool,
     ) -> String {
-        let style = match annotation.annotation_type {
-            DisplayAnnotationType::Error => StyleClass::Error,
-            DisplayAnnotationType::Warning => StyleClass::Warning,
-            DisplayAnnotationType::Info => StyleClass::Info,
-            DisplayAnnotationType::Note => StyleClass::Note,
-            DisplayAnnotationType::Help => StyleClass::Help,
-            DisplayAnnotationType::None => StyleClass::None,
+        let color = self.get_annotation_style(&annotation.annotation_type);
+        let formatted_type = if let Some(ref id) = annotation.id {
+            format!(
+                "{}[{}]",
+                self.format_annotation_type(&annotation.annotation_type),
+                id
+            )
+        } else {
+            self.format_annotation_type(&annotation.annotation_type)
+                .to_string()
         };
-        let color = self.stylesheet.get_style(style);
-        let formatted_type = self.format_annotation_type(&annotation.annotation_type);
         let label = self.format_label(&annotation.label);
 
         let label_part = if label.is_empty() {
             "".to_string()
         } else if in_source {
-            color.paint(format!(": {}", self.format_label(&annotation.label)))
+            color.paint(&format!(": {}", self.format_label(&annotation.label)))
         } else {
             format!(": {}", self.format_label(&annotation.label))
         };
         if continuation {
-            let indent = if let Some(ref id) = annotation.id {
-                formatted_type.len() + id.len() + 4
-            } else if !formatted_type.is_empty() {
-                formatted_type.len() + 2
-            } else {
-                2
-            };
+            let indent = formatted_type.len() + 2;
             return format!("{}{}", repeat_char(' ', indent), label);
         }
-        if let Some(ref id) = annotation.id {
-            format!(
-                "{}{}",
-                color.paint(format!("{}[{}]", formatted_type, id)),
-                label_part
-            )
-        } else if !formatted_type.is_empty() {
-            format!("{}{}", color.paint(formatted_type), label_part)
+        if !formatted_type.is_empty() {
+            format!("{}{}", color.paint(&formatted_type), label_part)
         } else {
             label
         }
@@ -201,22 +187,14 @@ impl DisplayListFormatter {
                     DisplayAnnotationType::Help => '-',
                     DisplayAnnotationType::None => ' ',
                 };
-                let style = match annotation_type {
-                    DisplayAnnotationType::Error => StyleClass::Error,
-                    DisplayAnnotationType::Warning => StyleClass::Warning,
-                    DisplayAnnotationType::Info => StyleClass::Info,
-                    DisplayAnnotationType::Note => StyleClass::Note,
-                    DisplayAnnotationType::Help => StyleClass::Help,
-                    DisplayAnnotationType::None => StyleClass::None,
-                };
-                let color = self.stylesheet.get_style(style);
+                let color = self.get_annotation_style(annotation_type);
                 let indent_length = match annotation_part {
                     DisplayAnnotationPart::LabelContinuation => range.1,
                     DisplayAnnotationPart::Consequitive => range.1,
                     _ => range.0,
                 };
-                let indent = color.paint(repeat_char(indent_char, indent_length + 1));
-                let marks = color.paint(repeat_char(mark, range.1 - indent_length));
+                let indent = color.paint(&repeat_char(indent_char, indent_length + 1));
+                let marks = color.paint(&repeat_char(mark, range.1 - indent_length));
                 let annotation = self.format_annotation(
                     annotation,
                     annotation_part == &DisplayAnnotationPart::LabelContinuation,
@@ -225,7 +203,7 @@ impl DisplayListFormatter {
                 if annotation.is_empty() {
                     return Some(format!("{}{}", indent, marks));
                 }
-                return Some(format!("{}{} {}", indent, marks, color.paint(annotation)));
+                return Some(format!("{}{} {}", indent, marks, color.paint(&annotation)));
             }
         }
     }
@@ -245,8 +223,8 @@ impl DisplayListFormatter {
                 header_type,
             } => {
                 let header_sigil = match header_type {
-                    DisplayHeaderType::Initial => String::from("-->"),
-                    DisplayHeaderType::Continuation => String::from(":::"),
+                    DisplayHeaderType::Initial => "-->",
+                    DisplayHeaderType::Continuation => ":::",
                 };
                 let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
 
@@ -285,7 +263,7 @@ impl DisplayListFormatter {
                         format!(
                             "{} {} {}",
                             repeat_char(' ', lineno_width),
-                            lineno_color.paint("=".to_string()),
+                            lineno_color.paint("="),
                             self.format_annotation(annotation, *continuation, false)
                         )
                     }
@@ -313,7 +291,7 @@ impl DisplayListFormatter {
                 let lf = self.format_source_line(line);
                 let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
 
-                let mut prefix = lineno_color.paint(format!("{} |", lineno));
+                let mut prefix = lineno_color.paint(&format!("{} |", lineno));
 
                 match lf {
                     Some(lf) => {
@@ -358,16 +336,8 @@ impl DisplayListFormatter {
                         DisplayMarkType::AnnotationThrough => "|",
                         DisplayMarkType::AnnotationStart => "/",
                     };
-                    let style = match mark.annotation_type {
-                        DisplayAnnotationType::Error => StyleClass::Error,
-                        DisplayAnnotationType::Warning => StyleClass::Warning,
-                        DisplayAnnotationType::Info => StyleClass::Info,
-                        DisplayAnnotationType::Note => StyleClass::Note,
-                        DisplayAnnotationType::Help => StyleClass::Help,
-                        DisplayAnnotationType::None => StyleClass::None,
-                    };
-                    let color = self.stylesheet.get_style(style);
-                    color.paint(String::from(sigil))
+                    let color = self.get_annotation_style(&mark.annotation_type);
+                    color.paint(sigil)
                 })
                 .collect::<Vec<String>>()
                 .join(""),

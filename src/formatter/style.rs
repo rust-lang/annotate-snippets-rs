@@ -25,7 +25,7 @@
 //! };
 //!
 //! impl Style for HTMLStyle {
-//!   fn paint(&self, text: String) -> String {
+//!   fn paint(&self, text: &str) -> String {
 //!     format!("{}{}{}", self.prefix, text, self.postfix)
 //!   }
 //!
@@ -84,7 +84,7 @@ pub enum StyleClass {
 /// This trait implements a return value for the `Stylesheet::get_style`.
 pub trait Style {
     /// The method used by the DisplayListFormatter to style the message.
-    fn paint(&self, text: String) -> String;
+    fn paint(&self, text: &str) -> String;
     /// The method used by the DisplayListFormatter to display the message
     /// in bold font.
     fn bold(&self) -> Box<Style>;
