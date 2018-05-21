@@ -199,55 +199,20 @@ fn format_body(slice: &snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
     let mut annotations = slice.annotations.clone();
     for idx in 0..body.len() {
         let (line_start, line_end) = line_index_ranges[idx];
-        annotations.drain_filter(|annotation| {
-            let body_idx = idx + annotation_line_count;
-            let annotation_type = match annotation.annotation_type {
-                snippet::AnnotationType::Error => DisplayAnnotationType::None,
-                snippet::AnnotationType::Warning => DisplayAnnotationType::None,
-                _ => DisplayAnnotationType::from(annotation.annotation_type),
-            };
-            match annotation.range {
-                (start, _) if start > line_end => false,
-                (start, end) if start >= line_start && end <= line_end + 1 => {
-                    let range = (start - line_start, end - line_start);
-                    body.insert(
-                        body_idx + 1,
-                        DisplayLine::Source {
-                            lineno: None,
-                            inline_marks: vec![],
-                            line: DisplaySourceLine::Annotation {
-                                annotation: Annotation {
-                                    annotation_type,
-                                    id: None,
-                                    label: format_label(Some(&annotation.label), None),
-                                },
-                                range,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
-                                annotation_part: DisplayAnnotationPart::Standalone,
-                            },
-                        },
-                    );
-                    annotation_line_count += 1;
-                    true
-                }
-                (start, end) if start >= line_start && start <= line_end && end > line_end => {
-                    if start - line_start == 0 {
-                        if let DisplayLine::Source {
-                            ref mut inline_marks,
-                            ..
-                        } = body[body_idx]
-                        {
-                            inline_marks.push(DisplayMark {
-                                mark_type: DisplayMarkType::AnnotationStart,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
-                            });
-                        }
-                    } else {
-                        let range = (start - line_start, start - line_start + 1);
+        // It would be nice to use filter_drain here once it's stable.
+        annotations = annotations
+            .into_iter()
+            .filter(|annotation| {
+                let body_idx = idx + annotation_line_count;
+                let annotation_type = match annotation.annotation_type {
+                    snippet::AnnotationType::Error => DisplayAnnotationType::None,
+                    snippet::AnnotationType::Warning => DisplayAnnotationType::None,
+                    _ => DisplayAnnotationType::from(annotation.annotation_type),
+                };
+                match annotation.range {
+                    (start, _) if start > line_end => true,
+                    (start, end) if start >= line_start && end <= line_end + 1 => {
+                        let range = (start - line_start, end - line_start);
                         body.insert(
                             body_idx + 1,
                             DisplayLine::Source {
@@ -255,83 +220,122 @@ fn format_body(slice: &snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
                                 inline_marks: vec![],
                                 line: DisplaySourceLine::Annotation {
                                     annotation: Annotation {
-                                        annotation_type: DisplayAnnotationType::None,
+                                        annotation_type,
                                         id: None,
-                                        label: vec![],
+                                        label: format_label(Some(&annotation.label), None),
                                     },
                                     range,
                                     annotation_type: DisplayAnnotationType::from(
                                         annotation.annotation_type,
                                     ),
-                                    annotation_part: DisplayAnnotationPart::MultilineStart,
+                                    annotation_part: DisplayAnnotationPart::Standalone,
                                 },
                             },
                         );
                         annotation_line_count += 1;
+                        false
                     }
-                    false
-                }
-                (start, end) if start < line_start && end > line_end => {
-                    if let DisplayLine::Source {
-                        ref mut inline_marks,
-                        ..
-                    } = body[body_idx]
-                    {
-                        inline_marks.push(DisplayMark {
-                            mark_type: DisplayMarkType::AnnotationThrough,
-                            annotation_type: DisplayAnnotationType::from(
-                                annotation.annotation_type,
-                            ),
-                        });
-                    }
-                    false
-                }
-                (start, end) if start < line_start && end >= line_start && end <= line_end => {
-                    if let DisplayLine::Source {
-                        ref mut inline_marks,
-                        ..
-                    } = body[body_idx]
-                    {
-                        inline_marks.push(DisplayMark {
-                            mark_type: DisplayMarkType::AnnotationThrough,
-                            annotation_type: DisplayAnnotationType::from(
-                                annotation.annotation_type,
-                            ),
-                        });
-                    }
-                    let range = (end - line_start, end - line_start + 1);
-                    body.insert(
-                        body_idx + 1,
-                        DisplayLine::Source {
-                            lineno: None,
-                            inline_marks: vec![
-                                DisplayMark {
-                                    mark_type: DisplayMarkType::AnnotationThrough,
+                    (start, end) if start >= line_start && start <= line_end && end > line_end => {
+                        if start - line_start == 0 {
+                            if let DisplayLine::Source {
+                                ref mut inline_marks,
+                                ..
+                            } = body[body_idx]
+                            {
+                                inline_marks.push(DisplayMark {
+                                    mark_type: DisplayMarkType::AnnotationStart,
                                     annotation_type: DisplayAnnotationType::from(
                                         annotation.annotation_type,
                                     ),
+                                });
+                            }
+                        } else {
+                            let range = (start - line_start, start - line_start + 1);
+                            body.insert(
+                                body_idx + 1,
+                                DisplayLine::Source {
+                                    lineno: None,
+                                    inline_marks: vec![],
+                                    line: DisplaySourceLine::Annotation {
+                                        annotation: Annotation {
+                                            annotation_type: DisplayAnnotationType::None,
+                                            id: None,
+                                            label: vec![],
+                                        },
+                                        range,
+                                        annotation_type: DisplayAnnotationType::from(
+                                            annotation.annotation_type,
+                                        ),
+                                        annotation_part: DisplayAnnotationPart::MultilineStart,
+                                    },
                                 },
-                            ],
-                            line: DisplaySourceLine::Annotation {
-                                annotation: Annotation {
-                                    annotation_type,
-                                    id: None,
-                                    label: format_label(Some(&annotation.label), None),
-                                },
-                                range,
+                            );
+                            annotation_line_count += 1;
+                        }
+                        true
+                    }
+                    (start, end) if start < line_start && end > line_end => {
+                        if let DisplayLine::Source {
+                            ref mut inline_marks,
+                            ..
+                        } = body[body_idx]
+                        {
+                            inline_marks.push(DisplayMark {
+                                mark_type: DisplayMarkType::AnnotationThrough,
                                 annotation_type: DisplayAnnotationType::from(
                                     annotation.annotation_type,
                                 ),
-                                annotation_part: DisplayAnnotationPart::MultilineEnd,
+                            });
+                        }
+                        true
+                    }
+                    (start, end) if start < line_start && end >= line_start && end <= line_end => {
+                        if let DisplayLine::Source {
+                            ref mut inline_marks,
+                            ..
+                        } = body[body_idx]
+                        {
+                            inline_marks.push(DisplayMark {
+                                mark_type: DisplayMarkType::AnnotationThrough,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                            });
+                        }
+                        let range = (end - line_start, end - line_start + 1);
+                        body.insert(
+                            body_idx + 1,
+                            DisplayLine::Source {
+                                lineno: None,
+                                inline_marks: vec![
+                                    DisplayMark {
+                                        mark_type: DisplayMarkType::AnnotationThrough,
+                                        annotation_type: DisplayAnnotationType::from(
+                                            annotation.annotation_type,
+                                        ),
+                                    },
+                                ],
+                                line: DisplaySourceLine::Annotation {
+                                    annotation: Annotation {
+                                        annotation_type,
+                                        id: None,
+                                        label: format_label(Some(&annotation.label), None),
+                                    },
+                                    range,
+                                    annotation_type: DisplayAnnotationType::from(
+                                        annotation.annotation_type,
+                                    ),
+                                    annotation_part: DisplayAnnotationPart::MultilineEnd,
+                                },
                             },
-                        },
-                    );
-                    annotation_line_count += 1;
-                    true
+                        );
+                        annotation_line_count += 1;
+                        false
+                    }
+                    _ => true,
                 }
-                _ => false,
-            }
-        });
+            })
+            .collect();
     }
 
     if slice.fold {

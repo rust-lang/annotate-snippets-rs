@@ -8,6 +8,8 @@ addons:
 cache: cargo
 rust:
   - nightly
+  - beta
+  - stable
 script:
 - cargo clean
 - cargo build
