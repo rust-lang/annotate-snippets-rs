@@ -35,7 +35,7 @@ Installation
 
 ```toml
 [dependencies]
-annotate-snippets-rs = "0.0.6"
+annotate-snippets-rs = "0.0.7"
 ```
 
 
