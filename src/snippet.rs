@@ -3,6 +3,8 @@
 //! Example:
 //!
 //! ```
+//! use annotate_snippets::snippet::*;
+//!
 //! Snippet {
 //!     title: Some(Annotation {
 //!         label: Some("mismatched types".to_string()),
