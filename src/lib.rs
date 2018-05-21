@@ -21,8 +21,30 @@
 //!    | |_____^ expected enum `std::option::Option`, found ()
 //! ```
 //!
-//! In order to produce such output, the user builds a
-//! [Snippet](self::snippet::Snippet) which has a single public method: `format`.
+//! The crate uses a three stage process with two conversions between states:
+//!
+//! ```text
+//! Snippet --> DisplayList --> String
+//! ```
+//!
+//! The input type - [Snippet](self::snippet) is a structure designed
+//! to align with likely output from any parser whose code snippet is to be
+//! annotated.
+//!
+//! The middle structure - [DisplayList](self::display_list) is a
+//! structure designed to store the snippet data converted into a vector
+//! of lines containing semantic information about each line.
+//! This structure is the easiest to manipulate and organize.
+//!
+//! Finally, [DisplayListFormatter](self::formatter::DisplayListFormatter) is
+//! used to format the `DisplayList` using a `Stylesheet` into a final `String` output.
+//!
+//! A user of the crate may choose to provide their own equivalent of the input
+//! structure with an `Into<DisplayList>` trait.
+//!
+//! A user of the crate may also choose to provide their own formatter logic,
+//! to convert a `DisplayList` into a `String`, or just a `Stylesheet` to
+//! use the crate's formatting logic, but with a custom stylesheet.
 
 pub mod display_list;
 pub mod formatter;

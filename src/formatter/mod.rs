@@ -1,6 +1,5 @@
 //! DisplayListFormatter is a module handling the formatting of a
-//! [DisplayList](super::display_list::DisplayList) into
-//! a formatted string.
+//! `DisplayList` into a formatted string.
 //!
 //! Besides formatting into a string it also uses a `style::Stylesheet` to
 //! provide additional styling like colors and emphasis to the text.

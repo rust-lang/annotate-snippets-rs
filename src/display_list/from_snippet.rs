@@ -1,3 +1,4 @@
+//! Trait for converting `Snippet` to `DisplayList`.
 use super::*;
 use snippet;
 
