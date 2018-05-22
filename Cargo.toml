@@ -1,6 +1,6 @@
 [package]
 name = "annotate-snippets"
-version = "0.0.7"
+version = "0.1.0"
 authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
 description = "Library for building code annotations"
 license = "Apache-2.0/MIT"
