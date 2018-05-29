@@ -6,9 +6,9 @@
 
 pub mod style;
 
-use std::cmp;
-use display_list::*;
 use self::style::{Style, StyleClass, Stylesheet};
+use display_list::*;
+use std::cmp;
 
 #[cfg(feature = "ansi_term")]
 use stylesheets::color::AnsiTermStylesheet;

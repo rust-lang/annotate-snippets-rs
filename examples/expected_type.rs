@@ -12,29 +12,27 @@ fn main() {
             annotation_type: AnnotationType::Error,
         }),
         footer: vec![],
-        slices: vec![
-            Slice {
-                source: r#"                annotations: vec![SourceAnnotation {
+        slices: vec![Slice {
+            source: r#"                annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
                     .to_string(),
                 range: <22, 25>,"#.to_string(),
-                line_start: 26,
-                origin: Some("examples/footer.rs".to_string()),
-                fold: true,
-                annotations: vec![
-                    SourceAnnotation {
-                        label: "".to_string(),
-                        annotation_type: AnnotationType::Error,
-                        range: (208, 210),
-                    },
-                    SourceAnnotation {
-                        label: "while parsing this struct".to_string(),
-                        annotation_type: AnnotationType::Info,
-                        range: (34, 50),
-                    },
-                ],
-            },
-        ],
+            line_start: 26,
+            origin: Some("examples/footer.rs".to_string()),
+            fold: true,
+            annotations: vec![
+                SourceAnnotation {
+                    label: "".to_string(),
+                    annotation_type: AnnotationType::Error,
+                    range: (208, 210),
+                },
+                SourceAnnotation {
+                    label: "while parsing this struct".to_string(),
+                    annotation_type: AnnotationType::Info,
+                    range: (34, 50),
+                },
+            ],
+        }],
     };
 
     let dl = DisplayList::from(snippet);

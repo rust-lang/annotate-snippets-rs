@@ -3,8 +3,9 @@ extern crate serde;
 
 use self::serde::de::{Deserialize, Deserializer};
 
-use self::annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet,
-                                       SourceAnnotation};
+use self::annotate_snippets::snippet::{
+    Annotation, AnnotationType, Slice, Snippet, SourceAnnotation,
+};
 
 #[derive(Deserialize)]
 #[serde(remote = "Snippet")]
