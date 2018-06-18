@@ -25,7 +25,7 @@ fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<Dis
 }
 
 fn format_title(annotation: &snippet::Annotation) -> DisplayLine {
-    let label = annotation.label.clone().unwrap_or("".to_string());
+    let label = annotation.label.clone().unwrap_or_default();
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
             annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
@@ -39,7 +39,7 @@ fn format_title(annotation: &snippet::Annotation) -> DisplayLine {
 
 fn format_annotation(annotation: &snippet::Annotation) -> Vec<DisplayLine> {
     let mut result = vec![];
-    let label = annotation.label.clone().unwrap_or("".to_string());
+    let label = annotation.label.clone().unwrap_or_default();
     for (i, line) in label.lines().enumerate() {
         result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
