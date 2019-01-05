@@ -30,15 +30,6 @@ error[E0308]: mismatched types
 
 [Documentation]: https://docs.rs/annotate-snippets/
 
-Installation
-------------
-
-```toml
-[dependencies]
-annotate-snippets-rs = "0.1.0"
-```
-
-
 Usage
 -----
 
