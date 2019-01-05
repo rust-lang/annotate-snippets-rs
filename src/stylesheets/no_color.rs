@@ -1,4 +1,4 @@
-use formatter::style::{Style, StyleClass, Stylesheet};
+use crate::formatter::style::{Style, StyleClass, Stylesheet};
 
 pub struct NoOpStyle {}
 

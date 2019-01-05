@@ -11,7 +11,7 @@ use annotate_snippets::display_list::DisplayList;
 use annotate_snippets::formatter::DisplayListFormatter;
 use annotate_snippets::snippet::Snippet;
 use glob::glob;
-use snippet::SnippetDef;
+use crate::snippet::SnippetDef;
 use std::error::Error;
 use std::fs::File;
 use std::io;
@@ -19,10 +19,10 @@ use std::io::prelude::*;
 use std::path::Path;
 
 fn read_file(path: &str) -> Result<String, io::Error> {
-    let mut f = try!(File::open(path));
+    let mut f = File::open(path)?;
     let mut s = String::new();
-    try!(f.read_to_string(&mut s));
-    Ok(s.trim_right().to_string())
+    (f.read_to_string(&mut s))?;
+    Ok(s.trim_end().to_string())
 }
 
 fn read_fixture<P: AsRef<Path>>(path: P) -> Result<Snippet, Box<Error>> {
@@ -49,11 +49,11 @@ fn test_fixtures() {
         let dlf = DisplayListFormatter::new(true);
         let actual_out = dlf.format(&dl);
         println!("{}", expected_out);
-        println!("{}", actual_out.trim_right());
+        println!("{}", actual_out.trim_end());
 
         assert_eq!(
             expected_out,
-            actual_out.trim_right(),
+            actual_out.trim_end(),
             "\n\n\nWhile parsing: {}\nThe diff is:\n\n\n{}\n\n\n",
             path_in,
             diff::get_diff(expected_out.as_str(), actual_out.as_str())

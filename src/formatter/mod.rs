@@ -7,12 +7,12 @@
 pub mod style;
 
 use self::style::{Style, StyleClass, Stylesheet};
-use display_list::*;
+use crate::display_list::*;
 use std::cmp;
 
 #[cfg(feature = "ansi_term")]
 use stylesheets::color::AnsiTermStylesheet;
-use stylesheets::no_color::NoColorStylesheet;
+use crate::stylesheets::no_color::NoColorStylesheet;
 
 fn repeat_char(c: char, n: usize) -> String {
     let mut s = String::with_capacity(c.len_utf8());

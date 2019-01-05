@@ -1,6 +1,6 @@
 //! Trait for converting `Snippet` to `DisplayList`.
 use super::*;
-use snippet;
+use crate::snippet;
 
 fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<DisplayTextFragment> {
     let mut result = vec![];
