@@ -7,11 +7,11 @@ extern crate glob;
 extern crate serde_derive;
 extern crate serde_yaml;
 
+use crate::snippet::SnippetDef;
 use annotate_snippets::display_list::DisplayList;
 use annotate_snippets::formatter::DisplayListFormatter;
 use annotate_snippets::snippet::Snippet;
 use glob::glob;
-use crate::snippet::SnippetDef;
 use std::error::Error;
 use std::fs::File;
 use std::io;

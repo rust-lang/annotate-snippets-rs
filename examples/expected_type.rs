@@ -16,7 +16,8 @@ fn main() {
             source: r#"                annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
                     .to_string(),
-                range: <22, 25>,"#.to_string(),
+                range: <22, 25>,"#
+                .to_string(),
             line_start: 26,
             origin: Some("examples/footer.rs".to_string()),
             fold: true,

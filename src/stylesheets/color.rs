@@ -1,9 +1,7 @@
-use formatter::style::{Style, StyleClass, Stylesheet};
+use crate::formatter::style::{Style, StyleClass, Stylesheet};
 
-extern crate ansi_term;
-
-use self::ansi_term::Color::Fixed;
-use self::ansi_term::Style as AnsiTermStyle;
+use ansi_term::Color::Fixed;
+use ansi_term::Style as AnsiTermStyle;
 
 struct AnsiTermStyleWrapper {
     style: AnsiTermStyle,

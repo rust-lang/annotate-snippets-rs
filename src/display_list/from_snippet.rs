@@ -9,11 +9,13 @@ fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<Dis
         for (idx, element) in elements.iter().enumerate() {
             let element_style = match style {
                 Some(s) => s,
-                None => if idx % 2 == 0 {
-                    DisplayTextStyle::Regular
-                } else {
-                    DisplayTextStyle::Emphasis
-                },
+                None => {
+                    if idx % 2 == 0 {
+                        DisplayTextStyle::Regular
+                    } else {
+                        DisplayTextStyle::Emphasis
+                    }
+                }
             };
             result.push(DisplayTextFragment {
                 content: element.to_string(),

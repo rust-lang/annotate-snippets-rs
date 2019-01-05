@@ -28,7 +28,8 @@ fn main() {
             }
             _ => continue,
         }
-    }"#.to_string(),
+    }"#
+            .to_string(),
             line_start: 51,
             origin: Some("src/format.rs".to_string()),
             fold: false,

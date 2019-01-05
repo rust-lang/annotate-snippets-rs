@@ -10,9 +10,9 @@ use self::style::{Style, StyleClass, Stylesheet};
 use crate::display_list::*;
 use std::cmp;
 
-#[cfg(feature = "ansi_term")]
-use stylesheets::color::AnsiTermStylesheet;
 use crate::stylesheets::no_color::NoColorStylesheet;
+#[cfg(feature = "ansi_term")]
+use crate::stylesheets::color::AnsiTermStylesheet;
 
 fn repeat_char(c: char, n: usize) -> String {
     let mut s = String::with_capacity(c.len_utf8());
