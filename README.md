@@ -7,7 +7,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/zbraniecki/annotate-snippets-rs/badge.svg?branch=master)](https://coveralls.io/github/zbraniecki/annotate-snippets-rs?branch=master)
 
 The library helps visualize meta information annotating source code slices.
-It takes a data structure called `Snippet` on the input and procudes a `String`
+It takes a data structure called `Snippet` on the input and produces a `String`
 which may look like this:
 
 ```text
