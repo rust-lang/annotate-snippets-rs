@@ -7,7 +7,7 @@ impl Style for NoOpStyle {
         text.to_string()
     }
 
-    fn bold(&self) -> Box<Style> {
+    fn bold(&self) -> Box<dyn Style> {
         Box::new(NoOpStyle {})
     }
 }
@@ -15,7 +15,7 @@ impl Style for NoOpStyle {
 pub struct NoColorStylesheet {}
 
 impl Stylesheet for NoColorStylesheet {
-    fn get_style(&self, _class: StyleClass) -> Box<Style> {
+    fn get_style(&self, _class: StyleClass) -> Box<dyn Style> {
         Box::new(NoOpStyle {})
     }
 }

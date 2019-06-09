@@ -87,12 +87,12 @@ pub trait Style {
     fn paint(&self, text: &str) -> String;
     /// The method used by the DisplayListFormatter to display the message
     /// in bold font.
-    fn bold(&self) -> Box<Style>;
+    fn bold(&self) -> Box<dyn Style>;
 }
 
 /// Trait to annotate structs that can provide `Style` implementations for
 /// every `StyleClass` variant.
 pub trait Stylesheet {
     /// Returns a `Style` implementer based on the requested `StyleClass` variant.
-    fn get_style(&self, class: StyleClass) -> Box<Style>;
+    fn get_style(&self, class: StyleClass) -> Box<dyn Style>;
 }
