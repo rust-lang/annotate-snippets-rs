@@ -55,6 +55,6 @@ fn main() {
     };
 
     let dl = DisplayList::from(snippet);
-    let dlf = DisplayListFormatter::new(true);
+    let dlf = DisplayListFormatter::new(true, false);
     println!("{}", dlf.format(&dl));
 }

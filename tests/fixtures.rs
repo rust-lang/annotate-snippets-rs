@@ -46,7 +46,7 @@ fn test_fixtures() {
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
         let dl = DisplayList::from(snippet);
-        let dlf = DisplayListFormatter::new(true);
+        let dlf = DisplayListFormatter::new(true, false);
         let actual_out = dlf.format(&dl);
         println!("{}", expected_out);
         println!("{}", actual_out.trim_end());

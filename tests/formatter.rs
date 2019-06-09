@@ -11,7 +11,7 @@ fn test_source_empty() {
         line: DisplaySourceLine::Empty,
     }]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), " |");
 }
@@ -37,7 +37,7 @@ fn test_source_content() {
         },
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(
         dlf.format(&dl),
@@ -65,7 +65,7 @@ fn test_source_annotation_standalone_singleline() {
         },
     }]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), " | ^^^^^ Example string");
 }
@@ -109,7 +109,7 @@ fn test_source_annotation_standalone_multiline() {
         },
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(
         dlf.format(&dl),
@@ -241,7 +241,7 @@ fn test_source_annotation_standalone_multi_annotation() {
         },
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), " | ----- info: Example string\n |             Second line\n |       warning: This is a note\n |                Second line of the warning\n | ----- info: This is an info\n | ----- help: This is help\n |  This is an annotation of type none");
 }
@@ -270,7 +270,7 @@ fn test_fold_line() {
         },
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(
         dlf.format(&dl),
@@ -286,7 +286,7 @@ fn test_raw_origin_initial_nopos() {
         header_type: DisplayHeaderType::Initial,
     })]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), "--> src/test.rs");
 }
@@ -299,7 +299,7 @@ fn test_raw_origin_initial_pos() {
         header_type: DisplayHeaderType::Initial,
     })]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), "--> src/test.rs:23:15");
 }
@@ -312,7 +312,7 @@ fn test_raw_origin_continuation() {
         header_type: DisplayHeaderType::Continuation,
     })]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), "::: src/test.rs:23:15");
 }
@@ -332,7 +332,7 @@ fn test_raw_annotation_unaligned() {
         continuation: false,
     })]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), "error[E0001]: This is an error");
 }
@@ -366,7 +366,7 @@ fn test_raw_annotation_unaligned_multiline() {
         }),
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(
         dlf.format(&dl),
@@ -389,7 +389,7 @@ fn test_raw_annotation_aligned() {
         continuation: false,
     })]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), " = error[E0001]: This is an error");
 }
@@ -423,7 +423,7 @@ fn test_raw_annotation_aligned_multiline() {
         }),
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(
         dlf.format(&dl),
@@ -472,7 +472,7 @@ fn test_different_annotation_types() {
         }),
     ]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(
         dlf.format(&dl),
@@ -491,7 +491,50 @@ fn test_inline_marks_empty_line() {
         line: DisplaySourceLine::Empty,
     }]);
 
-    let dlf = DisplayListFormatter::new(false);
+    let dlf = DisplayListFormatter::new(false, false);
 
     assert_eq!(dlf.format(&dl), " | |",);
+}
+
+#[test]
+fn test_anon_lines() {
+    let dl = DisplayList::from(vec![
+        DisplayLine::Source {
+            lineno: Some(56),
+            inline_marks: vec![],
+            line: DisplaySourceLine::Content {
+                text: "This is an example".to_string(),
+                range: (0, 19),
+            },
+        },
+        DisplayLine::Source {
+            lineno: Some(57),
+            inline_marks: vec![],
+            line: DisplaySourceLine::Content {
+                text: "of content lines".to_string(),
+                range: (0, 19),
+            },
+        },
+    ]);
+
+    let dlf = DisplayListFormatter::new(false, true);
+
+    assert_eq!(
+        dlf.format(&dl),
+        "LL | This is an example\nLL | of content lines"
+    );
+}
+
+#[test]
+fn test_raw_origin_initial_pos_anon_lines() {
+    let dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+        path: "src/test.rs".to_string(),
+        pos: Some((23, 15)),
+        header_type: DisplayHeaderType::Initial,
+    })]);
+
+    let dlf = DisplayListFormatter::new(false, true);
+
+    // Using anonymized_line_numbers should not affect the inital position
+    assert_eq!(dlf.format(&dl), "--> src/test.rs:23:15");
 }
