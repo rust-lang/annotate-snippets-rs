@@ -47,7 +47,7 @@ fn repeat_char(c: char, n: usize) -> String {
 /// assert_eq!(dlf.format(&dl), "192 | Example line of text");
 /// ```
 pub struct DisplayListFormatter {
-    stylesheet: Box<Stylesheet>,
+    stylesheet: Box<dyn Stylesheet>,
 }
 
 impl DisplayListFormatter {
@@ -101,7 +101,7 @@ impl DisplayListFormatter {
         }
     }
 
-    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> Box<Style> {
+    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> Box<dyn Style> {
         self.stylesheet.get_style(match annotation_type {
             DisplayAnnotationType::Error => StyleClass::Error,
             DisplayAnnotationType::Warning => StyleClass::Warning,
