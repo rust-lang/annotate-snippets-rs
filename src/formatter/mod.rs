@@ -54,7 +54,7 @@ pub struct DisplayListFormatter {
 }
 
 impl DisplayListFormatter {
-    pub const ANONYMIZED_LINE_NUM: &'static str = "LL";
+    const ANONYMIZED_LINE_NUM: &'static str = "LL";
 
     /// Constructor for the struct.
     ///
@@ -89,7 +89,7 @@ impl DisplayListFormatter {
                 ..
             } => {
                 if self.anonymized_line_numbers {
-                    2 // "LL"
+                    Self::ANONYMIZED_LINE_NUM.len()
                 } else {
                     cmp::max(lineno.to_string().len(), max)
                 }
