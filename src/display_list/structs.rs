@@ -131,7 +131,7 @@ pub enum DisplayMarkType {
     /// use annotate_snippets::display_list::*;
     /// use annotate_snippets::formatter::DisplayListFormatter;
     ///
-    /// let dlf = DisplayListFormatter::new(false); // Don't use colors
+    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
     ///
     /// let dl = DisplayList {
     ///     body: vec![
@@ -161,7 +161,7 @@ pub enum DisplayMarkType {
     /// use annotate_snippets::display_list::*;
     /// use annotate_snippets::formatter::DisplayListFormatter;
     ///
-    /// let dlf = DisplayListFormatter::new(false); // Don't use colors
+    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
     ///
     /// let dl = DisplayList {
     ///     body: vec![
@@ -214,7 +214,7 @@ pub enum DisplayHeaderType {
     /// use annotate_snippets::display_list::*;
     /// use annotate_snippets::formatter::DisplayListFormatter;
     ///
-    /// let dlf = DisplayListFormatter::new(false); // Don't use colors
+    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
     ///
     /// let dl = DisplayList {
     ///     body: vec![
@@ -236,7 +236,7 @@ pub enum DisplayHeaderType {
     /// use annotate_snippets::display_list::*;
     /// use annotate_snippets::formatter::DisplayListFormatter;
     ///
-    /// let dlf = DisplayListFormatter::new(false); // Don't use colors
+    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
     ///
     /// let dl = DisplayList {
     ///     body: vec![
