@@ -303,7 +303,7 @@ impl DisplayListFormatter {
                 inline_marks,
                 line,
             } => {
-                let lineno = if self.anonymized_line_numbers {
+                let lineno = if self.anonymized_line_numbers  && lineno.is_some() {
                     Self::ANONYMIZED_LINE_NUM.to_string()
                 } else {
                     self.format_lineno(*lineno, lineno_width)
