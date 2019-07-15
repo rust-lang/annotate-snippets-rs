@@ -515,13 +515,26 @@ fn test_anon_lines() {
                 range: (0, 19),
             },
         },
+        DisplayLine::Source {
+            lineno: None,
+            inline_marks: vec![],
+            line: DisplaySourceLine::Empty,
+        },
+        DisplayLine::Source {
+            lineno: None,
+            inline_marks: vec![],
+            line: DisplaySourceLine::Content {
+                text: "abc".to_string(),
+                range: (0, 19),
+            },
+        },
     ]);
 
     let dlf = DisplayListFormatter::new(false, true);
 
     assert_eq!(
         dlf.format(&dl),
-        "LL | This is an example\nLL | of content lines"
+        "LL | This is an example\nLL | of content lines\n   |\n   | abc"
     );
 }
 
