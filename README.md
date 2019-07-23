@@ -34,8 +34,6 @@ Usage
 -----
 
 ```rust
-extern crate annotate_snippets;
-
 use annotate_snippets::snippet;
 
 fn main() {

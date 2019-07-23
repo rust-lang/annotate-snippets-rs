@@ -12,7 +12,7 @@ impl Style for AnsiTermStyleWrapper {
         format!("{}", self.style.paint(text))
     }
 
-    fn bold(&self) -> Box<Style> {
+    fn bold(&self) -> Box<dyn Style> {
         Box::new(AnsiTermStyleWrapper {
             style: self.style.clone(),
         })
@@ -22,7 +22,7 @@ impl Style for AnsiTermStyleWrapper {
 pub struct AnsiTermStylesheet {}
 
 impl Stylesheet for AnsiTermStylesheet {
-    fn get_style(&self, class: StyleClass) -> Box<Style> {
+    fn get_style(&self, class: StyleClass) -> Box<dyn Style> {
         let ansi_term_style = match class {
             StyleClass::Error => Fixed(9).bold(),
             StyleClass::Warning => Fixed(11).bold(),

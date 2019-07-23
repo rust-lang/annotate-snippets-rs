@@ -1,5 +1,3 @@
-extern crate annotate_snippets;
-
 use annotate_snippets::display_list as dl;
 use annotate_snippets::snippet;
 

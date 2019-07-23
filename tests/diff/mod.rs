@@ -1,8 +1,5 @@
-extern crate ansi_term;
-extern crate difference;
-
-use self::ansi_term::Color::{Black, Green, Red};
-use self::difference::{Changeset, Difference};
+use ansi_term::Color::{Black, Green, Red};
+use difference::{Changeset, Difference};
 
 pub fn get_diff(left: &str, right: &str) -> String {
     let mut output = String::new();

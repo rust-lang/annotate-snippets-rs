@@ -1,9 +1,6 @@
-extern crate annotate_snippets;
-extern crate serde;
+use serde::{Serialize, Deserialize, Deserializer};
 
-use self::serde::de::{Deserialize, Deserializer};
-
-use self::annotate_snippets::snippet::{
+use annotate_snippets::snippet::{
     Annotation, AnnotationType, Slice, Snippet, SourceAnnotation,
 };
 

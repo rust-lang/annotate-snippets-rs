@@ -1,6 +1,6 @@
 [package]
 name = "annotate-snippets"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2018"
 authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
 description = "Library for building code annotations"
@@ -21,10 +21,9 @@ ansi_term = { version = "0.11.0", optional = true }
 [dev-dependencies]
 glob = "^0.3"
 serde_yaml = "^0.8"
-serde = "^1.0"
-serde_derive = "^1.0"
+serde = { version = "^1.0", features = ["derive"] }
 difference = "^2.0"
-ansi_term = "^0.11"
+ansi_term = "^0.12"
 
 [features]
 default = []

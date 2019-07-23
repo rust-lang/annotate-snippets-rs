@@ -1,5 +1,3 @@
-extern crate annotate_snippets;
-
 use annotate_snippets::display_list::*;
 use annotate_snippets::formatter::DisplayListFormatter;
 

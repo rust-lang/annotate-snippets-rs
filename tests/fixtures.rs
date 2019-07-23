@@ -1,12 +1,6 @@
 mod diff;
 mod snippet;
 
-extern crate annotate_snippets;
-extern crate glob;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_yaml;
-
 use crate::snippet::SnippetDef;
 use annotate_snippets::display_list::DisplayList;
 use annotate_snippets::formatter::DisplayListFormatter;
@@ -17,6 +11,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
+use serde::Deserialize;
 
 fn read_file(path: &str) -> Result<String, io::Error> {
     let mut f = File::open(path)?;
