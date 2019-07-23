@@ -16,7 +16,7 @@ coveralls = { repository = "rust-lang/annotate-snippets-rs", branch = "master", 
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-ansi_term = { version = "0.11.0", optional = true }
+ansi_term = { version = "^0.12", optional = true }
 
 [dev-dependencies]
 glob = "^0.3"
