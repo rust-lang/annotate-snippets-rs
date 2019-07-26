@@ -34,7 +34,11 @@ Usage
 -----
 
 ```rust
-use annotate_snippets::snippet;
+use annotate_snippets::{
+    display_list::DisplayList,
+    formatter::DisplayListFormatter,
+    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+};
 
 fn main() {
     let snippet = Snippet {
@@ -72,7 +76,7 @@ with the list of annotations below.
     };
 
     let dl = DisplayList::from(snippet);
-    let dlf = DisplayListFormatter::new(true);
+    let dlf = DisplayListFormatter::new(true, false);
     dlf.format(&dl);
 }
 ```
