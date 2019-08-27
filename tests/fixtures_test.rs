@@ -20,7 +20,7 @@ fn read_file(path: &str) -> Result<String, io::Error> {
     Ok(s.trim_end().to_string())
 }
 
-fn read_fixture<P: AsRef<Path>>(path: P) -> Result<Snippet, Box<Error>> {
+fn read_fixture<P: AsRef<Path>>(path: P) -> Result<Snippet, Box<dyn Error>> {
     #[derive(Deserialize)]
     struct Wrapper(#[serde(with = "SnippetDef")] Snippet);
 
