@@ -10,9 +10,9 @@ use self::style::{Style, StyleClass, Stylesheet};
 use crate::display_list::*;
 use std::cmp;
 
-use crate::stylesheets::no_color::NoColorStylesheet;
 #[cfg(feature = "ansi_term")]
 use crate::stylesheets::color::AnsiTermStylesheet;
+use crate::stylesheets::no_color::NoColorStylesheet;
 
 fn repeat_char(c: char, n: usize) -> String {
     let mut s = String::with_capacity(c.len_utf8());
@@ -93,7 +93,7 @@ impl DisplayListFormatter {
                 } else {
                     cmp::max(lineno.to_string().len(), max)
                 }
-            },
+            }
             _ => max,
         });
         let inline_marks_width = dl.body.iter().fold(0, |max, line| match line {
@@ -303,7 +303,7 @@ impl DisplayListFormatter {
                 inline_marks,
                 line,
             } => {
-                let lineno = if self.anonymized_line_numbers  && lineno.is_some() {
+                let lineno = if self.anonymized_line_numbers && lineno.is_some() {
                     Self::ANONYMIZED_LINE_NUM.to_string()
                 } else {
                     self.format_lineno(*lineno, lineno_width)

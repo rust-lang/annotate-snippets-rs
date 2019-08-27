@@ -1,8 +1,6 @@
-use serde::{Serialize, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
-use annotate_snippets::snippet::{
-    Annotation, AnnotationType, Slice, Snippet, SourceAnnotation,
-};
+use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
 
 #[derive(Deserialize)]
 #[serde(remote = "Snippet")]

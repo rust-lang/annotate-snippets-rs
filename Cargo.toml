@@ -24,6 +24,11 @@ serde_yaml = "^0.8"
 serde = { version = "^1.0", features = ["derive"] }
 difference = "^2.0"
 ansi_term = "^0.12"
+criterion = "0.3"
+
+[[bench]]
+name = "simple"
+harness = false
 
 [features]
 default = []
