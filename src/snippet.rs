@@ -40,6 +40,9 @@ pub struct Snippet {
 
 /// Structure containing the slice of text to be annotated and
 /// basic information about the location of the slice.
+///
+/// One `Slice` is meant to represent a single, continuous,
+/// slice of source code that you want to annotate.
 #[derive(Debug, Clone)]
 pub struct Slice {
     pub source: String,
