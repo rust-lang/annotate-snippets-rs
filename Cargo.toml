@@ -1,35 +1,16 @@
 [package]
 name = "annotate-snippets"
-version = "0.6.1"
+version = "0.1.0"
+authors = ["Zibi Braniecki <zibi@braniecki.net>"]
 edition = "2018"
-authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
-description = "Library for building code annotations"
-license = "Apache-2.0/MIT"
-repository = "https://github.com/rust-lang/annotate-snippets-rs"
-readme = "README.md"
-keywords = ["code", "analysis", "ascii", "errors", "debug"]
 
-[badges]
-travis-ci = { repository = "rust-lang/annotate-snippets-rs", branch = "master" }
-coveralls = { repository = "rust-lang/annotate-snippets-rs", branch = "master", service = "github" }
-
-maintenance = { status = "actively-developed" }
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ansi_term = { version = "^0.12", optional = true }
 
 [dev-dependencies]
-glob = "^0.3"
-serde_yaml = "^0.8"
-serde = { version = "^1.0", features = ["derive"] }
-difference = "^2.0"
-ansi_term = "^0.12"
 criterion = "0.3"
 
 [[bench]]
 name = "simple"
 harness = false
-
-[features]
-default = []
-color = ["ansi_term"]
