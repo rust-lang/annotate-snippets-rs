@@ -29,11 +29,18 @@ fn main() {
         source,
         line_start: Some(51),
         origin: Some("src/format.rs"),
-        annotations: vec![SourceAnnotation {
-            label: "expected `Option<String>` because of return type",
-            annotation_type: AnnotationType::Warning,
-            range: (5, 19),
-        }],
+        annotations: vec![
+            SourceAnnotation {
+                label: "expected `Option<String>` because of return type",
+                annotation_type: AnnotationType::Warning,
+                range: (5, 19),
+            },
+            SourceAnnotation {
+                label: "expected enum `std::option::Option`",
+                annotation_type: AnnotationType::Error,
+                range: (23, 704),
+            },
+        ],
     };
     println!("{}", slice);
 }
