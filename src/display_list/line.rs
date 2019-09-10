@@ -32,7 +32,7 @@ impl<'d> DisplayLine<'d> {
                 } else {
                     write!(f, "{:>1$}", "", lineno_max)?;
                 }
-                f.write_str(" |")?;
+                f.write_str(" | ")?;
                 write!(f, "{:>1$}", "", inline_marks_width - inline_marks.len())?;
                 for mark in inline_marks {
                     write!(f, "{}", mark)?;
@@ -69,9 +69,10 @@ impl<'d> fmt::Display for DisplaySourceLine<'d> {
             } => {
                 let indent = if start == &0 { 0 } else { start + 1 };
                 write!(f, "{:>1$}", "", indent)?;
-                write!(f, "{:->1$}", "", end - start)?;
                 if start == &0 {
-                    f.write_str("^")?;
+                    write!(f, "{:_>1$}", "^", end - start + 1)?;
+                } else {
+                    write!(f, "{:->1$}", "", end - start)?;
                 }
                 f.write_char(' ')?;
                 annotation.fmt(f)

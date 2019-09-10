@@ -112,7 +112,7 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                     },
                 });
             }
-            line_start_pos += line_length;
+            line_start_pos += line_length + 1;
             i += 1;
         }
 

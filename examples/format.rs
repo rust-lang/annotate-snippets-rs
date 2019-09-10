@@ -38,7 +38,7 @@ fn main() {
             SourceAnnotation {
                 label: "expected enum `std::option::Option`",
                 annotation_type: AnnotationType::Error,
-                range: (23, 704),
+                range: (23, 725),
             },
         ],
     };
