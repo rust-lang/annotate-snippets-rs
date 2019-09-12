@@ -1,9 +1,6 @@
-use super::annotation::Annotation;
-use super::line::{
-    DisplayAnnotationType, DisplayLine, DisplayMark, DisplayMarkType, DisplayRawLine,
-    DisplaySourceLine,
-};
-use crate::slice::{Slice, SourceAnnotation};
+use super::annotation::{Annotation, DisplayAnnotationType};
+use super::line::{DisplayLine, DisplayMark, DisplayMarkType, DisplayRawLine, DisplaySourceLine};
+use crate::{Slice, Snippet, SourceAnnotation};
 use std::cmp;
 use std::fmt;
 
@@ -15,6 +12,31 @@ pub struct DisplayList<'d> {
 fn get_header_pos(slice: &Slice) -> (Option<usize>, Option<usize>) {
     let line = slice.line_start;
     (line, None)
+}
+
+impl<'d> From<&Snippet<'d>> for DisplayList<'d> {
+    fn from(snippet: &Snippet<'d>) -> Self {
+        let mut body = vec![];
+
+        if let Some(annotation) = &snippet.title {
+            let label = annotation.label.clone().unwrap_or_default();
+            body.push(DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: annotation.id,
+                    label: &label,
+                },
+                source_aligned: false,
+                continuation: false,
+            }));
+        }
+
+        for slice in snippet.slices {
+            let slice_dl: DisplayList = slice.into();
+            body.extend(slice_dl.body);
+        }
+        DisplayList { body }
+    }
 }
 
 impl<'d> From<&Slice<'d>> for DisplayList<'d> {
@@ -107,7 +129,11 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                     lineno: None,
                     inline_marks,
                     line: DisplaySourceLine::Annotation {
-                        annotation: Annotation { label: ann.label },
+                        annotation: Annotation {
+                            annotation_type: DisplayAnnotationType::Error,
+                            id: None,
+                            label: ann.label,
+                        },
                         range: (start, ann.range.1 - line_start_pos),
                     },
                 });

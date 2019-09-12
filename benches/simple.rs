@@ -6,8 +6,9 @@ use criterion::Criterion;
 
 use std::fmt::Write;
 
-use annotate_snippets::slice::{AnnotationType, SourceAnnotation};
-use annotate_snippets::{DisplayList, Slice};
+use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
+use annotate_snippets::{Slice, Snippet};
+use annotate_snippets::DisplayList;
 
 const SOURCE: &'static str = r#") -> Option<String> {
 for ann in annotations {
@@ -33,24 +34,32 @@ for ann in annotations {
 }"#;
 
 fn create_snippet() {
-    let slice = Slice {
-        source: SOURCE,
-        line_start: Some(51),
-        origin: Some("src/format.rs"),
-        annotations: vec![
-            SourceAnnotation {
-                label: "expected `Option<String>` because of return type",
-                annotation_type: AnnotationType::Warning,
-                range: (5, 19),
-            },
-            SourceAnnotation {
-                label: "expected enum `std::option::Option`",
-                annotation_type: AnnotationType::Error,
-                range: (23, 725),
-            },
-        ],
+    let snippet = Snippet {
+        title: Some(Annotation {
+            id: Some("E0308"),
+            label: Some("mismatched types"),
+            annotation_type: AnnotationType::Error,
+        }),
+        footer: &[],
+        slices: &[Slice {
+            source: SOURCE,
+            line_start: Some(51),
+            origin: Some("src/format.rs"),
+            annotations: vec![
+                SourceAnnotation {
+                    label: "expected `Option<String>` because of return type",
+                    annotation_type: AnnotationType::Warning,
+                    range: (5, 19),
+                },
+                SourceAnnotation {
+                    label: "expected enum `std::option::Option`",
+                    annotation_type: AnnotationType::Error,
+                    range: (23, 725),
+                },
+            ],
+        }],
     };
-    let dl: DisplayList = (&slice).into();
+    let dl: DisplayList = (&snippet).into();
     let mut result = String::new();
     write!(result, "{}", dl).unwrap();
 }

@@ -1,7 +1,8 @@
 use std::fmt;
+use std::fmt::Display;
 use std::fmt::Write;
 
-use super::annotation::Annotation;
+use super::annotation::{Annotation, DisplayAnnotationType};
 
 #[derive(Debug, Clone)]
 pub enum DisplayLine<'d> {
@@ -88,6 +89,11 @@ pub enum DisplayRawLine<'d> {
         path: &'d str,
         pos: (Option<usize>, Option<usize>),
     },
+    Annotation {
+        annotation: Annotation<'d>,
+        source_aligned: bool,
+        continuation: bool,
+    },
 }
 
 impl<'d> DisplayRawLine<'d> {
@@ -100,6 +106,13 @@ impl<'d> DisplayRawLine<'d> {
                     write!(f, ":{}", line)?;
                 }
                 f.write_char('\n')
+            }
+            Self::Annotation { annotation, .. } => {
+                annotation.annotation_type.fmt(f)?;
+                if let Some(id) = annotation.id {
+                    write!(f, "[{}]", id)?;
+                }
+                writeln!(f, ": {}", annotation.label)
             }
         }
     }
@@ -124,14 +137,4 @@ impl fmt::Display for DisplayMark {
 pub enum DisplayMarkType {
     AnnotationThrough,
     AnnotationStart,
-}
-
-#[derive(Debug, Clone)]
-pub enum DisplayAnnotationType {
-    None,
-    Error,
-    Warning,
-    Info,
-    Note,
-    Help,
 }

@@ -1,3 +1,4 @@
+use crate::annotation::SourceAnnotation;
 use crate::display_list::DisplayList;
 use std::fmt;
 
@@ -14,20 +15,4 @@ impl<'s> fmt::Display for Slice<'s> {
         let dl: DisplayList = self.into();
         write!(f, "{}", dl)
     }
-}
-
-#[derive(Debug, Clone)]
-pub enum AnnotationType {
-    Error,
-    Warning,
-    Info,
-    Note,
-    Help,
-}
-
-#[derive(Debug, Clone)]
-pub struct SourceAnnotation<'s> {
-    pub range: (usize, usize),
-    pub label: &'s str,
-    pub annotation_type: AnnotationType,
 }

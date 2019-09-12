@@ -1,5 +1,5 @@
-use annotate_snippets::slice::{AnnotationType, SourceAnnotation};
-use annotate_snippets::Slice;
+use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
+use annotate_snippets::{Slice, Snippet};
 
 fn main() {
     let source = r#") -> Option<String> {
@@ -25,22 +25,30 @@ fn main() {
         }
     }"#;
 
-    let slice = Slice {
-        source,
-        line_start: Some(51),
-        origin: Some("src/format.rs"),
-        annotations: vec![
-            SourceAnnotation {
-                label: "expected `Option<String>` because of return type",
-                annotation_type: AnnotationType::Warning,
-                range: (5, 19),
-            },
-            SourceAnnotation {
-                label: "expected enum `std::option::Option`",
-                annotation_type: AnnotationType::Error,
-                range: (23, 725),
-            },
-        ],
+    let snippet = Snippet {
+        title: Some(Annotation {
+            id: Some("E0308"),
+            label: Some("mismatched types"),
+            annotation_type: AnnotationType::Error,
+        }),
+        footer: &[],
+        slices: &[Slice {
+            source,
+            line_start: Some(51),
+            origin: Some("src/format.rs"),
+            annotations: vec![
+                SourceAnnotation {
+                    label: "expected `Option<String>` because of return type",
+                    annotation_type: AnnotationType::Warning,
+                    range: (5, 19),
+                },
+                SourceAnnotation {
+                    label: "expected enum `std::option::Option`",
+                    annotation_type: AnnotationType::Error,
+                    range: (23, 725),
+                },
+            ],
+        }],
     };
-    println!("{}", slice);
+    println!("{}", snippet);
 }
