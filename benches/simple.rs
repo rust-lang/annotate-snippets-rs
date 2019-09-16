@@ -6,9 +6,9 @@ use criterion::Criterion;
 
 use std::fmt::Write;
 
+use annotate_snippets::DisplayList;
 use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
-use annotate_snippets::DisplayList;
 
 const SOURCE: &'static str = r#") -> Option<String> {
 for ann in annotations {

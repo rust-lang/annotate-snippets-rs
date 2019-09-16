@@ -7,6 +7,7 @@ pub struct Annotation<'s> {
 
 #[derive(Debug, Clone)]
 pub enum AnnotationType {
+    None,
     Error,
     Warning,
     Info,

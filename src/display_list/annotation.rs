@@ -1,29 +1,26 @@
+use crate::annotation::AnnotationType;
+use crate::styles::Stylesheet;
 use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Annotation<'d> {
-    pub annotation_type: DisplayAnnotationType,
+    pub annotation_type: AnnotationType,
     pub id: Option<&'d str>,
     pub label: &'d str,
 }
 
-impl<'d> fmt::Display for Annotation<'d> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.label)
+impl<'d> Annotation<'d> {
+    pub fn fmt_with_style(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        style: &impl Stylesheet,
+    ) -> fmt::Result {
+        style.format(f, &self.annotation_type, self.label)
+        // f.write_str(self.label)
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum DisplayAnnotationType {
-    None,
-    Error,
-    Warning,
-    Info,
-    Note,
-    Help,
-}
-
-impl fmt::Display for DisplayAnnotationType {
+impl fmt::Display for AnnotationType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::None => Ok(()),
