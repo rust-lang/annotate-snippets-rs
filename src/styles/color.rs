@@ -1,9 +1,10 @@
-use super::Stylesheet;
+use super::{StyleClass, Stylesheet};
 use crate::AnnotationType;
 use std::fmt;
 use std::fmt::Display;
 
 use ansi_term::Colour::{Red, Yellow};
+use ansi_term::Style;
 
 #[derive(Default)]
 pub struct StylesheetColor {}
@@ -12,13 +13,17 @@ impl Stylesheet for StylesheetColor {
     fn format(
         &self,
         f: &mut fmt::Formatter,
-        annotation_type: &AnnotationType,
+        styles: &[StyleClass],
         value: impl Display,
     ) -> fmt::Result {
-        match annotation_type {
-            AnnotationType::Error => write!(f, "{}", Red.paint(value.to_string()).to_string()),
-            AnnotationType::Warning => write!(f, "{}", Yellow.paint(value.to_string()).to_string()),
-            _ => write!(f, "{}", value),
+        let mut style = Style::new();
+        for s in styles {
+            match s {
+                StyleClass::TitleLineAnnotationType => style = style.bold(),
+                StyleClass::TitleLine => style = style.bold(),
+                StyleClass::AnnotationTypeError => style = style.fg(Red),
+            }
         }
+        write!(f, "{}", style.paint(value.to_string()))
     }
 }

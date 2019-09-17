@@ -3,7 +3,7 @@ use std::fmt::Write;
 
 use super::annotation::Annotation;
 use crate::annotation::AnnotationType;
-use crate::styles::Stylesheet;
+use crate::styles::{StyleClass, Stylesheet};
 
 #[derive(Debug, Clone)]
 pub enum DisplayLine<'d> {
@@ -116,7 +116,14 @@ impl<'d> DisplayRawLine<'d> {
                 f.write_char('\n')
             }
             Self::Annotation { annotation, .. } => {
-                style.format(f, &annotation.annotation_type, &annotation.annotation_type)?;
+                style.format(
+                    f,
+                    &[
+                        StyleClass::TitleLineAnnotationType,
+                        StyleClass::AnnotationTypeError,
+                    ],
+                    &annotation.annotation_type,
+                )?;
                 if let Some(id) = annotation.id {
                     write!(f, "[{}]", id)?;
                 }

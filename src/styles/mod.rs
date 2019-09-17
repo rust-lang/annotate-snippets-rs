@@ -6,11 +6,17 @@ use std::fmt::Display;
 pub mod color;
 pub mod plain;
 
+pub enum StyleClass {
+    TitleLineAnnotationType,
+    TitleLine,
+    AnnotationTypeError,
+}
+
 pub trait Stylesheet {
     fn format(
         &self,
         f: &mut fmt::Formatter,
-        annotation_type: &AnnotationType,
+        style: &[StyleClass],
         value: impl Display,
     ) -> fmt::Result;
 }
