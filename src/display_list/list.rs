@@ -1,42 +1,11 @@
 use super::annotation::Annotation;
 use super::line::{DisplayLine, DisplayMark, DisplayMarkType, DisplayRawLine, DisplaySourceLine};
 use crate::annotation::AnnotationType;
-use crate::styles::{get_stylesheet, Stylesheet};
 use crate::{Slice, Snippet, SourceAnnotation};
-use std::cmp;
-use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct DisplayList<'d> {
     pub body: Vec<DisplayLine<'d>>,
-}
-
-impl<'d> DisplayList<'d> {
-    pub fn fmt_with_style(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        style: &impl Stylesheet,
-    ) -> fmt::Result {
-        let lineno_max = self.body.iter().rev().find_map(|line| {
-            if let DisplayLine::Source {
-                lineno: Some(lineno),
-                ..
-            } = line
-            {
-                Some(digits(*lineno))
-            } else {
-                None
-            }
-        });
-        let inline_marks_width = self.body.iter().fold(0, |max, line| match line {
-            DisplayLine::Source { inline_marks, .. } => cmp::max(inline_marks.len(), max),
-            _ => max,
-        });
-        for line in &self.body {
-            line.fmt_with_style(f, style, lineno_max, inline_marks_width)?
-        }
-        Ok(())
-    }
 }
 
 fn get_header_pos(slice: &Slice) -> (Option<usize>, Option<usize>) {
@@ -179,22 +148,5 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
         });
 
         DisplayList { body }
-    }
-}
-
-fn digits(n: usize) -> usize {
-    let mut n = n;
-    let mut sum = 0;
-    while n != 0 {
-        n /= 10;
-        sum += 1;
-    }
-    sum
-}
-
-impl<'d> fmt::Display for DisplayList<'d> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let style = get_stylesheet();
-        self.fmt_with_style(f, &style)
     }
 }

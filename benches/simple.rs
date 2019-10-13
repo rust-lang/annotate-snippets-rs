@@ -4,11 +4,12 @@ extern crate criterion;
 use criterion::black_box;
 use criterion::Criterion;
 
-use std::fmt::Write;
-
 use annotate_snippets::DisplayList;
 use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
+
+use annotate_snippets::renderers::ascii_default::styles::plain::Style as PlainStyle;
+use annotate_snippets::renderers::ascii_default::Renderer as AsciiRenderer;
 
 const SOURCE: &'static str = r#") -> Option<String> {
 for ann in annotations {
@@ -59,9 +60,10 @@ fn create_snippet() {
             ],
         }],
     };
+    let r = AsciiRenderer::<PlainStyle>::new();
     let dl: DisplayList = (&snippet).into();
-    let mut result = String::new();
-    write!(result, "{}", dl).unwrap();
+    let mut result: Vec<u8> = Vec::new();
+    r.fmt(&mut result, &dl).unwrap();
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
