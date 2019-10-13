@@ -1,3 +1,11 @@
+#[cfg(feature = "ansi_term")]
+use annotate_snippets::renderers::ascii_default::styles::color::Style as ColorStyle;
+#[cfg(feature = "termcolor")]
+use annotate_snippets::renderers::ascii_default::styles::color2::Style as ColorStyle;
+#[cfg(all(not(feature = "ansi_term"), not(feature = "termcolor")))]
+use annotate_snippets::renderers::ascii_default::styles::plain::Style as PlainStyle;
+use annotate_snippets::renderers::ascii_default::Renderer as AsciiRenderer;
+use annotate_snippets::DisplayList;
 use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
 
@@ -50,5 +58,15 @@ fn main() {
             ],
         }],
     };
-    println!("{}", snippet);
+    let dl = DisplayList::from(&snippet);
+
+    #[cfg(all(not(feature = "ansi_term"), not(feature = "termcolor")))]
+    let r = AsciiRenderer::<PlainStyle>::new();
+    #[cfg(feature = "ansi_term")]
+    let r = AsciiRenderer::<ColorStyle>::new();
+    #[cfg(feature = "termcolor")]
+    let r = AsciiRenderer::<ColorStyle>::new();
+    let mut s: Vec<u8> = Vec::new();
+    r.fmt(&mut s, &dl).unwrap();
+    println!("{}", std::str::from_utf8(&s).unwrap());
 }

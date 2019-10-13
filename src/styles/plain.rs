@@ -9,9 +9,9 @@ impl Stylesheet for StylesheetPlain {
     fn format(
         &self,
         f: &mut fmt::Formatter,
+        pattern: impl Display,
         _style: &[StyleClass],
-        value: impl Display,
     ) -> fmt::Result {
-        write!(f, "{}", value)
+        write!(f, "{}", pattern)
     }
 }

@@ -1,4 +1,3 @@
-use crate::AnnotationType;
 use std::fmt;
 use std::fmt::Display;
 
@@ -16,8 +15,8 @@ pub trait Stylesheet {
     fn format(
         &self,
         f: &mut fmt::Formatter,
+        pattern: impl Display,
         style: &[StyleClass],
-        value: impl Display,
     ) -> fmt::Result;
 }
 

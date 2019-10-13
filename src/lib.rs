@@ -1,5 +1,6 @@
 pub mod annotation;
 mod display_list;
+pub mod renderers;
 pub mod slice;
 pub mod snippet;
 pub mod styles;

@@ -118,11 +118,11 @@ impl<'d> DisplayRawLine<'d> {
             Self::Annotation { annotation, .. } => {
                 style.format(
                     f,
+                    format_args!("{}", annotation.annotation_type),
                     &[
                         StyleClass::TitleLineAnnotationType,
                         StyleClass::AnnotationTypeError,
                     ],
-                    &annotation.annotation_type,
                 )?;
                 if let Some(id) = annotation.id {
                     write!(f, "[{}]", id)?;

@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 ansi_term = { version = "0.12", optional = true }
+termcolor = { version = "1", optional = true }
 
 [dev-dependencies]
 criterion = "0.3"
@@ -15,6 +16,7 @@ criterion = "0.3"
 [features]
 default = []
 color = ["ansi_term"]
+color2 = ["termcolor"]
 
 [[bench]]
 name = "simple"
