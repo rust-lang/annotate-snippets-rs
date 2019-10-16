@@ -1,8 +1,14 @@
 pub mod styles;
 
+#[cfg(feature = "ansi_term")]
+use crate::renderers::ascii_default::styles::color::Style;
+#[cfg(feature = "termcolor")]
+use crate::renderers::ascii_default::styles::color2::Style;
+#[cfg(all(not(feature = "ansi_term"), not(feature = "termcolor")))]
+use crate::renderers::ascii_default::styles::plain::Style;
+
 use super::Renderer as RendererTrait;
 use crate::annotation::AnnotationType;
-use crate::display_list::annotation::Annotation;
 use crate::display_list::line::DisplayLine;
 use crate::display_list::line::DisplayMark;
 use crate::display_list::line::DisplayMarkType;
@@ -13,6 +19,7 @@ use std::cmp;
 use std::io::Write;
 use std::marker::PhantomData;
 use styles::Style as StyleTrait;
+use styles::StyleType;
 
 fn digits(n: usize) -> usize {
     let mut n = n;
@@ -26,6 +33,10 @@ fn digits(n: usize) -> usize {
 
 pub struct Renderer<S: StyleTrait> {
     style: PhantomData<S>,
+}
+
+pub fn get_renderer() -> impl RendererTrait {
+    Renderer::<Style>::new()
 }
 
 impl<S: StyleTrait> Renderer<S> {
@@ -70,11 +81,15 @@ impl<S: StyleTrait> Renderer<S> {
                 line,
             } => {
                 if let Some(lineno) = lineno {
-                    write!(w, "{:>1$}", lineno, lineno_max)?;
+                    S::fmt(
+                        w,
+                        format_args!("{:>1$}", lineno, lineno_max),
+                        &[StyleType::LineNo, StyleType::Bold],
+                    )?;
                 } else {
                     write!(w, "{:>1$}", "", lineno_max)?;
                 }
-                write!(w, " | ")?;
+                S::fmt(w, " | ", &[StyleType::LineNo, StyleType::Bold])?;
                 write!(w, "{:>1$}", "", inline_marks_width - inline_marks.len())?;
                 for mark in inline_marks {
                     self.fmt_display_mark(w, mark)?;
@@ -93,18 +108,17 @@ impl<S: StyleTrait> Renderer<S> {
     ) -> std::io::Result<()> {
         match line {
             DisplaySourceLine::Content { text } => write!(w, " {}", text),
-            DisplaySourceLine::Annotation {
-                annotation,
-                range: (start, end),
-            } => {
-                let indent = if start == &0 { 0 } else { start + 1 };
+            DisplaySourceLine::Annotation { annotation, range } => {
+                let (_, style) = self.get_annotation_type_style(&annotation.annotation_type);
+                let styles = [StyleType::Bold, style];
+                let indent = if range.start == 0 { 0 } else { range.start + 1 };
                 write!(w, "{:>1$}", "", indent)?;
-                if start == &0 {
-                    write!(w, "{:_>1$}", "^", end - start + 1)?;
+                if range.start == 0 {
+                    S::fmt(w, format_args!("{:_>1$} ", "^", range.len() + 1), &styles)?;
                 } else {
-                    write!(w, "{:->1$}", "", end - start)?;
+                    S::fmt(w, format_args!("{:->1$} ", "", range.len()), &styles)?;
                 }
-                write!(w, " {}", annotation.label)
+                S::fmt(w, annotation.label, &styles)
             }
             DisplaySourceLine::Empty => Ok(()),
         }
@@ -118,35 +132,41 @@ impl<S: StyleTrait> Renderer<S> {
     ) -> std::io::Result<()> {
         match line {
             DisplayRawLine::Origin { path, pos } => {
-                S::fmt(w, format_args!("{:>1$}", "", lineno_max))?;
-                S::fmt(w, format_args!("--> {}", path))?;
+                write!(w, "{:>1$}", "", lineno_max)?;
+                S::fmt(w, "-->", &[StyleType::Bold, StyleType::LineNo])?;
+                write!(w, " {}", path)?;
                 if let Some(line) = pos.0 {
-                    S::fmt(w, format_args!(":{}", line))?;
+                    write!(w, ":{}", line)?;
                 }
                 write!(w, "\n")
             }
             DisplayRawLine::Annotation { annotation, .. } => {
-                self.fmt_annotation(w, annotation)?;
+                let (desc, style) = self.get_annotation_type_style(&annotation.annotation_type);
+                let s = [StyleType::Bold, style];
+                S::fmt(w, desc, &s)?;
                 if let Some(id) = annotation.id {
-                    write!(w, "[{}]", id)?;
+                    S::fmt(w, format_args!("[{}]", id), &s)?;
                 }
-                writeln!(w, ": {}", annotation.label)
+                S::fmt(
+                    w,
+                    format_args!(":  {}\n", annotation.label),
+                    &[StyleType::Bold],
+                )
             }
         }
     }
 
-    fn fmt_annotation(
+    fn get_annotation_type_style(
         &self,
-        w: &mut impl std::io::Write,
-        annotation: &Annotation,
-    ) -> std::io::Result<()> {
-        match annotation.annotation_type {
-            AnnotationType::None => Ok(()),
-            AnnotationType::Error => write!(w, "error"),
-            AnnotationType::Warning => write!(w, "warning"),
-            AnnotationType::Info => write!(w, "info"),
-            AnnotationType::Note => write!(w, "note"),
-            AnnotationType::Help => write!(w, "help"),
+        annotation_type: &AnnotationType,
+    ) -> (&'static str, StyleType) {
+        match annotation_type {
+            AnnotationType::Error => ("error", StyleType::Error),
+            AnnotationType::Warning => ("warning", StyleType::Warning),
+            AnnotationType::Info => ("info", StyleType::Info),
+            AnnotationType::Note => ("note", StyleType::Note),
+            AnnotationType::Help => ("help", StyleType::Help),
+            AnnotationType::None => ("", StyleType::None),
         }
     }
 
@@ -155,10 +175,12 @@ impl<S: StyleTrait> Renderer<S> {
         w: &mut impl std::io::Write,
         display_mark: &DisplayMark,
     ) -> std::io::Result<()> {
-        match display_mark.mark_type {
-            DisplayMarkType::AnnotationStart => write!(w, "/"),
-            DisplayMarkType::AnnotationThrough => write!(w, "|"),
-        }
+        let (_, style) = self.get_annotation_type_style(&display_mark.annotation_type);
+        let ch = match display_mark.mark_type {
+            DisplayMarkType::AnnotationStart => '/',
+            DisplayMarkType::AnnotationThrough => '|',
+        };
+        S::fmt(w, ch, &[style])
     }
 }
 

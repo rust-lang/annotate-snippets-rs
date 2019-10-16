@@ -1,5 +1,6 @@
 use super::annotation::Annotation;
 use crate::annotation::AnnotationType;
+use std::ops::Range;
 
 #[derive(Debug, Clone)]
 pub enum DisplayLine<'d> {
@@ -18,7 +19,7 @@ pub enum DisplaySourceLine<'d> {
     },
     Annotation {
         annotation: Annotation<'d>,
-        range: (usize, usize),
+        range: Range<usize>,
     },
     Empty,
 }

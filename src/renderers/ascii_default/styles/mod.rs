@@ -7,5 +7,21 @@ pub mod plain;
 use std::fmt;
 
 pub trait Style {
-    fn fmt(w: &mut dyn std::io::Write, pattern: impl fmt::Display) -> std::io::Result<()>;
+    fn fmt(
+        w: &mut dyn std::io::Write,
+        pattern: impl fmt::Display,
+        styles: &[StyleType],
+    ) -> std::io::Result<()>;
+}
+
+#[derive(Debug)]
+pub enum StyleType {
+    Bold,
+    Error,
+    Warning,
+    Info,
+    Note,
+    Help,
+    LineNo,
+    None,
 }

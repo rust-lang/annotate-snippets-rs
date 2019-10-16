@@ -1,6 +1,5 @@
 use super::annotation::Annotation;
 use super::line::{DisplayLine, DisplayMark, DisplayMarkType, DisplayRawLine, DisplaySourceLine};
-use crate::annotation::AnnotationType;
 use crate::{Slice, Snippet, SourceAnnotation};
 
 #[derive(Debug, Clone)]
@@ -21,7 +20,7 @@ impl<'d> From<&Snippet<'d>> for DisplayList<'d> {
             let label = annotation.label.unwrap_or_default();
             body.push(DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
-                    annotation_type: AnnotationType::Error,
+                    annotation_type: annotation.annotation_type.clone(),
                     id: annotation.id,
                     label: &label,
                 },
@@ -62,7 +61,7 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
 
         let mut i = slice.line_start.unwrap_or(1);
         for line in slice.source.lines() {
-            let line_range = line_start_pos..(line_start_pos + line.chars().count());
+            let line_range = line_start_pos..(line_start_pos + line.chars().count() + 1);
 
             let mut current_annotations = vec![];
             let mut inline_marks = vec![];
@@ -78,23 +77,21 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                     // Annotation starts in this line
                     inline_marks.push(DisplayMark {
                         mark_type: DisplayMarkType::AnnotationStart,
-                        annotation_type: AnnotationType::Error,
+                        annotation_type: ann.annotation_type.clone(),
                     });
                     true
                 } else if ann.range.start < line_range.start && ann.range.end > line_range.end {
                     // Annotation goes through this line
                     inline_marks.push(DisplayMark {
                         mark_type: DisplayMarkType::AnnotationThrough,
-                        annotation_type: AnnotationType::Error,
+                        annotation_type: ann.annotation_type.clone(),
                     });
                     true
-                } else if line_range.contains(&ann.range.end)
-                    && !line_range.contains(&ann.range.start)
-                {
+                } else if line_range.contains(&ann.range.end) {
                     // Annotation ends on this line
                     inline_marks.push(DisplayMark {
                         mark_type: DisplayMarkType::AnnotationThrough,
-                        annotation_type: AnnotationType::Error,
+                        annotation_type: ann.annotation_type.clone(),
                     });
                     current_annotations.push(*ann);
                     false
@@ -117,7 +114,7 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                 let inline_marks = if ann.range.start < line_start_pos {
                     vec![DisplayMark {
                         mark_type: DisplayMarkType::AnnotationThrough,
-                        annotation_type: AnnotationType::Error,
+                        annotation_type: ann.annotation_type.clone(),
                     }]
                 } else {
                     vec![]
@@ -127,11 +124,11 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                     inline_marks,
                     line: DisplaySourceLine::Annotation {
                         annotation: Annotation {
-                            annotation_type: AnnotationType::Error,
+                            annotation_type: ann.annotation_type.clone(),
                             id: None,
                             label: ann.label,
                         },
-                        range: (start, ann.range.end - line_start_pos),
+                        range: start..(ann.range.end - line_start_pos),
                     },
                 });
             }
