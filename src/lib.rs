@@ -3,7 +3,6 @@ mod display_list;
 pub mod renderers;
 pub mod slice;
 pub mod snippet;
-pub mod styles;
 
 pub use annotation::{Annotation, AnnotationType, SourceAnnotation};
 pub use display_list::DisplayList;

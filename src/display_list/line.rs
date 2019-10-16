@@ -1,6 +1,3 @@
-use std::fmt;
-use std::fmt::Write;
-
 use super::annotation::Annotation;
 use crate::annotation::AnnotationType;
 
@@ -43,15 +40,6 @@ pub enum DisplayRawLine<'d> {
 pub struct DisplayMark {
     pub mark_type: DisplayMarkType,
     pub annotation_type: AnnotationType,
-}
-
-impl fmt::Display for DisplayMark {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.mark_type {
-            DisplayMarkType::AnnotationStart => f.write_char('/'),
-            DisplayMarkType::AnnotationThrough => f.write_char('|'),
-        }
-    }
 }
 
 #[derive(Debug, Clone)]

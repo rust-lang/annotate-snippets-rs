@@ -1,15 +1,18 @@
 pub mod styles;
 
 use super::Renderer as RendererTrait;
-use crate::DisplayList;
+use crate::annotation::AnnotationType;
+use crate::display_list::annotation::Annotation;
 use crate::display_list::line::DisplayLine;
+use crate::display_list::line::DisplayMark;
+use crate::display_list::line::DisplayMarkType;
 use crate::display_list::line::DisplayRawLine;
 use crate::display_list::line::DisplaySourceLine;
-use crate::display_list::annotation::Annotation;
+use crate::DisplayList;
+use std::cmp;
 use std::io::Write;
 use std::marker::PhantomData;
 use styles::Style as StyleTrait;
-use std::cmp;
 
 fn digits(n: usize) -> usize {
     let mut n = n;
@@ -22,14 +25,12 @@ fn digits(n: usize) -> usize {
 }
 
 pub struct Renderer<S: StyleTrait> {
-    style: PhantomData<S>
+    style: PhantomData<S>,
 }
 
 impl<S: StyleTrait> Renderer<S> {
     pub fn new() -> Self {
-        Renderer {
-            style: PhantomData
-        }
+        Renderer { style: PhantomData }
     }
 
     pub fn fmt(&self, w: &mut impl Write, dl: &DisplayList) -> std::io::Result<()> {
@@ -54,7 +55,13 @@ impl<S: StyleTrait> Renderer<S> {
         Ok(())
     }
 
-    fn fmt_line(&self, w: &mut impl Write, line: &DisplayLine, lineno_max: Option<usize>, inline_marks_width: usize) -> std::io::Result<()> {
+    fn fmt_line(
+        &self,
+        w: &mut impl Write,
+        line: &DisplayLine,
+        lineno_max: Option<usize>,
+        inline_marks_width: usize,
+    ) -> std::io::Result<()> {
         let lineno_max = lineno_max.unwrap_or(1);
         match line {
             DisplayLine::Source {
@@ -70,42 +77,46 @@ impl<S: StyleTrait> Renderer<S> {
                 write!(w, " | ")?;
                 write!(w, "{:>1$}", "", inline_marks_width - inline_marks.len())?;
                 for mark in inline_marks {
-                    write!(w, "{}", mark)?;
+                    self.fmt_display_mark(w, mark)?;
                 }
                 self.fmt_source_line(w, line)?;
-                //line.fmt_with_style(w, style)?;
                 write!(w, "\n")
-            },
-            DisplayLine::Raw(l) => {
-                self.fmt_raw_line(w, l, lineno_max)
-            },
+            }
+            DisplayLine::Raw(l) => self.fmt_raw_line(w, l, lineno_max),
         }
     }
 
-    fn fmt_source_line(&self, w: &mut impl std::io::Write, line: &DisplaySourceLine) -> std::io::Result<()> {
-      match line {
-          DisplaySourceLine::Content { text } => {
-              write!(w, " {}", text)
-          }
-          DisplaySourceLine::Annotation {
-              annotation,
-              range: (start, end),
-          } => {
-              let indent = if start == &0 { 0 } else { start + 1 };
-              write!(w, "{:>1$}", "", indent)?;
-              if start == &0 {
-                  write!(w, "{:_>1$}", "^", end - start + 1)?;
-              } else {
-                  write!(w, "{:->1$}", "", end - start)?;
-              }
-              write!(w, " ")?;
-              self.fmt_annotation(w, annotation)
-          }
-          DisplaySourceLine::Empty => Ok(()),
-      }
+    fn fmt_source_line(
+        &self,
+        w: &mut impl std::io::Write,
+        line: &DisplaySourceLine,
+    ) -> std::io::Result<()> {
+        match line {
+            DisplaySourceLine::Content { text } => write!(w, " {}", text),
+            DisplaySourceLine::Annotation {
+                annotation,
+                range: (start, end),
+            } => {
+                let indent = if start == &0 { 0 } else { start + 1 };
+                write!(w, "{:>1$}", "", indent)?;
+                if start == &0 {
+                    write!(w, "{:_>1$}", "^", end - start + 1)?;
+                } else {
+                    write!(w, "{:->1$}", "", end - start)?;
+                }
+                write!(w, " ")?;
+                self.fmt_annotation(w, annotation)
+            }
+            DisplaySourceLine::Empty => Ok(()),
+        }
     }
 
-    fn fmt_raw_line(&self, w: &mut impl std::io::Write, line: &DisplayRawLine, lineno_max: usize) -> std::io::Result<()> {
+    fn fmt_raw_line(
+        &self,
+        w: &mut impl std::io::Write,
+        line: &DisplayRawLine,
+        lineno_max: usize,
+    ) -> std::io::Result<()> {
         match line {
             DisplayRawLine::Origin { path, pos } => {
                 S::fmt(w, format_args!("{:>1$}", "", lineno_max))?;
@@ -114,9 +125,9 @@ impl<S: StyleTrait> Renderer<S> {
                     S::fmt(w, format_args!(":{}", line))?;
                 }
                 write!(w, "\n")
-            },
+            }
             DisplayRawLine::Annotation { annotation, .. } => {
-                S::fmt(w, format_args!("{}", annotation.annotation_type))?;
+                self.fmt_annotation(w, annotation)?;
                 if let Some(id) = annotation.id {
                     write!(w, "[{}]", id)?;
                 }
@@ -125,9 +136,30 @@ impl<S: StyleTrait> Renderer<S> {
         }
     }
 
-    
-    fn fmt_annotation(&self, w: &mut impl std::io::Write, annotation: &Annotation) -> std::io::Result<()> {
-        write!(w, "{}", annotation.label)
+    fn fmt_annotation(
+        &self,
+        w: &mut impl std::io::Write,
+        annotation: &Annotation,
+    ) -> std::io::Result<()> {
+        match annotation.annotation_type {
+            AnnotationType::None => Ok(()),
+            AnnotationType::Error => write!(w, "error"),
+            AnnotationType::Warning => write!(w, "warning"),
+            AnnotationType::Info => write!(w, "info"),
+            AnnotationType::Note => write!(w, "note"),
+            AnnotationType::Help => write!(w, "help"),
+        }
+    }
+
+    fn fmt_display_mark(
+        &self,
+        w: &mut impl std::io::Write,
+        display_mark: &DisplayMark,
+    ) -> std::io::Result<()> {
+        match display_mark.mark_type {
+            DisplayMarkType::AnnotationStart => write!(w, "/"),
+            DisplayMarkType::AnnotationThrough => write!(w, "|"),
+        }
     }
 }
 
