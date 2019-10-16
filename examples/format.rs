@@ -1,13 +1,9 @@
-#[cfg(feature = "ansi_term")]
-use annotate_snippets::renderers::ascii_default::styles::color::Style as ColorStyle;
-#[cfg(feature = "termcolor")]
-use annotate_snippets::renderers::ascii_default::styles::color2::Style as ColorStyle;
-#[cfg(all(not(feature = "ansi_term"), not(feature = "termcolor")))]
-use annotate_snippets::renderers::ascii_default::styles::plain::Style as PlainStyle;
-use annotate_snippets::renderers::ascii_default::Renderer as AsciiRenderer;
 use annotate_snippets::DisplayList;
 use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
+
+use annotate_snippets::renderers::ascii_default::get_renderer;
+use annotate_snippets::renderers::Renderer;
 
 fn main() {
     let source = r#") -> Option<String> {
@@ -48,24 +44,19 @@ fn main() {
                 SourceAnnotation {
                     label: "expected `Option<String>` because of return type",
                     annotation_type: AnnotationType::Warning,
-                    range: (5, 19),
+                    range: 5..19,
                 },
                 SourceAnnotation {
                     label: "expected enum `std::option::Option`",
                     annotation_type: AnnotationType::Error,
-                    range: (23, 725),
+                    range: 23..725,
                 },
             ],
         }],
     };
     let dl = DisplayList::from(&snippet);
+    let r = get_renderer();
 
-    #[cfg(all(not(feature = "ansi_term"), not(feature = "termcolor")))]
-    let r = AsciiRenderer::<PlainStyle>::new();
-    #[cfg(feature = "ansi_term")]
-    let r = AsciiRenderer::<ColorStyle>::new();
-    #[cfg(feature = "termcolor")]
-    let r = AsciiRenderer::<ColorStyle>::new();
     let mut s: Vec<u8> = Vec::new();
     r.fmt(&mut s, &dl).unwrap();
     println!("{}", std::str::from_utf8(&s).unwrap());

@@ -80,7 +80,7 @@ impl<S: StyleTrait> Renderer<S> {
                 inline_marks,
                 line,
             } => {
-                let style = &[StyleType::LineNo];
+                let style = &[StyleType::LineNo, StyleType::Emphasis];
                 if let Some(lineno) = lineno {
                     S::fmt(
                         w,
@@ -121,7 +121,7 @@ impl<S: StyleTrait> Renderer<S> {
                 let (_, style) = self.get_annotation_type_style(&annotation.annotation_type);
                 let styles = [StyleType::Emphasis, style];
                 let indent = if range.start == 0 { 0 } else { range.start + 1 };
-                write!(w, "{:>1$}", "", indent)?;
+                write!(w, "{:>width$}", "", width = indent)?;
                 if range.start == 0 {
                     S::fmt(
                         w,
@@ -153,7 +153,7 @@ impl<S: StyleTrait> Renderer<S> {
     ) -> std::io::Result<()> {
         match line {
             DisplayRawLine::Origin { path, pos } => {
-                write!(w, "{:>1$}", "", lineno_max)?;
+                write!(w, "{:>width$}", "", width = lineno_max)?;
                 S::fmt(w, "-->", &[StyleType::Emphasis, StyleType::LineNo])?;
                 write!(w, " {}", path)?;
                 if let Some(line) = pos.0 {

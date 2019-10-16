@@ -50,12 +50,12 @@ fn create_snippet() {
                 SourceAnnotation {
                     label: "expected `Option<String>` because of return type",
                     annotation_type: AnnotationType::Warning,
-                    range: (5, 19),
+                    range: 5..19,
                 },
                 SourceAnnotation {
                     label: "expected enum `std::option::Option`",
                     annotation_type: AnnotationType::Error,
-                    range: (23, 725),
+                    range: 23..725,
                 },
             ],
         }],
