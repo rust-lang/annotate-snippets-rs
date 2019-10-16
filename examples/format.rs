@@ -40,7 +40,7 @@ fn main() {
             source,
             line_start: Some(51),
             origin: Some("src/format.rs"),
-            annotations: vec![
+            annotations: &[
                 SourceAnnotation {
                     label: "expected `Option<String>` because of return type",
                     annotation_type: AnnotationType::Warning,
