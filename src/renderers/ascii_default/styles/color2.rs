@@ -27,7 +27,7 @@ impl StyleTrait for Style {
                     color.set_fg(Some(Color::Yellow));
                 }
                 StyleType::LineNo => {
-                    color.set_fg(Some(Color::Cyan));
+                    color.set_fg(Some(Color::Ansi256(12)));
                 }
                 _ => {}
             }
