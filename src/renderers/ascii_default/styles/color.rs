@@ -17,7 +17,7 @@ impl StyleTrait for Style {
         let mut style = AnsiTermStyle::new();
         for style_type in styles {
             match style_type {
-                StyleType::Bold => {
+                StyleType::Emphasis => {
                     style = style.bold();
                 }
                 StyleType::Error => style = style.fg(Fixed(9)),
@@ -32,25 +32,3 @@ impl StyleTrait for Style {
         write!(w, "{}", style.paint(pattern.to_string()))
     }
 }
-
-//-impl Stylesheet for AnsiTermStylesheet {
-//-    fn get_style(&self, class: StyleClass) -> Box<dyn Style> {
-//-        let ansi_term_style = match class {
-//-            StyleClass::Error => Fixed(9).bold(),
-//-            StyleClass::Warning => Fixed(11).bold(),
-//-            StyleClass::Info => Fixed(12).bold(),
-//-            StyleClass::Note => AnsiTermStyle::new().bold(),
-//-            StyleClass::Help => Fixed(14).bold(),
-//-
-//-            StyleClass::LineNo => Fixed(12).bold(),
-//-
-//-
-//-            StyleClass::Emphasis => AnsiTermStyle::new().bold(),
-//-
-//-            StyleClass::None => AnsiTermStyle::new(),
-//-        };
-//-        Box::new(AnsiTermStyleWrapper {
-//-            style: ansi_term_style,
-//-        })
-//-    }
-//-}

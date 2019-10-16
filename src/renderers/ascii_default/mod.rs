@@ -80,22 +80,31 @@ impl<S: StyleTrait> Renderer<S> {
                 inline_marks,
                 line,
             } => {
+                let style = &[StyleType::LineNo];
                 if let Some(lineno) = lineno {
                     S::fmt(
                         w,
-                        format_args!("{:>1$}", lineno, lineno_max),
-                        &[StyleType::LineNo, StyleType::Bold],
+                        format_args!("{:>width$} | ", lineno, width = lineno_max),
+                        style,
                     )?;
                 } else {
-                    write!(w, "{:>1$}", "", lineno_max)?;
+                    S::fmt(
+                        w,
+                        format_args!("{:>width$} | ", "", width = lineno_max),
+                        style,
+                    )?;
                 }
-                S::fmt(w, " | ", &[StyleType::LineNo, StyleType::Bold])?;
-                write!(w, "{:>1$}", "", inline_marks_width - inline_marks.len())?;
+                write!(
+                    w,
+                    "{:>width$}",
+                    "",
+                    width = inline_marks_width - inline_marks.len()
+                )?;
                 for mark in inline_marks {
                     self.fmt_display_mark(w, mark)?;
                 }
                 self.fmt_source_line(w, line)?;
-                write!(w, "\n")
+                writeln!(w)
             }
             DisplayLine::Raw(l) => self.fmt_raw_line(w, l, lineno_max),
         }
@@ -110,15 +119,27 @@ impl<S: StyleTrait> Renderer<S> {
             DisplaySourceLine::Content { text } => write!(w, " {}", text),
             DisplaySourceLine::Annotation { annotation, range } => {
                 let (_, style) = self.get_annotation_type_style(&annotation.annotation_type);
-                let styles = [StyleType::Bold, style];
+                let styles = [StyleType::Emphasis, style];
                 let indent = if range.start == 0 { 0 } else { range.start + 1 };
                 write!(w, "{:>1$}", "", indent)?;
                 if range.start == 0 {
-                    S::fmt(w, format_args!("{:_>1$} ", "^", range.len() + 1), &styles)?;
+                    S::fmt(
+                        w,
+                        format_args!(
+                            "{:_>width$} {}",
+                            "^",
+                            annotation.label,
+                            width = range.len() + 1
+                        ),
+                        &styles,
+                    )
                 } else {
-                    S::fmt(w, format_args!("{:->1$} ", "", range.len()), &styles)?;
+                    S::fmt(
+                        w,
+                        format_args!("{:->width$} {}", "", annotation.label, width = range.len()),
+                        &styles,
+                    )
                 }
-                S::fmt(w, annotation.label, &styles)
             }
             DisplaySourceLine::Empty => Ok(()),
         }
@@ -133,16 +154,16 @@ impl<S: StyleTrait> Renderer<S> {
         match line {
             DisplayRawLine::Origin { path, pos } => {
                 write!(w, "{:>1$}", "", lineno_max)?;
-                S::fmt(w, "-->", &[StyleType::Bold, StyleType::LineNo])?;
+                S::fmt(w, "-->", &[StyleType::Emphasis, StyleType::LineNo])?;
                 write!(w, " {}", path)?;
                 if let Some(line) = pos.0 {
                     write!(w, ":{}", line)?;
                 }
-                write!(w, "\n")
+                writeln!(w)
             }
             DisplayRawLine::Annotation { annotation, .. } => {
                 let (desc, style) = self.get_annotation_type_style(&annotation.annotation_type);
-                let s = [StyleType::Bold, style];
+                let s = [StyleType::Emphasis, style];
                 S::fmt(w, desc, &s)?;
                 if let Some(id) = annotation.id {
                     S::fmt(w, format_args!("[{}]", id), &s)?;
@@ -150,7 +171,7 @@ impl<S: StyleTrait> Renderer<S> {
                 S::fmt(
                     w,
                     format_args!(":  {}\n", annotation.label),
-                    &[StyleType::Bold],
+                    &[StyleType::Emphasis],
                 )
             }
         }

@@ -16,7 +16,8 @@ pub trait Style {
 
 #[derive(Debug)]
 pub enum StyleType {
-    Bold,
+    Emphasis,
+
     Error,
     Warning,
     Info,
