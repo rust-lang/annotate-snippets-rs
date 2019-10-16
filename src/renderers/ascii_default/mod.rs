@@ -104,8 +104,7 @@ impl<S: StyleTrait> Renderer<S> {
                 } else {
                     write!(w, "{:->1$}", "", end - start)?;
                 }
-                write!(w, " ")?;
-                self.fmt_annotation(w, annotation)
+                write!(w, " {}", annotation.label)
             }
             DisplaySourceLine::Empty => Ok(()),
         }

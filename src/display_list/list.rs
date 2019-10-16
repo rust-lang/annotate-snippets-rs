@@ -62,18 +62,18 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
 
         let mut i = slice.line_start.unwrap_or(1);
         for line in slice.source.lines() {
-            let line_length = line.chars().count();
+            let line_range = line_start_pos..(line_start_pos + line.chars().count());
 
             let mut current_annotations = vec![];
             let mut inline_marks = vec![];
 
             annotations.retain(|ann| {
-                if ann.range.0 >= line_start_pos && ann.range.1 <= line_start_pos + line_length {
+                if line_range.contains(&ann.range.start) && line_range.contains(&ann.range.end) {
                     // Annotation in this line
                     current_annotations.push(*ann);
                     false
-                } else if ann.range.0 >= line_start_pos
-                    && ann.range.0 <= line_start_pos + line_length
+                } else if line_range.contains(&ann.range.start)
+                    && !line_range.contains(&ann.range.end)
                 {
                     // Annotation starts in this line
                     inline_marks.push(DisplayMark {
@@ -81,17 +81,15 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                         annotation_type: AnnotationType::Error,
                     });
                     true
-                } else if ann.range.0 < line_start_pos && ann.range.1 > line_start_pos + line_length
-                {
+                } else if ann.range.start < line_range.start && ann.range.end > line_range.end {
                     // Annotation goes through this line
                     inline_marks.push(DisplayMark {
                         mark_type: DisplayMarkType::AnnotationThrough,
                         annotation_type: AnnotationType::Error,
                     });
                     true
-                } else if ann.range.0 < line_start_pos
-                    && ann.range.1 >= line_start_pos
-                    && ann.range.1 <= line_start_pos + line_length
+                } else if line_range.contains(&ann.range.end)
+                    && !line_range.contains(&ann.range.start)
                 {
                     // Annotation ends on this line
                     inline_marks.push(DisplayMark {
@@ -111,12 +109,12 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                 line: DisplaySourceLine::Content { text: line },
             });
             for ann in current_annotations {
-                let start = if ann.range.0 >= line_start_pos {
-                    ann.range.0 - line_start_pos
+                let start = if ann.range.start >= line_start_pos {
+                    ann.range.start - line_start_pos
                 } else {
                     0
                 };
-                let inline_marks = if ann.range.0 < line_start_pos {
+                let inline_marks = if ann.range.start < line_start_pos {
                     vec![DisplayMark {
                         mark_type: DisplayMarkType::AnnotationThrough,
                         annotation_type: AnnotationType::Error,
@@ -133,11 +131,11 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                             id: None,
                             label: ann.label,
                         },
-                        range: (start, ann.range.1 - line_start_pos),
+                        range: (start, ann.range.end - line_start_pos),
                     },
                 });
             }
-            line_start_pos += line_length + 1;
+            line_start_pos += line_range.len();
             i += 1;
         }
 

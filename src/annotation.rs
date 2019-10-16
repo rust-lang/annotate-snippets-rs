@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 #[derive(Debug, Clone)]
 pub struct Annotation<'s> {
     pub id: Option<&'s str>,
@@ -17,7 +19,7 @@ pub enum AnnotationType {
 
 #[derive(Debug, Clone)]
 pub struct SourceAnnotation<'s> {
-    pub range: (usize, usize),
+    pub range: Range<usize>,
     pub label: &'s str,
     pub annotation_type: AnnotationType,
 }
