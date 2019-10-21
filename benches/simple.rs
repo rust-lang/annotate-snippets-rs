@@ -4,70 +4,122 @@ extern crate criterion;
 use criterion::black_box;
 use criterion::Criterion;
 
-use annotate_snippets::DisplayList;
-use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
-use annotate_snippets::{Slice, Snippet};
-
-use annotate_snippets::renderers::ascii_default::get_renderer;
-use annotate_snippets::renderers::Renderer;
+use annotate_snippets::*;
+use std::ops::Range;
 
 const SOURCE: &'static str = r#") -> Option<String> {
-for ann in annotations {
-    match (ann.range.0, ann.range.1) {
-        (None, None) => continue,
-        (Some(start), Some(end)) if start > end_index => continue,
-        (Some(start), Some(end)) if start >= start_index => {
-            let label = if let Some(ref label) = ann.label {
-                format!(" {}", label)
-            } else {
-                String::from("")
-            };
+    for ann in annotations {
+        match (ann.range.0, ann.range.1) {
+            (None, None) => continue,
+            (Some(start), Some(end)) if start > end_index => continue,
+            (Some(start), Some(end)) if start >= start_index => {
+                let label = if let Some(ref label) = ann.label {
+                    format!(" {}", label)
+                } else {
+                    String::from("")
+                };
 
-            return Some(format!(
-                "{}{}{}",
-                " ".repeat(start - start_index),
-                "^".repeat(end - start),
-                label
-            ));
+                return Some(format!(
+                    "{}{}{}",
+                    " ".repeat(start - start_index),
+                    "^".repeat(end - start),
+                    label
+                ));
+            }
+            _ => continue,
         }
-        _ => continue,
-    }
-}"#;
+    }"#;
 
-fn create_snippet() {
-    let snippet = Snippet {
-        title: Some(Annotation {
-            id: Some("E0308"),
-            label: Some("mismatched types"),
-            annotation_type: AnnotationType::Error,
+fn source_snippet() -> Snippet<'static, WithLineNumber<&'static str>> {
+    Snippet {
+        title: Some(Title {
+            code: Some(&"E0308"),
+            message: Message {
+                text: &"mismatched types",
+                level: Level::Error,
+            },
         }),
-        footer: &[],
         slices: &[Slice {
-            source: SOURCE,
-            line_start: Some(51),
-            origin: Some("src/format.rs"),
+            span: WithLineNumber {
+                line_num: 51,
+                data: SOURCE,
+            },
+            origin: Some(&"src/format.rs"),
             annotations: &[
-                SourceAnnotation {
-                    label: "expected `Option<String>` because of return type",
-                    annotation_type: AnnotationType::Warning,
-                    range: 5..19,
+                Annotation {
+                    span: 5..19,
+                    message: Some(Message {
+                        text: &"expected `Option<String>` because of return type",
+                        level: Level::Warning,
+                    }),
                 },
-                SourceAnnotation {
-                    label: "expected enum `std::option::Option`",
-                    annotation_type: AnnotationType::Error,
-                    range: 23..725,
+                Annotation {
+                    span: 26..725,
+                    message: Some(Message {
+                        text: &"expected enum `std::option::Option`",
+                        level: Level::Error,
+                    }),
                 },
             ],
+            footer: &[],
         }],
-    };
-    let r = get_renderer();
-    let dl: DisplayList = (&snippet).into();
-    let mut result: Vec<u8> = Vec::new();
-    r.fmt(&mut result, &dl).unwrap();
+    }
+}
+
+fn range_snippet() -> Snippet<'static, Range<usize>> {
+    Snippet {
+        title: Some(Title {
+            code: Some(&"E0308"),
+            message: Message {
+                text: &"mismatched types",
+                level: Level::Error,
+            },
+        }),
+        slices: &[Slice {
+            span: 0..725,
+            origin: Some(&"src/format.rs"),
+            annotations: &[
+                Annotation {
+                    span: 5..19,
+                    message: Some(Message {
+                        text: &"expected `Option<String>` because of return type",
+                        level: Level::Warning,
+                    }),
+                },
+                Annotation {
+                    span: 26..725,
+                    message: Some(Message {
+                        text: &"expected enum `std::option::Option`",
+                        level: Level::Error,
+                    }),
+                },
+            ],
+            footer: &[],
+        }],
+    }
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("format", |b| b.iter(|| black_box(create_snippet())));
+    c.bench_function("format [&str]", |b| {
+        b.iter(|| {
+            black_box({
+                let snippet = source_snippet();
+                let formatted = format(&snippet, &());
+                let mut out: Vec<u8> = Vec::new();
+                renderer::Ascii::plain().render(&formatted, &(), &mut out)
+            })
+        })
+    });
+    c.bench_function("format [Range]", |b| {
+        b.iter(|| {
+            black_box({
+                let snippet = range_snippet();
+                let formatted = format(&snippet, &SOURCE);
+                let mut out: Vec<u8> = Vec::new();
+                renderer::Ascii::plain().render(&formatted, &SOURCE, &mut out)
+            })
+        })
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);

@@ -1,9 +1,5 @@
-use annotate_snippets::DisplayList;
-use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
-use annotate_snippets::{Slice, Snippet};
-
-use annotate_snippets::renderers::get_renderer;
-use annotate_snippets::renderers::Renderer;
+use annotate_snippets::*;
+use std::io;
 
 fn main() {
     let source = r#") -> Option<String> {
@@ -30,34 +26,41 @@ fn main() {
     }"#;
 
     let snippet = Snippet {
-        title: Some(Annotation {
-            id: Some("E0308"),
-            label: Some("mismatched types"),
-            annotation_type: AnnotationType::Error,
+        title: Some(Title {
+            code: Some(&"E0308"),
+            message: Message {
+                text: &"mismatched types",
+                level: Level::Error,
+            },
         }),
-        footer: &[],
         slices: &[Slice {
-            source,
-            line_start: Some(51),
-            origin: Some("src/format.rs"),
+            span: WithLineNumber {
+                line_num: 51,
+                data: source,
+            },
+            origin: Some(&"src/format.rs"),
             annotations: &[
-                SourceAnnotation {
-                    label: "expected `Option<String>` because of return type",
-                    annotation_type: AnnotationType::Warning,
-                    range: 5..19,
+                Annotation {
+                    span: 5..19,
+                    message: Some(Message {
+                        text: &"expected `Option<String>` because of return type",
+                        level: Level::Warning,
+                    }),
                 },
-                SourceAnnotation {
-                    label: "expected enum `std::option::Option`",
-                    annotation_type: AnnotationType::Error,
-                    range: 23..725,
+                Annotation {
+                    span: 26..725,
+                    message: Some(Message {
+                        text: &"expected enum `std::option::Option`",
+                        level: Level::Error,
+                    }),
                 },
             ],
+            footer: &[],
         }],
     };
-    let dl = DisplayList::from(&snippet);
-    let r = get_renderer();
 
-    let mut s: Vec<u8> = Vec::new();
-    r.fmt(&mut s, &dl).unwrap();
-    println!("{}", std::str::from_utf8(&s).unwrap());
+    let formatted = format(&snippet, &());
+    renderer::Ascii::ansi()
+        .render(&formatted, &(), &mut io::stdout().lock())
+        .unwrap();
 }
