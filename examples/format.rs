@@ -2,7 +2,7 @@ use annotate_snippets::DisplayList;
 use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
 
-use annotate_snippets::renderers::ascii_default::get_renderer;
+use annotate_snippets::renderers::get_renderer;
 use annotate_snippets::renderers::Renderer;
 
 fn main() {

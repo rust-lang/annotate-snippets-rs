@@ -18,6 +18,7 @@ default = []
 color = ["ansi_term"]
 color2 = ["termcolor"]
 unicode = []
+html = []
 
 [[bench]]
 name = "simple"

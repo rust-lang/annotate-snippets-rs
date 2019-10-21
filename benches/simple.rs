@@ -8,8 +8,8 @@ use annotate_snippets::DisplayList;
 use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
 
-use annotate_snippets::renderers::ascii_default::styles::plain::Style as PlainStyle;
-use annotate_snippets::renderers::ascii_default::Renderer as AsciiRenderer;
+use annotate_snippets::renderers::ascii_default::get_renderer;
+use annotate_snippets::renderers::Renderer;
 
 const SOURCE: &'static str = r#") -> Option<String> {
 for ann in annotations {
@@ -60,7 +60,7 @@ fn create_snippet() {
             ],
         }],
     };
-    let r = AsciiRenderer::<PlainStyle>::new();
+    let r = get_renderer();
     let dl: DisplayList = (&snippet).into();
     let mut result: Vec<u8> = Vec::new();
     r.fmt(&mut result, &dl).unwrap();
