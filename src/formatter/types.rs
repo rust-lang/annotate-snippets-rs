@@ -130,7 +130,7 @@ where
     fn clone(&self) -> Self {
         match self {
             SourceLine::Content { span, subspan } => SourceLine::Content {
-                span: span.clone(),
+                span: *span,
                 subspan: subspan.clone(),
             },
             SourceLine::Annotation { message, underline } => SourceLine::Annotation {
