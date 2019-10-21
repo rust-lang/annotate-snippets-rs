@@ -113,7 +113,7 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                 };
                 let inline_marks = if ann.range.start < line_start_pos {
                     vec![DisplayMark {
-                        mark_type: DisplayMarkType::AnnotationThrough,
+                        mark_type: DisplayMarkType::AnnotationEnd,
                         annotation_type: ann.annotation_type.clone(),
                     }]
                 } else {

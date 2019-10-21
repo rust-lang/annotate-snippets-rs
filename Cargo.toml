@@ -17,6 +17,7 @@ criterion = "0.3"
 default = []
 color = ["ansi_term"]
 color2 = ["termcolor"]
+unicode = []
 
 [[bench]]
 name = "simple"

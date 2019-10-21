@@ -47,4 +47,5 @@ pub struct DisplayMark {
 pub enum DisplayMarkType {
     AnnotationThrough,
     AnnotationStart,
+    AnnotationEnd,
 }

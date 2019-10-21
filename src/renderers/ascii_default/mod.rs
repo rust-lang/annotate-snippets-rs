@@ -1,4 +1,5 @@
-pub mod styles;
+mod marks;
+mod styles;
 
 #[cfg(feature = "ansi_term")]
 use crate::renderers::ascii_default::styles::color::Style;
@@ -15,8 +16,10 @@ use crate::display_list::line::DisplayMarkType;
 use crate::display_list::line::DisplayRawLine;
 use crate::display_list::line::DisplaySourceLine;
 use crate::DisplayList;
+use marks::MarkKind;
 use std::cmp;
 use std::io::Write;
+use std::iter::repeat;
 use std::marker::PhantomData;
 use styles::Style as StyleTrait;
 use styles::StyleType;
@@ -81,16 +84,17 @@ impl<S: StyleTrait> Renderer<S> {
                 line,
             } => {
                 let style = &[StyleType::LineNo, StyleType::Emphasis];
+                let vertical_mark = MarkKind::get(MarkKind::Vertical);
                 if let Some(lineno) = lineno {
                     S::fmt(
                         w,
-                        format_args!("{:>width$} | ", lineno, width = lineno_max),
+                        format_args!("{:>width$} {} ", lineno, vertical_mark, width = lineno_max),
                         style,
                     )?;
                 } else {
                     S::fmt(
                         w,
-                        format_args!("{:>width$} | ", "", width = lineno_max),
+                        format_args!("{:>width$} {} ", "", vertical_mark, width = lineno_max),
                         style,
                     )?;
                 }
@@ -123,13 +127,14 @@ impl<S: StyleTrait> Renderer<S> {
                 let indent = if range.start == 0 { 0 } else { range.start + 1 };
                 write!(w, "{:>width$}", "", width = indent)?;
                 if range.start == 0 {
+                    let horizontal_mark = MarkKind::get(MarkKind::Horizontal);
                     S::fmt(
                         w,
                         format_args!(
-                            "{:_>width$} {}",
-                            "^",
+                            "{}{} {}",
+                            repeat(horizontal_mark).take(5).collect::<String>(),
+                            MarkKind::get(MarkKind::UpLeft),
                             annotation.label,
-                            width = range.len() + 1
                         ),
                         &styles,
                     )
@@ -154,7 +159,15 @@ impl<S: StyleTrait> Renderer<S> {
         match line {
             DisplayRawLine::Origin { path, pos } => {
                 write!(w, "{:>width$}", "", width = lineno_max)?;
-                S::fmt(w, "-->", &[StyleType::Emphasis, StyleType::LineNo])?;
+                S::fmt(
+                    w,
+                    format_args!(
+                        "{}{}>",
+                        MarkKind::get(MarkKind::Horizontal),
+                        MarkKind::get(MarkKind::Horizontal),
+                    ),
+                    &[StyleType::Emphasis, StyleType::LineNo],
+                )?;
                 write!(w, " {}", path)?;
                 if let Some(line) = pos.0 {
                     write!(w, ":{}", line)?;
@@ -198,10 +211,11 @@ impl<S: StyleTrait> Renderer<S> {
     ) -> std::io::Result<()> {
         let (_, style) = self.get_annotation_type_style(&display_mark.annotation_type);
         let ch = match display_mark.mark_type {
-            DisplayMarkType::AnnotationStart => '/',
-            DisplayMarkType::AnnotationThrough => '|',
+            DisplayMarkType::AnnotationStart => MarkKind::get(MarkKind::DownRight),
+            DisplayMarkType::AnnotationEnd => MarkKind::get(MarkKind::UpRight),
+            DisplayMarkType::AnnotationThrough => MarkKind::get(MarkKind::Vertical),
         };
-        S::fmt(w, ch, &[style])
+        S::fmt(w, ch, &[StyleType::Emphasis, style])
     }
 }
 

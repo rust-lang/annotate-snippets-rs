@@ -2,6 +2,7 @@
 pub mod color;
 #[cfg(feature = "termcolor")]
 pub mod color2;
+#[cfg(all(not(feature = "ansi_term"), not(feature = "termcolor")))]
 pub mod plain;
 
 use std::fmt;
