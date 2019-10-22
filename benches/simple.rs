@@ -1,8 +1,7 @@
 #[macro_use]
 extern crate criterion;
 
-use criterion::black_box;
-use criterion::Criterion;
+use criterion::{BatchSize, Criterion};
 
 use annotate_snippets::*;
 use std::ops::Range;
@@ -101,24 +100,26 @@ fn range_snippet() -> Snippet<'static, Range<usize>> {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("format [&str]", |b| {
-        b.iter(|| {
-            black_box({
+        b.iter_batched_ref(
+            || Vec::<u8>::with_capacity(1100),
+            |out| {
                 let snippet = source_snippet();
                 let formatted = format(&snippet, &());
-                let mut out: Vec<u8> = Vec::new();
-                renderer::Ascii::plain().render(&formatted, &(), &mut out)
-            })
-        })
+                renderer::Ascii::new().render(&formatted, &(), out)
+            },
+            BatchSize::SmallInput,
+        )
     });
     c.bench_function("format [Range]", |b| {
-        b.iter(|| {
-            black_box({
+        b.iter_batched_ref(
+            || Vec::<u8>::with_capacity(1100),
+            |out| {
                 let snippet = range_snippet();
                 let formatted = format(&snippet, &SOURCE);
-                let mut out: Vec<u8> = Vec::new();
-                renderer::Ascii::plain().render(&formatted, &SOURCE, &mut out)
-            })
-        })
+                renderer::Ascii::new().render(&formatted, &SOURCE, out)
+            },
+            BatchSize::SmallInput,
+        )
     });
 }
 

@@ -218,8 +218,9 @@ pub struct Message<'s> {
 pub enum Level {
     /// Typically displayed using a red color.
     Error,
-    /// Typically displayed using a blue color.
+    /// Typically displayed using a yellow color.
     Warning,
+    /// Typically displayed using a blue color.
     Info,
     Note,
     Help,

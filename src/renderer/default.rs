@@ -5,83 +5,46 @@ use crate::{
 };
 use std::io;
 
+#[derive(Debug, Copy, Clone, Default)]
 pub struct Ascii {
-    use_ansi: bool,
+    pub ansi: bool,
+    #[allow(unused)] // TODO
+    pub fold: bool,
+    pub box_drawing: bool,
+    #[doc(hidden)] // to allow structural creation with `Ascii { ..Default::default() }`
+    pub __non_exhaustive: (),
 }
 
 impl Ascii {
-    pub fn plain() -> Self {
-        Ascii { use_ansi: false }
+    pub fn new() -> Self {
+        Default::default()
     }
 
-    pub fn ansi() -> Self {
-        Ascii { use_ansi: true }
+    pub fn ansi(&mut self, b: bool) -> &mut Self {
+        self.ansi = b;
+        self
+    }
+
+    pub fn box_drawing(&mut self, b: bool) -> &mut Self {
+        self.box_drawing = b;
+        self
     }
 }
 
 impl Ascii {
     #[inline(always)]
-    fn reset(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
+    fn reset(self, w: &mut dyn io::Write) -> io::Result<()> {
+        if self.ansi {
             write!(w, "\x1B[0m")
         } else {
             Ok(())
         }
     }
 
-    fn bold(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
+    #[inline(always)]
+    fn bold(self, w: &mut dyn io::Write) -> io::Result<()> {
+        if self.ansi {
             write!(w, "\x1B[0;1m")
-        } else {
-            Ok(())
-        }
-    }
-
-    // fg(Fixed(9))
-    #[inline(always)]
-    fn bright_red(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[0;31;1m")
-        } else {
-            Ok(())
-        }
-    }
-
-    // bold + fg(Fixed(9))
-    #[inline(always)]
-    fn bold_bright_red(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[1;31;1m")
-        } else {
-            Ok(())
-        }
-    }
-
-    // fg(Fixed(11))
-    #[inline(always)]
-    fn bright_yellow(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[0;33;1m")
-        } else {
-            Ok(())
-        }
-    }
-
-    // bold + fg(Fixed(11))
-    #[inline(always)]
-    fn bold_bright_yellow(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[1;33;1m")
-        } else {
-            Ok(())
-        }
-    }
-
-    // fg(Fixed(12))
-    #[inline(always)]
-    fn bright_blue(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[0;34;1m")
         } else {
             Ok(())
         }
@@ -89,29 +52,25 @@ impl Ascii {
 
     // bold + fg(Fixed(12))
     #[inline(always)]
-    fn bold_bright_blue(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
+    fn bold_bright_blue(self, w: &mut dyn io::Write) -> io::Result<()> {
+        if self.ansi {
             write!(w, "\x1B[1;34;1m")
         } else {
             Ok(())
         }
     }
 
-    // fg(Fixed(14))
+    // FIXME: emitted ANSI codes are highly redundant when repeated
     #[inline(always)]
-    fn bright_cyan(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[0;36;1m")
-        } else {
-            Ok(())
-        }
-    }
-
-    // bold + fg(Fixed(14))
-    #[inline(always)]
-    fn bold_bright_cyan(&self, w: &mut dyn io::Write) -> io::Result<()> {
-        if self.use_ansi {
-            write!(w, "\x1B[1;36;1m")
+    fn style_for(self, level: Level, w: &mut dyn io::Write) -> io::Result<()> {
+        if self.ansi {
+            match level {
+                Level::Error => write!(w, "\x1B[0;31;1m"),
+                Level::Warning => write!(w, "\x1B[0;33;1m"),
+                Level::Info => write!(w, "\x1B[0;34;1m"),
+                Level::Note => self.reset(w),
+                Level::Help => write!(w, "\x1B[0;36;1m"),
+            }
         } else {
             Ok(())
         }
@@ -119,37 +78,37 @@ impl Ascii {
 
     // FIXME: emitted ANSI codes are highly redundant when repeated
     #[inline(always)]
-    fn style_for(&self, level: Level, w: &mut dyn io::Write) -> io::Result<()> {
-        match level {
-            Level::Error => self.bright_red(w),
-            Level::Warning => self.bright_yellow(w),
-            Level::Info => self.bright_blue(w),
-            Level::Note => self.reset(w),
-            Level::Help => self.bright_cyan(w),
-        }
-    }
-
-    // FIXME: emitted ANSI codes are highly redundant when repeated
-    #[inline(always)]
-    fn style_bold_for(&self, level: Level, w: &mut dyn io::Write) -> io::Result<()> {
-        match level {
-            Level::Error => self.bold_bright_red(w),
-            Level::Warning => self.bold_bright_yellow(w),
-            Level::Info => self.bold_bright_blue(w),
-            Level::Note => self.reset(w),
-            Level::Help => self.bold_bright_cyan(w),
+    fn style_bold_for(self, level: Level, w: &mut dyn io::Write) -> io::Result<()> {
+        if self.ansi {
+            match level {
+                Level::Error => write!(w, "\x1B[1;31;1m"),
+                Level::Warning => write!(w, "\x1B[1;33;1m"),
+                Level::Info => write!(w, "\x1B[1;34;1m"),
+                Level::Note => self.reset(w),
+                Level::Help => write!(w, "\x1B[1;36;1m"),
+            }
+        } else {
+            Ok(())
         }
     }
 }
 
 impl Ascii {
-    fn render_marks(&self, marks: &[Mark], w: &mut dyn io::Write) -> io::Result<()> {
+    fn render_marks(self, marks: &[Mark], w: &mut dyn io::Write) -> io::Result<()> {
         for mark in marks {
             self.style_for(mark.level, w)?;
-            let c = match mark.kind {
-                MarkKind::Start => '/',
-                MarkKind::Continue => '|',
-                MarkKind::Here => '\\',
+            let c = if self.box_drawing {
+                match mark.kind {
+                    MarkKind::Start => '┌',
+                    MarkKind::Continue => '│',
+                    MarkKind::Here => '└',
+                }
+            } else {
+                match mark.kind {
+                    MarkKind::Start => '/',
+                    MarkKind::Continue => '|',
+                    MarkKind::Here => '\\',
+                }
             };
             write!(w, "{}", c)?;
         }
@@ -157,35 +116,53 @@ impl Ascii {
     }
 
     fn render_source_line<Span: crate::Span>(
-        &self,
+        self,
         line: &SourceLine<'_, Span>,
+        is_long: bool,
         f: &dyn SpanWriter<Span>,
         w: &mut dyn io::Write,
     ) -> io::Result<()> {
         match line {
-            SourceLine::Content { span, subspan } => f.write(w, span, subspan),
+            SourceLine::Content { span, subspan } => {
+                write!(w, " ")?;
+                f.write(w, span, subspan)
+            }
             SourceLine::Annotation { message, underline } => {
-                write!(w, "{:>width$}", "", width = underline.0)?;
-                self.style_bold_for(message.map_or(Level::Info, |message| message.level), w)?;
-                // FIXME: respect level for pointer character
-                if underline.0 == 0 {
-                    write!(w, "{:_>width$} ", "^", width = underline.1)?;
+                let (indent, len) = if is_long {
+                    (0, underline.0 + underline.1 + 1)
                 } else {
-                    write!(w, "{:->width$} ", "", width = underline.1)?;
+                    (underline.0 + 1, underline.1)
+                };
+                write!(w, "{:>width$}", "", width = indent)?;
+                let level = message.map_or(Level::Info, |message| message.level);
+                self.style_bold_for(level, w)?;
+                if is_long {
+                    if self.box_drawing {
+                        write!(w, "{:─>width$} ", "┘", width = len)?;
+                    } else {
+                        write!(w, "{:_>width$} ", "^", width = len)?;
+                    }
+                } else {
+                    match level {
+                        Level::Error => write!(w, "{:^>width$} ", "", width = len)?,
+                        Level::Warning => write!(w, "{:~>width$} ", "", width = len)?,
+                        Level::Info | Level::Help | Level::Note => {
+                            write!(w, "{:->width$} ", "", width = len)?
+                        }
+                    }
                 }
                 write!(
                     w,
                     "{}",
                     message.map_or(&"" as &dyn DebugAndDisplay, |message| message.text)
-                )?;
-                self.reset(w)
+                )
             }
             SourceLine::Empty => Ok(()),
         }
     }
 
     fn render_raw_line(
-        &self,
+        self,
         line: &RawLine<'_>,
         line_num_width: usize,
         w: &mut dyn io::Write,
@@ -194,7 +171,11 @@ impl Ascii {
             &RawLine::Origin { path, pos } => {
                 write!(w, "{:>width$}", "", width = line_num_width)?;
                 self.bold_bright_blue(w)?;
-                write!(w, "-->")?;
+                if self.box_drawing {
+                    write!(w, "═╦═")?;
+                } else {
+                    write!(w, "-->")?;
+                }
                 self.reset(w)?;
                 write!(w, " {}", path)?;
                 if let Some((line, column)) = pos {
@@ -228,7 +209,7 @@ impl Ascii {
                     write!(w, "[{}]", code)?;
                 }
                 self.bold(w)?;
-                writeln!(w, ":  {}", title.message.text)
+                writeln!(w, ": {}", title.message.text)
             }
         }
     }
@@ -266,10 +247,11 @@ impl Renderer for Ascii {
                 line,
             } => {
                 self.bold_bright_blue(w)?;
+                let sep = if self.box_drawing { '║' } else { '|' };
                 if let Some(lineno) = lineno {
-                    write!(w, "{:>width$} | ", lineno, width = line_num_width)?;
+                    write!(w, "{:>width$} {} ", lineno, sep, width = line_num_width)?;
                 } else {
-                    write!(w, "{:>width$} | ", "", width = line_num_width)?;
+                    write!(w, "{:>width$} {} ", "", sep, width = line_num_width)?;
                 }
                 self.reset(w)?;
                 write!(
@@ -279,7 +261,10 @@ impl Renderer for Ascii {
                     width = marks_width - inline_marks.len()
                 )?;
                 self.render_marks(inline_marks, w)?;
-                self.render_source_line(line, f, w)?;
+                let is_long = inline_marks
+                    .last()
+                    .map_or(false, |mark| mark.kind == MarkKind::Here);
+                self.render_source_line(line, is_long, f, w)?;
                 writeln!(w)
             }
             DisplayLine::Raw(line) => self.render_raw_line(line, line_num_width, w),

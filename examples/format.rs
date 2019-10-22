@@ -60,7 +60,9 @@ fn main() {
     };
 
     let formatted = format(&snippet, &());
-    renderer::Ascii::ansi()
+    renderer::Ascii::new()
+        .ansi(true)
+        .box_drawing(true)
         .render(&formatted, &(), &mut io::stdout().lock())
         .unwrap();
 }
