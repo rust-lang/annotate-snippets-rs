@@ -1,10 +1,9 @@
-pub mod annotation;
-mod display_list;
-pub mod renderers;
-pub mod slice;
-pub mod snippet;
+pub mod formatter;
+mod input;
+pub mod renderer;
+mod span;
 
-pub use annotation::{Annotation, AnnotationType, SourceAnnotation};
-pub use display_list::DisplayList;
-pub use slice::Slice;
-pub use snippet::Snippet;
+pub use formatter::format;
+pub use input::{Annotation, DebugAndDisplay, Level, Message, Slice, Snippet, Title};
+pub use renderer::Renderer;
+pub use span::{Span, SpanFormatter, SpanWriter, WithLineNumber};
