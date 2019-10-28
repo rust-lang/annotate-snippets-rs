@@ -132,7 +132,9 @@ impl<S: StyleTrait> Renderer<S> {
                         w,
                         format_args!(
                             "{}{} {}",
-                            repeat(horizontal_mark).take(5).collect::<String>(),
+                            repeat(horizontal_mark)
+                                .take(range.len())
+                                .collect::<String>(),
                             MarkKind::get(MarkKind::UpLeft),
                             annotation.label,
                         ),
@@ -141,7 +143,13 @@ impl<S: StyleTrait> Renderer<S> {
                 } else {
                     S::fmt(
                         w,
-                        format_args!("{:->width$} {}", "", annotation.label, width = range.len()),
+                        format_args!(
+                            "{} {}",
+                            repeat(horizontal_mark)
+                                .take(range.len())
+                                .collect::<String>(),
+                            annotation.label
+                        ),
                         &styles,
                     )
                 }

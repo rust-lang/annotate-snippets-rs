@@ -8,6 +8,7 @@ use crate::display_list::line::DisplaySourceLine;
 use crate::DisplayList;
 use std::cmp;
 use std::io::Write;
+use std::iter::repeat;
 
 pub struct Renderer {}
 
@@ -25,12 +26,33 @@ fn digits(n: usize) -> usize {
     sum
 }
 
+enum MarkKind {
+    Vertical,
+    Horizontal,
+    DownRight,
+    UpRight,
+    UpLeft,
+}
+
+impl MarkKind {
+    pub fn get(t: MarkKind) -> char {
+        match t {
+            MarkKind::Vertical => '│',
+            MarkKind::Horizontal => '─',
+            MarkKind::DownRight => '┌',
+            MarkKind::UpRight => '└',
+            MarkKind::UpLeft => '┘',
+        }
+    }
+}
+
 impl Renderer {
     pub fn new() -> Self {
         Renderer {}
     }
 
     pub fn fmt(&self, w: &mut impl Write, dl: &DisplayList) -> std::io::Result<()> {
+        self.fmt_header(w)?;
         let lineno_max = dl.body.iter().rev().find_map(|line| {
             if let DisplayLine::Source {
                 lineno: Some(lineno),
@@ -49,6 +71,7 @@ impl Renderer {
         for line in &dl.body {
             self.fmt_line(w, line, lineno_max, inline_marks_width)?;
         }
+        self.fmt_footer(w)?;
         Ok(())
     }
 
@@ -66,7 +89,7 @@ impl Renderer {
                 inline_marks,
                 line,
             } => {
-                let vertical_mark = '|';
+                let vertical_mark = MarkKind::get(MarkKind::Vertical);
                 if let Some(lineno) = lineno {
                     write!(
                         w,
@@ -90,9 +113,9 @@ impl Renderer {
                     "",
                     width = inline_marks_width - inline_marks.len()
                 )?;
-                //for mark in inline_marks {
-                //self.fmt_display_mark(w, mark)?;
-                //}
+                for mark in inline_marks {
+                    self.fmt_display_mark(w, mark)?;
+                }
                 self.fmt_source_line(w, line)?;
                 writeln!(w)
             }
@@ -106,31 +129,33 @@ impl Renderer {
         line: &DisplaySourceLine,
     ) -> std::io::Result<()> {
         match line {
-            DisplaySourceLine::Content { text } => write!(w, " {}", text),
+            DisplaySourceLine::Content { text } => {
+                write!(w, r#" <span class="source">{}</span>"#, text)
+            }
             DisplaySourceLine::Annotation { annotation, range } => {
-                //let (_, style) = self.get_annotation_type_style(&annotation.annotation_type);
-                //let styles = [StyleType::Emphasis, style];
-                //let indent = if range.start == 0 { 0 } else { range.start + 1 };
-                //write!(w, "{:>width$}", "", width = indent)?;
-                //if range.start == 0 {
-                //let horizontal_mark = MarkKind::get(MarkKind::Horizontal);
-                //S::fmt(
-                //w,
-                //format_args!(
-                //"{}{} {}",
-                //repeat(horizontal_mark).take(5).collect::<String>(),
-                //MarkKind::get(MarkKind::UpLeft),
-                //annotation.label,
-                //),
-                //&styles,
-                //)
-                //} else {
-                //S::fmt(
-                //w,
-                //format_args!("{:->width$} {}", "", annotation.label, width = range.len()),
-                //&styles,
-                //)
-                //}
+                let indent = if range.start == 0 { 0 } else { range.start + 1 };
+                write!(w, "{:>width$}", "", width = indent)?;
+                let horizontal_mark = MarkKind::get(MarkKind::Horizontal);
+                if range.start == 0 {
+                    write!(
+                        w,
+                        "{}{} {}",
+                        repeat(horizontal_mark)
+                            .take(range.len())
+                            .collect::<String>(),
+                        MarkKind::get(MarkKind::UpLeft),
+                        annotation.label,
+                    )?;
+                } else {
+                    write!(
+                        w,
+                        "{} {}",
+                        repeat(horizontal_mark)
+                            .take(range.len())
+                            .collect::<String>(),
+                        annotation.label
+                    )?;
+                }
                 Ok(())
             }
             DisplaySourceLine::Empty => Ok(()),
@@ -194,13 +219,25 @@ impl Renderer {
         w: &mut impl std::io::Write,
         display_mark: &DisplayMark,
     ) -> std::io::Result<()> {
-        //let ch = match display_mark.mark_type {
-        //DisplayMarkType::AnnotationStart => MarkKind::get(MarkKind::DownRight),
-        //DisplayMarkType::AnnotationEnd => MarkKind::get(MarkKind::UpRight),
-        //DisplayMarkType::AnnotationThrough => MarkKind::get(MarkKind::Vertical),
-        //};
-        //S::fmt(w, ch, &[StyleType::Emphasis, style])
+        let ch = match display_mark.mark_type {
+            DisplayMarkType::AnnotationStart => MarkKind::get(MarkKind::DownRight),
+            DisplayMarkType::AnnotationEnd => MarkKind::get(MarkKind::UpRight),
+            DisplayMarkType::AnnotationThrough => MarkKind::get(MarkKind::Vertical),
+        };
+        write!(w, "{}", ch)?;
         Ok(())
+    }
+
+    fn fmt_header(&self, w: &mut impl std::io::Write) -> std::io::Result<()> {
+        writeln!(w, "<html><head><style>")?;
+        writeln!(w, r#".lineno {{ color: red; }}"#)?;
+        writeln!(w, r#".line {{ color: blue; }}"#)?;
+        writeln!(w, r#".source {{ color: gray; }}"#)?;
+        write!(w, "</style></head><body><pre>")
+    }
+
+    fn fmt_footer(&self, w: &mut impl std::io::Write) -> std::io::Result<()> {
+        write!(w, "</pre></body></html>")
     }
 }
 
