@@ -13,10 +13,17 @@ pub enum DisplayLine<'d> {
 }
 
 #[derive(Debug, Clone)]
-pub enum DisplaySourceLine<'d> {
-    Content {
+pub enum DisplayContentElement<'d> {
+    Text(&'d str),
+    AnnotatedText {
         text: &'d str,
+        annotation_type: AnnotationType,
     },
+}
+
+#[derive(Debug, Clone)]
+pub enum DisplaySourceLine<'d> {
+    Content(Vec<DisplayContentElement<'d>>),
     Annotation {
         annotation: Annotation<'d>,
         range: Range<usize>,

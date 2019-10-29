@@ -1,5 +1,5 @@
 use annotate_snippets::DisplayList;
-use annotate_snippets::{Annotation, AnnotationType, SourceAnnotation};
+use annotate_snippets::{Annotation, AnnotationType, InlineAnnotation, SourceAnnotation};
 use annotate_snippets::{Slice, Snippet};
 
 use annotate_snippets::renderers::get_renderer;
@@ -50,6 +50,24 @@ fn main() {
                     label: "expected enum `std::option::Option`",
                     annotation_type: AnnotationType::Error,
                     range: 23..725,
+                },
+            ],
+            inline_annotations: &[
+                InlineAnnotation {
+                    annotation_type: AnnotationType::Warning,
+                    range: 5..19,
+                },
+                InlineAnnotation {
+                    annotation_type: AnnotationType::Error,
+                    range: 49..50,
+                },
+                InlineAnnotation {
+                    annotation_type: AnnotationType::Error,
+                    range: 724..725,
+                },
+                InlineAnnotation {
+                    annotation_type: AnnotationType::Help,
+                    range: 421..427,
                 },
             ],
         }],

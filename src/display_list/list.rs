@@ -1,6 +1,9 @@
 use super::annotation::Annotation;
-use super::line::{DisplayLine, DisplayMark, DisplayMarkType, DisplayRawLine, DisplaySourceLine};
-use crate::{Slice, Snippet, SourceAnnotation};
+use super::line::{
+    DisplayContentElement, DisplayLine, DisplayMark, DisplayMarkType, DisplayRawLine,
+    DisplaySourceLine,
+};
+use crate::{InlineAnnotation, Slice, Snippet, SourceAnnotation};
 
 #[derive(Debug, Clone)]
 pub struct DisplayList<'d> {
@@ -55,8 +58,9 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
         });
 
         let mut annotations: Vec<&SourceAnnotation> = slice.annotations.iter().collect();
+        let mut inline_annotations: Vec<&InlineAnnotation> =
+            slice.inline_annotations.iter().collect();
 
-        // let mut current_annotation = annotations.next();
         let mut line_start_pos = 0;
 
         let mut i = slice.line_start.unwrap_or(1);
@@ -64,6 +68,7 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
             let line_range = line_start_pos..(line_start_pos + line.chars().count() + 1);
 
             let mut current_annotations = vec![];
+            let mut current_inline_annotations = vec![];
             let mut inline_marks = vec![];
 
             annotations.retain(|ann| {
@@ -100,10 +105,41 @@ impl<'d> From<&Slice<'d>> for DisplayList<'d> {
                 }
             });
 
+            inline_annotations.retain(|ann| {
+                if line_range.contains(&ann.range.start) && line_range.contains(&ann.range.end) {
+                    // Annotation in this line
+                    current_inline_annotations.push(*ann);
+                    false
+                } else {
+                    true
+                }
+            });
+
+            let mut frag = vec![];
+
+            let mut ptr = 0;
+            for ann in current_inline_annotations {
+                if ptr < ann.range.start {
+                    frag.push(DisplayContentElement::Text(
+                        &line[ptr..ann.range.start - line_range.start],
+                    ));
+                }
+                frag.push(DisplayContentElement::AnnotatedText {
+                    text: &line
+                        [(ann.range.start - line_range.start)..(ann.range.end - line_range.start)],
+                    annotation_type: ann.annotation_type.clone(),
+                });
+                ptr = ann.range.end - line_range.start;
+            }
+
+            if ptr < line_range.end {
+                frag.push(DisplayContentElement::Text(&line[ptr..]));
+            }
+
             body.push(DisplayLine::Source {
                 lineno: Some(i),
                 inline_marks,
-                line: DisplaySourceLine::Content { text: line },
+                line: DisplaySourceLine::Content(frag),
             });
             for ann in current_annotations {
                 let start = if ann.range.start >= line_start_pos {

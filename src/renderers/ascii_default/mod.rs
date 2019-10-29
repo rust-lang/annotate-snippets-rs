@@ -10,6 +10,7 @@ use crate::renderers::ascii_default::styles::plain::Style;
 
 use super::Renderer as RendererTrait;
 use crate::annotation::AnnotationType;
+use crate::display_list::line::DisplayContentElement;
 use crate::display_list::line::DisplayLine;
 use crate::display_list::line::DisplayMark;
 use crate::display_list::line::DisplayMarkType;
@@ -120,7 +121,22 @@ impl<S: StyleTrait> Renderer<S> {
         line: &DisplaySourceLine,
     ) -> std::io::Result<()> {
         match line {
-            DisplaySourceLine::Content { text } => write!(w, " {}", text),
+            DisplaySourceLine::Content(frag) => {
+                write!(w, " ")?;
+                for elem in frag {
+                    match elem {
+                        DisplayContentElement::Text(t) => write!(w, "{}", t)?,
+                        DisplayContentElement::AnnotatedText {
+                            text,
+                            annotation_type,
+                        } => {
+                            let (_, style) = self.get_annotation_type_style(&annotation_type);
+                            S::fmt(w, text, &[StyleType::Emphasis, style])?
+                        }
+                    }
+                }
+                Ok(())
+            }
             DisplaySourceLine::Annotation { annotation, range } => {
                 let (_, style) = self.get_annotation_type_style(&annotation.annotation_type);
                 let styles = [StyleType::Emphasis, style];

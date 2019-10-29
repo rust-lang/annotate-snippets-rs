@@ -23,3 +23,9 @@ pub struct SourceAnnotation<'s> {
     pub label: &'s str,
     pub annotation_type: AnnotationType,
 }
+
+#[derive(Debug, Clone)]
+pub struct InlineAnnotation {
+    pub range: Range<usize>,
+    pub annotation_type: AnnotationType,
+}
