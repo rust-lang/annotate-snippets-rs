@@ -126,8 +126,8 @@ impl<S: StyleTrait> Renderer<S> {
                 let styles = [StyleType::Emphasis, style];
                 let indent = if range.start == 0 { 0 } else { range.start + 1 };
                 write!(w, "{:>width$}", "", width = indent)?;
+                let horizontal_mark = MarkKind::get(MarkKind::Horizontal);
                 if range.start == 0 {
-                    let horizontal_mark = MarkKind::get(MarkKind::Horizontal);
                     S::fmt(
                         w,
                         format_args!(
@@ -191,7 +191,7 @@ impl<S: StyleTrait> Renderer<S> {
                 }
                 S::fmt(
                     w,
-                    format_args!(":  {}\n", annotation.label),
+                    format_args!(": {}\n", annotation.label),
                     &[StyleType::Emphasis],
                 )
             }

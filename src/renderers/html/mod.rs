@@ -133,13 +133,15 @@ impl Renderer {
                 write!(w, r#" <span class="source">{}</span>"#, text)
             }
             DisplaySourceLine::Annotation { annotation, range } => {
+                let desc = self.get_annotation_type_style(&annotation.annotation_type);
                 let indent = if range.start == 0 { 0 } else { range.start + 1 };
                 write!(w, "{:>width$}", "", width = indent)?;
                 let horizontal_mark = MarkKind::get(MarkKind::Horizontal);
                 if range.start == 0 {
                     write!(
                         w,
-                        "{}{} {}",
+                        r#"<span class="{}">{}{} {}</span>"#,
+                        desc,
                         repeat(horizontal_mark)
                             .take(range.len())
                             .collect::<String>(),
@@ -149,7 +151,8 @@ impl Renderer {
                 } else {
                     write!(
                         w,
-                        "{} {}",
+                        r#"<span class="{}">{} {}</span>"#,
+                        desc,
                         repeat(horizontal_mark)
                             .take(range.len())
                             .collect::<String>(),
@@ -171,33 +174,25 @@ impl Renderer {
         match line {
             DisplayRawLine::Origin { path, pos } => {
                 write!(w, "{:>width$}", "", width = lineno_max)?;
-                //S::fmt(
-                //w,
-                //format_args!(
-                //"{}{}>",
-                //MarkKind::get(MarkKind::Horizontal),
-                //MarkKind::get(MarkKind::Horizontal),
-                //),
-                //&[StyleType::Emphasis, StyleType::LineNo],
-                //)?;
-                //write!(w, " {}", path)?;
-                //if let Some(line) = pos.0 {
-                //write!(w, ":{}", line)?;
-                //}
+                write!(
+                    w,
+                    r#"<span class="ui">{}{}></span>"#,
+                    MarkKind::get(MarkKind::Horizontal),
+                    MarkKind::get(MarkKind::Horizontal),
+                )?;
+                write!(w, " {}", path)?;
+                if let Some(line) = pos.0 {
+                    write!(w, ":{}", line)?;
+                }
                 writeln!(w)
             }
             DisplayRawLine::Annotation { annotation, .. } => {
                 let desc = self.get_annotation_type_style(&annotation.annotation_type);
-                //let s = [StyleType::Emphasis, style];
-                //S::fmt(w, desc, &s)?;
-                //if let Some(id) = annotation.id {
-                //S::fmt(w, format_args!("[{}]", id), &s)?;
-                //}
-                //S::fmt(
-                //w,
-                //format_args!(":  {}\n", annotation.label),
-                //&[StyleType::Emphasis],
-                //)
+                write!(w, r#"<span class="title"><span class="{}">{}"#, desc, desc)?;
+                if let Some(id) = annotation.id {
+                    write!(w, "[{}]", id)?;
+                }
+                write!(w, "</span>: {}</span>\n", annotation.label)?;
                 Ok(())
             }
         }
@@ -219,20 +214,25 @@ impl Renderer {
         w: &mut impl std::io::Write,
         display_mark: &DisplayMark,
     ) -> std::io::Result<()> {
+        let desc = self.get_annotation_type_style(&display_mark.annotation_type);
         let ch = match display_mark.mark_type {
             DisplayMarkType::AnnotationStart => MarkKind::get(MarkKind::DownRight),
             DisplayMarkType::AnnotationEnd => MarkKind::get(MarkKind::UpRight),
             DisplayMarkType::AnnotationThrough => MarkKind::get(MarkKind::Vertical),
         };
-        write!(w, "{}", ch)?;
+        write!(w, r#"<span class="{}">{}</span>"#, desc, ch)?;
         Ok(())
     }
 
     fn fmt_header(&self, w: &mut impl std::io::Write) -> std::io::Result<()> {
         writeln!(w, "<html><head><style>")?;
-        writeln!(w, r#".lineno {{ color: red; }}"#)?;
+        writeln!(w, r#".lineno {{ color: blue; }}"#)?;
         writeln!(w, r#".line {{ color: blue; }}"#)?;
+        writeln!(w, r#".ui {{ color: blue; }}"#)?;
         writeln!(w, r#".source {{ color: gray; }}"#)?;
+        writeln!(w, r#".error {{ color: red; }}"#)?;
+        writeln!(w, r#".warning {{ color: yellow; }}"#)?;
+        writeln!(w, r#".title {{ font-weight: bold; }}"#)?;
         write!(w, "</style></head><body><pre>")
     }
 
