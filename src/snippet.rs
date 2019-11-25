@@ -55,7 +55,7 @@ pub struct Slice {
 }
 
 /// Types of annotations.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AnnotationType {
     /// Error annotations are displayed using red color and "^" character.
     Error,
