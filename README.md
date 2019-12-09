@@ -77,7 +77,7 @@ with the list of annotations below.
 
     let dl = DisplayList::from(snippet);
     let dlf = DisplayListFormatter::new(true, false);
-    dlf.format(&dl);
+    println!("{}", dlf.format(&dl));
 }
 ```
 
