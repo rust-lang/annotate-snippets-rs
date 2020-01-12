@@ -1,5 +1,5 @@
 error[E0308]: mismatched types
-  --> src/format.rs:51:5
+  --> src/format.rs:51:6
    |
 51 |   ) -> Option<String> {
    |        -------------- expected `std::option::Option<std::string::String>` because of return type
