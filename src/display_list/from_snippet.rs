@@ -92,7 +92,7 @@ fn format_header(
             } = item
             {
                 if annotation.range.0 >= range.0 && annotation.range.0 <= range.1 {
-                    col = annotation.range.0 - range.0;
+                    col = annotation.range.0 - range.0 + 1;
                     break;
                 }
                 row += 1;

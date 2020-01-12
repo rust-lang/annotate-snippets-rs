@@ -1,5 +1,5 @@
 error[E0027]: pattern does not mention fields `lineno`, `content`
-   --> src/display_list.rs:139:31
+   --> src/display_list.rs:139:32
     |
 139 |                           if let DisplayLine::Source {
     |  ________________________________^
