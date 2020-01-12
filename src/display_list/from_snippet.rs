@@ -214,7 +214,7 @@ fn format_body(slice: &snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
                 };
                 match annotation.range {
                     (start, _) if start > line_end => true,
-                    (start, end) if start >= line_start && end <= line_end + 1 => {
+                    (start, end) if start >= line_start && end <= line_end => {
                         let range = (start - line_start, end - line_start);
                         body.insert(
                             body_idx + 1,
