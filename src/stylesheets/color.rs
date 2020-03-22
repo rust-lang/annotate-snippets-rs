@@ -13,9 +13,7 @@ impl Style for AnsiTermStyleWrapper {
     }
 
     fn bold(&self) -> Box<dyn Style> {
-        Box::new(AnsiTermStyleWrapper {
-            style: self.style.clone(),
-        })
+        Box::new(AnsiTermStyleWrapper { style: self.style })
     }
 }
 

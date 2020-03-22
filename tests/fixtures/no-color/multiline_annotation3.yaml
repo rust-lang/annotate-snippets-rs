@@ -9,7 +9,7 @@ slices:
     annotations:
       - label: this should not be on separate lines
         annotation_type: Error
-        range: [11, 19]
+        range: [11, 18]
 title:
   label: spacing error found
   id: E####

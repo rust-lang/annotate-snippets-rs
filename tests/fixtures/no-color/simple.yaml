@@ -8,7 +8,7 @@ slices:
     annotations:
       - label: unexpected token
         annotation_type: Error
-        range: [22, 25]
+        range: [20, 23]
       - label: expected one of `.`, `;`, `?`, or an operator here
         annotation_type: Warning
         range: [10, 11]

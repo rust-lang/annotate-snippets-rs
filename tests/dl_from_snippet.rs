@@ -31,11 +31,14 @@ fn test_format_title() {
 
 #[test]
 fn test_format_slice() {
+    let line_1 = "This is line 1".to_string();
+    let line_2 = "This is line 2".to_string();
+    let source = vec![line_1.clone(), line_2.clone()].join("\n");
     let input = snippet::Snippet {
         title: None,
         footer: vec![],
         slices: vec![snippet::Slice {
-            source: "This is line 1\nThis is line 2".to_string(),
+            source: source.clone(),
             line_start: 5402,
             origin: None,
             annotations: vec![],
@@ -53,16 +56,16 @@ fn test_format_slice() {
                 lineno: Some(5402),
                 inline_marks: vec![],
                 line: dl::DisplaySourceLine::Content {
-                    text: "This is line 1".to_string(),
-                    range: (0, 15),
+                    text: line_1.clone(),
+                    range: (0, line_1.len()),
                 },
             },
             dl::DisplayLine::Source {
                 lineno: Some(5403),
                 inline_marks: vec![],
                 line: dl::DisplaySourceLine::Content {
-                    text: "This is line 2".to_string(),
-                    range: (16, 31),
+                    range: (line_1.len() + 1, source.len()),
+                    text: line_2,
                 },
             },
             dl::DisplayLine::Source {
@@ -77,19 +80,23 @@ fn test_format_slice() {
 
 #[test]
 fn test_format_slices_continuation() {
+    let src_0 = "This is slice 1".to_string();
+    let src_0_len = src_0.len();
+    let src_1 = "This is slice 2".to_string();
+    let src_1_len = src_1.len();
     let input = snippet::Snippet {
         title: None,
         footer: vec![],
         slices: vec![
             snippet::Slice {
-                source: "This is slice 1".to_string(),
+                source: src_0.clone(),
                 line_start: 5402,
                 origin: Some("file1.rs".to_string()),
                 annotations: vec![],
                 fold: false,
             },
             snippet::Slice {
-                source: "This is slice 2".to_string(),
+                source: src_1.clone(),
                 line_start: 2,
                 origin: Some("file2.rs".to_string()),
                 annotations: vec![],
@@ -113,8 +120,8 @@ fn test_format_slices_continuation() {
                 lineno: Some(5402),
                 inline_marks: vec![],
                 line: dl::DisplaySourceLine::Content {
-                    text: "This is slice 1".to_string(),
-                    range: (0, 16),
+                    text: src_0,
+                    range: (0, src_0_len),
                 },
             },
             dl::DisplayLine::Source {
@@ -136,8 +143,8 @@ fn test_format_slices_continuation() {
                 lineno: Some(2),
                 inline_marks: vec![],
                 line: dl::DisplaySourceLine::Content {
-                    text: "This is slice 2".to_string(),
-                    range: (0, 16),
+                    text: src_1,
+                    range: (0, src_1_len),
                 },
             },
             dl::DisplayLine::Source {
@@ -152,15 +159,20 @@ fn test_format_slices_continuation() {
 
 #[test]
 fn test_format_slice_annotation_standalone() {
+    let line_1 = "This is line 1".to_string();
+    let line_2 = "This is line 2".to_string();
+    let source = vec![line_1.clone(), line_2.clone()].join("\n");
+    // In line 2
+    let range = (22, 24);
     let input = snippet::Snippet {
         title: None,
         footer: vec![],
         slices: vec![snippet::Slice {
-            source: "This is line 1\nThis is line 2".to_string(),
+            source: source.clone(),
             line_start: 5402,
             origin: None,
             annotations: vec![snippet::SourceAnnotation {
-                range: (22, 24),
+                range,
                 label: "Test annotation".to_string(),
                 annotation_type: snippet::AnnotationType::Info,
             }],
@@ -178,16 +190,16 @@ fn test_format_slice_annotation_standalone() {
                 lineno: Some(5402),
                 inline_marks: vec![],
                 line: dl::DisplaySourceLine::Content {
-                    text: "This is line 1".to_string(),
-                    range: (0, 15),
+                    range: (0, line_1.len()),
+                    text: line_1.clone(),
                 },
             },
             dl::DisplayLine::Source {
                 lineno: Some(5403),
                 inline_marks: vec![],
                 line: dl::DisplaySourceLine::Content {
-                    text: "This is line 2".to_string(),
-                    range: (16, 31),
+                    range: (line_1.len() + 1, source.len()),
+                    text: line_2,
                 },
             },
             dl::DisplayLine::Source {
@@ -202,7 +214,7 @@ fn test_format_slice_annotation_standalone() {
                             style: dl::DisplayTextStyle::Regular,
                         }],
                     },
-                    range: (6, 8),
+                    range: (range.0 - (line_1.len() + 1), range.1 - (line_1.len() + 1)),
                     annotation_type: dl::DisplayAnnotationType::Info,
                     annotation_part: dl::DisplayAnnotationPart::Standalone,
                 },
@@ -253,4 +265,28 @@ fn test_format_label() {
         })],
     };
     assert_eq!(dl::DisplayList::from(input), output);
+}
+
+#[test]
+#[should_panic]
+fn test_i26() {
+    let source = "short".to_string();
+    let label = "label".to_string();
+    let input = snippet::Snippet {
+        title: None,
+        footer: vec![],
+        slices: vec![snippet::Slice {
+            annotations: vec![snippet::SourceAnnotation {
+                range: (0, source.len() + 1),
+                label,
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            source,
+            line_start: 0,
+            origin: None,
+            fold: false,
+        }],
+    };
+
+    let _ = dl::DisplayList::from(input);
 }
