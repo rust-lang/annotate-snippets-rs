@@ -1,13 +1,43 @@
+use std::fmt;
+
+use crate::formatter::{get_term_style, style::Stylesheet};
+
 /// List of lines to be displayed.
-#[derive(Debug, Clone, PartialEq)]
 pub struct DisplayList {
     pub body: Vec<DisplayLine>,
+    pub stylesheet: Box<dyn Stylesheet>,
+    pub anonymized_line_numbers: bool,
 }
 
 impl From<Vec<DisplayLine>> for DisplayList {
     fn from(body: Vec<DisplayLine>) -> Self {
-        Self { body }
+        Self {
+            body,
+            anonymized_line_numbers: false,
+            stylesheet: get_term_style(false),
+        }
     }
+}
+
+impl PartialEq for DisplayList {
+    fn eq(&self, other: &Self) -> bool {
+        self.body == other.body && self.anonymized_line_numbers == other.anonymized_line_numbers
+    }
+}
+
+impl fmt::Debug for DisplayList {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DisplayList")
+            .field("body", &self.body)
+            .field("anonymized_line_numbers", &self.anonymized_line_numbers)
+            .finish()
+    }
+}
+
+#[derive(Debug, Default, Copy, Clone)]
+pub struct FormatOptions {
+    pub color: bool,
+    pub anonymized_line_numbers: bool,
 }
 
 /// Inline annotation which can be used in either Raw or Source line.
@@ -125,63 +155,8 @@ pub struct DisplayMark {
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayMarkType {
     /// A mark indicating a multiline annotation going through the current line.
-    ///
-    /// Example:
-    /// ```
-    /// use annotate_snippets::display_list::*;
-    /// use annotate_snippets::formatter::DisplayListFormatter;
-    ///
-    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
-    ///
-    /// let dl = DisplayList {
-    ///     body: vec![
-    ///         DisplayLine::Source {
-    ///             lineno: Some(51),
-    ///             inline_marks: vec![
-    ///                 DisplayMark {
-    ///                     mark_type: DisplayMarkType::AnnotationThrough,
-    ///                     annotation_type: DisplayAnnotationType::Error,
-    ///                 }
-    ///             ],
-    ///             line: DisplaySourceLine::Content {
-    ///                 text: "Example".to_string(),
-    ///                 range: (0, 7),
-    ///             }
-    ///         }
-    ///     ]
-    /// };
-    /// assert_eq!(dlf.format(&dl), "51 | | Example");
-    /// ```
     AnnotationThrough,
-
     /// A mark indicating a multiline annotation starting on the given line.
-    ///
-    /// Example:
-    /// ```
-    /// use annotate_snippets::display_list::*;
-    /// use annotate_snippets::formatter::DisplayListFormatter;
-    ///
-    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
-    ///
-    /// let dl = DisplayList {
-    ///     body: vec![
-    ///         DisplayLine::Source {
-    ///             lineno: Some(51),
-    ///             inline_marks: vec![
-    ///                 DisplayMark {
-    ///                     mark_type: DisplayMarkType::AnnotationStart,
-    ///                     annotation_type: DisplayAnnotationType::Error,
-    ///                 }
-    ///             ],
-    ///             line: DisplaySourceLine::Content {
-    ///                 text: "Example".to_string(),
-    ///                 range: (0, 7),
-    ///             }
-    ///         }
-    ///     ]
-    /// };
-    /// assert_eq!(dlf.format(&dl), "51 | / Example");
-    /// ```
     AnnotationStart,
 }
 
@@ -205,49 +180,12 @@ pub enum DisplayAnnotationType {
 
 /// Information whether the header is the initial one or a consequitive one
 /// for multi-slice cases.
+// TODO: private
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayHeaderType {
     /// Initial header is the first header in the snippet.
-    ///
-    /// Example:
-    /// ```
-    /// use annotate_snippets::display_list::*;
-    /// use annotate_snippets::formatter::DisplayListFormatter;
-    ///
-    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
-    ///
-    /// let dl = DisplayList {
-    ///     body: vec![
-    ///         DisplayLine::Raw(DisplayRawLine::Origin {
-    ///             path: "file1.rs".to_string(),
-    ///             pos: Some((51, 5)),
-    ///             header_type: DisplayHeaderType::Initial,
-    ///         })
-    ///     ]
-    /// };
-    /// assert_eq!(dlf.format(&dl), "--> file1.rs:51:5");
-    /// ```
     Initial,
 
     /// Continuation marks all headers of following slices in the snippet.
-    ///
-    /// Example:
-    /// ```
-    /// use annotate_snippets::display_list::*;
-    /// use annotate_snippets::formatter::DisplayListFormatter;
-    ///
-    /// let dlf = DisplayListFormatter::new(false, false); // Don't use colors
-    ///
-    /// let dl = DisplayList {
-    ///     body: vec![
-    ///         DisplayLine::Raw(DisplayRawLine::Origin {
-    ///             path: "file1.rs".to_string(),
-    ///             pos: Some((51, 5)),
-    ///             header_type: DisplayHeaderType::Continuation,
-    ///         })
-    ///     ]
-    /// };
-    /// assert_eq!(dlf.format(&dl), "::: file1.rs:51:5");
-    /// ```
     Continuation,
 }

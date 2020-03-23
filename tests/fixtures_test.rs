@@ -2,16 +2,10 @@ mod diff;
 mod snippet;
 
 use crate::snippet::SnippetDef;
-use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::formatter::DisplayListFormatter;
-use annotate_snippets::snippet::Snippet;
+use annotate_snippets::{display_list::DisplayList, snippet::Snippet};
 use glob::glob;
 use serde::Deserialize;
-use std::error::Error;
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
-use std::path::Path;
+use std::{error::Error, fs::File, io, io::prelude::*, path::Path};
 
 fn read_file(path: &str) -> Result<String, io::Error> {
     let mut f = File::open(path)?;
@@ -41,8 +35,7 @@ fn test_fixtures() {
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
         let dl = DisplayList::from(snippet);
-        let dlf = DisplayListFormatter::new(true, false);
-        let actual_out = dlf.format(&dl);
+        let actual_out = dl.to_string();
         println!("{}", expected_out);
         println!("{}", actual_out.trim_end());
 

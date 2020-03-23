@@ -32,7 +32,7 @@
 //!
 //! The above snippet has been built out of the following structure:
 //!
-//! ```
+//! ```rust,ignore
 //! use annotate_snippets::display_list::*;
 //!
 //! let dl = DisplayList {

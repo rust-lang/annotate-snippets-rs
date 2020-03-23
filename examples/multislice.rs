@@ -1,6 +1,7 @@
-use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::formatter::DisplayListFormatter;
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet};
+use annotate_snippets::{
+    display_list::DisplayList,
+    snippet::{Annotation, AnnotationType, Slice, Snippet},
+};
 
 fn main() {
     let snippet = Snippet {
@@ -26,9 +27,9 @@ fn main() {
                 annotations: vec![],
             },
         ],
+        opt: Default::default(),
     };
 
     let dl = DisplayList::from(snippet);
-    let dlf = DisplayListFormatter::new(true, false);
-    println!("{}", dlf.format(&dl));
+    println!("{}", dl);
 }

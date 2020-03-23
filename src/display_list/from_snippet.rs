@@ -1,6 +1,6 @@
 //! Trait for converting `Snippet` to `DisplayList`.
 use super::*;
-use crate::snippet;
+use crate::{formatter::get_term_style, snippet};
 
 fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<DisplayTextFragment> {
     let mut result = vec![];
@@ -388,12 +388,14 @@ fn format_body(slice: snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
     body
 }
 
+// TODO: From reference to DisplayList<'a>
 impl From<snippet::Snippet> for DisplayList {
     fn from(
         snippet::Snippet {
             title,
             footer,
             slices,
+            opt,
         }: snippet::Snippet,
     ) -> Self {
         let mut body = vec![];
@@ -409,7 +411,16 @@ impl From<snippet::Snippet> for DisplayList {
             body.append(&mut format_annotation(annotation));
         }
 
-        Self { body }
+        let FormatOptions {
+            color,
+            anonymized_line_numbers,
+        } = opt;
+
+        Self {
+            body,
+            stylesheet: get_term_style(color),
+            anonymized_line_numbers,
+        }
     }
 }
 

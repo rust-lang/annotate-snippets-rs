@@ -1,15 +1,16 @@
-use crate::formatter::style::{Style, StyleClass, Stylesheet};
+use std::fmt;
 
-use ansi_term::Color::Fixed;
-use ansi_term::Style as AnsiTermStyle;
+use ansi_term::{Color::Fixed, Style as AnsiTermStyle};
+
+use crate::formatter::style::{Style, StyleClass, Stylesheet};
 
 struct AnsiTermStyleWrapper {
     style: AnsiTermStyle,
 }
 
 impl Style for AnsiTermStyleWrapper {
-    fn paint(&self, text: &str) -> String {
-        format!("{}", self.style.paint(text))
+    fn paint(&self, text: &str, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.style.paint(text), f)
     }
 
     fn bold(&self) -> Box<dyn Style> {
@@ -17,7 +18,7 @@ impl Style for AnsiTermStyleWrapper {
     }
 }
 
-pub struct AnsiTermStylesheet {}
+pub struct AnsiTermStylesheet;
 
 impl Stylesheet for AnsiTermStylesheet {
     fn get_style(&self, class: StyleClass) -> Box<dyn Style> {

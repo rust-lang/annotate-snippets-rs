@@ -1,5 +1,4 @@
-use annotate_snippets::display_list as dl;
-use annotate_snippets::snippet;
+use annotate_snippets::{display_list as dl, formatter::get_term_style, snippet};
 
 #[test]
 fn test_format_title() {
@@ -11,6 +10,7 @@ fn test_format_title() {
         }),
         footer: vec![],
         slices: vec![],
+        opt: Default::default(),
     };
     let output = dl::DisplayList {
         body: vec![dl::DisplayLine::Raw(dl::DisplayRawLine::Annotation {
@@ -25,6 +25,8 @@ fn test_format_title() {
             source_aligned: false,
             continuation: false,
         })],
+        stylesheet: get_term_style(input.opt.color),
+        anonymized_line_numbers: input.opt.anonymized_line_numbers,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -44,6 +46,7 @@ fn test_format_slice() {
             annotations: vec![],
             fold: false,
         }],
+        opt: Default::default(),
     };
     let output = dl::DisplayList {
         body: vec![
@@ -74,6 +77,8 @@ fn test_format_slice() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
+        stylesheet: get_term_style(input.opt.color),
+        anonymized_line_numbers: input.opt.anonymized_line_numbers,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -103,6 +108,7 @@ fn test_format_slices_continuation() {
                 fold: false,
             },
         ],
+        opt: Default::default(),
     };
     let output = dl::DisplayList {
         body: vec![
@@ -153,6 +159,8 @@ fn test_format_slices_continuation() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
+        stylesheet: get_term_style(input.opt.color),
+        anonymized_line_numbers: input.opt.anonymized_line_numbers,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -178,6 +186,7 @@ fn test_format_slice_annotation_standalone() {
             }],
             fold: false,
         }],
+        opt: Default::default(),
     };
     let output = dl::DisplayList {
         body: vec![
@@ -225,6 +234,8 @@ fn test_format_slice_annotation_standalone() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
+        stylesheet: get_term_style(input.opt.color),
+        anonymized_line_numbers: input.opt.anonymized_line_numbers,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -239,6 +250,7 @@ fn test_format_label() {
             annotation_type: snippet::AnnotationType::Error,
         }],
         slices: vec![],
+        opt: Default::default(),
     };
     let output = dl::DisplayList {
         body: vec![dl::DisplayLine::Raw(dl::DisplayRawLine::Annotation {
@@ -263,6 +275,8 @@ fn test_format_label() {
             source_aligned: true,
             continuation: false,
         })],
+        stylesheet: get_term_style(input.opt.color),
+        anonymized_line_numbers: input.opt.anonymized_line_numbers,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -286,6 +300,7 @@ fn test_i26() {
             origin: None,
             fold: false,
         }],
+        opt: Default::default(),
     };
 
     let _ = dl::DisplayList::from(input);
