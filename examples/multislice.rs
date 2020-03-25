@@ -1,5 +1,5 @@
 use annotate_snippets::{
-    display_list::DisplayList,
+    display_list::{DisplayList, FormatOptions},
     snippet::{Annotation, AnnotationType, Slice, Snippet},
 };
 
@@ -27,7 +27,10 @@ fn main() {
                 annotations: vec![],
             },
         ],
-        opt: Default::default(),
+        opt: FormatOptions {
+            color: true,
+            ..Default::default()
+        },
     };
 
     let dl = DisplayList::from(snippet);

@@ -47,7 +47,7 @@ fn create_snippet() {
                 SourceAnnotation {
                     label: "expected enum `std::option::Option`".to_string(),
                     annotation_type: AnnotationType::Error,
-                    range: (23, 745),
+                    range: (26, 724),
                 },
             ],
         }],
@@ -59,7 +59,7 @@ fn create_snippet() {
         footer: vec![],
         opt: FormatOptions {
             color: true,
-            anonymized_line_numbers: false,
+            ..Default::default()
         },
     };
 

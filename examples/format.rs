@@ -1,5 +1,5 @@
 use annotate_snippets::{
-    display_list::DisplayList,
+    display_list::{DisplayList, FormatOptions},
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 
@@ -41,7 +41,7 @@ fn main() {
                 SourceAnnotation {
                     label: "expected enum `std::option::Option`".to_string(),
                     annotation_type: AnnotationType::Error,
-                    range: (23, 745),
+                    range: (26, 724),
                 },
             ],
         }],
@@ -51,7 +51,10 @@ fn main() {
             annotation_type: AnnotationType::Error,
         }),
         footer: vec![],
-        opt: Default::default(),
+        opt: FormatOptions {
+            color: true,
+            ..Default::default()
+        },
     };
 
     let dl = DisplayList::from(snippet);

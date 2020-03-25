@@ -1,5 +1,5 @@
 use annotate_snippets::{
-    display_list::DisplayList,
+    display_list::{DisplayList, FormatOptions},
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 
@@ -24,7 +24,7 @@ fn main() {
                 SourceAnnotation {
                     label: "".to_string(),
                     annotation_type: AnnotationType::Error,
-                    range: (208, 210),
+                    range: (205, 207),
                 },
                 SourceAnnotation {
                     label: "while parsing this struct".to_string(),
@@ -33,7 +33,10 @@ fn main() {
                 },
             ],
         }],
-        opt: Default::default(),
+        opt: FormatOptions {
+            color: true,
+            ..Default::default()
+        },
     };
 
     let dl = DisplayList::from(snippet);
