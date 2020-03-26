@@ -1,12 +1,13 @@
+#![allow(clippy::unit_arg)]
 #[macro_use]
 extern crate criterion;
 
-use criterion::black_box;
-use criterion::Criterion;
+use criterion::{black_box, Criterion};
 
-use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::formatter::DisplayListFormatter;
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{
+    display_list::{DisplayList, FormatOptions},
+    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+};
 
 fn create_snippet() {
     let snippet = Snippet {
@@ -46,7 +47,7 @@ fn create_snippet() {
                 SourceAnnotation {
                     label: "expected enum `std::option::Option`".to_string(),
                     annotation_type: AnnotationType::Error,
-                    range: (23, 745),
+                    range: (26, 724),
                 },
             ],
         }],
@@ -56,11 +57,14 @@ fn create_snippet() {
             annotation_type: AnnotationType::Error,
         }),
         footer: vec![],
+        opt: FormatOptions {
+            color: true,
+            ..Default::default()
+        },
     };
 
     let dl = DisplayList::from(snippet);
-    let dlf = DisplayListFormatter::new(true, false);
-    let _result = dlf.format(&dl);
+    let _result = dl.to_string();
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {

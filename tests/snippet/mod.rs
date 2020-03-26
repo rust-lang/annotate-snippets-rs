@@ -1,6 +1,9 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{
+    display_list::FormatOptions,
+    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+};
 
 #[derive(Deserialize)]
 #[serde(remote = "Snippet")]
@@ -11,8 +14,28 @@ pub struct SnippetDef {
     #[serde(deserialize_with = "deserialize_annotations")]
     #[serde(default)]
     pub footer: Vec<Annotation>,
+    #[serde(deserialize_with = "deserialize_opt")]
+    #[serde(default)]
+    pub opt: FormatOptions,
     #[serde(deserialize_with = "deserialize_slices")]
     pub slices: Vec<Slice>,
+}
+
+fn deserialize_opt<'de, D>(deserializer: D) -> Result<FormatOptions, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper(#[serde(with = "FormatOptionsDef")] FormatOptions);
+
+    Wrapper::deserialize(deserializer).map(|w| w.0)
+}
+
+#[derive(Deserialize)]
+#[serde(remote = "FormatOptions")]
+pub struct FormatOptionsDef {
+    pub color: bool,
+    pub anonymized_line_numbers: bool,
 }
 
 fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice>, D::Error>

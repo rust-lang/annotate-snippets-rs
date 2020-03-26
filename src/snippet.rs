@@ -28,14 +28,18 @@
 //!             annotations: vec![],
 //!         },
 //!     ],
+//!     opt: Default::default(),
 //! };
 //! ```
+use crate::display_list::FormatOptions;
+
 /// Primary structure provided for formatting
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Snippet {
     pub title: Option<Annotation>,
     pub footer: Vec<Annotation>,
     pub slices: Vec<Slice>,
+    pub opt: FormatOptions,
 }
 
 /// Structure containing the slice of text to be annotated and

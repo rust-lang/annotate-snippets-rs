@@ -39,5 +39,5 @@ pub fn get_diff(left: &str, right: &str) -> String {
             }
         }
     }
-    return output;
+    output
 }

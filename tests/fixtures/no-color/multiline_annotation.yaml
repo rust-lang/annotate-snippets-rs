@@ -31,7 +31,7 @@ slices:
         range: [5, 19]
       - label: expected enum `std::option::Option`, found ()
         annotation_type: Error
-        range: [23, 786]
+        range: [22, 765]
 title:
   label: mismatched types
   id: E0308
