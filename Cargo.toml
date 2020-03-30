@@ -1,6 +1,6 @@
 [package]
 name = "annotate-snippets"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2018"
 authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
 description = "Library for building code annotations"
@@ -16,14 +16,14 @@ coveralls = { repository = "rust-lang/annotate-snippets-rs", branch = "master", 
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-ansi_term = { version = "^0.12", optional = true }
+ansi_term = { version = "0.12", optional = true }
 
 [dev-dependencies]
-glob = "^0.3"
-serde_yaml = "^0.8"
-serde = { version = "^1.0", features = ["derive"] }
-difference = "^2.0"
-ansi_term = "^0.12"
+glob = "0.3"
+serde_yaml = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+difference = "2.0"
+ansi_term = "0.12"
 criterion = "0.3"
 
 [[bench]]

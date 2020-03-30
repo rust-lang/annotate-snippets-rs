@@ -4,6 +4,14 @@
  
   - …
 
+## annotate-snippets 0.7.0 (March 30, 2020)
+
+  - Refactor API to use `fmt::Display` (#27)
+  - Fix SourceAnnotation range (#27)
+  - Fix column numbers (#22)
+  - Derive `PartialEq` for `AnnotationType` (#19)
+  - Update `ansi_term` to 0.12.
+
 ## annotate-snippets 0.6.1 (July 23, 2019)
 
   - Fix too many anonymized line numbers (#5)
