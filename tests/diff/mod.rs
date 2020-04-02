@@ -1,5 +1,5 @@
-use ansi_term::Color::{Black, Green, Red};
 use difference::{Changeset, Difference};
+use yansi_term::Color::{Black, Green, Red};
 
 pub fn get_diff(left: &str, right: &str) -> String {
     let mut output = String::new();

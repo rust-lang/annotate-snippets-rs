@@ -1,5 +1,4 @@
-//! Set of structures required to implement a stylesheet for
-//! [DisplayListFormatter](super::DisplayListFormatter).
+//! Set of structures required to implement a stylesheet
 //!
 //! In order to provide additional styling information for the
 //! formatter, a structs can implement `Stylesheet` and `Style`
@@ -8,7 +7,6 @@
 use std::fmt;
 
 /// StyleClass is a collection of named variants of style classes
-/// that DisplayListFormatter uses.
 pub enum StyleClass {
     /// Message indicating an error.
     Error,
@@ -33,8 +31,14 @@ pub enum StyleClass {
 
 /// This trait implements a return value for the `Stylesheet::get_style`.
 pub trait Style {
-    /// The method used by the DisplayListFormatter to style the message.
+    /// The method used to write text with formatter
     fn paint(&self, text: &str, f: &mut fmt::Formatter<'_>) -> fmt::Result;
+    /// The method used to write display function with formatter
+    fn paint_fn<'a>(
+        &self,
+        c: Box<dyn FnOnce(&mut fmt::Formatter<'_>) -> fmt::Result + 'a>,
+        f: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result;
     /// The method used by the DisplayListFormatter to display the message
     /// in bold font.
     fn bold(&self) -> Box<dyn Style>;

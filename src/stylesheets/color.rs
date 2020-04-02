@@ -1,6 +1,6 @@
-use std::fmt;
+use std::fmt::{self, Display};
 
-use ansi_term::{Color::Fixed, Style as AnsiTermStyle};
+use yansi_term::{Color::Fixed, Style as AnsiTermStyle};
 
 use crate::formatter::style::{Style, StyleClass, Stylesheet};
 
@@ -10,7 +10,15 @@ struct AnsiTermStyleWrapper {
 
 impl Style for AnsiTermStyleWrapper {
     fn paint(&self, text: &str, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.style.paint(text), f)
+        self.style.paint(text).fmt(f)
+    }
+
+    fn paint_fn<'a>(
+        &self,
+        c: Box<dyn FnOnce(&mut fmt::Formatter<'_>) -> fmt::Result + 'a>,
+        f: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
+        self.style.paint_fn(c).fmt(f)
     }
 
     fn bold(&self) -> Box<dyn Style> {
