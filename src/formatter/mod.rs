@@ -1,7 +1,6 @@
 use std::{
-    cell::Cell,
     cmp,
-    fmt::{self, Display, Formatter, Write},
+    fmt::{self, Display, Write},
 };
 
 pub mod style;
@@ -11,28 +10,6 @@ use self::style::{Style, StyleClass, Stylesheet};
 #[cfg(feature = "ansi_term")]
 use crate::stylesheets::color::AnsiTermStylesheet;
 use crate::{display_list::*, stylesheets::no_color::NoColorStylesheet};
-
-pub struct DisplayFn<F: FnOnce(&mut Formatter<'_>) -> fmt::Result>(std::cell::Cell<Option<F>>);
-
-impl<F: FnOnce(&mut Formatter<'_>) -> fmt::Result> DisplayFn<F> {
-    pub fn new(f: F) -> Self {
-        Self(Cell::new(Some(f)))
-    }
-}
-
-impl<F: FnOnce(&mut Formatter<'_>) -> fmt::Result> Display for DisplayFn<F> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.0.take().ok_or(fmt::Error).and_then(|cl| cl(f))
-    }
-}
-
-fn repeat_char(c: char, n: usize) -> String {
-    let mut s = String::with_capacity(c.len_utf8() * n);
-    for _ in 0..n {
-        s.push(c);
-    }
-    s
-}
 
 fn format_repeat_char(c: char, n: usize, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     for _ in 0..n {
@@ -72,14 +49,18 @@ impl fmt::Display for DisplayList {
                 lineno: Some(lineno),
                 ..
             } => {
-                if self.anonymized_line_numbers {
-                    Self::ANONYMIZED_LINE_NUM.len()
-                } else {
-                    cmp::max(lineno.to_string().len(), max)
-                }
+                // The largest line is the largest width.
+                cmp::max(*lineno, max)
             }
             _ => max,
         });
+        let lineno_width = if lineno_width == 0 {
+            lineno_width
+        } else if self.anonymized_line_numbers {
+            Self::ANONYMIZED_LINE_NUM.len()
+        } else {
+            ((lineno_width as f64).log10().floor() as usize) + 1
+        };
         let inline_marks_width = self.body.iter().fold(0, |max, line| match line {
             DisplayLine::Source { inline_marks, .. } => cmp::max(inline_marks.len(), max),
             _ => max,
@@ -97,19 +78,35 @@ impl fmt::Display for DisplayList {
 
 impl DisplayList {
     const ANONYMIZED_LINE_NUM: &'static str = "LL";
+    const ERROR_TXT: &'static str = "error";
+    const HELP_TXT: &'static str = "help";
+    const INFO_TXT: &'static str = "info";
+    const NOTE_TXT: &'static str = "note";
+    const WARNING_TXT: &'static str = "warning";
 
+    #[inline]
     fn format_annotation_type(
-        &self,
         annotation_type: &DisplayAnnotationType,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         match annotation_type {
-            DisplayAnnotationType::Error => f.write_str("error"),
-            DisplayAnnotationType::Warning => f.write_str("warning"),
-            DisplayAnnotationType::Info => f.write_str("info"),
-            DisplayAnnotationType::Note => f.write_str("note"),
-            DisplayAnnotationType::Help => f.write_str("help"),
+            DisplayAnnotationType::Error => f.write_str(Self::ERROR_TXT),
+            DisplayAnnotationType::Help => f.write_str(Self::HELP_TXT),
+            DisplayAnnotationType::Info => f.write_str(Self::INFO_TXT),
+            DisplayAnnotationType::Note => f.write_str(Self::NOTE_TXT),
+            DisplayAnnotationType::Warning => f.write_str(Self::WARNING_TXT),
             DisplayAnnotationType::None => Ok(()),
+        }
+    }
+
+    fn annotation_type_len(annotation_type: &DisplayAnnotationType) -> usize {
+        match annotation_type {
+            DisplayAnnotationType::Error => Self::ERROR_TXT.len(),
+            DisplayAnnotationType::Help => Self::HELP_TXT.len(),
+            DisplayAnnotationType::Info => Self::INFO_TXT.len(),
+            DisplayAnnotationType::Note => Self::NOTE_TXT.len(),
+            DisplayAnnotationType::Warning => Self::WARNING_TXT.len(),
+            DisplayAnnotationType::None => 0,
         }
     }
 
@@ -148,37 +145,38 @@ impl DisplayList {
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         let color = self.get_annotation_style(&annotation.annotation_type);
-
-        let formatted_type = if let Some(id) = &annotation.id {
-            DisplayFn::new(|f| {
-                self.format_annotation_type(&annotation.annotation_type, f)?;
-                f.write_char('[')?;
-                f.write_str(id)?;
-                f.write_char(']')
-            })
-            .to_string()
+        let formatted_len = if let Some(id) = &annotation.id {
+            2 + id.len() + Self::annotation_type_len(&annotation.annotation_type)
         } else {
-            DisplayFn::new(|f| self.format_annotation_type(&annotation.annotation_type, f))
-                .to_string()
+            Self::annotation_type_len(&annotation.annotation_type)
         };
 
         if continuation {
-            let indent = formatted_type.len() + 2;
-            format_repeat_char(' ', indent, f)?;
+            format_repeat_char(' ', formatted_len + 2, f)?;
             return self.format_label(&annotation.label, f);
         }
-        if formatted_type.is_empty() {
+        if formatted_len == 0 {
             self.format_label(&annotation.label, f)
         } else {
-            color.paint(&formatted_type, f)?;
+            color.paint_fn(
+                Box::new(|f| {
+                    Self::format_annotation_type(&annotation.annotation_type, f)?;
+                    if let Some(id) = &annotation.id {
+                        f.write_char('[')?;
+                        f.write_str(id)?;
+                        f.write_char(']')?;
+                    }
+                    Ok(())
+                }),
+                f,
+            )?;
             if !is_annotation_empty(annotation) {
                 if in_source {
-                    color.paint(
-                        &DisplayFn::new(|f| {
+                    color.paint_fn(
+                        Box::new(|f| {
                             f.write_str(": ")?;
                             self.format_label(&annotation.label, f)
-                        })
-                        .to_string(),
+                        }),
                         f,
                     )?;
                 } else {
@@ -230,35 +228,31 @@ impl DisplayList {
                     _ => range.0,
                 };
 
-                color.paint(&repeat_char(indent_char, indent_length + 1), f)?;
-                color.paint(&repeat_char(mark, range.1 - indent_length), f)?;
+                color.paint_fn(
+                    Box::new(|f| {
+                        format_repeat_char(indent_char, indent_length + 1, f)?;
+                        format_repeat_char(mark, range.1 - indent_length, f)
+                    }),
+                    f,
+                )?;
 
                 if !is_annotation_empty(&annotation) {
                     f.write_char(' ')?;
-                    color.paint(
-                        &DisplayFn::new(|f| {
+                    color.paint_fn(
+                        Box::new(|f| {
                             self.format_annotation(
                                 annotation,
                                 annotation_part == &DisplayAnnotationPart::LabelContinuation,
                                 true,
                                 f,
                             )
-                        })
-                        .to_string(),
+                        }),
                         f,
                     )?;
                 }
 
                 Ok(())
             }
-        }
-    }
-
-    #[inline]
-    fn format_lineno(&self, lineno: Option<usize>, lineno_width: usize) -> String {
-        match lineno {
-            Some(n) => format!("{:>width$}", n, width = lineno_width),
-            None => repeat_char(' ', lineno_width),
         }
     }
 
@@ -337,10 +331,22 @@ impl DisplayList {
             } => {
                 let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
                 if self.anonymized_line_numbers && lineno.is_some() {
-                    lineno_color.paint(&format!("{} |", Self::ANONYMIZED_LINE_NUM), f)?;
+                    lineno_color.paint_fn(
+                        Box::new(|f| {
+                            f.write_str(Self::ANONYMIZED_LINE_NUM)?;
+                            f.write_str(" |")
+                        }),
+                        f,
+                    )?;
                 } else {
-                    lineno_color.paint(
-                        &format!("{} |", self.format_lineno(*lineno, lineno_width)),
+                    lineno_color.paint_fn(
+                        Box::new(|f| {
+                            match lineno {
+                                Some(n) => write!(f, "{:>width$}", n, width = lineno_width),
+                                None => format_repeat_char(' ', lineno_width, f),
+                            }?;
+                            f.write_str(" |")
+                        }),
                         f,
                     )?;
                 }
@@ -376,11 +382,13 @@ impl DisplayList {
     ) -> fmt::Result {
         format_repeat_char(' ', inline_marks_width - inline_marks.len(), f)?;
         for mark in inline_marks {
-            self.get_annotation_style(&mark.annotation_type).paint(
-                match mark.mark_type {
-                    DisplayMarkType::AnnotationThrough => "|",
-                    DisplayMarkType::AnnotationStart => "/",
-                },
+            self.get_annotation_style(&mark.annotation_type).paint_fn(
+                Box::new(|f| {
+                    f.write_char(match mark.mark_type {
+                        DisplayMarkType::AnnotationThrough => '|',
+                        DisplayMarkType::AnnotationStart => '/',
+                    })
+                }),
                 f,
             )?;
         }

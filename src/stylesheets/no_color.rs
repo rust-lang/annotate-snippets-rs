@@ -9,6 +9,14 @@ impl Style for NoOpStyle {
         f.write_str(text)
     }
 
+    fn paint_fn<'a>(
+        &self,
+        c: Box<dyn FnOnce(&mut fmt::Formatter<'_>) -> fmt::Result + 'a>,
+        f: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
+        c(f)
+    }
+
     fn bold(&self) -> Box<dyn Style> {
         Box::new(NoOpStyle {})
     }
