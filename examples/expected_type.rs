@@ -6,7 +6,7 @@ use annotate_snippets::{
 fn main() {
     let snippet = Snippet {
         title: Some(Annotation {
-            label: Some("expected type, found `22`".to_string()),
+            label: Some("expected type, found `22`"),
             id: None,
             annotation_type: AnnotationType::Error,
         }),
@@ -14,20 +14,19 @@ fn main() {
         slices: vec![Slice {
             source: r#"                annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
-                    .to_string(),
-                range: <22, 25>,"#
-                .to_string(),
+                    ,
+                range: <22, 25>,"#,
             line_start: 26,
-            origin: Some("examples/footer.rs".to_string()),
+            origin: Some("examples/footer.rs"),
             fold: true,
             annotations: vec![
                 SourceAnnotation {
-                    label: "".to_string(),
+                    label: "",
                     annotation_type: AnnotationType::Error,
                     range: (205, 207),
                 },
                 SourceAnnotation {
-                    label: "while parsing this struct".to_string(),
+                    label: "while parsing this struct",
                     annotation_type: AnnotationType::Info,
                     range: (34, 50),
                 },
