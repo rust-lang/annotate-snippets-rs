@@ -19,7 +19,7 @@ fn format_repeat_char(c: char, n: usize, f: &mut fmt::Formatter<'_>) -> fmt::Res
 }
 
 #[inline]
-fn is_annotation_empty(annotation: &Annotation) -> bool {
+fn is_annotation_empty(annotation: &Annotation<'_>) -> bool {
     annotation
         .label
         .iter()
@@ -42,7 +42,7 @@ pub fn get_term_style(_color: bool) -> Box<dyn Stylesheet> {
     Box::new(NoColorStylesheet)
 }
 
-impl fmt::Display for DisplayList {
+impl<'a> fmt::Display for DisplayList<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let lineno_width = self.body.iter().fold(0, |max, line| match line {
             DisplayLine::Source {
@@ -76,7 +76,7 @@ impl fmt::Display for DisplayList {
     }
 }
 
-impl DisplayList {
+impl<'a> DisplayList<'a> {
     const ANONYMIZED_LINE_NUM: &'static str = "LL";
     const ERROR_TXT: &'static str = "error";
     const HELP_TXT: &'static str = "help";
@@ -123,7 +123,7 @@ impl DisplayList {
 
     fn format_label(
         &self,
-        label: &[DisplayTextFragment],
+        label: &[DisplayTextFragment<'_>],
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         let emphasis_style = self.stylesheet.get_style(StyleClass::Emphasis);
@@ -139,7 +139,7 @@ impl DisplayList {
 
     fn format_annotation(
         &self,
-        annotation: &Annotation,
+        annotation: &Annotation<'_>,
         continuation: bool,
         in_source: bool,
         f: &mut fmt::Formatter<'_>,
@@ -191,7 +191,7 @@ impl DisplayList {
     #[inline]
     fn format_source_line(
         &self,
-        line: &DisplaySourceLine,
+        line: &DisplaySourceLine<'_>,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         match line {
@@ -259,7 +259,7 @@ impl DisplayList {
     #[inline]
     fn format_raw_line(
         &self,
-        line: &DisplayRawLine,
+        line: &DisplayRawLine<'_>,
         lineno_width: usize,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
@@ -318,7 +318,7 @@ impl DisplayList {
     #[inline]
     fn format_line(
         &self,
-        dl: &DisplayLine,
+        dl: &DisplayLine<'_>,
         lineno_width: usize,
         inline_marks_width: usize,
         f: &mut fmt::Formatter<'_>,

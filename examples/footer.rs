@@ -6,26 +6,24 @@ use annotate_snippets::{
 fn main() {
     let snippet = Snippet {
         title: Some(Annotation {
-            label: Some("mismatched types".to_string()),
-            id: Some("E0308".to_string()),
+            label: Some("mismatched types"),
+            id: Some("E0308"),
             annotation_type: AnnotationType::Error,
         }),
         footer: vec![Annotation {
             label: Some(
-                "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`"
-                    .to_string(),
+                "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
             ),
             id: None,
             annotation_type: AnnotationType::Note,
         }],
         slices: vec![Slice {
-            source: "        slices: vec![\"A\",".to_string(),
+            source: "        slices: vec![\"A\",",
             line_start: 13,
-            origin: Some("src/multislice.rs".to_string()),
+            origin: Some("src/multislice.rs"),
             fold: false,
             annotations: vec![SourceAnnotation {
-                label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
-                    .to_string(),
+                label: "expected struct `annotate_snippets::snippet::Slice`, found reference",
                 range: (21, 24),
                 annotation_type: AnnotationType::Error,
             }],

@@ -3,14 +3,14 @@ use std::fmt;
 use crate::formatter::{get_term_style, style::Stylesheet};
 
 /// List of lines to be displayed.
-pub struct DisplayList {
-    pub body: Vec<DisplayLine>,
+pub struct DisplayList<'a> {
+    pub body: Vec<DisplayLine<'a>>,
     pub stylesheet: Box<dyn Stylesheet>,
     pub anonymized_line_numbers: bool,
 }
 
-impl From<Vec<DisplayLine>> for DisplayList {
-    fn from(body: Vec<DisplayLine>) -> Self {
+impl<'a> From<Vec<DisplayLine<'a>>> for DisplayList<'a> {
+    fn from(body: Vec<DisplayLine<'a>>) -> DisplayList<'a> {
         Self {
             body,
             anonymized_line_numbers: false,
@@ -19,13 +19,13 @@ impl From<Vec<DisplayLine>> for DisplayList {
     }
 }
 
-impl PartialEq for DisplayList {
+impl<'a> PartialEq for DisplayList<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.body == other.body && self.anonymized_line_numbers == other.anonymized_line_numbers
     }
 }
 
-impl fmt::Debug for DisplayList {
+impl<'a> fmt::Debug for DisplayList<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("DisplayList")
             .field("body", &self.body)
@@ -41,42 +41,42 @@ pub struct FormatOptions {
 }
 
 /// Inline annotation which can be used in either Raw or Source line.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Annotation {
+#[derive(Debug, PartialEq)]
+pub struct Annotation<'a> {
     pub annotation_type: DisplayAnnotationType,
-    pub id: Option<String>,
-    pub label: Vec<DisplayTextFragment>,
+    pub id: Option<&'a str>,
+    pub label: Vec<DisplayTextFragment<'a>>,
 }
 
 /// A single line used in `DisplayList`.
-#[derive(Debug, Clone, PartialEq)]
-pub enum DisplayLine {
+#[derive(Debug, PartialEq)]
+pub enum DisplayLine<'a> {
     /// A line with `lineno` portion of the slice.
     Source {
         lineno: Option<usize>,
         inline_marks: Vec<DisplayMark>,
-        line: DisplaySourceLine,
+        line: DisplaySourceLine<'a>,
     },
 
     /// A line indicating a folded part of the slice.
     Fold { inline_marks: Vec<DisplayMark> },
 
     /// A line which is displayed outside of slices.
-    Raw(DisplayRawLine),
+    Raw(DisplayRawLine<'a>),
 }
 
 /// A source line.
-#[derive(Debug, Clone, PartialEq)]
-pub enum DisplaySourceLine {
+#[derive(Debug, PartialEq)]
+pub enum DisplaySourceLine<'a> {
     /// A line with the content of the Slice.
     Content {
-        text: String,
+        text: &'a str,
         range: (usize, usize), // meta information for annotation placement.
     },
 
     /// An annotation line which is displayed in context of the slice.
     Annotation {
-        annotation: Annotation,
+        annotation: Annotation<'a>,
         range: (usize, usize),
         annotation_type: DisplayAnnotationType,
         annotation_part: DisplayAnnotationPart,
@@ -88,19 +88,19 @@ pub enum DisplaySourceLine {
 
 /// Raw line - a line which does not have the `lineno` part and is not considered
 /// a part of the snippet.
-#[derive(Debug, Clone, PartialEq)]
-pub enum DisplayRawLine {
+#[derive(Debug, PartialEq)]
+pub enum DisplayRawLine<'a> {
     /// A line which provides information about the location of the given
     /// slice in the project structure.
     Origin {
-        path: String,
+        path: &'a str,
         pos: Option<(usize, usize)>,
         header_type: DisplayHeaderType,
     },
 
     /// An annotation line which is not part of any snippet.
     Annotation {
-        annotation: Annotation,
+        annotation: Annotation<'a>,
 
         /// If set to `true`, the annotation will be aligned to the
         /// lineno delimiter of the snippet.
@@ -114,9 +114,9 @@ pub enum DisplayRawLine {
 }
 
 /// An inline text fragment which any label is composed of.
-#[derive(Debug, Clone, PartialEq)]
-pub struct DisplayTextFragment {
-    pub content: String,
+#[derive(Debug, PartialEq)]
+pub struct DisplayTextFragment<'a> {
+    pub content: &'a str,
     pub style: DisplayTextStyle,
 }
 

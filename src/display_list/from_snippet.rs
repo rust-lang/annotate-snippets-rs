@@ -2,7 +2,55 @@
 use super::*;
 use crate::{formatter::get_term_style, snippet};
 
-fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<DisplayTextFragment> {
+struct CursorLines<'a>(&'a str);
+
+impl<'a> CursorLines<'a> {
+    fn new(src: &str) -> CursorLines<'_> {
+        CursorLines(src)
+    }
+}
+
+enum EndLine {
+    EOF = 0,
+    CRLF = 1,
+    LF = 2,
+}
+
+impl<'a> Iterator for CursorLines<'a> {
+    type Item = (&'a str, EndLine);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0.is_empty() {
+            None
+        } else {
+            self.0
+                .find('\n')
+                .map(|x| {
+                    let ret = if 0 < x {
+                        if self.0.as_bytes()[x - 1] == b'\r' {
+                            (&self.0[..x - 1], EndLine::LF)
+                        } else {
+                            (&self.0[..x], EndLine::CRLF)
+                        }
+                    } else {
+                        ("", EndLine::CRLF)
+                    };
+                    self.0 = &self.0[x + 1..];
+                    ret
+                })
+                .or_else(|| {
+                    let ret = Some((&self.0[..], EndLine::EOF));
+                    self.0 = "";
+                    ret
+                })
+        }
+    }
+}
+
+fn format_label(
+    label: Option<&str>,
+    style: Option<DisplayTextStyle>,
+) -> Vec<DisplayTextFragment<'_>> {
     let mut result = vec![];
     if let Some(label) = label {
         for (idx, element) in label.split("__").enumerate() {
@@ -17,7 +65,7 @@ fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<Dis
                 }
             };
             result.push(DisplayTextFragment {
-                content: element.to_string(),
+                content: element,
                 style: element_style,
             });
         }
@@ -25,7 +73,7 @@ fn format_label(label: Option<&str>, style: Option<DisplayTextStyle>) -> Vec<Dis
     result
 }
 
-fn format_title(annotation: snippet::Annotation) -> DisplayLine {
+fn format_title(annotation: snippet::Annotation<'_>) -> DisplayLine<'_> {
     let label = annotation.label.unwrap_or_default();
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
@@ -38,7 +86,7 @@ fn format_title(annotation: snippet::Annotation) -> DisplayLine {
     })
 }
 
-fn format_annotation(annotation: snippet::Annotation) -> Vec<DisplayLine> {
+fn format_annotation(annotation: snippet::Annotation<'_>) -> Vec<DisplayLine<'_>> {
     let mut result = vec![];
     let label = annotation.label.unwrap_or_default();
     for (i, line) in label.lines().enumerate() {
@@ -55,7 +103,11 @@ fn format_annotation(annotation: snippet::Annotation) -> Vec<DisplayLine> {
     result
 }
 
-fn format_slice(mut slice: snippet::Slice, is_first: bool, has_footer: bool) -> Vec<DisplayLine> {
+fn format_slice(
+    mut slice: snippet::Slice<'_>,
+    is_first: bool,
+    has_footer: bool,
+) -> Vec<DisplayLine<'_>> {
     let main_range = slice.annotations.get(0).map(|x| x.range.0);
     let row = slice.line_start;
     let origin = slice.origin.take();
@@ -70,13 +122,13 @@ fn format_slice(mut slice: snippet::Slice, is_first: bool, has_footer: bool) -> 
     result
 }
 
-fn format_header(
-    origin: Option<String>,
+fn format_header<'a>(
+    origin: Option<&'a str>,
     main_range: Option<usize>,
     mut row: usize,
-    body: &[DisplayLine],
+    body: &[DisplayLine<'_>],
     is_first: bool,
-) -> Option<DisplayLine> {
+) -> Option<DisplayLine<'a>> {
     let display_header = if is_first {
         DisplayHeaderType::Initial
     } else {
@@ -117,17 +169,19 @@ fn format_header(
     None
 }
 
-fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
-    let mut new_body = vec![];
+fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
+    enum Line {
+        Fold(usize),
+        Source(usize),
+    };
 
+    let mut lines = vec![];
     let mut no_annotation_lines_counter = 0;
-    let mut idx = 0;
 
-    while idx < body.len() {
-        match body[idx] {
+    for (idx, line) in body.iter().enumerate() {
+        match line {
             DisplayLine::Source {
                 line: DisplaySourceLine::Annotation { .. },
-                ref inline_marks,
                 ..
             } => {
                 if no_annotation_lines_counter > 2 {
@@ -143,40 +197,71 @@ fn fold_body(body: &[DisplayLine]) -> Vec<DisplayLine> {
                     } else {
                         1
                     };
-                    for item in body.iter().take(fold_start + pre_len).skip(fold_start) {
-                        new_body.push(item.clone());
+                    for (i, _) in body
+                        .iter()
+                        .enumerate()
+                        .take(fold_start + pre_len)
+                        .skip(fold_start)
+                    {
+                        lines.push(Line::Source(i));
                     }
-                    new_body.push(DisplayLine::Fold {
-                        inline_marks: inline_marks.clone(),
-                    });
-                    for item in body.iter().take(fold_end).skip(fold_end - post_len) {
-                        new_body.push(item.clone());
+                    lines.push(Line::Fold(idx));
+                    for (i, _) in body
+                        .iter()
+                        .enumerate()
+                        .take(fold_end)
+                        .skip(fold_end - post_len)
+                    {
+                        lines.push(Line::Source(i));
                     }
                 } else {
                     let start = idx - no_annotation_lines_counter;
-                    for item in body.iter().take(idx).skip(start) {
-                        new_body.push(item.clone());
+                    for (i, _) in body.iter().enumerate().take(idx).skip(start) {
+                        lines.push(Line::Source(i));
                     }
                 }
                 no_annotation_lines_counter = 0;
             }
             DisplayLine::Source { .. } => {
                 no_annotation_lines_counter += 1;
-                idx += 1;
                 continue;
             }
             _ => {
                 no_annotation_lines_counter += 1;
             }
         }
-        new_body.push(body[idx].clone());
-        idx += 1;
+        lines.push(Line::Source(idx));
+    }
+
+    let mut new_body = vec![];
+    let mut removed = 0;
+    for line in lines {
+        match line {
+            Line::Source(i) => {
+                new_body.push(body.remove(i - removed));
+                removed += 1;
+            }
+            Line::Fold(i) => {
+                if let DisplayLine::Source {
+                    line: DisplaySourceLine::Annotation { .. },
+                    ref inline_marks,
+                    ..
+                } = body.get(i - removed).unwrap()
+                {
+                    new_body.push(DisplayLine::Fold {
+                        inline_marks: inline_marks.clone(),
+                    })
+                } else {
+                    unreachable!()
+                }
+            }
+        }
     }
 
     new_body
 }
 
-fn format_body(slice: snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
+fn format_body(slice: snippet::Slice<'_>, has_footer: bool) -> Vec<DisplayLine<'_>> {
     let source_len = slice.source.chars().count();
     if let Some(bigger) = slice.annotations.iter().find_map(|x| {
         if source_len < x.range.1 {
@@ -196,24 +281,20 @@ fn format_body(slice: snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
     let mut current_index = 0;
     let mut line_index_ranges = vec![];
 
-    let lines = slice.source.lines();
-    let lines_len = lines.clone().count();
-    for (i, line) in lines.enumerate() {
+    for (line, end_line) in CursorLines::new(slice.source) {
         let line_length = line.chars().count();
         let line_range = (current_index, current_index + line_length);
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
             inline_marks: vec![],
             line: DisplaySourceLine::Content {
-                text: line.to_string(),
+                text: line,
                 range: line_range,
             },
         });
         line_index_ranges.push(line_range);
         current_line += 1;
-        if i + 1 < lines_len {
-            current_index += line_length + 1;
-        }
+        current_index += line_length + end_line as usize;
     }
 
     let mut annotation_line_count = 0;
@@ -361,7 +442,7 @@ fn format_body(slice: snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
     }
 
     if slice.fold {
-        body = fold_body(&body);
+        body = fold_body(body);
     }
 
     body.insert(
@@ -388,16 +469,15 @@ fn format_body(slice: snippet::Slice, has_footer: bool) -> Vec<DisplayLine> {
     body
 }
 
-// TODO: From reference to DisplayList<'a>
-impl From<snippet::Snippet> for DisplayList {
+impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
     fn from(
         snippet::Snippet {
             title,
             footer,
             slices,
             opt,
-        }: snippet::Snippet,
-    ) -> Self {
+        }: snippet::Snippet<'a>,
+    ) -> DisplayList<'a> {
         let mut body = vec![];
         if let Some(annotation) = title {
             body.push(format_title(annotation));
