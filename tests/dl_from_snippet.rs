@@ -1,3 +1,4 @@
+use annotate_snippets::display_list::DisplayList;
 use annotate_snippets::{display_list as dl, formatter::get_term_style, snippet};
 
 #[test]
@@ -304,4 +305,97 @@ fn test_i26() {
     };
 
     let _ = dl::DisplayList::from(input);
+}
+
+#[test]
+fn test_i_29() {
+    let snippets = snippet::Snippet {
+        title: Some(snippet::Annotation {
+            id: None,
+            label: Some("oops"),
+            annotation_type: snippet::AnnotationType::Error,
+        }),
+        footer: vec![],
+        slices: vec![snippet::Slice {
+            source: "First line\r\nSecond oops line",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (19, 23),
+                label: "oops",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: true,
+        }],
+        opt: Default::default(),
+    };
+
+    let expected = DisplayList {
+        body: vec![
+            dl::DisplayLine::Raw(dl::DisplayRawLine::Annotation {
+                annotation: dl::Annotation {
+                    annotation_type: dl::DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![dl::DisplayTextFragment {
+                        content: "oops",
+                        style: dl::DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            dl::DisplayLine::Raw(dl::DisplayRawLine::Origin {
+                path: "<current file>",
+                pos: Some((2, 8)),
+                header_type: dl::DisplayHeaderType::Initial,
+            }),
+            dl::DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: dl::DisplaySourceLine::Empty,
+            },
+            dl::DisplayLine::Source {
+                lineno: Some(1),
+                inline_marks: vec![],
+                line: dl::DisplaySourceLine::Content {
+                    text: "First line",
+                    range: (0, 10),
+                },
+            },
+            dl::DisplayLine::Source {
+                lineno: Some(2),
+                inline_marks: vec![],
+                line: dl::DisplaySourceLine::Content {
+                    text: "Second oops line",
+                    range: (12, 28),
+                },
+            },
+            dl::DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: dl::DisplaySourceLine::Annotation {
+                    annotation: dl::Annotation {
+                        annotation_type: dl::DisplayAnnotationType::None,
+                        id: None,
+                        label: vec![dl::DisplayTextFragment {
+                            content: "oops",
+                            style: dl::DisplayTextStyle::Regular,
+                        }],
+                    },
+                    range: (7, 11),
+                    annotation_type: dl::DisplayAnnotationType::Error,
+                    annotation_part: dl::DisplayAnnotationPart::Standalone,
+                },
+            },
+            dl::DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: dl::DisplaySourceLine::Empty,
+            },
+        ],
+        stylesheet: get_term_style(false),
+        anonymized_line_numbers: false,
+    };
+
+    assert_eq!(DisplayList::from(snippets), expected);
 }

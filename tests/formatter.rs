@@ -1,4 +1,5 @@
 use annotate_snippets::display_list::*;
+use annotate_snippets::snippet::{self, Snippet};
 
 #[test]
 fn test_source_empty() {
@@ -515,4 +516,37 @@ fn test_raw_origin_initial_pos_anon_lines() {
     // Using anonymized_line_numbers should not affect the inital position
     dl.anonymized_line_numbers = true;
     assert_eq!(dl.to_string(), "--> src/test.rs:23:15");
+}
+
+#[test]
+fn test_i_29() {
+    let snippets = Snippet {
+        title: Some(snippet::Annotation {
+            id: None,
+            label: Some("oops"),
+            annotation_type: snippet::AnnotationType::Error,
+        }),
+        footer: vec![],
+        slices: vec![snippet::Slice {
+            source: "First line\r\nSecond oops line",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (19, 23),
+                label: "oops",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: true,
+        }],
+        opt: Default::default(),
+    };
+    let expected = r#"error: oops
+ --> <current file>:2:8
+  |
+1 | First line
+2 | Second oops line
+  |        ^^^^ oops
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
 }

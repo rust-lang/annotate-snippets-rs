@@ -2,6 +2,51 @@
 use super::*;
 use crate::{formatter::get_term_style, snippet};
 
+struct CursorLines<'a>(&'a str);
+
+impl<'a> CursorLines<'a> {
+    fn new(src: &str) -> CursorLines<'_> {
+        CursorLines(src)
+    }
+}
+
+enum EndLine {
+    EOF = 0,
+    CRLF = 1,
+    LF = 2,
+}
+
+impl<'a> Iterator for CursorLines<'a> {
+    type Item = (&'a str, EndLine);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0.is_empty() {
+            None
+        } else {
+            self.0
+                .find('\n')
+                .map(|x| {
+                    let ret = if 0 < x {
+                        if self.0.as_bytes()[x - 1] == b'\r' {
+                            (&self.0[..x - 1], EndLine::LF)
+                        } else {
+                            (&self.0[..x], EndLine::CRLF)
+                        }
+                    } else {
+                        ("", EndLine::CRLF)
+                    };
+                    self.0 = &self.0[x + 1..];
+                    ret
+                })
+                .or_else(|| {
+                    let ret = Some((&self.0[..], EndLine::EOF));
+                    self.0 = "";
+                    ret
+                })
+        }
+    }
+}
+
 fn format_label(
     label: Option<&str>,
     style: Option<DisplayTextStyle>,
@@ -236,9 +281,7 @@ fn format_body(slice: snippet::Slice<'_>, has_footer: bool) -> Vec<DisplayLine<'
     let mut current_index = 0;
     let mut line_index_ranges = vec![];
 
-    let lines = slice.source.lines();
-    let lines_len = lines.clone().count();
-    for (i, line) in lines.enumerate() {
+    for (line, end_line) in CursorLines::new(slice.source) {
         let line_length = line.chars().count();
         let line_range = (current_index, current_index + line_length);
         body.push(DisplayLine::Source {
@@ -251,9 +294,7 @@ fn format_body(slice: snippet::Slice<'_>, has_footer: bool) -> Vec<DisplayLine<'
         });
         line_index_ranges.push(line_range);
         current_line += 1;
-        if i + 1 < lines_len {
-            current_index += line_length + 1;
-        }
+        current_index += line_length + end_line as usize;
     }
 
     let mut annotation_line_count = 0;

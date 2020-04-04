@@ -33,8 +33,7 @@ fn create_snippet() {
             }
             _ => continue,
         }
-    }"#
-            ,
+    }"#,
             line_start: 51,
             origin: Some("src/format.rs"),
             fold: false,
