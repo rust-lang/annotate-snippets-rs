@@ -6,6 +6,6 @@
 //! By default the `no_color` is available. If the crate gets compiled
 //! with `ansi_term`, the `color` stylesheet is added.
 
-#[cfg(feature = "ansi_term")]
+#[cfg(feature = "color")]
 pub mod color;
 pub mod no_color;

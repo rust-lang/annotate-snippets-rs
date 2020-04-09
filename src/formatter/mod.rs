@@ -7,7 +7,7 @@ pub mod style;
 
 use self::style::{Style, StyleClass, Stylesheet};
 
-#[cfg(feature = "ansi_term")]
+#[cfg(feature = "color")]
 use crate::stylesheets::color::AnsiTermStylesheet;
 use crate::{display_list::*, stylesheets::no_color::NoColorStylesheet};
 
@@ -26,7 +26,7 @@ fn is_annotation_empty(annotation: &Annotation<'_>) -> bool {
         .all(|fragment| fragment.content.is_empty())
 }
 
-#[cfg(feature = "ansi_term")]
+#[cfg(feature = "color")]
 #[inline]
 pub fn get_term_style(color: bool) -> Box<dyn Stylesheet> {
     if color {
@@ -36,7 +36,7 @@ pub fn get_term_style(color: bool) -> Box<dyn Stylesheet> {
     }
 }
 
-#[cfg(not(feature = "ansi_term"))]
+#[cfg(not(feature = "color"))]
 #[inline]
 pub fn get_term_style(_color: bool) -> Box<dyn Stylesheet> {
     Box::new(NoColorStylesheet)
