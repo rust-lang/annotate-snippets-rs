@@ -4,6 +4,12 @@
  
   - …
 
+## annotate-snippets 0.8.0 (April 14, 2020)
+
+  - Replace `ansi_term` with `yansi-term` for improved performance. (#30)
+  - Turn `Snippet` and `Slice` to work on borrowed slices, rather than Strings. (#32)
+  - Fix `\r\n` end of lines. (#29)
+
 ## annotate-snippets 0.7.0 (March 30, 2020)
 
   - Refactor API to use `fmt::Display` (#27)
