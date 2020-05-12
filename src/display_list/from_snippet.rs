@@ -104,15 +104,15 @@ fn format_annotation(annotation: snippet::Annotation<'_>) -> Vec<DisplayLine<'_>
 }
 
 fn format_slice(
-    mut slice: snippet::Slice<'_>,
+    slice: snippet::Slice<'_>,
     is_first: bool,
     has_footer: bool,
 ) -> Vec<DisplayLine<'_>> {
     let main_range = slice.annotations.get(0).map(|x| x.range.0);
-    let row = slice.line_start;
-    let origin = slice.origin.take();
+    let origin = slice.origin;
+    let line_start = slice.line_start;
     let mut body = format_body(slice, has_footer);
-    let header = format_header(origin, main_range, row, &body, is_first);
+    let header = format_header(origin, main_range, line_start, &body, is_first);
     let mut result = vec![];
 
     if let Some(header) = header {
