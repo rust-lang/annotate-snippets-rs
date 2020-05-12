@@ -111,7 +111,8 @@ fn format_slice(
     let main_range = slice.annotations.get(0).map(|x| x.range.0);
     let origin = slice.origin;
     let line_start = slice.line_start;
-    let mut body = format_body(slice, has_footer);
+    let need_empty_header = origin.is_some() || is_first;
+    let mut body = format_body(slice, need_empty_header, has_footer);
     let header = format_header(origin, main_range, line_start, &body, is_first);
     let mut result = vec![];
 
@@ -120,6 +121,12 @@ fn format_slice(
     }
     result.append(&mut body);
     result
+}
+
+#[inline]
+// TODO: option_zip
+fn zip_opt<A, B>(a: Option<A>, b: Option<B>) -> Option<(A, B)> {
+    a.and_then(|a| b.map(|b| (a, b)))
 }
 
 fn format_header<'a>(
@@ -135,7 +142,7 @@ fn format_header<'a>(
         DisplayHeaderType::Continuation
     };
 
-    if let Some(main_range) = main_range {
+    if let Some((main_range, path)) = zip_opt(main_range, origin) {
         let mut col = 1;
 
         for item in body {
@@ -151,14 +158,14 @@ fn format_header<'a>(
                 row += 1;
             }
         }
-        if let Some(path) = origin {
-            return Some(DisplayLine::Raw(DisplayRawLine::Origin {
-                path,
-                pos: Some((row, col)),
-                header_type: display_header,
-            }));
-        }
+
+        return Some(DisplayLine::Raw(DisplayRawLine::Origin {
+            path,
+            pos: Some((row, col)),
+            header_type: display_header,
+        }));
     }
+
     if let Some(path) = origin {
         return Some(DisplayLine::Raw(DisplayRawLine::Origin {
             path,
@@ -166,6 +173,7 @@ fn format_header<'a>(
             header_type: display_header,
         }));
     }
+
     None
 }
 
@@ -261,7 +269,11 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
     new_body
 }
 
-fn format_body(slice: snippet::Slice<'_>, has_footer: bool) -> Vec<DisplayLine<'_>> {
+fn format_body(
+    slice: snippet::Slice<'_>,
+    need_empty_header: bool,
+    has_footer: bool,
+) -> Vec<DisplayLine<'_>> {
     let source_len = slice.source.chars().count();
     if let Some(bigger) = slice.annotations.iter().find_map(|x| {
         if source_len < x.range.1 {
@@ -445,14 +457,17 @@ fn format_body(slice: snippet::Slice<'_>, has_footer: bool) -> Vec<DisplayLine<'
         body = fold_body(body);
     }
 
-    body.insert(
-        0,
-        DisplayLine::Source {
-            lineno: None,
-            inline_marks: vec![],
-            line: DisplaySourceLine::Empty,
-        },
-    );
+    if need_empty_header {
+        body.insert(
+            0,
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        );
+    }
+
     if has_footer {
         body.push(DisplayLine::Source {
             lineno: None,
