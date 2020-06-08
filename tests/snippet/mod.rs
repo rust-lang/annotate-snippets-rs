@@ -53,7 +53,9 @@ where
 #[derive(Deserialize)]
 #[serde(remote = "FormatOptions")]
 pub struct FormatOptionsDef {
+    #[serde(default)]
     pub color: bool,
+    #[serde(default)]
     pub anonymized_line_numbers: bool,
 }
 
