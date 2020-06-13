@@ -47,20 +47,20 @@ pub struct FormatOptions {
 #[derive(Clone, Copy, Debug)]
 pub struct Margin {
     /// The available whitespace in the left that can be consumed when centering.
-    pub whitespace_left: usize,
+    whitespace_left: usize,
     /// The column of the beginning of left-most span.
-    pub span_left: usize,
+    span_left: usize,
     /// The column of the end of right-most span.
-    pub span_right: usize,
+    span_right: usize,
     /// The beginning of the line to be displayed.
-    pub computed_left: usize,
+    computed_left: usize,
     /// The end of the line to be displayed.
-    pub computed_right: usize,
+    computed_right: usize,
     /// The current width of the terminal. 140 by default and in tests.
-    pub column_width: usize,
+    column_width: usize,
     /// The end column of a span label, including the span. Doesn't account for labels not in the
     /// same line as the span.
-    pub label_right: usize,
+    label_right: usize,
 }
 
 impl Margin {
