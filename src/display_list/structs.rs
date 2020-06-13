@@ -280,8 +280,7 @@ pub enum DisplayMarkType {
 
 /// A type of the `Annotation` which may impact the sigils, style or text displayed.
 ///
-/// There are several ways in which the `DisplayListFormatter` uses this information
-/// when formatting the `DisplayList`:
+/// There are several ways to uses this information when formatting the `DisplayList`:
 ///
 /// * An annotation may display the name of the type like `error` or `info`.
 /// * An underline for `Error` may be `^^^` while for `Warning` it coule be `---`.
