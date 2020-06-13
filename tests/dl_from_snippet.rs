@@ -28,6 +28,7 @@ fn test_format_title() {
         })],
         stylesheet: get_term_style(input.opt.color),
         anonymized_line_numbers: input.opt.anonymized_line_numbers,
+        margin: None,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -80,6 +81,7 @@ fn test_format_slice() {
         ],
         stylesheet: get_term_style(input.opt.color),
         anonymized_line_numbers: input.opt.anonymized_line_numbers,
+        margin: None,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -162,6 +164,7 @@ fn test_format_slices_continuation() {
         ],
         stylesheet: get_term_style(input.opt.color),
         anonymized_line_numbers: input.opt.anonymized_line_numbers,
+        margin: None,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -237,6 +240,7 @@ fn test_format_slice_annotation_standalone() {
         ],
         stylesheet: get_term_style(input.opt.color),
         anonymized_line_numbers: input.opt.anonymized_line_numbers,
+        margin: None,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -278,6 +282,7 @@ fn test_format_label() {
         })],
         stylesheet: get_term_style(input.opt.color),
         anonymized_line_numbers: input.opt.anonymized_line_numbers,
+        margin: None,
     };
     assert_eq!(dl::DisplayList::from(input), output);
 }
@@ -395,6 +400,7 @@ fn test_i_29() {
         ],
         stylesheet: get_term_style(false),
         anonymized_line_numbers: false,
+        margin: None,
     };
 
     assert_eq!(DisplayList::from(snippets), expected);

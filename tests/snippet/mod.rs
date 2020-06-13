@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
 use annotate_snippets::{
-    display_list::FormatOptions,
+    display_list::{FormatOptions, Margin},
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 
@@ -57,6 +57,45 @@ pub struct FormatOptionsDef {
     pub color: bool,
     #[serde(default)]
     pub anonymized_line_numbers: bool,
+    #[serde(deserialize_with = "deserialize_margin")]
+    #[serde(default)]
+    pub margin: Option<Margin>,
+}
+
+fn deserialize_margin<'de, D>(deserializer: D) -> Result<Option<Margin>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper {
+        whitespace_left: usize,
+        span_left: usize,
+        span_right: usize,
+        label_right: usize,
+        column_width: usize,
+        max_line_len: usize,
+    };
+
+    Option::<Wrapper>::deserialize(deserializer).map(|opt_wrapped: Option<Wrapper>| {
+        opt_wrapped.map(|wrapped: Wrapper| {
+            let Wrapper {
+                whitespace_left,
+                span_left,
+                span_right,
+                label_right,
+                column_width,
+                max_line_len,
+            } = wrapped;
+            Margin::new(
+                whitespace_left,
+                span_left,
+                span_right,
+                label_right,
+                column_width,
+                max_line_len,
+            )
+        })
+    })
 }
 
 fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice<'de>>, D::Error>

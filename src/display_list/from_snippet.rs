@@ -107,12 +107,13 @@ fn format_slice(
     slice: snippet::Slice<'_>,
     is_first: bool,
     has_footer: bool,
+    margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
     let main_range = slice.annotations.get(0).map(|x| x.range.0);
     let origin = slice.origin;
     let line_start = slice.line_start;
     let need_empty_header = origin.is_some() || is_first;
-    let mut body = format_body(slice, need_empty_header, has_footer);
+    let mut body = format_body(slice, need_empty_header, has_footer, margin);
     let header = format_header(origin, main_range, line_start, &body, is_first);
     let mut result = vec![];
 
@@ -273,6 +274,7 @@ fn format_body(
     slice: snippet::Slice<'_>,
     need_empty_header: bool,
     has_footer: bool,
+    margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
     let source_len = slice.source.chars().count();
     if let Some(bigger) = slice.annotations.iter().find_map(|x| {
@@ -312,6 +314,9 @@ fn format_body(
     let mut annotation_line_count = 0;
     let mut annotations = slice.annotations;
     for (idx, (line_start, line_end)) in line_index_ranges.into_iter().enumerate() {
+        let margin_left = margin
+            .map(|m| m.left(line_end - line_start))
+            .unwrap_or_default();
         // It would be nice to use filter_drain here once it's stable.
         annotations = annotations
             .into_iter()
@@ -328,7 +333,10 @@ fn format_body(
                         if start >= line_start && end <= line_end
                             || start == line_end && end - start <= 1 =>
                     {
-                        let range = (start - line_start, end - line_start);
+                        let range = (
+                            (start - line_start) - margin_left,
+                            (end - line_start) - margin_left,
+                        );
                         body.insert(
                             body_idx + 1,
                             DisplayLine::Source {
@@ -419,7 +427,10 @@ fn format_body(
                             });
                         }
 
-                        let range = (end - line_start, end - line_start + 1);
+                        let range = (
+                            (end - line_start) - margin_left,
+                            (end - line_start + 1) - margin_left,
+                        );
                         body.insert(
                             body_idx + 1,
                             DisplayLine::Source {
@@ -499,7 +510,12 @@ impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
         }
 
         for (idx, slice) in slices.into_iter().enumerate() {
-            body.append(&mut format_slice(slice, idx == 0, !footer.is_empty()));
+            body.append(&mut format_slice(
+                slice,
+                idx == 0,
+                !footer.is_empty(),
+                opt.margin,
+            ));
         }
 
         for annotation in footer {
@@ -509,12 +525,14 @@ impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
         let FormatOptions {
             color,
             anonymized_line_numbers,
+            margin,
         } = opt;
 
         Self {
             body,
             stylesheet: get_term_style(color),
             anonymized_line_numbers,
+            margin,
         }
     }
 }
