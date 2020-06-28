@@ -1,4 +1,4 @@
-//! List of stylesheets that can be used by the `DisplayListFormatter`.
+//! List of stylesheets
 //!
 //! The list depends on what optional dependencies the crate has been
 //! compiled with.

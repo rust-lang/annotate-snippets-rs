@@ -38,8 +38,7 @@
 //! of lines containing semantic information about each line.
 //! This structure is the easiest to manipulate and organize.
 //!
-//! Finally, [DisplayListFormatter](self::formatter::DisplayListFormatter) is
-//! used to format the `DisplayList` using a `Stylesheet` into a final `String` output.
+//! Finally, `impl Display` into a final `String` output.
 //!
 //! A user of the crate may choose to provide their own equivalent of the input
 //! structure with an `Into<DisplayList>` trait.
@@ -47,6 +46,7 @@
 //! A user of the crate may also choose to provide their own formatter logic,
 //! to convert a `DisplayList` into a `String`, or just a `Stylesheet` to
 //! use the crate's formatting logic, but with a custom stylesheet.
+// TODO: check documentation
 
 pub mod display_list;
 pub mod formatter;

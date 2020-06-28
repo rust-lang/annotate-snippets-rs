@@ -39,8 +39,7 @@ pub trait Style {
         c: Box<dyn FnOnce(&mut fmt::Formatter<'_>) -> fmt::Result + 'a>,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result;
-    /// The method used by the DisplayListFormatter to display the message
-    /// in bold font.
+    /// The method used by the `Formatter` to display the message in bold font.
     fn bold(&self) -> Box<dyn Style>;
 }
 
