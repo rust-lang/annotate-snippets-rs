@@ -4,6 +4,10 @@
  
   - …
 
+## annotate-snippets 0.9.0 (June 28, 2020)
+
+  - Add strip code to the left and right of long lines. (#36)
+
 ## annotate-snippets 0.8.0 (April 14, 2020)
 
   - Replace `ansi_term` with `yansi-term` for improved performance. (#30)
