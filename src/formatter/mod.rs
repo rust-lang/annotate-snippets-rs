@@ -1,6 +1,7 @@
 use std::{
     cmp,
     fmt::{self, Display, Write},
+    iter::once,
 };
 
 pub mod style;
@@ -217,16 +218,21 @@ impl<'a> DisplayList<'a> {
                     } else {
                         false
                     };
+                    let mut ended = false;
                     let range = text
                         .char_indices()
+                        .chain(once((text.len(), '\0')))
                         .skip(left)
                         .take_while(|(_, ch)| {
+                            if ended {
+                                return false;
+                            }
                             // Make sure that the trimming on the right will fall within the terminal width.
                             // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char` is.
                             // For now, just accept that sometimes the code line will be longer than desired.
                             taken += unicode_width::UnicodeWidthChar::width(*ch).unwrap_or(1);
                             if taken > right - left {
-                                return false;
+                                ended = true;
                             }
                             true
                         })
@@ -238,7 +244,7 @@ impl<'a> DisplayList<'a> {
                             }
                         });
 
-                    text[range.0.expect("One character at line")..=range.1].fmt(f)?;
+                    text[range.0.expect("One character at line")..range.1].fmt(f)?;
 
                     if cut_right {
                         // We have stripped some code after the right-most span end, make it clear we did so.
