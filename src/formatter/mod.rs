@@ -218,12 +218,17 @@ impl<'a> DisplayList<'a> {
                     } else {
                         false
                     };
+                    // Specifies that it will end on the next character, so it will return
+                    // until the next one to the final condition.
                     let mut ended = false;
                     let range = text
                         .char_indices()
-                        .chain(once((text.len(), '\0')))
                         .skip(left)
+                        // Complete char iterator with final character
+                        .chain(once((text.len(), '\0')))
+                        // Take until the next one to the final condition
                         .take_while(|(_, ch)| {
+                            // Fast return to iterate over final byte position
                             if ended {
                                 return false;
                             }
@@ -236,6 +241,7 @@ impl<'a> DisplayList<'a> {
                             }
                             true
                         })
+                        // Reduce to start and end byte position
                         .fold((None, 0), |acc, (i, _)| {
                             if acc.0.is_some() {
                                 (acc.0, i)
@@ -244,6 +250,7 @@ impl<'a> DisplayList<'a> {
                             }
                         });
 
+                    // Format text with margins
                     text[range.0.expect("One character at line")..range.1].fmt(f)?;
 
                     if cut_right {
