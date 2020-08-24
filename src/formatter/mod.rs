@@ -1,6 +1,7 @@
 use std::{
     cmp,
     fmt::{self, Display, Write},
+    iter::once,
 };
 
 pub mod style;
@@ -217,19 +218,30 @@ impl<'a> DisplayList<'a> {
                     } else {
                         false
                     };
+                    // Specifies that it will end on the next character, so it will return
+                    // until the next one to the final condition.
+                    let mut ended = false;
                     let range = text
                         .char_indices()
                         .skip(left)
+                        // Complete char iterator with final character
+                        .chain(once((text.len(), '\0')))
+                        // Take until the next one to the final condition
                         .take_while(|(_, ch)| {
+                            // Fast return to iterate over final byte position
+                            if ended {
+                                return false;
+                            }
                             // Make sure that the trimming on the right will fall within the terminal width.
                             // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char` is.
                             // For now, just accept that sometimes the code line will be longer than desired.
                             taken += unicode_width::UnicodeWidthChar::width(*ch).unwrap_or(1);
                             if taken > right - left {
-                                return false;
+                                ended = true;
                             }
                             true
                         })
+                        // Reduce to start and end byte position
                         .fold((None, 0), |acc, (i, _)| {
                             if acc.0.is_some() {
                                 (acc.0, i)
@@ -238,7 +250,8 @@ impl<'a> DisplayList<'a> {
                             }
                         });
 
-                    text[range.0.expect("One character at line")..=range.1].fmt(f)?;
+                    // Format text with margins
+                    text[range.0.expect("One character at line")..range.1].fmt(f)?;
 
                     if cut_right {
                         // We have stripped some code after the right-most span end, make it clear we did so.
