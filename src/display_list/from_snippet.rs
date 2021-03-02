@@ -427,9 +427,10 @@ fn format_body(
                             });
                         }
 
+                        let end_mark = (end - line_start).saturating_sub(1);
                         let range = (
-                            (end - line_start) - margin_left,
-                            (end - line_start + 1) - margin_left,
+                            end_mark - margin_left,
+                            (end_mark + 1) - margin_left,
                         );
                         body.insert(
                             body_idx + 1,

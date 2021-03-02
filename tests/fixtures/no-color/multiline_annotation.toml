@@ -33,7 +33,7 @@ range = [5, 19]
 [[slices.annotations]]
 label = "expected enum `std::option::Option`, found ()"
 annotation_type = "Error"
-range = [22, 765]
+range = [22, 766]
 [title]
 label = "mismatched types"
 id = "E0308"
