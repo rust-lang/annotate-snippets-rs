@@ -2,7 +2,7 @@
 
 `annotate-snippets` is a Rust library for annotation of programming code slices.
 
-[![crates.io](https://meritbadge.herokuapp.com/annotate-snippets)](https://crates.io/crates/annotate-snippets)
+[![crates.io](https://img.shields.io/crates/v/annotate-snippets.svg)](https://crates.io/crates/annotate-snippets)
 [![Build Status](https://travis-ci.com/rust-lang/annotate-snippets-rs.svg?branch=master)](https://travis-ci.com/rust-lang/annotate-snippets-rs)
 [![Coverage Status](https://coveralls.io/repos/github/rust-lang/annotate-snippets-rs/badge.svg?branch=master)](https://coveralls.io/github/rust-lang/annotate-snippets-rs?branch=master)
 
