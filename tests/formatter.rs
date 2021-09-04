@@ -645,3 +645,31 @@ fn test_point_to_double_width_characters_multiple() {
 
     assert_eq!(DisplayList::from(snippets).to_string(), expected);
 }
+
+#[test]
+fn test_point_to_double_width_characters_mixed() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "こんにちは、新しいWorld！",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (6, 14),
+                label: "New world",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:7
+  |
+1 | こんにちは、新しいWorld！
+  |             ^^^^^^^^^^^ New world
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
