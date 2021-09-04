@@ -608,3 +608,40 @@ fn test_point_to_double_width_characters_across_lines() {
 
     assert_eq!(DisplayList::from(snippets).to_string(), expected);
 }
+
+#[test]
+fn test_point_to_double_width_characters_multiple() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "お寿司\n食べたい🍣",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![
+                snippet::SourceAnnotation {
+                    range: (0, 3),
+                    label: "Sushi1",
+                    annotation_type: snippet::AnnotationType::Error,
+                },
+                snippet::SourceAnnotation {
+                    range: (6, 8),
+                    label: "Sushi2",
+                    annotation_type: snippet::AnnotationType::Note,
+                },
+            ],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:1
+  |
+1 | お寿司
+  | ^^^^^^ Sushi1
+2 | 食べたい🍣
+  |     ---- note: Sushi2
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
