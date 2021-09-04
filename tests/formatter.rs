@@ -550,3 +550,31 @@ fn test_i_29() {
 
     assert_eq!(DisplayList::from(snippets).to_string(), expected);
 }
+
+#[test]
+fn test_point_to_double_width_characters() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "こんにちは、世界",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (6, 8),
+                label: "world",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:7
+  |
+1 | こんにちは、世界
+  |             ^^^^ world
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}

@@ -293,11 +293,23 @@ fn format_body(
     let mut body = vec![];
     let mut current_line = slice.line_start;
     let mut current_index = 0;
-    let mut line_index_ranges = vec![];
+    let mut line_info = vec![];
+
+    struct LineInfo {
+        line_start_index: usize,
+        line_end_index: usize,
+        // How many spaces each character in the line take up when displayed
+        char_widths: Vec<usize>,
+    }
 
     for (line, end_line) in CursorLines::new(slice.source) {
         let line_length = line.chars().count();
         let line_range = (current_index, current_index + line_length);
+        let char_widths = line
+            .chars()
+            .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+            .chain(std::iter::once(1)) // treat the end of line as signle-width
+            .collect::<Vec<_>>();
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
             inline_marks: vec![],
@@ -306,16 +318,28 @@ fn format_body(
                 range: line_range,
             },
         });
-        line_index_ranges.push(line_range);
+        line_info.push(LineInfo {
+            line_start_index: line_range.0,
+            line_end_index: line_range.1,
+            char_widths,
+        });
         current_line += 1;
         current_index += line_length + end_line as usize;
     }
 
     let mut annotation_line_count = 0;
     let mut annotations = slice.annotations;
-    for (idx, (line_start, line_end)) in line_index_ranges.into_iter().enumerate() {
+    for (
+        idx,
+        LineInfo {
+            line_start_index,
+            line_end_index,
+            char_widths,
+        },
+    ) in line_info.into_iter().enumerate()
+    {
         let margin_left = margin
-            .map(|m| m.left(line_end - line_start))
+            .map(|m| m.left(line_end_index - line_start_index))
             .unwrap_or_default();
         // It would be nice to use filter_drain here once it's stable.
         annotations = annotations
@@ -328,15 +352,22 @@ fn format_body(
                     _ => DisplayAnnotationType::from(annotation.annotation_type),
                 };
                 match annotation.range {
-                    (start, _) if start > line_end => true,
+                    (start, _) if start > line_end_index => true,
                     (start, end)
-                        if start >= line_start && end <= line_end
-                            || start == line_end && end - start <= 1 =>
+                        if start >= line_start_index && end <= line_end_index
+                            || start == line_end_index && end - start <= 1 =>
                     {
-                        let range = (
-                            (start - line_start) - margin_left,
-                            (end - line_start) - margin_left,
-                        );
+                        let annotation_start_col = char_widths
+                            .iter()
+                            .take(start - line_start_index)
+                            .sum::<usize>()
+                            - margin_left;
+                        let annotation_end_col = char_widths
+                            .iter()
+                            .take(end - line_start_index)
+                            .sum::<usize>()
+                            - margin_left;
+                        let range = (annotation_start_col, annotation_end_col);
                         body.insert(
                             body_idx + 1,
                             DisplayLine::Source {
@@ -359,8 +390,12 @@ fn format_body(
                         annotation_line_count += 1;
                         false
                     }
-                    (start, end) if start >= line_start && start <= line_end && end > line_end => {
-                        if start - line_start == 0 {
+                    (start, end)
+                        if start >= line_start_index
+                            && start <= line_end_index
+                            && end > line_end_index =>
+                    {
+                        if start - line_start_index == 0 {
                             if let DisplayLine::Source {
                                 ref mut inline_marks,
                                 ..
@@ -374,7 +409,7 @@ fn format_body(
                                 });
                             }
                         } else {
-                            let range = (start - line_start, start - line_start + 1);
+                            let range = (start - line_start_index, start - line_start_index + 1);
                             body.insert(
                                 body_idx + 1,
                                 DisplayLine::Source {
@@ -398,7 +433,7 @@ fn format_body(
                         }
                         true
                     }
-                    (start, end) if start < line_start && end > line_end => {
+                    (start, end) if start < line_start_index && end > line_end_index => {
                         if let DisplayLine::Source {
                             ref mut inline_marks,
                             ..
@@ -413,7 +448,11 @@ fn format_body(
                         }
                         true
                     }
-                    (start, end) if start < line_start && end >= line_start && end <= line_end => {
+                    (start, end)
+                        if start < line_start_index
+                            && end >= line_start_index
+                            && end <= line_end_index =>
+                    {
                         if let DisplayLine::Source {
                             ref mut inline_marks,
                             ..
@@ -427,11 +466,8 @@ fn format_body(
                             });
                         }
 
-                        let end_mark = (end - line_start).saturating_sub(1);
-                        let range = (
-                            end_mark - margin_left,
-                            (end_mark + 1) - margin_left,
-                        );
+                        let end_mark = (end - line_start_index).saturating_sub(1);
+                        let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
                         body.insert(
                             body_idx + 1,
                             DisplayLine::Source {
