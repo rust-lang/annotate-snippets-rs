@@ -550,3 +550,126 @@ fn test_i_29() {
 
     assert_eq!(DisplayList::from(snippets).to_string(), expected);
 }
+
+#[test]
+fn test_point_to_double_width_characters() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "こんにちは、世界",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (6, 8),
+                label: "world",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:7
+  |
+1 | こんにちは、世界
+  |             ^^^^ world
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
+
+#[test]
+fn test_point_to_double_width_characters_across_lines() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "おはよう\nございます",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (2, 8),
+                label: "Good morning",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:3
+  |
+1 |   おはよう
+  |  _____^
+2 | | ございます
+  | |______^ Good morning
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
+
+#[test]
+fn test_point_to_double_width_characters_multiple() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "お寿司\n食べたい🍣",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![
+                snippet::SourceAnnotation {
+                    range: (0, 3),
+                    label: "Sushi1",
+                    annotation_type: snippet::AnnotationType::Error,
+                },
+                snippet::SourceAnnotation {
+                    range: (6, 8),
+                    label: "Sushi2",
+                    annotation_type: snippet::AnnotationType::Note,
+                },
+            ],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:1
+  |
+1 | お寿司
+  | ^^^^^^ Sushi1
+2 | 食べたい🍣
+  |     ---- note: Sushi2
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
+
+#[test]
+fn test_point_to_double_width_characters_mixed() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "こんにちは、新しいWorld！",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (6, 14),
+                label: "New world",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:7
+  |
+1 | こんにちは、新しいWorld！
+  |             ^^^^^^^^^^^ New world
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
