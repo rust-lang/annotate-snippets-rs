@@ -409,7 +409,11 @@ fn format_body(
                                 });
                             }
                         } else {
-                            let range = (start - line_start_index, start - line_start_index + 1);
+                            let annotation_start_col = char_widths
+                                .iter()
+                                .take(start - line_start_index)
+                                .sum::<usize>();
+                            let range = (annotation_start_col, annotation_start_col + 1);
                             body.insert(
                                 body_idx + 1,
                                 DisplayLine::Source {
@@ -466,7 +470,11 @@ fn format_body(
                             });
                         }
 
-                        let end_mark = (end - line_start_index).saturating_sub(1);
+                        let end_mark = char_widths
+                            .iter()
+                            .take(end - line_start_index)
+                            .sum::<usize>()
+                            .saturating_sub(1);
                         let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
                         body.insert(
                             body_idx + 1,

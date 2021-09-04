@@ -578,3 +578,33 @@ fn test_point_to_double_width_characters() {
 
     assert_eq!(DisplayList::from(snippets).to_string(), expected);
 }
+
+#[test]
+fn test_point_to_double_width_characters_across_lines() {
+    let snippets = Snippet {
+        slices: vec![snippet::Slice {
+            source: "おはよう\nございます",
+            line_start: 1,
+            origin: Some("<current file>"),
+            annotations: vec![snippet::SourceAnnotation {
+                range: (2, 8),
+                label: "Good morning",
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            fold: false,
+        }],
+        title: None,
+        footer: vec![],
+        opt: Default::default(),
+    };
+
+    let expected = r#" --> <current file>:1:3
+  |
+1 |   おはよう
+  |  _____^
+2 | | ございます
+  | |______^ Good morning
+  |"#;
+
+    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+}
