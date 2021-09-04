@@ -132,7 +132,7 @@ impl<'a> DisplayList<'a> {
         for fragment in label {
             match fragment.style {
                 DisplayTextStyle::Regular => fragment.content.fmt(f)?,
-                DisplayTextStyle::Emphasis => emphasis_style.paint(&fragment.content, f)?,
+                DisplayTextStyle::Emphasis => emphasis_style.paint(fragment.content, f)?,
             }
         }
         Ok(())
@@ -298,7 +298,7 @@ impl<'a> DisplayList<'a> {
                     f,
                 )?;
 
-                if !is_annotation_empty(&annotation) {
+                if !is_annotation_empty(annotation) {
                     f.write_char(' ')?;
                     color.paint_fn(
                         Box::new(|f| {
@@ -361,18 +361,15 @@ impl<'a> DisplayList<'a> {
                 if *source_aligned {
                     if *continuation {
                         format_repeat_char(' ', lineno_width + 3, f)?;
-                        self.format_annotation(annotation, *continuation, false, f)
                     } else {
                         let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
                         format_repeat_char(' ', lineno_width, f)?;
                         f.write_char(' ')?;
                         lineno_color.paint("=", f)?;
                         f.write_char(' ')?;
-                        self.format_annotation(annotation, *continuation, false, f)
                     }
-                } else {
-                    self.format_annotation(annotation, *continuation, false, f)
                 }
+                self.format_annotation(annotation, *continuation, false, f)
             }
         }
     }

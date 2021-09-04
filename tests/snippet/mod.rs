@@ -74,7 +74,7 @@ where
         label_right: usize,
         column_width: usize,
         max_line_len: usize,
-    };
+    }
 
     Option::<Wrapper>::deserialize(deserializer).map(|opt_wrapped: Option<Wrapper>| {
         opt_wrapped.map(|wrapped: Wrapper| {

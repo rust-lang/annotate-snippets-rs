@@ -39,7 +39,7 @@ impl<'a> Iterator for CursorLines<'a> {
                     ret
                 })
                 .or_else(|| {
-                    let ret = Some((&self.0[..], EndLine::EOF));
+                    let ret = Some((self.0, EndLine::EOF));
                     self.0 = "";
                     ret
                 })
@@ -79,7 +79,7 @@ fn format_title(annotation: snippet::Annotation<'_>) -> DisplayLine<'_> {
         annotation: Annotation {
             annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
             id: annotation.id,
-            label: format_label(Some(&label), Some(DisplayTextStyle::Emphasis)),
+            label: format_label(Some(label), Some(DisplayTextStyle::Emphasis)),
         },
         source_aligned: false,
         continuation: false,
@@ -182,7 +182,7 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
     enum Line {
         Fold(usize),
         Source(usize),
-    };
+    }
 
     let mut lines = vec![];
     let mut no_annotation_lines_counter = 0;
@@ -193,8 +193,8 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
                 line: DisplaySourceLine::Annotation { .. },
                 ..
             } => {
+                let fold_start = idx - no_annotation_lines_counter;
                 if no_annotation_lines_counter > 2 {
-                    let fold_start = idx - no_annotation_lines_counter;
                     let fold_end = idx;
                     let pre_len = if no_annotation_lines_counter > 8 {
                         4
@@ -224,8 +224,7 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
                         lines.push(Line::Source(i));
                     }
                 } else {
-                    let start = idx - no_annotation_lines_counter;
-                    for (i, _) in body.iter().enumerate().take(idx).skip(start) {
+                    for (i, _) in body.iter().enumerate().take(idx).skip(fold_start) {
                         lines.push(Line::Source(i));
                     }
                 }
@@ -377,7 +376,7 @@ fn format_body(
                                     annotation: Annotation {
                                         annotation_type,
                                         id: None,
-                                        label: format_label(Some(&annotation.label), None),
+                                        label: format_label(Some(annotation.label), None),
                                     },
                                     range,
                                     annotation_type: DisplayAnnotationType::from(
@@ -490,7 +489,7 @@ fn format_body(
                                     annotation: Annotation {
                                         annotation_type,
                                         id: None,
-                                        label: format_label(Some(&annotation.label), None),
+                                        label: format_label(Some(annotation.label), None),
                                     },
                                     range,
                                     annotation_type: DisplayAnnotationType::from(
