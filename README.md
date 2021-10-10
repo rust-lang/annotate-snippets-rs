@@ -1,10 +1,9 @@
 # annotate-snippets
 
-`annotate-snippets` is a Rust library for annotation of programming code slices.
-
 [![crates.io](https://img.shields.io/crates/v/annotate-snippets.svg)](https://crates.io/crates/annotate-snippets)
 ![build status](https://github.com/rust-lang/annotate-snippets-rs/actions/workflows/ci.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/rust-lang/annotate-snippets-rs/badge.svg?branch=master)](https://coveralls.io/github/rust-lang/annotate-snippets-rs?branch=master)
+
+`annotate-snippets` is a Rust library for annotation of programming code slices.
 
 The library helps visualize meta information annotating source code slices.
 It takes a data structure called `Snippet` on the input and produces a `String`
@@ -28,10 +27,9 @@ error[E0308]: mismatched types
 
 [Documentation][]
 
-[Documentation]: https://docs.rs/annotate-snippets/
+[documentation]: https://docs.rs/annotate-snippets/
 
-Usage
------
+## Usage
 
 ```rust
 use annotate_snippets::{
@@ -79,12 +77,11 @@ fn main() {
 }
 ```
 
-Local Development
------------------
+## Local Development
 
     cargo build
     cargo test
 
-When submitting a PR please use  [`cargo fmt`][] (nightly).
+When submitting a PR please use [`cargo fmt`][] (nightly).
 
 [`cargo fmt`]: https://github.com/rust-lang/rustfmt
