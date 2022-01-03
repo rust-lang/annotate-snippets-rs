@@ -262,20 +262,10 @@ fn test_format_label() {
             annotation: dl::Annotation {
                 annotation_type: dl::DisplayAnnotationType::Error,
                 id: None,
-                label: vec![
-                    dl::DisplayTextFragment {
-                        content: "This ",
-                        style: dl::DisplayTextStyle::Regular,
-                    },
-                    dl::DisplayTextFragment {
-                        content: "is",
-                        style: dl::DisplayTextStyle::Emphasis,
-                    },
-                    dl::DisplayTextFragment {
-                        content: " a title",
-                        style: dl::DisplayTextStyle::Regular,
-                    },
-                ],
+                label: vec![dl::DisplayTextFragment {
+                    content: "This __is__ a title",
+                    style: dl::DisplayTextStyle::Regular,
+                }],
             },
             source_aligned: true,
             continuation: false,
