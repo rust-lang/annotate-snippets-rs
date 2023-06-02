@@ -111,10 +111,9 @@ fn format_slice(
 ) -> Vec<DisplayLine<'_>> {
     let main_range = slice.annotations.get(0).map(|x| x.range.0);
     let origin = slice.origin;
-    let line_start = slice.line_start;
     let need_empty_header = origin.is_some() || is_first;
     let mut body = format_body(slice, need_empty_header, has_footer, margin);
-    let header = format_header(origin, main_range, line_start, &body, is_first);
+    let header = format_header(origin, main_range, &body, is_first);
     let mut result = vec![];
 
     if let Some(header) = header {
@@ -133,7 +132,6 @@ fn zip_opt<A, B>(a: Option<A>, b: Option<B>) -> Option<(A, B)> {
 fn format_header<'a>(
     origin: Option<&'a str>,
     main_range: Option<usize>,
-    mut row: usize,
     body: &[DisplayLine<'_>],
     is_first: bool,
 ) -> Option<DisplayLine<'a>> {
@@ -145,24 +143,26 @@ fn format_header<'a>(
 
     if let Some((main_range, path)) = zip_opt(main_range, origin) {
         let mut col = 1;
+        let mut line_offset = 1;
 
         for item in body {
             if let DisplayLine::Source {
                 line: DisplaySourceLine::Content { range, .. },
+                lineno,
                 ..
             } = item
             {
                 if main_range >= range.0 && main_range <= range.1 {
                     col = main_range - range.0 + 1;
+                    line_offset = lineno.unwrap_or(1);
                     break;
                 }
-                row += 1;
             }
         }
 
         return Some(DisplayLine::Raw(DisplayRawLine::Origin {
             path,
-            pos: Some((row, col)),
+            pos: Some((line_offset, col)),
             header_type: display_header,
         }));
     }
@@ -307,7 +307,7 @@ fn format_body(
         let char_widths = line
             .chars()
             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-            .chain(std::iter::once(1)) // treat the end of line as signle-width
+            .chain(std::iter::once(1)) // treat the end of line as single-width
             .collect::<Vec<_>>();
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
