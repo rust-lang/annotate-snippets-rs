@@ -53,22 +53,11 @@ fn format_label(
 ) -> Vec<DisplayTextFragment<'_>> {
     let mut result = vec![];
     if let Some(label) = label {
-        for (idx, element) in label.split("__").enumerate() {
-            let element_style = match style {
-                Some(s) => s,
-                None => {
-                    if idx % 2 == 0 {
-                        DisplayTextStyle::Regular
-                    } else {
-                        DisplayTextStyle::Emphasis
-                    }
-                }
-            };
-            result.push(DisplayTextFragment {
-                content: element,
-                style: element_style,
-            });
-        }
+        let element_style = style.unwrap_or(DisplayTextStyle::Regular);
+        result.push(DisplayTextFragment {
+            content: label,
+            style: element_style,
+        });
     }
     result
 }
