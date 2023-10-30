@@ -4,6 +4,11 @@
  
   - …
 
+## annotate-snippets 0.9.2 (October 30, 2023)
+
+  - Remove parsing of __ in title strings, fixes (#53)
+  - Origin line number is not correct when using a slice with fold: true (#52)
+
 ## annotate-snippets 0.9.1 (September 4, 2021)
 
   - Fix character split when strip code. (#37)
