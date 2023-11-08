@@ -18,7 +18,7 @@ unicode-width = "0.1.11"
 yansi-term = { version = "0.1.2", optional = true }
 
 [dev-dependencies]
-criterion = "0.3.6"
+criterion = "0.5.1"
 difference = "2.0.0"
 glob = "0.3.1"
 serde = { version = "1.0.192", features = ["derive"] }
