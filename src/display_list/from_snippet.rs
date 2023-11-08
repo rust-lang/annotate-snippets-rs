@@ -11,9 +11,9 @@ impl<'a> CursorLines<'a> {
 }
 
 enum EndLine {
-    EOF = 0,
-    CRLF = 1,
-    LF = 2,
+    Eof = 0,
+    Crlf = 1,
+    Lf = 2,
 }
 
 impl<'a> Iterator for CursorLines<'a> {
@@ -28,18 +28,18 @@ impl<'a> Iterator for CursorLines<'a> {
                 .map(|x| {
                     let ret = if 0 < x {
                         if self.0.as_bytes()[x - 1] == b'\r' {
-                            (&self.0[..x - 1], EndLine::LF)
+                            (&self.0[..x - 1], EndLine::Lf)
                         } else {
-                            (&self.0[..x], EndLine::CRLF)
+                            (&self.0[..x], EndLine::Crlf)
                         }
                     } else {
-                        ("", EndLine::CRLF)
+                        ("", EndLine::Crlf)
                     };
                     self.0 = &self.0[x + 1..];
                     ret
                 })
                 .or_else(|| {
-                    let ret = Some((self.0, EndLine::EOF));
+                    let ret = Some((self.0, EndLine::Eof));
                     self.0 = "";
                     ret
                 })
@@ -330,32 +330,76 @@ fn format_body(
             .map(|m| m.left(line_end_index - line_start_index))
             .unwrap_or_default();
         // It would be nice to use filter_drain here once it's stable.
-        annotations = annotations
-            .into_iter()
-            .filter(|annotation| {
-                let body_idx = idx + annotation_line_count;
-                let annotation_type = match annotation.annotation_type {
-                    snippet::AnnotationType::Error => DisplayAnnotationType::None,
-                    snippet::AnnotationType::Warning => DisplayAnnotationType::None,
-                    _ => DisplayAnnotationType::from(annotation.annotation_type),
-                };
-                match annotation.range {
-                    (start, _) if start > line_end_index => true,
-                    (start, end)
-                        if start >= line_start_index && end <= line_end_index
-                            || start == line_end_index && end - start <= 1 =>
-                    {
+        annotations.retain(|annotation| {
+            let body_idx = idx + annotation_line_count;
+            let annotation_type = match annotation.annotation_type {
+                snippet::AnnotationType::Error => DisplayAnnotationType::None,
+                snippet::AnnotationType::Warning => DisplayAnnotationType::None,
+                _ => DisplayAnnotationType::from(annotation.annotation_type),
+            };
+            match annotation.range {
+                (start, _) if start > line_end_index => true,
+                (start, end)
+                    if start >= line_start_index && end <= line_end_index
+                        || start == line_end_index && end - start <= 1 =>
+                {
+                    let annotation_start_col = char_widths
+                        .iter()
+                        .take(start - line_start_index)
+                        .sum::<usize>()
+                        - margin_left;
+                    let annotation_end_col = char_widths
+                        .iter()
+                        .take(end - line_start_index)
+                        .sum::<usize>()
+                        - margin_left;
+                    let range = (annotation_start_col, annotation_end_col);
+                    body.insert(
+                        body_idx + 1,
+                        DisplayLine::Source {
+                            lineno: None,
+                            inline_marks: vec![],
+                            line: DisplaySourceLine::Annotation {
+                                annotation: Annotation {
+                                    annotation_type,
+                                    id: None,
+                                    label: format_label(Some(annotation.label), None),
+                                },
+                                range,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                                annotation_part: DisplayAnnotationPart::Standalone,
+                            },
+                        },
+                    );
+                    annotation_line_count += 1;
+                    false
+                }
+                (start, end)
+                    if start >= line_start_index
+                        && start <= line_end_index
+                        && end > line_end_index =>
+                {
+                    if start - line_start_index == 0 {
+                        if let DisplayLine::Source {
+                            ref mut inline_marks,
+                            ..
+                        } = body[body_idx]
+                        {
+                            inline_marks.push(DisplayMark {
+                                mark_type: DisplayMarkType::AnnotationStart,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                            });
+                        }
+                    } else {
                         let annotation_start_col = char_widths
                             .iter()
                             .take(start - line_start_index)
-                            .sum::<usize>()
-                            - margin_left;
-                        let annotation_end_col = char_widths
-                            .iter()
-                            .take(end - line_start_index)
-                            .sum::<usize>()
-                            - margin_left;
-                        let range = (annotation_start_col, annotation_end_col);
+                            .sum::<usize>();
+                        let range = (annotation_start_col, annotation_start_col + 1);
                         body.insert(
                             body_idx + 1,
                             DisplayLine::Source {
@@ -363,138 +407,91 @@ fn format_body(
                                 inline_marks: vec![],
                                 line: DisplaySourceLine::Annotation {
                                     annotation: Annotation {
-                                        annotation_type,
+                                        annotation_type: DisplayAnnotationType::None,
                                         id: None,
-                                        label: format_label(Some(annotation.label), None),
+                                        label: vec![],
                                     },
                                     range,
                                     annotation_type: DisplayAnnotationType::from(
                                         annotation.annotation_type,
                                     ),
-                                    annotation_part: DisplayAnnotationPart::Standalone,
+                                    annotation_part: DisplayAnnotationPart::MultilineStart,
                                 },
                             },
                         );
                         annotation_line_count += 1;
-                        false
                     }
-                    (start, end)
-                        if start >= line_start_index
-                            && start <= line_end_index
-                            && end > line_end_index =>
-                    {
-                        if start - line_start_index == 0 {
-                            if let DisplayLine::Source {
-                                ref mut inline_marks,
-                                ..
-                            } = body[body_idx]
-                            {
-                                inline_marks.push(DisplayMark {
-                                    mark_type: DisplayMarkType::AnnotationStart,
-                                    annotation_type: DisplayAnnotationType::from(
-                                        annotation.annotation_type,
-                                    ),
-                                });
-                            }
-                        } else {
-                            let annotation_start_col = char_widths
-                                .iter()
-                                .take(start - line_start_index)
-                                .sum::<usize>();
-                            let range = (annotation_start_col, annotation_start_col + 1);
-                            body.insert(
-                                body_idx + 1,
-                                DisplayLine::Source {
-                                    lineno: None,
-                                    inline_marks: vec![],
-                                    line: DisplaySourceLine::Annotation {
-                                        annotation: Annotation {
-                                            annotation_type: DisplayAnnotationType::None,
-                                            id: None,
-                                            label: vec![],
-                                        },
-                                        range,
-                                        annotation_type: DisplayAnnotationType::from(
-                                            annotation.annotation_type,
-                                        ),
-                                        annotation_part: DisplayAnnotationPart::MultilineStart,
-                                    },
-                                },
-                            );
-                            annotation_line_count += 1;
-                        }
-                        true
-                    }
-                    (start, end) if start < line_start_index && end > line_end_index => {
-                        if let DisplayLine::Source {
-                            ref mut inline_marks,
-                            ..
-                        } = body[body_idx]
-                        {
-                            inline_marks.push(DisplayMark {
-                                mark_type: DisplayMarkType::AnnotationThrough,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
-                            });
-                        }
-                        true
-                    }
-                    (start, end)
-                        if start < line_start_index
-                            && end >= line_start_index
-                            && end <= line_end_index =>
-                    {
-                        if let DisplayLine::Source {
-                            ref mut inline_marks,
-                            ..
-                        } = body[body_idx]
-                        {
-                            inline_marks.push(DisplayMark {
-                                mark_type: DisplayMarkType::AnnotationThrough,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
-                            });
-                        }
-
-                        let end_mark = char_widths
-                            .iter()
-                            .take(end - line_start_index)
-                            .sum::<usize>()
-                            .saturating_sub(1);
-                        let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
-                        body.insert(
-                            body_idx + 1,
-                            DisplayLine::Source {
-                                lineno: None,
-                                inline_marks: vec![DisplayMark {
-                                    mark_type: DisplayMarkType::AnnotationThrough,
-                                    annotation_type: DisplayAnnotationType::from(
-                                        annotation.annotation_type,
-                                    ),
-                                }],
-                                line: DisplaySourceLine::Annotation {
-                                    annotation: Annotation {
-                                        annotation_type,
-                                        id: None,
-                                        label: format_label(Some(annotation.label), None),
-                                    },
-                                    range,
-                                    annotation_type: DisplayAnnotationType::from(
-                                        annotation.annotation_type,
-                                    ),
-                                    annotation_part: DisplayAnnotationPart::MultilineEnd,
-                                },
-                            },
-                        );
-                        annotation_line_count += 1;
-                        false
-                    }
-                    _ => true,
+                    true
                 }
-            })
-            .collect();
+                (start, end) if start < line_start_index && end > line_end_index => {
+                    if let DisplayLine::Source {
+                        ref mut inline_marks,
+                        ..
+                    } = body[body_idx]
+                    {
+                        inline_marks.push(DisplayMark {
+                            mark_type: DisplayMarkType::AnnotationThrough,
+                            annotation_type: DisplayAnnotationType::from(
+                                annotation.annotation_type,
+                            ),
+                        });
+                    }
+                    true
+                }
+                (start, end)
+                    if start < line_start_index
+                        && end >= line_start_index
+                        && end <= line_end_index =>
+                {
+                    if let DisplayLine::Source {
+                        ref mut inline_marks,
+                        ..
+                    } = body[body_idx]
+                    {
+                        inline_marks.push(DisplayMark {
+                            mark_type: DisplayMarkType::AnnotationThrough,
+                            annotation_type: DisplayAnnotationType::from(
+                                annotation.annotation_type,
+                            ),
+                        });
+                    }
+
+                    let end_mark = char_widths
+                        .iter()
+                        .take(end - line_start_index)
+                        .sum::<usize>()
+                        .saturating_sub(1);
+                    let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
+                    body.insert(
+                        body_idx + 1,
+                        DisplayLine::Source {
+                            lineno: None,
+                            inline_marks: vec![DisplayMark {
+                                mark_type: DisplayMarkType::AnnotationThrough,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                            }],
+                            line: DisplaySourceLine::Annotation {
+                                annotation: Annotation {
+                                    annotation_type,
+                                    id: None,
+                                    label: format_label(Some(annotation.label), None),
+                                },
+                                range,
+                                annotation_type: DisplayAnnotationType::from(
+                                    annotation.annotation_type,
+                                ),
+                                annotation_part: DisplayAnnotationPart::MultilineEnd,
+                            },
+                        },
+                    );
+                    annotation_line_count += 1;
+                    false
+                }
+                _ => true,
+            }
+        });
     }
 
     if slice.fold {
