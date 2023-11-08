@@ -1,7 +1,8 @@
 [package]
 name = "annotate-snippets"
 version = "0.9.2"
-edition = "2018"
+edition = "2021"
+rust-version = "1.70.0"
 authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
 description = "Library for building code annotations"
 license = "Apache-2.0/MIT"
@@ -10,22 +11,19 @@ readme = "README.md"
 keywords = ["code", "analysis", "ascii", "errors", "debug"]
 
 [badges]
-travis-ci = { repository = "rust-lang/annotate-snippets-rs", branch = "master" }
-coveralls = { repository = "rust-lang/annotate-snippets-rs", branch = "master", service = "github" }
-
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-unicode-width = "0.1"
-yansi-term = { version = "0.1", optional = true }
+unicode-width = "0.1.11"
+yansi-term = { version = "0.1.2", optional = true }
 
 [dev-dependencies]
-glob = "0.3"
-toml = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-difference = "2.0"
-yansi-term = "0.1"
-criterion = "0.3"
+criterion = "0.5.1"
+difference = "2.0.0"
+glob = "0.3.1"
+serde = { version = "1.0.192", features = ["derive"] }
+toml = "0.5.11"
+yansi-term = "0.1.2"
 
 [[bench]]
 name = "simple"

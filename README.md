@@ -4,7 +4,6 @@
 
 [![crates.io](https://img.shields.io/crates/v/annotate-snippets.svg)](https://crates.io/crates/annotate-snippets)
 ![build status](https://github.com/rust-lang/annotate-snippets-rs/actions/workflows/ci.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/rust-lang/annotate-snippets-rs/badge.svg?branch=master)](https://coveralls.io/github/rust-lang/annotate-snippets-rs?branch=master)
 
 The library helps visualize meta information annotating source code slices.
 It takes a data structure called `Snippet` on the input and produces a `String`
