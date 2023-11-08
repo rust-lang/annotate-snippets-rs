@@ -10,9 +10,6 @@ readme = "README.md"
 keywords = ["code", "analysis", "ascii", "errors", "debug"]
 
 [badges]
-travis-ci = { repository = "rust-lang/annotate-snippets-rs", branch = "master" }
-coveralls = { repository = "rust-lang/annotate-snippets-rs", branch = "master", service = "github" }
-
 maintenance = { status = "actively-developed" }
 
 [dependencies]
