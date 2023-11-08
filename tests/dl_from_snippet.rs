@@ -37,7 +37,7 @@ fn test_format_title() {
 fn test_format_slice() {
     let line_1 = "This is line 1";
     let line_2 = "This is line 2";
-    let source = vec![line_1, line_2].join("\n");
+    let source = [line_1, line_2].join("\n");
     let input = snippet::Snippet {
         title: None,
         footer: vec![],
@@ -173,7 +173,7 @@ fn test_format_slices_continuation() {
 fn test_format_slice_annotation_standalone() {
     let line_1 = "This is line 1";
     let line_2 = "This is line 2";
-    let source = vec![line_1, line_2].join("\n");
+    let source = [line_1, line_2].join("\n");
     // In line 2
     let range = (22, 24);
     let input = snippet::Snippet {

@@ -23,14 +23,14 @@ pub struct SnippetDef<'a> {
     pub slices: Vec<Slice<'a>>,
 }
 
-impl<'a> Into<Snippet<'a>> for SnippetDef<'a> {
-    fn into(self) -> Snippet<'a> {
+impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
+    fn from(val: SnippetDef<'a>) -> Self {
         let SnippetDef {
             title,
             footer,
             opt,
             slices,
-        } = self;
+        } = val;
         Snippet {
             title,
             footer,
