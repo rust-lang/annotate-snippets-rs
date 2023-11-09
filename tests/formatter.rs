@@ -513,7 +513,7 @@ fn test_raw_origin_initial_pos_anon_lines() {
         header_type: DisplayHeaderType::Initial,
     })]);
 
-    // Using anonymized_line_numbers should not affect the inital position
+    // Using anonymized_line_numbers should not affect the initial position
     dl.anonymized_line_numbers = true;
     assert_eq!(dl.to_string(), "--> src/test.rs:23:15");
 }
