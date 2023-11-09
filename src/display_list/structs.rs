@@ -225,7 +225,7 @@ pub enum DisplayRawLine<'a> {
         source_aligned: bool,
         /// If set to `true`, only the label of the `Annotation` will be
         /// displayed. It allows for a multiline annotation to be aligned
-        /// without displaing the meta information (`type` and `id`) to be
+        /// without displaying the meta information (`type` and `id`) to be
         /// displayed on each line.
         continuation: bool,
     },
@@ -283,7 +283,7 @@ pub enum DisplayMarkType {
 /// There are several ways to uses this information when formatting the `DisplayList`:
 ///
 /// * An annotation may display the name of the type like `error` or `info`.
-/// * An underline for `Error` may be `^^^` while for `Warning` it coule be `---`.
+/// * An underline for `Error` may be `^^^` while for `Warning` it could be `---`.
 /// * `ColorStylesheet` may use different colors for different annotations.
 #[derive(Debug, Clone, PartialEq)]
 pub enum DisplayAnnotationType {
