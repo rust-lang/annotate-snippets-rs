@@ -1,4 +1,5 @@
 use annotate_snippets::display_list::*;
+use annotate_snippets::renderer::Renderer;
 use annotate_snippets::snippet::{self, Snippet};
 
 #[test]
@@ -548,7 +549,8 @@ fn test_i_29() {
   |        ^^^^ oops
   |"#;
 
-    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+    let renderer = Renderer;
+    assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -576,7 +578,8 @@ fn test_point_to_double_width_characters() {
   |             ^^^^ world
   |"#;
 
-    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+    let renderer = Renderer;
+    assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -606,7 +609,8 @@ fn test_point_to_double_width_characters_across_lines() {
   | |______^ Good morning
   |"#;
 
-    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+    let renderer = Renderer;
+    assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -643,7 +647,8 @@ fn test_point_to_double_width_characters_multiple() {
   |     ---- note: Sushi2
   |"#;
 
-    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+    let renderer = Renderer;
+    assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -671,5 +676,6 @@ fn test_point_to_double_width_characters_mixed() {
   |             ^^^^^^^^^^^ New world
   |"#;
 
-    assert_eq!(DisplayList::from(snippets).to_string(), expected);
+    let renderer = Renderer;
+    assert_eq!(renderer.render(snippets).to_string(), expected);
 }

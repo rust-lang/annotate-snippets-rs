@@ -1,5 +1,6 @@
+use annotate_snippets::renderer::Renderer;
 use annotate_snippets::{
-    display_list::{DisplayList, FormatOptions},
+    display_list::FormatOptions,
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 
@@ -56,6 +57,6 @@ fn main() {
         },
     };
 
-    let dl = DisplayList::from(snippet);
-    println!("{}", dl);
+    let renderer = Renderer;
+    println!("{}", renderer.render(snippet));
 }

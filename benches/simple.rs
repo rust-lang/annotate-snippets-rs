@@ -4,8 +4,9 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
+use annotate_snippets::renderer::Renderer;
 use annotate_snippets::{
-    display_list::{DisplayList, FormatOptions},
+    display_list::FormatOptions,
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 
@@ -62,8 +63,8 @@ fn create_snippet() {
         },
     };
 
-    let dl = DisplayList::from(snippet);
-    let _result = dl.to_string();
+    let renderer = Renderer;
+    let _result = renderer.render(snippet).to_string();
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {

@@ -50,5 +50,6 @@
 
 pub mod display_list;
 pub mod formatter;
+pub mod renderer;
 pub mod snippet;
 pub mod stylesheets;

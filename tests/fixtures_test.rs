@@ -2,7 +2,8 @@ mod diff;
 mod snippet;
 
 use crate::snippet::SnippetDef;
-use annotate_snippets::{display_list::DisplayList, snippet::Snippet};
+use annotate_snippets::renderer::Renderer;
+use annotate_snippets::snippet::Snippet;
 use glob::glob;
 use std::{error::Error, fs::File, io, io::prelude::*};
 
@@ -30,8 +31,8 @@ fn test_fixtures() {
         let snippet = read_fixture(&src).expect("Failed to read file");
         let expected_out = read_file(&path_out).expect("Failed to read file");
 
-        let dl = DisplayList::from(snippet);
-        let actual_out = dl.to_string();
+        let renderer = Renderer;
+        let actual_out = renderer.render(snippet).to_string();
         println!("{}", expected_out);
         println!("{}", actual_out.trim_end());
 
