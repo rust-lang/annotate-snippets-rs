@@ -1,7 +1,7 @@
 use anstyle::Style;
 
 #[derive(Clone, Copy, Debug)]
-pub struct Stylesheet {
+pub(crate) struct Stylesheet {
     pub(crate) error: Style,
     pub(crate) warning: Style,
     pub(crate) info: Style,

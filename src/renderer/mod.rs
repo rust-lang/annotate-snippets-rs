@@ -1,5 +1,5 @@
 mod margin;
-pub mod stylesheet;
+pub(crate) mod stylesheet;
 
 use crate::display_list::DisplayList;
 use crate::snippet::Snippet;
