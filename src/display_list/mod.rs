@@ -31,18 +31,18 @@
 //! styling.
 //!
 //! The above snippet has been built out of the following structure:
+use crate::snippet;
 use std::cmp::{max, min};
 use std::fmt::{Display, Write};
 use std::{cmp, fmt};
+use yansi_term::Style;
 
-use crate::formatter::style::{Style, StyleClass};
-use crate::formatter::{get_term_style, style::Stylesheet};
-use crate::snippet;
+use crate::renderer::stylesheet::Stylesheet;
 
 /// List of lines to be displayed.
 pub struct DisplayList<'a> {
     pub body: Vec<DisplayLine<'a>>,
-    pub stylesheet: Box<dyn Stylesheet>,
+    pub stylesheet: Stylesheet,
     pub anonymized_line_numbers: bool,
     pub margin: Option<Margin>,
 }
@@ -52,7 +52,7 @@ impl<'a> From<Vec<DisplayLine<'a>>> for DisplayList<'a> {
         Self {
             body,
             anonymized_line_numbers: false,
-            stylesheet: get_term_style(false),
+            stylesheet: Stylesheet::default(),
             margin: None,
         }
     }
@@ -109,7 +109,7 @@ impl<'a> Display for DisplayList<'a> {
 
 impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
     fn from(snippet: snippet::Snippet<'a>) -> DisplayList<'a> {
-        Self::new(snippet, false, false, None)
+        Self::new(snippet, Stylesheet::default(), false, None)
     }
 }
 
@@ -127,7 +127,7 @@ impl<'a> DisplayList<'a> {
             footer,
             slices,
         }: snippet::Snippet<'a>,
-        color: bool,
+        stylesheet: Stylesheet,
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
@@ -151,7 +151,7 @@ impl<'a> DisplayList<'a> {
 
         Self {
             body,
-            stylesheet: get_term_style(color),
+            stylesheet,
             anonymized_line_numbers,
             margin,
         }
@@ -183,15 +183,15 @@ impl<'a> DisplayList<'a> {
         }
     }
 
-    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> Box<dyn Style> {
-        self.stylesheet.get_style(match annotation_type {
-            DisplayAnnotationType::Error => StyleClass::Error,
-            DisplayAnnotationType::Warning => StyleClass::Warning,
-            DisplayAnnotationType::Info => StyleClass::Info,
-            DisplayAnnotationType::Note => StyleClass::Note,
-            DisplayAnnotationType::Help => StyleClass::Help,
-            DisplayAnnotationType::None => StyleClass::None,
-        })
+    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> &Style {
+        match annotation_type {
+            DisplayAnnotationType::Error => self.stylesheet.error(),
+            DisplayAnnotationType::Warning => self.stylesheet.warning(),
+            DisplayAnnotationType::Info => self.stylesheet.info(),
+            DisplayAnnotationType::Note => self.stylesheet.note(),
+            DisplayAnnotationType::Help => self.stylesheet.help(),
+            DisplayAnnotationType::None => self.stylesheet.none(),
+        }
     }
 
     fn format_label(
@@ -199,12 +199,12 @@ impl<'a> DisplayList<'a> {
         label: &[DisplayTextFragment<'_>],
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
-        let emphasis_style = self.stylesheet.get_style(StyleClass::Emphasis);
+        let emphasis_style = self.stylesheet.emphasis();
 
         for fragment in label {
             match fragment.style {
                 DisplayTextStyle::Regular => fragment.content.fmt(f)?,
-                DisplayTextStyle::Emphasis => emphasis_style.paint(fragment.content, f)?,
+                DisplayTextStyle::Emphasis => emphasis_style.paint(fragment.content).fmt(f)?,
             }
         }
         Ok(())
@@ -231,8 +231,8 @@ impl<'a> DisplayList<'a> {
         if formatted_len == 0 {
             self.format_label(&annotation.label, f)
         } else {
-            color.paint_fn(
-                Box::new(|f| {
+            color
+                .paint_fn(Box::new(|f: &mut fmt::Formatter<'_>| {
                     Self::format_annotation_type(&annotation.annotation_type, f)?;
                     if let Some(id) = &annotation.id {
                         f.write_char('[')?;
@@ -240,18 +240,17 @@ impl<'a> DisplayList<'a> {
                         f.write_char(']')?;
                     }
                     Ok(())
-                }),
-                f,
-            )?;
+                }))
+                .fmt(f)?;
+
             if !is_annotation_empty(annotation) {
                 if in_source {
-                    color.paint_fn(
-                        Box::new(|f| {
+                    color
+                        .paint_fn(Box::new(|f: &mut fmt::Formatter<'_>| {
                             f.write_str(": ")?;
                             self.format_label(&annotation.label, f)
-                        }),
-                        f,
-                    )?;
+                        }))
+                        .fmt(f)?;
                 } else {
                     f.write_str(": ")?;
                     self.format_label(&annotation.label, f)?;
@@ -362,27 +361,25 @@ impl<'a> DisplayList<'a> {
                     _ => range.0,
                 };
 
-                color.paint_fn(
-                    Box::new(|f| {
+                color
+                    .paint_fn(|f| {
                         format_repeat_char(indent_char, indent_length + 1, f)?;
                         format_repeat_char(mark, range.1 - indent_length, f)
-                    }),
-                    f,
-                )?;
+                    })
+                    .fmt(f)?;
 
                 if !is_annotation_empty(annotation) {
                     f.write_char(' ')?;
-                    color.paint_fn(
-                        Box::new(|f| {
+                    color
+                        .paint_fn(|f| {
                             self.format_annotation(
                                 annotation,
                                 annotation_part == &DisplayAnnotationPart::LabelContinuation,
                                 true,
                                 f,
                             )
-                        }),
-                        f,
-                    )?;
+                        })
+                        .fmt(f)?;
                 }
 
                 Ok(())
@@ -407,11 +404,11 @@ impl<'a> DisplayList<'a> {
                     DisplayHeaderType::Initial => "-->",
                     DisplayHeaderType::Continuation => ":::",
                 };
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                let lineno_color = self.stylesheet.line_no();
 
                 if let Some((col, row)) = pos {
                     format_repeat_char(' ', lineno_width, f)?;
-                    lineno_color.paint(header_sigil, f)?;
+                    lineno_color.paint(header_sigil).fmt(f)?;
                     f.write_char(' ')?;
                     path.fmt(f)?;
                     f.write_char(':')?;
@@ -420,7 +417,7 @@ impl<'a> DisplayList<'a> {
                     row.fmt(f)
                 } else {
                     format_repeat_char(' ', lineno_width, f)?;
-                    lineno_color.paint(header_sigil, f)?;
+                    lineno_color.paint(header_sigil).fmt(f)?;
                     f.write_char(' ')?;
                     path.fmt(f)
                 }
@@ -434,10 +431,10 @@ impl<'a> DisplayList<'a> {
                     if *continuation {
                         format_repeat_char(' ', lineno_width + 3, f)?;
                     } else {
-                        let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                        let lineno_color = self.stylesheet.line_no();
                         format_repeat_char(' ', lineno_width, f)?;
                         f.write_char(' ')?;
-                        lineno_color.paint("=", f)?;
+                        lineno_color.paint("=").fmt(f)?;
                         f.write_char(' ')?;
                     }
                 }
@@ -460,26 +457,24 @@ impl<'a> DisplayList<'a> {
                 inline_marks,
                 line,
             } => {
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                let lineno_color = self.stylesheet.line_no();
                 if self.anonymized_line_numbers && lineno.is_some() {
-                    lineno_color.paint_fn(
-                        Box::new(|f| {
+                    lineno_color
+                        .paint_fn(Box::new(|f: &mut fmt::Formatter<'_>| {
                             f.write_str(Self::ANONYMIZED_LINE_NUM)?;
                             f.write_str(" |")
-                        }),
-                        f,
-                    )?;
+                        }))
+                        .fmt(f)?;
                 } else {
-                    lineno_color.paint_fn(
-                        Box::new(|f| {
+                    lineno_color
+                        .paint_fn(Box::new(|f: &mut fmt::Formatter<'_>| {
                             match lineno {
                                 Some(n) => write!(f, "{:>width$}", n, width = lineno_width),
                                 None => format_repeat_char(' ', lineno_width, f),
                             }?;
                             f.write_str(" |")
-                        }),
-                        f,
-                    )?;
+                        }))
+                        .fmt(f)?;
                 }
                 if *line != DisplaySourceLine::Empty {
                     if !inline_marks.is_empty() || 0 < inline_marks_width {
@@ -513,15 +508,14 @@ impl<'a> DisplayList<'a> {
     ) -> fmt::Result {
         format_repeat_char(' ', inline_marks_width - inline_marks.len(), f)?;
         for mark in inline_marks {
-            self.get_annotation_style(&mark.annotation_type).paint_fn(
-                Box::new(|f| {
+            self.get_annotation_style(&mark.annotation_type)
+                .paint_fn(Box::new(|f: &mut fmt::Formatter<'_>| {
                     f.write_char(match mark.mark_type {
                         DisplayMarkType::AnnotationThrough => '|',
                         DisplayMarkType::AnnotationStart => '/',
                     })
-                }),
-                f,
-            )?;
+                }))
+                .fmt(f)?;
         }
         Ok(())
     }

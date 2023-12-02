@@ -1,5 +1,6 @@
 use annotate_snippets::display_list::DisplayList;
-use annotate_snippets::{display_list as dl, formatter::get_term_style, snippet};
+use annotate_snippets::renderer::stylesheet::Stylesheet;
+use annotate_snippets::{display_list as dl, snippet};
 
 #[test]
 fn test_format_title() {
@@ -25,7 +26,7 @@ fn test_format_title() {
             source_aligned: false,
             continuation: false,
         })],
-        stylesheet: get_term_style(false),
+        stylesheet: Stylesheet::default(),
         anonymized_line_numbers: false,
         margin: None,
     };
@@ -77,7 +78,7 @@ fn test_format_slice() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
-        stylesheet: get_term_style(false),
+        stylesheet: Stylesheet::default(),
         anonymized_line_numbers: false,
         margin: None,
     };
@@ -159,7 +160,7 @@ fn test_format_slices_continuation() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
-        stylesheet: get_term_style(false),
+        stylesheet: Stylesheet::default(),
         anonymized_line_numbers: false,
         margin: None,
     };
@@ -234,7 +235,7 @@ fn test_format_slice_annotation_standalone() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
-        stylesheet: get_term_style(false),
+        stylesheet: Stylesheet::default(),
         anonymized_line_numbers: false,
         margin: None,
     };
@@ -265,7 +266,7 @@ fn test_format_label() {
             source_aligned: true,
             continuation: false,
         })],
-        stylesheet: get_term_style(false),
+        stylesheet: Stylesheet::default(),
         anonymized_line_numbers: false,
         margin: None,
     };
@@ -381,7 +382,7 @@ fn test_i_29() {
                 line: dl::DisplaySourceLine::Empty,
             },
         ],
-        stylesheet: get_term_style(false),
+        stylesheet: Stylesheet::default(),
         anonymized_line_numbers: false,
         margin: None,
     };
