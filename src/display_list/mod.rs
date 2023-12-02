@@ -40,7 +40,7 @@ use crate::renderer::{stylesheet::Stylesheet, Margin, Style};
 /// List of lines to be displayed.
 pub(crate) struct DisplayList<'a> {
     pub body: Vec<DisplayLine<'a>>,
-    pub stylesheet: Stylesheet,
+    pub stylesheet: &'a Stylesheet,
     pub anonymized_line_numbers: bool,
     pub margin: Option<Margin>,
 }
@@ -108,7 +108,7 @@ impl<'a> DisplayList<'a> {
             footer,
             slices,
         }: snippet::Snippet<'a>,
-        stylesheet: Stylesheet,
+        stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
@@ -1217,7 +1217,7 @@ mod tests {
     fn from_display_lines(lines: Vec<DisplayLine<'_>>) -> DisplayList<'_> {
         DisplayList {
             body: lines,
-            stylesheet: STYLESHEET,
+            stylesheet: &STYLESHEET,
             anonymized_line_numbers: false,
             margin: None,
         }
@@ -1246,7 +1246,7 @@ mod tests {
             source_aligned: false,
             continuation: false,
         })]);
-        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1293,7 +1293,7 @@ mod tests {
                 line: DisplaySourceLine::Empty,
             },
         ]);
-        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1370,7 +1370,7 @@ mod tests {
                 line: DisplaySourceLine::Empty,
             },
         ]);
-        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1440,7 +1440,7 @@ mod tests {
                 line: DisplaySourceLine::Empty,
             },
         ]);
-        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1466,7 +1466,7 @@ mod tests {
             source_aligned: true,
             continuation: false,
         })]);
-        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1489,7 +1489,7 @@ mod tests {
                 fold: false,
             }],
         };
-        let _ = DisplayList::new(input, STYLESHEET, false, None);
+        let _ = DisplayList::new(input, &STYLESHEET, false, None);
     }
 
     #[test]
@@ -1577,7 +1577,7 @@ mod tests {
             },
         ]);
         assert_eq!(
-            DisplayList::new(snippets, STYLESHEET, false, None),
+            DisplayList::new(snippets, &STYLESHEET, false, None),
             expected
         );
     }

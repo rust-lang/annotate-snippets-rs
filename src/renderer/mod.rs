@@ -95,7 +95,7 @@ impl Renderer {
     pub fn render<'a>(&'a self, snippet: Snippet<'a>) -> impl Display + 'a {
         DisplayList::new(
             snippet,
-            self.stylesheet,
+            &self.stylesheet,
             self.anonymized_line_numbers,
             self.margin,
         )
