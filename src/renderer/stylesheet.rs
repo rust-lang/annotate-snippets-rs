@@ -14,6 +14,12 @@ pub(crate) struct Stylesheet {
 
 impl Default for Stylesheet {
     fn default() -> Self {
+        Self::plain()
+    }
+}
+
+impl Stylesheet {
+    pub(crate) const fn plain() -> Self {
         Self {
             error: Style::new(),
             warning: Style::new(),

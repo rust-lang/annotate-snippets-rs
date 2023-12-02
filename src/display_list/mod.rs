@@ -45,17 +45,6 @@ pub(crate) struct DisplayList<'a> {
     pub margin: Option<Margin>,
 }
 
-impl<'a> From<Vec<DisplayLine<'a>>> for DisplayList<'a> {
-    fn from(body: Vec<DisplayLine<'a>>) -> DisplayList<'a> {
-        Self {
-            body,
-            anonymized_line_numbers: false,
-            stylesheet: Stylesheet::default(),
-            margin: None,
-        }
-    }
-}
-
 impl<'a> PartialEq for DisplayList<'a> {
     fn eq(&self, other: &Self) -> bool {
         self.body == other.body && self.anonymized_line_numbers == other.anonymized_line_numbers
@@ -102,12 +91,6 @@ impl<'a> Display for DisplayList<'a> {
             }
         }
         Ok(())
-    }
-}
-
-impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
-    fn from(snippet: snippet::Snippet<'a>) -> DisplayList<'a> {
-        Self::new(snippet, Stylesheet::default(), false, None)
     }
 }
 
@@ -1229,6 +1212,17 @@ fn is_annotation_empty(annotation: &Annotation<'_>) -> bool {
 mod tests {
     use super::*;
 
+    const STYLESHEET: Stylesheet = Stylesheet::plain();
+
+    fn from_display_lines(lines: Vec<DisplayLine<'_>>) -> DisplayList<'_> {
+        DisplayList {
+            body: lines,
+            stylesheet: STYLESHEET,
+            anonymized_line_numbers: false,
+            margin: None,
+        }
+    }
+
     #[test]
     fn test_format_title() {
         let input = snippet::Snippet {
@@ -1240,24 +1234,19 @@ mod tests {
             footer: vec![],
             slices: vec![],
         };
-        let output = DisplayList {
-            body: vec![DisplayLine::Raw(DisplayRawLine::Annotation {
-                annotation: Annotation {
-                    annotation_type: DisplayAnnotationType::Error,
-                    id: Some("E0001"),
-                    label: vec![DisplayTextFragment {
-                        content: "This is a title",
-                        style: DisplayTextStyle::Emphasis,
-                    }],
-                },
-                source_aligned: false,
-                continuation: false,
-            })],
-            stylesheet: Stylesheet::default(),
-            anonymized_line_numbers: false,
-            margin: None,
-        };
-        assert_eq!(DisplayList::from(input), output);
+        let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::Error,
+                id: Some("E0001"),
+                label: vec![DisplayTextFragment {
+                    content: "This is a title",
+                    style: DisplayTextStyle::Emphasis,
+                }],
+            },
+            source_aligned: false,
+            continuation: false,
+        })]);
+        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1276,40 +1265,35 @@ mod tests {
                 fold: false,
             }],
         };
-        let output = DisplayList {
-            body: vec![
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
+        let output = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(5402),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: line_1,
+                    range: (0, line_1.len()),
                 },
-                DisplayLine::Source {
-                    lineno: Some(5402),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        text: line_1,
-                        range: (0, line_1.len()),
-                    },
+            },
+            DisplayLine::Source {
+                lineno: Some(5403),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    range: (line_1.len() + 1, source.len()),
+                    text: line_2,
                 },
-                DisplayLine::Source {
-                    lineno: Some(5403),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        range: (line_1.len() + 1, source.len()),
-                        text: line_2,
-                    },
-                },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
-                },
-            ],
-            stylesheet: Stylesheet::default(),
-            anonymized_line_numbers: false,
-            margin: None,
-        };
-        assert_eq!(DisplayList::from(input), output);
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1338,60 +1322,55 @@ mod tests {
                 },
             ],
         };
-        let output = DisplayList {
-            body: vec![
-                DisplayLine::Raw(DisplayRawLine::Origin {
-                    path: "file1.rs",
-                    pos: None,
-                    header_type: DisplayHeaderType::Initial,
-                }),
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
+        let output = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Origin {
+                path: "file1.rs",
+                pos: None,
+                header_type: DisplayHeaderType::Initial,
+            }),
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(5402),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: src_0,
+                    range: (0, src_0_len),
                 },
-                DisplayLine::Source {
-                    lineno: Some(5402),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        text: src_0,
-                        range: (0, src_0_len),
-                    },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Raw(DisplayRawLine::Origin {
+                path: "file2.rs",
+                pos: None,
+                header_type: DisplayHeaderType::Continuation,
+            }),
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(2),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: src_1,
+                    range: (0, src_1_len),
                 },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
-                },
-                DisplayLine::Raw(DisplayRawLine::Origin {
-                    path: "file2.rs",
-                    pos: None,
-                    header_type: DisplayHeaderType::Continuation,
-                }),
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
-                },
-                DisplayLine::Source {
-                    lineno: Some(2),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        text: src_1,
-                        range: (0, src_1_len),
-                    },
-                },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
-                },
-            ],
-            stylesheet: Stylesheet::default(),
-            anonymized_line_numbers: false,
-            margin: None,
-        };
-        assert_eq!(DisplayList::from(input), output);
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1416,57 +1395,52 @@ mod tests {
                 fold: false,
             }],
         };
-        let output = DisplayList {
-            body: vec![
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
+        let output = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(5402),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    range: (0, line_1.len()),
+                    text: line_1,
                 },
-                DisplayLine::Source {
-                    lineno: Some(5402),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        range: (0, line_1.len()),
-                        text: line_1,
-                    },
+            },
+            DisplayLine::Source {
+                lineno: Some(5403),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    range: (line_1.len() + 1, source.len()),
+                    text: line_2,
                 },
-                DisplayLine::Source {
-                    lineno: Some(5403),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        range: (line_1.len() + 1, source.len()),
-                        text: line_2,
-                    },
-                },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Annotation {
-                        annotation: Annotation {
-                            annotation_type: DisplayAnnotationType::Info,
-                            id: None,
-                            label: vec![DisplayTextFragment {
-                                content: "Test annotation",
-                                style: DisplayTextStyle::Regular,
-                            }],
-                        },
-                        range: (range.0 - (line_1.len() + 1), range.1 - (line_1.len() + 1)),
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    annotation: Annotation {
                         annotation_type: DisplayAnnotationType::Info,
-                        annotation_part: DisplayAnnotationPart::Standalone,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Test annotation",
+                            style: DisplayTextStyle::Regular,
+                        }],
                     },
+                    range: (range.0 - (line_1.len() + 1), range.1 - (line_1.len() + 1)),
+                    annotation_type: DisplayAnnotationType::Info,
+                    annotation_part: DisplayAnnotationPart::Standalone,
                 },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
-                },
-            ],
-            stylesheet: Stylesheet::default(),
-            anonymized_line_numbers: false,
-            margin: None,
-        };
-        assert_eq!(DisplayList::from(input), output);
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1480,24 +1454,19 @@ mod tests {
             }],
             slices: vec![],
         };
-        let output = DisplayList {
-            body: vec![DisplayLine::Raw(DisplayRawLine::Annotation {
-                annotation: Annotation {
-                    annotation_type: DisplayAnnotationType::Error,
-                    id: None,
-                    label: vec![DisplayTextFragment {
-                        content: "This __is__ a title",
-                        style: DisplayTextStyle::Regular,
-                    }],
-                },
-                source_aligned: true,
-                continuation: false,
-            })],
-            stylesheet: Stylesheet::default(),
-            anonymized_line_numbers: false,
-            margin: None,
-        };
-        assert_eq!(DisplayList::from(input), output);
+        let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::Error,
+                id: None,
+                label: vec![DisplayTextFragment {
+                    content: "This __is__ a title",
+                    style: DisplayTextStyle::Regular,
+                }],
+            },
+            source_aligned: true,
+            continuation: false,
+        })]);
+        assert_eq!(DisplayList::new(input, STYLESHEET, false, None), output);
     }
 
     #[test]
@@ -1520,8 +1489,7 @@ mod tests {
                 fold: false,
             }],
         };
-
-        let _ = DisplayList::from(input);
+        let _ = DisplayList::new(input, STYLESHEET, false, None);
     }
 
     #[test]
@@ -1546,80 +1514,77 @@ mod tests {
             }],
         };
 
-        let expected = DisplayList {
-            body: vec![
-                DisplayLine::Raw(DisplayRawLine::Annotation {
+        let expected = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "oops",
+                        style: DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Origin {
+                path: "<current file>",
+                pos: Some((2, 8)),
+                header_type: DisplayHeaderType::Initial,
+            }),
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(1),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "First line",
+                    range: (0, 10),
+                },
+            },
+            DisplayLine::Source {
+                lineno: Some(2),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "Second oops line",
+                    range: (12, 28),
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
                     annotation: Annotation {
-                        annotation_type: DisplayAnnotationType::Error,
+                        annotation_type: DisplayAnnotationType::None,
                         id: None,
                         label: vec![DisplayTextFragment {
                             content: "oops",
-                            style: DisplayTextStyle::Emphasis,
+                            style: DisplayTextStyle::Regular,
                         }],
                     },
-                    source_aligned: false,
-                    continuation: false,
-                }),
-                DisplayLine::Raw(DisplayRawLine::Origin {
-                    path: "<current file>",
-                    pos: Some((2, 8)),
-                    header_type: DisplayHeaderType::Initial,
-                }),
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
+                    range: (7, 11),
+                    annotation_type: DisplayAnnotationType::Error,
+                    annotation_part: DisplayAnnotationPart::Standalone,
                 },
-                DisplayLine::Source {
-                    lineno: Some(1),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        text: "First line",
-                        range: (0, 10),
-                    },
-                },
-                DisplayLine::Source {
-                    lineno: Some(2),
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Content {
-                        text: "Second oops line",
-                        range: (12, 28),
-                    },
-                },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Annotation {
-                        annotation: Annotation {
-                            annotation_type: DisplayAnnotationType::None,
-                            id: None,
-                            label: vec![DisplayTextFragment {
-                                content: "oops",
-                                style: DisplayTextStyle::Regular,
-                            }],
-                        },
-                        range: (7, 11),
-                        annotation_type: DisplayAnnotationType::Error,
-                        annotation_part: DisplayAnnotationPart::Standalone,
-                    },
-                },
-                DisplayLine::Source {
-                    lineno: None,
-                    inline_marks: vec![],
-                    line: DisplaySourceLine::Empty,
-                },
-            ],
-            stylesheet: Stylesheet::default(),
-            anonymized_line_numbers: false,
-            margin: None,
-        };
-
-        assert_eq!(DisplayList::from(snippets), expected);
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(
+            DisplayList::new(snippets, STYLESHEET, false, None),
+            expected
+        );
     }
 
     #[test]
     fn test_source_empty() {
-        let dl = DisplayList::from(vec![DisplayLine::Source {
+        let dl = from_display_lines(vec![DisplayLine::Source {
             lineno: None,
             inline_marks: vec![],
             line: DisplaySourceLine::Empty,
@@ -1630,7 +1595,7 @@ mod tests {
 
     #[test]
     fn test_source_content() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Source {
                 lineno: Some(56),
                 inline_marks: vec![],
@@ -1657,7 +1622,7 @@ mod tests {
 
     #[test]
     fn test_source_annotation_standalone_singleline() {
-        let dl = DisplayList::from(vec![DisplayLine::Source {
+        let dl = from_display_lines(vec![DisplayLine::Source {
             lineno: None,
             inline_marks: vec![],
             line: DisplaySourceLine::Annotation {
@@ -1680,7 +1645,7 @@ mod tests {
 
     #[test]
     fn test_source_annotation_standalone_multiline() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Source {
                 lineno: None,
                 inline_marks: vec![],
@@ -1725,7 +1690,7 @@ mod tests {
 
     #[test]
     fn test_source_annotation_standalone_multi_annotation() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Source {
                 lineno: None,
                 inline_marks: vec![],
@@ -1835,7 +1800,7 @@ mod tests {
 
     #[test]
     fn test_fold_line() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Source {
                 lineno: Some(5),
                 inline_marks: vec![],
@@ -1865,7 +1830,7 @@ mod tests {
 
     #[test]
     fn test_raw_origin_initial_nopos() {
-        let dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
             path: "src/test.rs",
             pos: None,
             header_type: DisplayHeaderType::Initial,
@@ -1876,7 +1841,7 @@ mod tests {
 
     #[test]
     fn test_raw_origin_initial_pos() {
-        let dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
             path: "src/test.rs",
             pos: Some((23, 15)),
             header_type: DisplayHeaderType::Initial,
@@ -1887,7 +1852,7 @@ mod tests {
 
     #[test]
     fn test_raw_origin_continuation() {
-        let dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
             path: "src/test.rs",
             pos: Some((23, 15)),
             header_type: DisplayHeaderType::Continuation,
@@ -1898,7 +1863,7 @@ mod tests {
 
     #[test]
     fn test_raw_annotation_unaligned() {
-        let dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
                 annotation_type: DisplayAnnotationType::Error,
                 id: Some("E0001"),
@@ -1916,7 +1881,7 @@ mod tests {
 
     #[test]
     fn test_raw_annotation_unaligned_multiline() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
                     annotation_type: DisplayAnnotationType::Warning,
@@ -1951,7 +1916,7 @@ mod tests {
 
     #[test]
     fn test_raw_annotation_aligned() {
-        let dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
                 annotation_type: DisplayAnnotationType::Error,
                 id: Some("E0001"),
@@ -1969,7 +1934,7 @@ mod tests {
 
     #[test]
     fn test_raw_annotation_aligned_multiline() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
                     annotation_type: DisplayAnnotationType::Warning,
@@ -2004,7 +1969,7 @@ mod tests {
 
     #[test]
     fn test_different_annotation_types() {
-        let dl = DisplayList::from(vec![
+        let dl = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
                     annotation_type: DisplayAnnotationType::Note,
@@ -2051,7 +2016,7 @@ mod tests {
 
     #[test]
     fn test_inline_marks_empty_line() {
-        let dl = DisplayList::from(vec![DisplayLine::Source {
+        let dl = from_display_lines(vec![DisplayLine::Source {
             lineno: None,
             inline_marks: vec![DisplayMark {
                 mark_type: DisplayMarkType::AnnotationThrough,
@@ -2065,7 +2030,7 @@ mod tests {
 
     #[test]
     fn test_anon_lines() {
-        let mut dl = DisplayList::from(vec![
+        let mut dl = from_display_lines(vec![
             DisplayLine::Source {
                 lineno: Some(56),
                 inline_marks: vec![],
@@ -2106,7 +2071,7 @@ mod tests {
 
     #[test]
     fn test_raw_origin_initial_pos_anon_lines() {
-        let mut dl = DisplayList::from(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+        let mut dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
             path: "src/test.rs",
             pos: Some((23, 15)),
             header_type: DisplayHeaderType::Initial,
