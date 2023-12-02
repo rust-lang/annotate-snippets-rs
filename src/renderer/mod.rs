@@ -2,10 +2,9 @@ pub mod stylesheet;
 
 use crate::display_list::{DisplayList, Margin};
 use crate::snippet::Snippet;
+pub use anstyle::*;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
-use yansi_term::Color::Fixed;
-use yansi_term::Style;
 
 #[derive(Clone)]
 pub struct Renderer {
@@ -28,13 +27,13 @@ impl Renderer {
     pub fn styled() -> Self {
         Self {
             stylesheet: Stylesheet {
-                error: Fixed(9).bold(),
-                warning: Fixed(11).bold(),
-                info: Fixed(12).bold(),
-                note: Style::new().bold(),
-                help: Fixed(14).bold(),
-                line_no: Fixed(12).bold(),
-                emphasis: Style::new().bold(),
+                error: AnsiColor::BrightRed.on_default().effects(Effects::BOLD),
+                warning: AnsiColor::BrightYellow.on_default().effects(Effects::BOLD),
+                info: AnsiColor::BrightBlue.on_default().effects(Effects::BOLD),
+                note: Style::new().effects(Effects::BOLD),
+                help: AnsiColor::BrightCyan.on_default().effects(Effects::BOLD),
+                line_no: AnsiColor::BrightBlue.on_default().effects(Effects::BOLD),
+                emphasis: Style::new().effects(Effects::BOLD),
                 none: Style::new(),
             },
             ..Self::plain()

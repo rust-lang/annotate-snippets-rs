@@ -1,4 +1,4 @@
-use yansi_term::Style;
+use anstyle::Style;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Stylesheet {
