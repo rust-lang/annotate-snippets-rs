@@ -1,8 +1,10 @@
+mod margin;
 pub mod stylesheet;
 
-use crate::display_list::{DisplayList, Margin};
+use crate::display_list::DisplayList;
 use crate::snippet::Snippet;
 pub use anstyle::*;
+pub use margin::Margin;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
 

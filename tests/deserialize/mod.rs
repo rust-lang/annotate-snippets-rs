@@ -2,7 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use annotate_snippets::renderer::Renderer;
 use annotate_snippets::{
-    display_list::Margin,
+    renderer::Margin,
     snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
 };
 
