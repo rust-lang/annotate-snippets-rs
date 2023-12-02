@@ -1,22 +1,22 @@
-[title]
+[snippet.title]
 id = "E0308"
 label = "mismatched types"
 annotation_type = "Error"
 
-[[slices]]
+[[snippet.slices]]
 source = "                                                                                                                                                                                    let _: () = 42ñ"
 line_start = 4
 origin = "$DIR/whitespace-trimming.rs"
 
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "expected (), found integer"
 annotation_type = "Error"
 range = [192, 194]
 
-[opt]
+[renderer]
 color = false
 anonymized_line_numbers = true
-[opt.margin]
+[renderer.margin]
 whitespace_left = 180
 span_left = 192
 span_right = 194

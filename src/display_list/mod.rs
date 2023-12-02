@@ -108,13 +108,28 @@ impl<'a> Display for DisplayList<'a> {
 }
 
 impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
-    fn from(
+    fn from(snippet: snippet::Snippet<'a>) -> DisplayList<'a> {
+        Self::new(snippet, false, false, None)
+    }
+}
+
+impl<'a> DisplayList<'a> {
+    const ANONYMIZED_LINE_NUM: &'static str = "LL";
+    const ERROR_TXT: &'static str = "error";
+    const HELP_TXT: &'static str = "help";
+    const INFO_TXT: &'static str = "info";
+    const NOTE_TXT: &'static str = "note";
+    const WARNING_TXT: &'static str = "warning";
+
+    pub(crate) fn new(
         snippet::Snippet {
             title,
             footer,
             slices,
-            opt,
         }: snippet::Snippet<'a>,
+        color: bool,
+        anonymized_line_numbers: bool,
+        margin: Option<Margin>,
     ) -> DisplayList<'a> {
         let mut body = vec![];
         if let Some(annotation) = title {
@@ -126,19 +141,13 @@ impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
                 slice,
                 idx == 0,
                 !footer.is_empty(),
-                opt.margin,
+                margin,
             ));
         }
 
         for annotation in footer {
             body.append(&mut format_annotation(annotation));
         }
-
-        let FormatOptions {
-            color,
-            anonymized_line_numbers,
-            margin,
-        } = opt;
 
         Self {
             body,
@@ -147,15 +156,6 @@ impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
             margin,
         }
     }
-}
-
-impl<'a> DisplayList<'a> {
-    const ANONYMIZED_LINE_NUM: &'static str = "LL";
-    const ERROR_TXT: &'static str = "error";
-    const HELP_TXT: &'static str = "help";
-    const INFO_TXT: &'static str = "info";
-    const NOTE_TXT: &'static str = "note";
-    const WARNING_TXT: &'static str = "warning";
 
     #[inline]
     fn format_annotation_type(
@@ -525,13 +525,6 @@ impl<'a> DisplayList<'a> {
         }
         Ok(())
     }
-}
-
-#[derive(Debug, Default, Copy, Clone)]
-pub struct FormatOptions {
-    pub color: bool,
-    pub anonymized_line_numbers: bool,
-    pub margin: Option<Margin>,
 }
 
 #[derive(Clone, Copy, Debug)]

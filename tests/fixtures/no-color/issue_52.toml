@@ -1,7 +1,7 @@
-[title]
+[snippet.title]
 annotation_type = "Error"
 
-[[slices]]
+[[snippet.slices]]
 source = """
 
 
@@ -10,7 +10,7 @@ invalid syntax
 line_start = 1
 origin = "path/to/error.rs"
 fold = true
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "error here"
 annotation_type = "Warning"
 range = [2,16]

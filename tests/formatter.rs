@@ -539,7 +539,6 @@ fn test_i_29() {
             }],
             fold: true,
         }],
-        opt: Default::default(),
     };
     let expected = r#"error: oops
  --> <current file>:2:8
@@ -549,7 +548,7 @@ fn test_i_29() {
   |        ^^^^ oops
   |"#;
 
-    let renderer = Renderer;
+    let renderer = Renderer::plain();
     assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
@@ -569,7 +568,6 @@ fn test_point_to_double_width_characters() {
         }],
         title: None,
         footer: vec![],
-        opt: Default::default(),
     };
 
     let expected = r#" --> <current file>:1:7
@@ -578,7 +576,7 @@ fn test_point_to_double_width_characters() {
   |             ^^^^ world
   |"#;
 
-    let renderer = Renderer;
+    let renderer = Renderer::plain();
     assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
@@ -598,7 +596,6 @@ fn test_point_to_double_width_characters_across_lines() {
         }],
         title: None,
         footer: vec![],
-        opt: Default::default(),
     };
 
     let expected = r#" --> <current file>:1:3
@@ -609,7 +606,7 @@ fn test_point_to_double_width_characters_across_lines() {
   | |______^ Good morning
   |"#;
 
-    let renderer = Renderer;
+    let renderer = Renderer::plain();
     assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
@@ -636,7 +633,6 @@ fn test_point_to_double_width_characters_multiple() {
         }],
         title: None,
         footer: vec![],
-        opt: Default::default(),
     };
 
     let expected = r#" --> <current file>:1:1
@@ -647,7 +643,7 @@ fn test_point_to_double_width_characters_multiple() {
   |     ---- note: Sushi2
   |"#;
 
-    let renderer = Renderer;
+    let renderer = Renderer::plain();
     assert_eq!(renderer.render(snippets).to_string(), expected);
 }
 
@@ -667,7 +663,6 @@ fn test_point_to_double_width_characters_mixed() {
         }],
         title: None,
         footer: vec![],
-        opt: Default::default(),
     };
 
     let expected = r#" --> <current file>:1:7
@@ -676,6 +671,6 @@ fn test_point_to_double_width_characters_mixed() {
   |             ^^^^^^^^^^^ New world
   |"#;
 
-    let renderer = Renderer;
+    let renderer = Renderer::plain();
     assert_eq!(renderer.render(snippets).to_string(), expected);
 }
