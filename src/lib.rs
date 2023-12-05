@@ -41,7 +41,6 @@
 //!
 //! Finally, `impl Display` into a final `String` output.
 
-mod display_list;
 pub mod renderer;
 mod snippet;
 

@@ -31,12 +31,13 @@
 //!  let renderer = Renderer::styled();
 //!  println!("{}", renderer.render(snippet));
 
+mod display_list;
 mod margin;
 pub(crate) mod stylesheet;
 
-use crate::display_list::DisplayList;
 use crate::snippet::Snippet;
 pub use anstyle::*;
+use display_list::DisplayList;
 pub use margin::Margin;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
