@@ -2,8 +2,8 @@ mod deserialize;
 mod diff;
 
 use crate::deserialize::Fixture;
-use annotate_snippets::renderer::Renderer;
-use annotate_snippets::snippet::Snippet;
+use annotate_snippets::Renderer;
+use annotate_snippets::Snippet;
 use glob::glob;
 use std::{error::Error, fs::File, io, io::prelude::*};
 

@@ -29,18 +29,22 @@
 //! Snippet --> Renderer --> impl Display
 //! ```
 //!
-//! The input type - [Snippet](self::snippet) is a structure designed
+//! The input type - [Snippet] is a structure designed
 //! to align with likely output from any parser whose code snippet is to be
 //! annotated.
 //!
-//! The middle structure - [Renderer](self::renderer) is a structure designed
+//! The middle structure - [Renderer] is a structure designed
 //! to convert a snippet into an internal structure that is designed to store
 //! the snippet data in a way that is easy to format.
-//! [Renderer](self::renderer) also handles the user-configurable formatting
+//! [Renderer] also handles the user-configurable formatting
 //! options, such as color, or margins.
 //!
 //! Finally, `impl Display` into a final `String` output.
 
 mod display_list;
 pub mod renderer;
-pub mod snippet;
+mod snippet;
+
+#[doc(inline)]
+pub use renderer::Renderer;
+pub use snippet::*;

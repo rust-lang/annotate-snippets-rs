@@ -2,8 +2,7 @@
 //!
 //! # Example
 //! ```
-//! use annotate_snippets::renderer::Renderer;
-//! use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet};
+//! use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet};
 //! let snippet = Snippet {
 //!     title: Some(Annotation {
 //!         label: Some("mismatched types"),

@@ -3,7 +3,7 @@
 //! Example:
 //!
 //! ```
-//! use annotate_snippets::snippet::*;
+//! use annotate_snippets::*;
 //!
 //! Snippet {
 //!     title: Some(Annotation {

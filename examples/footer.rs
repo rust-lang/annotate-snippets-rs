@@ -1,5 +1,4 @@
-use annotate_snippets::renderer::Renderer;
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
 
 fn main() {
     let snippet = Snippet {

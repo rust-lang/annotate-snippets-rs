@@ -1,9 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
-use annotate_snippets::renderer::Renderer;
 use annotate_snippets::{
-    renderer::Margin,
-    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+    renderer::Margin, Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation,
 };
 
 #[derive(Deserialize)]

@@ -1,23 +1,22 @@
-use annotate_snippets::renderer::Renderer;
-use annotate_snippets::snippet::{self, Snippet};
+use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
 
 #[test]
 fn test_i_29() {
     let snippets = Snippet {
-        title: Some(snippet::Annotation {
+        title: Some(Annotation {
             id: None,
             label: Some("oops"),
-            annotation_type: snippet::AnnotationType::Error,
+            annotation_type: AnnotationType::Error,
         }),
         footer: vec![],
-        slices: vec![snippet::Slice {
+        slices: vec![Slice {
             source: "First line\r\nSecond oops line",
             line_start: 1,
             origin: Some("<current file>"),
-            annotations: vec![snippet::SourceAnnotation {
+            annotations: vec![SourceAnnotation {
                 range: (19, 23),
                 label: "oops",
-                annotation_type: snippet::AnnotationType::Error,
+                annotation_type: AnnotationType::Error,
             }],
             fold: true,
         }],
@@ -37,14 +36,14 @@ fn test_i_29() {
 #[test]
 fn test_point_to_double_width_characters() {
     let snippets = Snippet {
-        slices: vec![snippet::Slice {
+        slices: vec![Slice {
             source: "こんにちは、世界",
             line_start: 1,
             origin: Some("<current file>"),
-            annotations: vec![snippet::SourceAnnotation {
+            annotations: vec![SourceAnnotation {
                 range: (6, 8),
                 label: "world",
-                annotation_type: snippet::AnnotationType::Error,
+                annotation_type: AnnotationType::Error,
             }],
             fold: false,
         }],
@@ -65,14 +64,14 @@ fn test_point_to_double_width_characters() {
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
     let snippets = Snippet {
-        slices: vec![snippet::Slice {
+        slices: vec![Slice {
             source: "おはよう\nございます",
             line_start: 1,
             origin: Some("<current file>"),
-            annotations: vec![snippet::SourceAnnotation {
+            annotations: vec![SourceAnnotation {
                 range: (2, 8),
                 label: "Good morning",
-                annotation_type: snippet::AnnotationType::Error,
+                annotation_type: AnnotationType::Error,
             }],
             fold: false,
         }],
@@ -95,20 +94,20 @@ fn test_point_to_double_width_characters_across_lines() {
 #[test]
 fn test_point_to_double_width_characters_multiple() {
     let snippets = Snippet {
-        slices: vec![snippet::Slice {
+        slices: vec![Slice {
             source: "お寿司\n食べたい🍣",
             line_start: 1,
             origin: Some("<current file>"),
             annotations: vec![
-                snippet::SourceAnnotation {
+                SourceAnnotation {
                     range: (0, 3),
                     label: "Sushi1",
-                    annotation_type: snippet::AnnotationType::Error,
+                    annotation_type: AnnotationType::Error,
                 },
-                snippet::SourceAnnotation {
+                SourceAnnotation {
                     range: (6, 8),
                     label: "Sushi2",
-                    annotation_type: snippet::AnnotationType::Note,
+                    annotation_type: AnnotationType::Note,
                 },
             ],
             fold: false,
@@ -132,14 +131,14 @@ fn test_point_to_double_width_characters_multiple() {
 #[test]
 fn test_point_to_double_width_characters_mixed() {
     let snippets = Snippet {
-        slices: vec![snippet::Slice {
+        slices: vec![Slice {
             source: "こんにちは、新しいWorld！",
             line_start: 1,
             origin: Some("<current file>"),
-            annotations: vec![snippet::SourceAnnotation {
+            annotations: vec![SourceAnnotation {
                 range: (6, 14),
                 label: "New world",
-                annotation_type: snippet::AnnotationType::Error,
+                annotation_type: AnnotationType::Error,
             }],
             fold: false,
         }],

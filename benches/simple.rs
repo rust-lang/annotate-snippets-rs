@@ -4,8 +4,7 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
-use annotate_snippets::renderer::Renderer;
-use annotate_snippets::snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
 
 fn create_snippet(renderer: Renderer) {
     let snippet = Snippet {
