@@ -3,7 +3,7 @@
 //! Example:
 //!
 //! ```
-//! use annotate_snippets::snippet::*;
+//! use annotate_snippets::*;
 //!
 //! Snippet {
 //!     title: Some(Annotation {
@@ -28,10 +28,8 @@
 //!             annotations: vec![],
 //!         },
 //!     ],
-//!     opt: Default::default(),
 //! };
 //! ```
-use crate::display_list::FormatOptions;
 
 /// Primary structure provided for formatting
 #[derive(Debug, Default)]
@@ -39,7 +37,6 @@ pub struct Snippet<'a> {
     pub title: Option<Annotation<'a>>,
     pub footer: Vec<Annotation<'a>>,
     pub slices: Vec<Slice<'a>>,
-    pub opt: FormatOptions,
 }
 
 /// Structure containing the slice of text to be annotated and

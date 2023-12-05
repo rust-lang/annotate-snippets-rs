@@ -1,7 +1,4 @@
-use annotate_snippets::{
-    display_list::{DisplayList, FormatOptions},
-    snippet::{Annotation, AnnotationType, Slice, Snippet},
-};
+use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet};
 
 fn main() {
     let snippet = Snippet {
@@ -27,12 +24,8 @@ fn main() {
                 annotations: vec![],
             },
         ],
-        opt: FormatOptions {
-            color: true,
-            ..Default::default()
-        },
     };
 
-    let dl = DisplayList::from(snippet);
-    println!("{}", dl);
+    let renderer = Renderer::plain();
+    println!("{}", renderer.render(snippet));
 }

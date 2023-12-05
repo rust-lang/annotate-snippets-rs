@@ -1,4 +1,4 @@
-[[slices]]
+[[snippet.slices]]
 source = """
 fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {
     if let Some(annotation) = main_annotation {
@@ -11,15 +11,15 @@ fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>
 }
 """
 line_start = 96
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "Variable defined here"
 annotation_type = "Error"
 range = [100, 110]
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "Referenced here"
 annotation_type = "Error"
 range = [184, 194]
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "Referenced again here"
 annotation_type = "Error"
 range = [243, 253]

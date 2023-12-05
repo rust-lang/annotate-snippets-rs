@@ -1,9 +1,16 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
 use annotate_snippets::{
-    display_list::{FormatOptions, Margin},
-    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
+    renderer::Margin, Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation,
 };
+
+#[derive(Deserialize)]
+pub struct Fixture<'a> {
+    #[serde(default)]
+    pub renderer: RendererDef,
+    #[serde(borrow)]
+    pub snippet: SnippetDef<'a>,
+}
 
 #[derive(Deserialize)]
 pub struct SnippetDef<'a> {
@@ -15,9 +22,6 @@ pub struct SnippetDef<'a> {
     #[serde(default)]
     #[serde(borrow)]
     pub footer: Vec<Annotation<'a>>,
-    #[serde(deserialize_with = "deserialize_opt")]
-    #[serde(default)]
-    pub opt: FormatOptions,
     #[serde(deserialize_with = "deserialize_slices")]
     #[serde(borrow)]
     pub slices: Vec<Slice<'a>>,
@@ -28,74 +32,14 @@ impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
         let SnippetDef {
             title,
             footer,
-            opt,
             slices,
         } = val;
         Snippet {
             title,
             footer,
             slices,
-            opt,
         }
     }
-}
-
-fn deserialize_opt<'de, D>(deserializer: D) -> Result<FormatOptions, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper(#[serde(with = "FormatOptionsDef")] FormatOptions);
-
-    Wrapper::deserialize(deserializer).map(|w| w.0)
-}
-
-#[derive(Deserialize)]
-#[serde(remote = "FormatOptions")]
-pub struct FormatOptionsDef {
-    #[serde(default)]
-    pub color: bool,
-    #[serde(default)]
-    pub anonymized_line_numbers: bool,
-    #[serde(deserialize_with = "deserialize_margin")]
-    #[serde(default)]
-    pub margin: Option<Margin>,
-}
-
-fn deserialize_margin<'de, D>(deserializer: D) -> Result<Option<Margin>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper {
-        whitespace_left: usize,
-        span_left: usize,
-        span_right: usize,
-        label_right: usize,
-        column_width: usize,
-        max_line_len: usize,
-    }
-
-    Option::<Wrapper>::deserialize(deserializer).map(|opt_wrapped: Option<Wrapper>| {
-        opt_wrapped.map(|wrapped: Wrapper| {
-            let Wrapper {
-                whitespace_left,
-                span_left,
-                span_right,
-                label_right,
-                column_width,
-                max_line_len,
-            } = wrapped;
-            Margin::new(
-                whitespace_left,
-                span_left,
-                span_right,
-                label_right,
-                column_width,
-                max_line_len,
-            )
-        })
-    })
 }
 
 fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice<'de>>, D::Error>
@@ -205,4 +149,61 @@ enum AnnotationTypeDef {
     Info,
     Note,
     Help,
+}
+
+#[derive(Default, Deserialize)]
+pub struct RendererDef {
+    #[serde(default)]
+    anonymized_line_numbers: bool,
+    #[serde(deserialize_with = "deserialize_margin")]
+    #[serde(default)]
+    margin: Option<Margin>,
+}
+
+impl From<RendererDef> for Renderer {
+    fn from(val: RendererDef) -> Self {
+        let RendererDef {
+            anonymized_line_numbers,
+            margin,
+        } = val;
+        Renderer::plain()
+            .anonymized_line_numbers(anonymized_line_numbers)
+            .margin(margin)
+    }
+}
+
+fn deserialize_margin<'de, D>(deserializer: D) -> Result<Option<Margin>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper {
+        whitespace_left: usize,
+        span_left: usize,
+        span_right: usize,
+        label_right: usize,
+        column_width: usize,
+        max_line_len: usize,
+    }
+
+    Option::<Wrapper>::deserialize(deserializer).map(|opt_wrapped: Option<Wrapper>| {
+        opt_wrapped.map(|wrapped: Wrapper| {
+            let Wrapper {
+                whitespace_left,
+                span_left,
+                span_right,
+                label_right,
+                column_width,
+                max_line_len,
+            } = wrapped;
+            Margin::new(
+                whitespace_left,
+                span_left,
+                span_right,
+                label_right,
+                column_width,
+                max_line_len,
+            )
+        })
+    })
 }

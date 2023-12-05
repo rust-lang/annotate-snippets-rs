@@ -4,12 +4,9 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
-use annotate_snippets::{
-    display_list::{DisplayList, FormatOptions},
-    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
-};
+use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
 
-fn create_snippet() {
+fn create_snippet(renderer: Renderer) {
     let snippet = Snippet {
         slices: vec![Slice {
             source: r#") -> Option<String> {
@@ -56,18 +53,15 @@ fn create_snippet() {
             annotation_type: AnnotationType::Error,
         }),
         footer: vec![],
-        opt: FormatOptions {
-            color: true,
-            ..Default::default()
-        },
     };
 
-    let dl = DisplayList::from(snippet);
-    let _result = dl.to_string();
+    let _result = renderer.render(snippet).to_string();
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("format", |b| b.iter(|| black_box(create_snippet())));
+    c.bench_function("format", |b| {
+        b.iter(|| black_box(create_snippet(Renderer::plain())))
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);

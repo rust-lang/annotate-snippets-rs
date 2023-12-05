@@ -1,4 +1,4 @@
-[[slices]]
+[[snippet.slices]]
 source = """
 ) -> Option<String> {
     for ann in annotations {
@@ -26,15 +26,15 @@ source = """
 line_start = 51
 origin = "src/format.rs"
 fold = true
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "expected `std::option::Option<std::string::String>` because of return type"
 annotation_type = "Warning"
 range = [5, 19]
-[[slices.annotations]]
+[[snippet.slices.annotations]]
 label = "expected enum `std::option::Option`, found ()"
 annotation_type = "Error"
 range = [22, 766]
-[title]
+[snippet.title]
 label = "mismatched types"
 id = "E0308"
 annotation_type =  "Error"

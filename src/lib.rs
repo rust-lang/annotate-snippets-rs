@@ -26,29 +26,24 @@
 //! The crate uses a three stage process with two conversions between states:
 //!
 //! ```text
-//! Snippet --> DisplayList --> String
+//! Snippet --> Renderer --> impl Display
 //! ```
 //!
-//! The input type - [Snippet](self::snippet) is a structure designed
+//! The input type - [Snippet] is a structure designed
 //! to align with likely output from any parser whose code snippet is to be
 //! annotated.
 //!
-//! The middle structure - [DisplayList](self::display_list) is a
-//! structure designed to store the snippet data converted into a vector
-//! of lines containing semantic information about each line.
-//! This structure is the easiest to manipulate and organize.
+//! The middle structure - [Renderer] is a structure designed
+//! to convert a snippet into an internal structure that is designed to store
+//! the snippet data in a way that is easy to format.
+//! [Renderer] also handles the user-configurable formatting
+//! options, such as color, or margins.
 //!
 //! Finally, `impl Display` into a final `String` output.
-//!
-//! A user of the crate may choose to provide their own equivalent of the input
-//! structure with an `Into<DisplayList>` trait.
-//!
-//! A user of the crate may also choose to provide their own formatter logic,
-//! to convert a `DisplayList` into a `String`, or just a `Stylesheet` to
-//! use the crate's formatting logic, but with a custom stylesheet.
-// TODO: check documentation
 
-pub mod display_list;
-pub mod formatter;
-pub mod snippet;
-pub mod stylesheets;
+pub mod renderer;
+mod snippet;
+
+#[doc(inline)]
+pub use renderer::Renderer;
+pub use snippet::*;

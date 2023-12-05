@@ -31,31 +31,18 @@
 //! styling.
 //!
 //! The above snippet has been built out of the following structure:
-use std::cmp::{max, min};
+use crate::snippet;
 use std::fmt::{Display, Write};
 use std::{cmp, fmt};
 
-use crate::formatter::style::{Style, StyleClass};
-use crate::formatter::{get_term_style, style::Stylesheet};
-use crate::snippet;
+use crate::renderer::{stylesheet::Stylesheet, Margin, Style};
 
 /// List of lines to be displayed.
-pub struct DisplayList<'a> {
+pub(crate) struct DisplayList<'a> {
     pub body: Vec<DisplayLine<'a>>,
-    pub stylesheet: Box<dyn Stylesheet>,
+    pub stylesheet: &'a Stylesheet,
     pub anonymized_line_numbers: bool,
     pub margin: Option<Margin>,
-}
-
-impl<'a> From<Vec<DisplayLine<'a>>> for DisplayList<'a> {
-    fn from(body: Vec<DisplayLine<'a>>) -> DisplayList<'a> {
-        Self {
-            body,
-            anonymized_line_numbers: false,
-            stylesheet: get_term_style(false),
-            margin: None,
-        }
-    }
 }
 
 impl<'a> PartialEq for DisplayList<'a> {
@@ -107,14 +94,23 @@ impl<'a> Display for DisplayList<'a> {
     }
 }
 
-impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
-    fn from(
+impl<'a> DisplayList<'a> {
+    const ANONYMIZED_LINE_NUM: &'static str = "LL";
+    const ERROR_TXT: &'static str = "error";
+    const HELP_TXT: &'static str = "help";
+    const INFO_TXT: &'static str = "info";
+    const NOTE_TXT: &'static str = "note";
+    const WARNING_TXT: &'static str = "warning";
+
+    pub(crate) fn new(
         snippet::Snippet {
             title,
             footer,
             slices,
-            opt,
         }: snippet::Snippet<'a>,
+        stylesheet: &'a Stylesheet,
+        anonymized_line_numbers: bool,
+        margin: Option<Margin>,
     ) -> DisplayList<'a> {
         let mut body = vec![];
         if let Some(annotation) = title {
@@ -126,7 +122,7 @@ impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
                 slice,
                 idx == 0,
                 !footer.is_empty(),
-                opt.margin,
+                margin,
             ));
         }
 
@@ -134,28 +130,13 @@ impl<'a> From<snippet::Snippet<'a>> for DisplayList<'a> {
             body.append(&mut format_annotation(annotation));
         }
 
-        let FormatOptions {
-            color,
-            anonymized_line_numbers,
-            margin,
-        } = opt;
-
         Self {
             body,
-            stylesheet: get_term_style(color),
+            stylesheet,
             anonymized_line_numbers,
             margin,
         }
     }
-}
-
-impl<'a> DisplayList<'a> {
-    const ANONYMIZED_LINE_NUM: &'static str = "LL";
-    const ERROR_TXT: &'static str = "error";
-    const HELP_TXT: &'static str = "help";
-    const INFO_TXT: &'static str = "info";
-    const NOTE_TXT: &'static str = "note";
-    const WARNING_TXT: &'static str = "warning";
 
     #[inline]
     fn format_annotation_type(
@@ -183,15 +164,15 @@ impl<'a> DisplayList<'a> {
         }
     }
 
-    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> Box<dyn Style> {
-        self.stylesheet.get_style(match annotation_type {
-            DisplayAnnotationType::Error => StyleClass::Error,
-            DisplayAnnotationType::Warning => StyleClass::Warning,
-            DisplayAnnotationType::Info => StyleClass::Info,
-            DisplayAnnotationType::Note => StyleClass::Note,
-            DisplayAnnotationType::Help => StyleClass::Help,
-            DisplayAnnotationType::None => StyleClass::None,
-        })
+    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> &Style {
+        match annotation_type {
+            DisplayAnnotationType::Error => self.stylesheet.error(),
+            DisplayAnnotationType::Warning => self.stylesheet.warning(),
+            DisplayAnnotationType::Info => self.stylesheet.info(),
+            DisplayAnnotationType::Note => self.stylesheet.note(),
+            DisplayAnnotationType::Help => self.stylesheet.help(),
+            DisplayAnnotationType::None => self.stylesheet.none(),
+        }
     }
 
     fn format_label(
@@ -199,12 +180,20 @@ impl<'a> DisplayList<'a> {
         label: &[DisplayTextFragment<'_>],
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
-        let emphasis_style = self.stylesheet.get_style(StyleClass::Emphasis);
+        let emphasis_style = self.stylesheet.emphasis();
 
         for fragment in label {
             match fragment.style {
                 DisplayTextStyle::Regular => fragment.content.fmt(f)?,
-                DisplayTextStyle::Emphasis => emphasis_style.paint(fragment.content, f)?,
+                DisplayTextStyle::Emphasis => {
+                    write!(
+                        f,
+                        "{}{}{}",
+                        emphasis_style.render(),
+                        fragment.content,
+                        emphasis_style.render_reset()
+                    )?;
+                }
             }
         }
         Ok(())
@@ -231,27 +220,21 @@ impl<'a> DisplayList<'a> {
         if formatted_len == 0 {
             self.format_label(&annotation.label, f)
         } else {
-            color.paint_fn(
-                Box::new(|f| {
-                    Self::format_annotation_type(&annotation.annotation_type, f)?;
-                    if let Some(id) = &annotation.id {
-                        f.write_char('[')?;
-                        f.write_str(id)?;
-                        f.write_char(']')?;
-                    }
-                    Ok(())
-                }),
-                f,
-            )?;
+            write!(f, "{}", color.render())?;
+            Self::format_annotation_type(&annotation.annotation_type, f)?;
+            if let Some(id) = &annotation.id {
+                f.write_char('[')?;
+                f.write_str(id)?;
+                f.write_char(']')?;
+            }
+            write!(f, "{}", color.render_reset())?;
+
             if !is_annotation_empty(annotation) {
                 if in_source {
-                    color.paint_fn(
-                        Box::new(|f| {
-                            f.write_str(": ")?;
-                            self.format_label(&annotation.label, f)
-                        }),
-                        f,
-                    )?;
+                    write!(f, "{}", color.render())?;
+                    f.write_str(": ")?;
+                    self.format_label(&annotation.label, f)?;
+                    write!(f, "{}", color.render_reset())?;
                 } else {
                     f.write_str(": ")?;
                     self.format_label(&annotation.label, f)?;
@@ -343,7 +326,6 @@ impl<'a> DisplayList<'a> {
                 let indent_char = match annotation_part {
                     DisplayAnnotationPart::Standalone => ' ',
                     DisplayAnnotationPart::LabelContinuation => ' ',
-                    DisplayAnnotationPart::Consequitive => ' ',
                     DisplayAnnotationPart::MultilineStart => '_',
                     DisplayAnnotationPart::MultilineEnd => '_',
                 };
@@ -358,31 +340,24 @@ impl<'a> DisplayList<'a> {
                 let color = self.get_annotation_style(annotation_type);
                 let indent_length = match annotation_part {
                     DisplayAnnotationPart::LabelContinuation => range.1,
-                    DisplayAnnotationPart::Consequitive => range.1,
                     _ => range.0,
                 };
 
-                color.paint_fn(
-                    Box::new(|f| {
-                        format_repeat_char(indent_char, indent_length + 1, f)?;
-                        format_repeat_char(mark, range.1 - indent_length, f)
-                    }),
-                    f,
-                )?;
+                write!(f, "{}", color.render())?;
+                format_repeat_char(indent_char, indent_length + 1, f)?;
+                format_repeat_char(mark, range.1 - indent_length, f)?;
+                write!(f, "{}", color.render_reset())?;
 
                 if !is_annotation_empty(annotation) {
                     f.write_char(' ')?;
-                    color.paint_fn(
-                        Box::new(|f| {
-                            self.format_annotation(
-                                annotation,
-                                annotation_part == &DisplayAnnotationPart::LabelContinuation,
-                                true,
-                                f,
-                            )
-                        }),
+                    write!(f, "{}", color.render())?;
+                    self.format_annotation(
+                        annotation,
+                        annotation_part == &DisplayAnnotationPart::LabelContinuation,
+                        true,
                         f,
                     )?;
+                    write!(f, "{}", color.render_reset())?;
                 }
 
                 Ok(())
@@ -407,11 +382,17 @@ impl<'a> DisplayList<'a> {
                     DisplayHeaderType::Initial => "-->",
                     DisplayHeaderType::Continuation => ":::",
                 };
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                let lineno_color = self.stylesheet.line_no();
 
                 if let Some((col, row)) = pos {
                     format_repeat_char(' ', lineno_width, f)?;
-                    lineno_color.paint(header_sigil, f)?;
+                    write!(
+                        f,
+                        "{}{}{}",
+                        lineno_color.render(),
+                        header_sigil,
+                        lineno_color.render_reset()
+                    )?;
                     f.write_char(' ')?;
                     path.fmt(f)?;
                     f.write_char(':')?;
@@ -420,7 +401,13 @@ impl<'a> DisplayList<'a> {
                     row.fmt(f)
                 } else {
                     format_repeat_char(' ', lineno_width, f)?;
-                    lineno_color.paint(header_sigil, f)?;
+                    write!(
+                        f,
+                        "{}{}{}",
+                        lineno_color.render(),
+                        header_sigil,
+                        lineno_color.render_reset()
+                    )?;
                     f.write_char(' ')?;
                     path.fmt(f)
                 }
@@ -434,10 +421,15 @@ impl<'a> DisplayList<'a> {
                     if *continuation {
                         format_repeat_char(' ', lineno_width + 3, f)?;
                     } else {
-                        let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                        let lineno_color = self.stylesheet.line_no();
                         format_repeat_char(' ', lineno_width, f)?;
                         f.write_char(' ')?;
-                        lineno_color.paint("=", f)?;
+                        write!(
+                            f,
+                            "{}={}",
+                            lineno_color.render(),
+                            lineno_color.render_reset()
+                        )?;
                         f.write_char(' ')?;
                     }
                 }
@@ -460,26 +452,20 @@ impl<'a> DisplayList<'a> {
                 inline_marks,
                 line,
             } => {
-                let lineno_color = self.stylesheet.get_style(StyleClass::LineNo);
+                let lineno_color = self.stylesheet.line_no();
                 if self.anonymized_line_numbers && lineno.is_some() {
-                    lineno_color.paint_fn(
-                        Box::new(|f| {
-                            f.write_str(Self::ANONYMIZED_LINE_NUM)?;
-                            f.write_str(" |")
-                        }),
-                        f,
-                    )?;
+                    write!(f, "{}", lineno_color.render())?;
+                    f.write_str(Self::ANONYMIZED_LINE_NUM)?;
+                    f.write_str(" |")?;
+                    write!(f, "{}", lineno_color.render_reset())?;
                 } else {
-                    lineno_color.paint_fn(
-                        Box::new(|f| {
-                            match lineno {
-                                Some(n) => write!(f, "{:>width$}", n, width = lineno_width),
-                                None => format_repeat_char(' ', lineno_width, f),
-                            }?;
-                            f.write_str(" |")
-                        }),
-                        f,
-                    )?;
+                    write!(f, "{}", lineno_color.render())?;
+                    match lineno {
+                        Some(n) => write!(f, "{:>width$}", n, width = lineno_width),
+                        None => format_repeat_char(' ', lineno_width, f),
+                    }?;
+                    f.write_str(" |")?;
+                    write!(f, "{}", lineno_color.render_reset())?;
                 }
                 if *line != DisplaySourceLine::Empty {
                     if !inline_marks.is_empty() || 0 < inline_marks_width {
@@ -513,138 +499,15 @@ impl<'a> DisplayList<'a> {
     ) -> fmt::Result {
         format_repeat_char(' ', inline_marks_width - inline_marks.len(), f)?;
         for mark in inline_marks {
-            self.get_annotation_style(&mark.annotation_type).paint_fn(
-                Box::new(|f| {
-                    f.write_char(match mark.mark_type {
-                        DisplayMarkType::AnnotationThrough => '|',
-                        DisplayMarkType::AnnotationStart => '/',
-                    })
-                }),
-                f,
-            )?;
+            let annotation_style = self.get_annotation_style(&mark.annotation_type);
+            write!(f, "{}", annotation_style.render())?;
+            f.write_char(match mark.mark_type {
+                DisplayMarkType::AnnotationThrough => '|',
+                DisplayMarkType::AnnotationStart => '/',
+            })?;
+            write!(f, "{}", annotation_style.render_reset())?;
         }
         Ok(())
-    }
-}
-
-#[derive(Debug, Default, Copy, Clone)]
-pub struct FormatOptions {
-    pub color: bool,
-    pub anonymized_line_numbers: bool,
-    pub margin: Option<Margin>,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Margin {
-    /// The available whitespace in the left that can be consumed when centering.
-    whitespace_left: usize,
-    /// The column of the beginning of left-most span.
-    span_left: usize,
-    /// The column of the end of right-most span.
-    span_right: usize,
-    /// The beginning of the line to be displayed.
-    computed_left: usize,
-    /// The end of the line to be displayed.
-    computed_right: usize,
-    /// The current width of the terminal. 140 by default and in tests.
-    column_width: usize,
-    /// The end column of a span label, including the span. Doesn't account for labels not in the
-    /// same line as the span.
-    label_right: usize,
-}
-
-impl Margin {
-    pub fn new(
-        whitespace_left: usize,
-        span_left: usize,
-        span_right: usize,
-        label_right: usize,
-        column_width: usize,
-        max_line_len: usize,
-    ) -> Self {
-        // The 6 is padding to give a bit of room for `...` when displaying:
-        // ```
-        // error: message
-        //   --> file.rs:16:58
-        //    |
-        // 16 | ... fn foo(self) -> Self::Bar {
-        //    |                     ^^^^^^^^^
-        // ```
-
-        let mut m = Margin {
-            whitespace_left: whitespace_left.saturating_sub(6),
-            span_left: span_left.saturating_sub(6),
-            span_right: span_right + 6,
-            computed_left: 0,
-            computed_right: 0,
-            column_width,
-            label_right: label_right + 6,
-        };
-        m.compute(max_line_len);
-        m
-    }
-
-    pub(crate) fn was_cut_left(&self) -> bool {
-        self.computed_left > 0
-    }
-
-    pub(crate) fn was_cut_right(&self, line_len: usize) -> bool {
-        let right =
-            if self.computed_right == self.span_right || self.computed_right == self.label_right {
-                // Account for the "..." padding given above. Otherwise we end up with code lines that
-                // do fit but end in "..." as if they were trimmed.
-                self.computed_right - 6
-            } else {
-                self.computed_right
-            };
-        right < line_len && self.computed_left + self.column_width < line_len
-    }
-
-    fn compute(&mut self, max_line_len: usize) {
-        // When there's a lot of whitespace (>20), we want to trim it as it is useless.
-        self.computed_left = if self.whitespace_left > 20 {
-            self.whitespace_left - 16 // We want some padding.
-        } else {
-            0
-        };
-        // We want to show as much as possible, max_line_len is the right-most boundary for the
-        // relevant code.
-        self.computed_right = max(max_line_len, self.computed_left);
-
-        if self.computed_right - self.computed_left > self.column_width {
-            // Trimming only whitespace isn't enough, let's get craftier.
-            if self.label_right - self.whitespace_left <= self.column_width {
-                // Attempt to fit the code window only trimming whitespace.
-                self.computed_left = self.whitespace_left;
-                self.computed_right = self.computed_left + self.column_width;
-            } else if self.label_right - self.span_left <= self.column_width {
-                // Attempt to fit the code window considering only the spans and labels.
-                let padding_left = (self.column_width - (self.label_right - self.span_left)) / 2;
-                self.computed_left = self.span_left.saturating_sub(padding_left);
-                self.computed_right = self.computed_left + self.column_width;
-            } else if self.span_right - self.span_left <= self.column_width {
-                // Attempt to fit the code window considering the spans and labels plus padding.
-                let padding_left = (self.column_width - (self.span_right - self.span_left)) / 5 * 2;
-                self.computed_left = self.span_left.saturating_sub(padding_left);
-                self.computed_right = self.computed_left + self.column_width;
-            } else {
-                // Mostly give up but still don't show the full line.
-                self.computed_left = self.span_left;
-                self.computed_right = self.span_right;
-            }
-        }
-    }
-
-    pub(crate) fn left(&self, line_len: usize) -> usize {
-        min(self.computed_left, line_len)
-    }
-
-    pub(crate) fn right(&self, line_len: usize) -> usize {
-        if line_len.saturating_sub(self.computed_left) <= self.column_width {
-            line_len
-        } else {
-            min(line_len, self.computed_right)
-        }
     }
 }
 
@@ -744,8 +607,6 @@ pub enum DisplayAnnotationPart {
     Standalone,
     /// A continuation of a multi-line label of an annotation.
     LabelContinuation,
-    /// A consequitive annotation in case multiple annotations annotate a single line.
-    Consequitive,
     /// A line starting a multiline annotation.
     MultilineStart,
     /// A line ending a multiline annotation.
@@ -1345,4 +1206,879 @@ fn is_annotation_empty(annotation: &Annotation<'_>) -> bool {
         .label
         .iter()
         .all(|fragment| fragment.content.is_empty())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const STYLESHEET: Stylesheet = Stylesheet::plain();
+
+    fn from_display_lines(lines: Vec<DisplayLine<'_>>) -> DisplayList<'_> {
+        DisplayList {
+            body: lines,
+            stylesheet: &STYLESHEET,
+            anonymized_line_numbers: false,
+            margin: None,
+        }
+    }
+
+    #[test]
+    fn test_format_title() {
+        let input = snippet::Snippet {
+            title: Some(snippet::Annotation {
+                id: Some("E0001"),
+                label: Some("This is a title"),
+                annotation_type: snippet::AnnotationType::Error,
+            }),
+            footer: vec![],
+            slices: vec![],
+        };
+        let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::Error,
+                id: Some("E0001"),
+                label: vec![DisplayTextFragment {
+                    content: "This is a title",
+                    style: DisplayTextStyle::Emphasis,
+                }],
+            },
+            source_aligned: false,
+            continuation: false,
+        })]);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
+    }
+
+    #[test]
+    fn test_format_slice() {
+        let line_1 = "This is line 1";
+        let line_2 = "This is line 2";
+        let source = [line_1, line_2].join("\n");
+        let input = snippet::Snippet {
+            title: None,
+            footer: vec![],
+            slices: vec![snippet::Slice {
+                source: &source,
+                line_start: 5402,
+                origin: None,
+                annotations: vec![],
+                fold: false,
+            }],
+        };
+        let output = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(5402),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: line_1,
+                    range: (0, line_1.len()),
+                },
+            },
+            DisplayLine::Source {
+                lineno: Some(5403),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    range: (line_1.len() + 1, source.len()),
+                    text: line_2,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
+    }
+
+    #[test]
+    fn test_format_slices_continuation() {
+        let src_0 = "This is slice 1";
+        let src_0_len = src_0.len();
+        let src_1 = "This is slice 2";
+        let src_1_len = src_1.len();
+        let input = snippet::Snippet {
+            title: None,
+            footer: vec![],
+            slices: vec![
+                snippet::Slice {
+                    source: src_0,
+                    line_start: 5402,
+                    origin: Some("file1.rs"),
+                    annotations: vec![],
+                    fold: false,
+                },
+                snippet::Slice {
+                    source: src_1,
+                    line_start: 2,
+                    origin: Some("file2.rs"),
+                    annotations: vec![],
+                    fold: false,
+                },
+            ],
+        };
+        let output = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Origin {
+                path: "file1.rs",
+                pos: None,
+                header_type: DisplayHeaderType::Initial,
+            }),
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(5402),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: src_0,
+                    range: (0, src_0_len),
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Raw(DisplayRawLine::Origin {
+                path: "file2.rs",
+                pos: None,
+                header_type: DisplayHeaderType::Continuation,
+            }),
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(2),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: src_1,
+                    range: (0, src_1_len),
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
+    }
+
+    #[test]
+    fn test_format_slice_annotation_standalone() {
+        let line_1 = "This is line 1";
+        let line_2 = "This is line 2";
+        let source = [line_1, line_2].join("\n");
+        // In line 2
+        let range = (22, 24);
+        let input = snippet::Snippet {
+            title: None,
+            footer: vec![],
+            slices: vec![snippet::Slice {
+                source: &source,
+                line_start: 5402,
+                origin: None,
+                annotations: vec![snippet::SourceAnnotation {
+                    range,
+                    label: "Test annotation",
+                    annotation_type: snippet::AnnotationType::Info,
+                }],
+                fold: false,
+            }],
+        };
+        let output = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(5402),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    range: (0, line_1.len()),
+                    text: line_1,
+                },
+            },
+            DisplayLine::Source {
+                lineno: Some(5403),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    range: (line_1.len() + 1, source.len()),
+                    text: line_2,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Info,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Test annotation",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    range: (range.0 - (line_1.len() + 1), range.1 - (line_1.len() + 1)),
+                    annotation_type: DisplayAnnotationType::Info,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
+    }
+
+    #[test]
+    fn test_format_label() {
+        let input = snippet::Snippet {
+            title: None,
+            footer: vec![snippet::Annotation {
+                id: None,
+                label: Some("This __is__ a title"),
+                annotation_type: snippet::AnnotationType::Error,
+            }],
+            slices: vec![],
+        };
+        let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::Error,
+                id: None,
+                label: vec![DisplayTextFragment {
+                    content: "This __is__ a title",
+                    style: DisplayTextStyle::Regular,
+                }],
+            },
+            source_aligned: true,
+            continuation: false,
+        })]);
+        assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_i26() {
+        let source = "short";
+        let label = "label";
+        let input = snippet::Snippet {
+            title: None,
+            footer: vec![],
+            slices: vec![snippet::Slice {
+                annotations: vec![snippet::SourceAnnotation {
+                    range: (0, source.len() + 1),
+                    label,
+                    annotation_type: snippet::AnnotationType::Error,
+                }],
+                source,
+                line_start: 0,
+                origin: None,
+                fold: false,
+            }],
+        };
+        let _ = DisplayList::new(input, &STYLESHEET, false, None);
+    }
+
+    #[test]
+    fn test_i_29() {
+        let snippets = snippet::Snippet {
+            title: Some(snippet::Annotation {
+                id: None,
+                label: Some("oops"),
+                annotation_type: snippet::AnnotationType::Error,
+            }),
+            footer: vec![],
+            slices: vec![snippet::Slice {
+                source: "First line\r\nSecond oops line",
+                line_start: 1,
+                origin: Some("<current file>"),
+                annotations: vec![snippet::SourceAnnotation {
+                    range: (19, 23),
+                    label: "oops",
+                    annotation_type: snippet::AnnotationType::Error,
+                }],
+                fold: true,
+            }],
+        };
+
+        let expected = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "oops",
+                        style: DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Origin {
+                path: "<current file>",
+                pos: Some((2, 8)),
+                header_type: DisplayHeaderType::Initial,
+            }),
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: Some(1),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "First line",
+                    range: (0, 10),
+                },
+            },
+            DisplayLine::Source {
+                lineno: Some(2),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "Second oops line",
+                    range: (12, 28),
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::None,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "oops",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    range: (7, 11),
+                    annotation_type: DisplayAnnotationType::Error,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+        ]);
+        assert_eq!(
+            DisplayList::new(snippets, &STYLESHEET, false, None),
+            expected
+        );
+    }
+
+    #[test]
+    fn test_source_empty() {
+        let dl = from_display_lines(vec![DisplayLine::Source {
+            lineno: None,
+            inline_marks: vec![],
+            line: DisplaySourceLine::Empty,
+        }]);
+
+        assert_eq!(dl.to_string(), " |");
+    }
+
+    #[test]
+    fn test_source_content() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: Some(56),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "This is an example",
+                    range: (0, 19),
+                },
+            },
+            DisplayLine::Source {
+                lineno: Some(57),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "of content lines",
+                    range: (0, 19),
+                },
+            },
+        ]);
+
+        assert_eq!(
+            dl.to_string(),
+            "56 | This is an example\n57 | of content lines"
+        );
+    }
+
+    #[test]
+    fn test_source_annotation_standalone_singleline() {
+        let dl = from_display_lines(vec![DisplayLine::Source {
+            lineno: None,
+            inline_marks: vec![],
+            line: DisplaySourceLine::Annotation {
+                range: (0, 5),
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::None,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "Example string",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                annotation_type: DisplayAnnotationType::Error,
+                annotation_part: DisplayAnnotationPart::Standalone,
+            },
+        }]);
+
+        assert_eq!(dl.to_string(), " | ^^^^^ Example string");
+    }
+
+    #[test]
+    fn test_source_annotation_standalone_multiline() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Help,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Example string",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Warning,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Help,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Second line",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Warning,
+                    annotation_part: DisplayAnnotationPart::LabelContinuation,
+                },
+            },
+        ]);
+
+        assert_eq!(
+            dl.to_string(),
+            " | ----- help: Example string\n |             Second line"
+        );
+    }
+
+    #[test]
+    fn test_source_annotation_standalone_multi_annotation() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Info,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Example string",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Note,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Info,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Second line",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Note,
+                    annotation_part: DisplayAnnotationPart::LabelContinuation,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Warning,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "Second line of the warning",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Note,
+                    annotation_part: DisplayAnnotationPart::LabelContinuation,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Info,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "This is an info",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Info,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 5),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::Help,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "This is help",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::Help,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Annotation {
+                    range: (0, 0),
+                    annotation: Annotation {
+                        annotation_type: DisplayAnnotationType::None,
+                        id: None,
+                        label: vec![DisplayTextFragment {
+                            content: "This is an annotation of type none",
+                            style: DisplayTextStyle::Regular,
+                        }],
+                    },
+                    annotation_type: DisplayAnnotationType::None,
+                    annotation_part: DisplayAnnotationPart::Standalone,
+                },
+            },
+        ]);
+
+        assert_eq!(dl.to_string(), " | ----- info: Example string\n |             Second line\n |                Second line of the warning\n | ----- info: This is an info\n | ----- help: This is help\n |  This is an annotation of type none");
+    }
+
+    #[test]
+    fn test_fold_line() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: Some(5),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "This is line 5",
+                    range: (0, 19),
+                },
+            },
+            DisplayLine::Fold {
+                inline_marks: vec![],
+            },
+            DisplayLine::Source {
+                lineno: Some(10021),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "... and now we're at line 10021",
+                    range: (0, 19),
+                },
+            },
+        ]);
+
+        assert_eq!(
+            dl.to_string(),
+            "    5 | This is line 5\n...\n10021 | ... and now we're at line 10021"
+        );
+    }
+
+    #[test]
+    fn test_raw_origin_initial_nopos() {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+            path: "src/test.rs",
+            pos: None,
+            header_type: DisplayHeaderType::Initial,
+        })]);
+
+        assert_eq!(dl.to_string(), "--> src/test.rs");
+    }
+
+    #[test]
+    fn test_raw_origin_initial_pos() {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+            path: "src/test.rs",
+            pos: Some((23, 15)),
+            header_type: DisplayHeaderType::Initial,
+        })]);
+
+        assert_eq!(dl.to_string(), "--> src/test.rs:23:15");
+    }
+
+    #[test]
+    fn test_raw_origin_continuation() {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+            path: "src/test.rs",
+            pos: Some((23, 15)),
+            header_type: DisplayHeaderType::Continuation,
+        })]);
+
+        assert_eq!(dl.to_string(), "::: src/test.rs:23:15");
+    }
+
+    #[test]
+    fn test_raw_annotation_unaligned() {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::Error,
+                id: Some("E0001"),
+                label: vec![DisplayTextFragment {
+                    content: "This is an error",
+                    style: DisplayTextStyle::Regular,
+                }],
+            },
+            source_aligned: false,
+            continuation: false,
+        })]);
+
+        assert_eq!(dl.to_string(), "error[E0001]: This is an error");
+    }
+
+    #[test]
+    fn test_raw_annotation_unaligned_multiline() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Warning,
+                    id: Some("E0001"),
+                    label: vec![DisplayTextFragment {
+                        content: "This is an error",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Warning,
+                    id: Some("E0001"),
+                    label: vec![DisplayTextFragment {
+                        content: "Second line of the error",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: false,
+                continuation: true,
+            }),
+        ]);
+
+        assert_eq!(
+            dl.to_string(),
+            "warning[E0001]: This is an error\n                Second line of the error"
+        );
+    }
+
+    #[test]
+    fn test_raw_annotation_aligned() {
+        let dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::Error,
+                id: Some("E0001"),
+                label: vec![DisplayTextFragment {
+                    content: "This is an error",
+                    style: DisplayTextStyle::Regular,
+                }],
+            },
+            source_aligned: true,
+            continuation: false,
+        })]);
+
+        assert_eq!(dl.to_string(), " = error[E0001]: This is an error");
+    }
+
+    #[test]
+    fn test_raw_annotation_aligned_multiline() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Warning,
+                    id: Some("E0001"),
+                    label: vec![DisplayTextFragment {
+                        content: "This is an error",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: true,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Warning,
+                    id: Some("E0001"),
+                    label: vec![DisplayTextFragment {
+                        content: "Second line of the error",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: true,
+                continuation: true,
+            }),
+        ]);
+
+        assert_eq!(
+            dl.to_string(),
+            " = warning[E0001]: This is an error\n                   Second line of the error"
+        );
+    }
+
+    #[test]
+    fn test_different_annotation_types() {
+        let dl = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Note,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "This is a note",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::None,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "This is just a string",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::None,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "Second line of none type annotation",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: false,
+                continuation: true,
+            }),
+        ]);
+
+        assert_eq!(
+            dl.to_string(),
+            "note: This is a note\nThis is just a string\n  Second line of none type annotation",
+        );
+    }
+
+    #[test]
+    fn test_inline_marks_empty_line() {
+        let dl = from_display_lines(vec![DisplayLine::Source {
+            lineno: None,
+            inline_marks: vec![DisplayMark {
+                mark_type: DisplayMarkType::AnnotationThrough,
+                annotation_type: DisplayAnnotationType::Error,
+            }],
+            line: DisplaySourceLine::Empty,
+        }]);
+
+        assert_eq!(dl.to_string(), " | |",);
+    }
+
+    #[test]
+    fn test_anon_lines() {
+        let mut dl = from_display_lines(vec![
+            DisplayLine::Source {
+                lineno: Some(56),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "This is an example",
+                    range: (0, 19),
+                },
+            },
+            DisplayLine::Source {
+                lineno: Some(57),
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "of content lines",
+                    range: (0, 19),
+                },
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Empty,
+            },
+            DisplayLine::Source {
+                lineno: None,
+                inline_marks: vec![],
+                line: DisplaySourceLine::Content {
+                    text: "abc",
+                    range: (0, 19),
+                },
+            },
+        ]);
+
+        dl.anonymized_line_numbers = true;
+        assert_eq!(
+            dl.to_string(),
+            "LL | This is an example\nLL | of content lines\n   |\n   | abc"
+        );
+    }
+
+    #[test]
+    fn test_raw_origin_initial_pos_anon_lines() {
+        let mut dl = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Origin {
+            path: "src/test.rs",
+            pos: Some((23, 15)),
+            header_type: DisplayHeaderType::Initial,
+        })]);
+
+        // Using anonymized_line_numbers should not affect the initial position
+        dl.anonymized_line_numbers = true;
+        assert_eq!(dl.to_string(), "--> src/test.rs:23:15");
+    }
 }
