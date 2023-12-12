@@ -5,7 +5,34 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
- 
+
+## [0.10.0] - December 12, 2023
+
+### Added
+
+- `Renderer` is now used for displaying a `Snippet` [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/9076cbf66336e5137b47dc7a52df2999b6c82598)
+  - `Renderer` also controls the color scheme and formatting of the snippet
+
+### Changed
+
+- Moved everything in the `snippet` to be in the crate root [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/a1007ddf2fc6f76e960a4fc01207228e64e9fae7)
+
+### Breaking Changes
+
+- `Renderer` now controls the color scheme and formatting of `Snippet`s [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/d0c65b26493d60f86a82c5919ef736b35808c23a)
+- Removed the `Style` and `Stylesheet` traits, as color is controlled by `Renderer` [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/4affdfb50ea0670d85e52737c082c03f89ae8ada)
+- Replaced [`yansi-term`](https://crates.io/crates/yansi-term) with [`anstyle`](https://crates.io/crates/anstyle) [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/dfd4e87d6f31ec50d29af26d7310cff5e66ca978)
+  - `anstyle` is designed primarily to exist in public APIs for interoperability 
+  - `anstyle` is re-exported under `annotate_snippets::renderer`
+- Removed the `color` feature in favor of `Renderer::plain()` [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/dfd4e87d6f31ec50d29af26d7310cff5e66ca978)
+- Moved `Margin` to `renderer` module [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/79f657ea252c3c0ce55fa69894ee520f8820b4bf)
+- Made the `display_list` module private [#67](https://github.com/rust-lang/annotate-snippets-rs/pull/67/commits/da45f4858af3ec4c0d792ecc40225e27fdd2bac8)
+
+### Compatibility
+
+- Changed the edition to `2021` [#61](https://github.com/rust-lang/annotate-snippets-rs/pull/61)
+- Set the minimum supported Rust version to `1.70.0` [#61](https://github.com/rust-lang/annotate-snippets-rs/pull/61)
+
 ## [0.9.2] - October 30, 2023
 
 - Remove parsing of __ in title strings, fixes (#53)
@@ -46,7 +73,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.2...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.0...HEAD
+[0.10.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.2...0.10.0
 [0.9.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.8.0...0.9.0
