@@ -33,10 +33,7 @@ Usage
 -----
 
 ```rust
-use annotate_snippets::{
-    display_list::{DisplayList, FormatOptions},
-    snippet::{Annotation, AnnotationType, Slice, Snippet, SourceAnnotation},
-};
+use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
 
 fn main() {
     let snippet = Snippet {
@@ -58,7 +55,7 @@ fn main() {
                 SourceAnnotation {
                     label: "",
                     annotation_type: AnnotationType::Error,
-                    range: (187, 189),
+                    range: (193, 195),
                 },
                 SourceAnnotation {
                     label: "while parsing this struct",
@@ -67,14 +64,10 @@ fn main() {
                 },
             ],
         }],
-        opt: FormatOptions {
-            color: true,
-            ..Default::default()
-        },
     };
 
-    let dl = DisplayList::from(snippet);
-    println!("{}", dl);
+    let renderer = Renderer::plain();
+    println!("{}", renderer.render(snippet));
 }
 ```
 
