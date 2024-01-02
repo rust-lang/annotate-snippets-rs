@@ -766,7 +766,7 @@ fn format_slice(
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let main_range = slice.annotations.get(0).map(|x| x.range.0);
+    let main_range = slice.annotations.first().map(|x| x.range.0);
     let origin = slice.origin;
     let need_empty_header = origin.is_some() || is_first;
     let mut body = format_body(slice, need_empty_header, has_footer, margin);
