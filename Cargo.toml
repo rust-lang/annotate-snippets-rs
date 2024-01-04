@@ -10,6 +10,16 @@ repository = "https://github.com/rust-lang/annotate-snippets-rs"
 readme = "README.md"
 keywords = ["code", "analysis", "ascii", "errors", "debug"]
 
+[package.metadata.release]
+tag-name = "{{version}}"
+pre-release-replacements = [
+  {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=1},
+  {file="CHANGELOG.md", search="\\.\\.\\.HEAD", replace="...{{tag_name}}", exactly=1},
+  {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}", min=1},
+  {file="CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n## [Unreleased] - ReleaseDate\n", exactly=1},
+  {file="CHANGELOG.md", search="<!-- next-url -->", replace="<!-- next-url -->\n[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/{{tag_name}}...HEAD", exactly=1},
+]
+
 [badges]
 maintenance = { status = "actively-developed" }
 
