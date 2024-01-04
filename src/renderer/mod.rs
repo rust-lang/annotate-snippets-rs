@@ -62,15 +62,30 @@ impl Renderer {
 
     /// Default terminal styling
     pub const fn styled() -> Self {
+        const BRIGHT_BLUE: Style = if cfg!(windows) {
+            AnsiColor::BrightCyan.on_default()
+        } else {
+            AnsiColor::BrightBlue.on_default()
+        };
         Self {
             stylesheet: Stylesheet {
                 error: AnsiColor::BrightRed.on_default().effects(Effects::BOLD),
-                warning: AnsiColor::BrightYellow.on_default().effects(Effects::BOLD),
-                info: AnsiColor::BrightBlue.on_default().effects(Effects::BOLD),
-                note: Style::new().effects(Effects::BOLD),
+                warning: if cfg!(windows) {
+                    AnsiColor::BrightYellow.on_default()
+                } else {
+                    AnsiColor::Yellow.on_default()
+                }
+                .effects(Effects::BOLD),
+                info: BRIGHT_BLUE.effects(Effects::BOLD),
+                note: AnsiColor::BrightGreen.on_default().effects(Effects::BOLD),
                 help: AnsiColor::BrightCyan.on_default().effects(Effects::BOLD),
-                line_no: AnsiColor::BrightBlue.on_default().effects(Effects::BOLD),
-                emphasis: Style::new().effects(Effects::BOLD),
+                line_no: BRIGHT_BLUE.effects(Effects::BOLD),
+                emphasis: if cfg!(windows) {
+                    AnsiColor::BrightWhite.on_default()
+                } else {
+                    Style::new()
+                }
+                .effects(Effects::BOLD),
                 none: Style::new(),
             },
             ..Self::plain()
