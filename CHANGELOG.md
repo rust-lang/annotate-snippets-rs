@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - ReleaseDate
 
+### Fixed
+
+- Match `rustc`'s colors [#73](https://github.com/rust-lang/annotate-snippets-rs/pull/73)
+- Allow highlighting one past the end of `source` [#74](https://github.com/rust-lang/annotate-snippets-rs/pull/74)
+
+### Compatibility
+
+- Set the minimum supported Rust version to `1.73.0` [#71](https://github.com/rust-lang/annotate-snippets-rs/pull/71)
+
 ## [0.10.0] - December 12, 2023
 
 ### Added
