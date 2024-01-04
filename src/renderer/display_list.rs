@@ -934,14 +934,15 @@ fn format_body(
 ) -> Vec<DisplayLine<'_>> {
     let source_len = slice.source.chars().count();
     if let Some(bigger) = slice.annotations.iter().find_map(|x| {
-        if source_len < x.range.1 {
+        // Allow highlighting one past the last character in the source.
+        if source_len + 1 < x.range.1 {
             Some(x.range)
         } else {
             None
         }
     }) {
         panic!(
-            "SourceAnnotation range `{:?}` is bigger than source length `{}`",
+            "SourceAnnotation range `{:?}` is beyond the end of buffer `{}`",
             bigger, source_len
         )
     }
@@ -1479,7 +1480,7 @@ mod tests {
             footer: vec![],
             slices: vec![snippet::Slice {
                 annotations: vec![snippet::SourceAnnotation {
-                    range: (0, source.len() + 1),
+                    range: (0, source.len() + 2),
                     label,
                     annotation_type: snippet::AnnotationType::Error,
                 }],
