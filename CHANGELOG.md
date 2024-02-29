@@ -5,8 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!-- next-header -->
-
 ## [Unreleased] - ReleaseDate
+
+
+## [0.10.2] - 2024-02-29
 
 ### Added
 
@@ -91,7 +93,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.1...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.2...HEAD
+[0.10.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.1...0.10.2
 [0.10.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.0...0.10.1
 [0.10.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.2...0.10.0
 [0.9.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.1...0.9.2
