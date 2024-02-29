@@ -5,7 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 <!-- next-header -->
+
 ## [Unreleased] - ReleaseDate
+
+### Added
+
+- Added `testing-colors` feature to remove platform-specific colors when testing
+  [#82](https://github.com/rust-lang/annotate-snippets-rs/pull/82)
 
 ## [0.10.1] - 2024-01-04
 
