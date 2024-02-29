@@ -40,6 +40,15 @@
 //! options, such as color, or margins.
 //!
 //! Finally, `impl Display` into a final `String` output.
+//!
+//! # features
+//! - `testing-colors` - Makes [Renderer::styled] colors OS independent, which
+//! allows for easier testing when testing colored output. It should be added as
+//! a feature in `[dev-dependencies]`, which can be done with the following command:
+//! ```text
+//! cargo add annotate-snippets --dev --feature testing-colors
+//! ```
+//!
 
 pub mod renderer;
 mod snippet;
