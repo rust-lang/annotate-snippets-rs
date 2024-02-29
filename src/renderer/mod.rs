@@ -61,8 +61,12 @@ impl Renderer {
     }
 
     /// Default terminal styling
+    ///
+    /// # Note
+    /// When testing styled terminal output, see the [`testing-colors` feature](crate#features)
     pub const fn styled() -> Self {
-        const BRIGHT_BLUE: Style = if cfg!(windows) {
+        const USE_WINDOWS_COLORS: bool = cfg!(windows) && !cfg!(feature = "testing-colors");
+        const BRIGHT_BLUE: Style = if USE_WINDOWS_COLORS {
             AnsiColor::BrightCyan.on_default()
         } else {
             AnsiColor::BrightBlue.on_default()
@@ -70,7 +74,7 @@ impl Renderer {
         Self {
             stylesheet: Stylesheet {
                 error: AnsiColor::BrightRed.on_default().effects(Effects::BOLD),
-                warning: if cfg!(windows) {
+                warning: if USE_WINDOWS_COLORS {
                     AnsiColor::BrightYellow.on_default()
                 } else {
                     AnsiColor::Yellow.on_default()
@@ -80,7 +84,7 @@ impl Renderer {
                 note: AnsiColor::BrightGreen.on_default().effects(Effects::BOLD),
                 help: AnsiColor::BrightCyan.on_default().effects(Effects::BOLD),
                 line_no: BRIGHT_BLUE.effects(Effects::BOLD),
-                emphasis: if cfg!(windows) {
+                emphasis: if USE_WINDOWS_COLORS {
                     AnsiColor::BrightWhite.on_default()
                 } else {
                     Style::new()

@@ -40,3 +40,4 @@ harness = false
 
 [features]
 default = []
+testing-colors = []
