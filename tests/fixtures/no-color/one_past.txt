@@ -1,6 +1,0 @@
-error: expected `.`, `=`
- --> Cargo.toml:1:5
-  |
-1 | asdf
-  |     ^
-  |
