@@ -14,7 +14,7 @@ fn test_i_29() {
             line_start: 1,
             origin: Some("<current file>"),
             annotations: vec![SourceAnnotation {
-                range: (19, 23),
+                range: 19..23,
                 label: "oops",
                 annotation_type: AnnotationType::Error,
             }],
@@ -41,7 +41,7 @@ fn test_point_to_double_width_characters() {
             line_start: 1,
             origin: Some("<current file>"),
             annotations: vec![SourceAnnotation {
-                range: (12, 16),
+                range: 12..16,
                 label: "world",
                 annotation_type: AnnotationType::Error,
             }],
@@ -69,7 +69,7 @@ fn test_point_to_double_width_characters_across_lines() {
             line_start: 1,
             origin: Some("<current file>"),
             annotations: vec![SourceAnnotation {
-                range: (4, 15),
+                range: 4..15,
                 label: "Good morning",
                 annotation_type: AnnotationType::Error,
             }],
@@ -100,12 +100,12 @@ fn test_point_to_double_width_characters_multiple() {
             origin: Some("<current file>"),
             annotations: vec![
                 SourceAnnotation {
-                    range: (0, 6),
+                    range: 0..6,
                     label: "Sushi1",
                     annotation_type: AnnotationType::Error,
                 },
                 SourceAnnotation {
-                    range: (11, 15),
+                    range: 11..15,
                     label: "Sushi2",
                     annotation_type: AnnotationType::Note,
                 },
@@ -136,7 +136,7 @@ fn test_point_to_double_width_characters_mixed() {
             line_start: 1,
             origin: Some("<current file>"),
             annotations: vec![SourceAnnotation {
-                range: (12, 23),
+                range: 12..23,
                 label: "New world",
                 annotation_type: AnnotationType::Error,
             }],

@@ -35,6 +35,7 @@ use crate::snippet;
 use itertools::FoldWhile::{Continue, Done};
 use itertools::Itertools;
 use std::fmt::{Display, Write};
+use std::ops::Range;
 use std::{cmp, fmt};
 
 use crate::renderer::{stylesheet::Stylesheet, Margin, Style};
@@ -768,7 +769,7 @@ fn format_slice(
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let main_range = slice.annotations.first().map(|x| x.range.0);
+    let main_range = slice.annotations.first().map(|x| x.range.start);
     let origin = slice.origin;
     let need_empty_header = origin.is_some() || is_first;
     let mut body = format_body(slice, need_empty_header, has_footer, margin);
@@ -951,8 +952,8 @@ fn format_body(
     let source_len = slice.source.len();
     if let Some(bigger) = slice.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
-        if source_len + 1 < x.range.1 {
-            Some(x.range)
+        if source_len + 1 < x.range.end {
+            Some(&x.range)
         } else {
             None
         }
@@ -1017,8 +1018,8 @@ fn format_body(
                 _ => DisplayAnnotationType::from(annotation.annotation_type),
             };
             match annotation.range {
-                (start, _) if start > line_end_index => true,
-                (start, end)
+                Range { start, .. } if start > line_end_index => true,
+                Range { start, end }
                     if start >= line_start_index && end <= line_end_index
                         || start == line_end_index && end - start <= 1 =>
                 {
@@ -1047,7 +1048,7 @@ fn format_body(
                     annotation_line_count += 1;
                     false
                 }
-                (start, end)
+                Range { start, end }
                     if start >= line_start_index
                         && start <= line_end_index
                         && end > line_end_index =>
@@ -1091,7 +1092,7 @@ fn format_body(
                     }
                     true
                 }
-                (start, end) if start < line_start_index && end > line_end_index => {
+                Range { start, end } if start < line_start_index && end > line_end_index => {
                     if let DisplayLine::Source {
                         ref mut inline_marks,
                         ..
@@ -1106,7 +1107,7 @@ fn format_body(
                     }
                     true
                 }
-                (start, end)
+                Range { start, end }
                     if start < line_start_index
                         && end >= line_start_index
                         && end <= line_end_index =>
@@ -1375,7 +1376,7 @@ mod tests {
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
         // In line 2
-        let range = (22, 24);
+        let range = 22..24;
         let input = snippet::Snippet {
             title: None,
             footer: vec![],
@@ -1384,7 +1385,7 @@ mod tests {
                 line_start: 5402,
                 origin: None,
                 annotations: vec![snippet::SourceAnnotation {
-                    range,
+                    range: range.clone(),
                     label: "Test annotation",
                     annotation_type: snippet::AnnotationType::Info,
                 }],
@@ -1425,7 +1426,10 @@ mod tests {
                             style: DisplayTextStyle::Regular,
                         }],
                     },
-                    range: (range.0 - (line_1.len() + 1), range.1 - (line_1.len() + 1)),
+                    range: (
+                        range.start - (line_1.len() + 1),
+                        range.end - (line_1.len() + 1),
+                    ),
                     annotation_type: DisplayAnnotationType::Info,
                     annotation_part: DisplayAnnotationPart::Standalone,
                 },
@@ -1475,7 +1479,7 @@ mod tests {
             footer: vec![],
             slices: vec![snippet::Slice {
                 annotations: vec![snippet::SourceAnnotation {
-                    range: (0, source.len() + 2),
+                    range: 0..source.len() + 2,
                     label,
                     annotation_type: snippet::AnnotationType::Error,
                 }],
@@ -1502,7 +1506,7 @@ mod tests {
                 line_start: 1,
                 origin: Some("<current file>"),
                 annotations: vec![snippet::SourceAnnotation {
-                    range: (19, 23),
+                    range: 19..23,
                     label: "oops",
                     annotation_type: snippet::AnnotationType::Error,
                 }],

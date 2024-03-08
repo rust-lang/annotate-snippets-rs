@@ -21,7 +21,7 @@ fn main() {
             fold: false,
             annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference",
-                range: (21, 24),
+                range: 21..24,
                 annotation_type: AnnotationType::Error,
             }],
         }],

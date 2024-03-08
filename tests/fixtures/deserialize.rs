@@ -1,4 +1,5 @@
 use serde::{Deserialize, Deserializer, Serialize};
+use std::ops::Range;
 
 use annotate_snippets::{
     renderer::Margin, Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation,
@@ -122,7 +123,7 @@ where
 #[derive(Serialize, Deserialize)]
 #[serde(remote = "SourceAnnotation")]
 pub struct SourceAnnotationDef<'a> {
-    pub range: (usize, usize),
+    pub range: Range<usize>,
     #[serde(borrow)]
     pub label: &'a str,
     #[serde(with = "AnnotationTypeDef")]
