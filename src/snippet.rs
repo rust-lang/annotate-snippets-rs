@@ -31,6 +31,8 @@
 //! };
 //! ```
 
+use std::ops::Range;
+
 /// Primary structure provided for formatting
 #[derive(Debug, Default)]
 pub struct Snippet<'a> {
@@ -70,7 +72,8 @@ pub enum AnnotationType {
 /// An annotation for a `Slice`.
 #[derive(Debug)]
 pub struct SourceAnnotation<'a> {
-    pub range: (usize, usize),
+    /// The byte range of the annotation in the `source` string
+    pub range: Range<usize>,
     pub label: &'a str,
     pub annotation_type: AnnotationType,
 }

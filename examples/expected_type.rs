@@ -20,12 +20,12 @@ fn main() {
                 SourceAnnotation {
                     label: "",
                     annotation_type: AnnotationType::Error,
-                    range: (193, 195),
+                    range: 193..195,
                 },
                 SourceAnnotation {
                     label: "while parsing this struct",
                     annotation_type: AnnotationType::Info,
-                    range: (34, 50),
+                    range: 34..50,
                 },
             ],
         }],
