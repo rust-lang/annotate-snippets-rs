@@ -32,6 +32,8 @@
 //!
 //! The above snippet has been built out of the following structure:
 use crate::snippet;
+use itertools::FoldWhile::{Continue, Done};
+use itertools::Itertools;
 use std::fmt::{Display, Write};
 use std::{cmp, fmt};
 
@@ -804,13 +806,27 @@ fn format_header<'a>(
 
         for item in body {
             if let DisplayLine::Source {
-                line: DisplaySourceLine::Content { range, .. },
+                line: DisplaySourceLine::Content { text, range },
                 lineno,
                 ..
             } = item
             {
                 if main_range >= range.0 && main_range <= range.1 {
-                    col = main_range - range.0 + 1;
+                    let char_column = text
+                        .chars()
+                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                        .chain(std::iter::once(1)) // treat the end of line as single-width
+                        .enumerate()
+                        .fold_while((0, 0), |(count, acc), (i, width)| {
+                            if acc <= main_range - range.0 {
+                                Continue((i, acc + width))
+                            } else {
+                                Done((count, acc))
+                            }
+                        })
+                        .into_inner()
+                        .0;
+                    col = char_column + 1;
                     line_offset = lineno.unwrap_or(1);
                     break;
                 }
@@ -932,7 +948,7 @@ fn format_body(
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let source_len = slice.source.chars().count();
+    let source_len = slice.source.len();
     if let Some(bigger) = slice.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
         if source_len + 1 < x.range.1 {
@@ -955,18 +971,14 @@ fn format_body(
     struct LineInfo {
         line_start_index: usize,
         line_end_index: usize,
-        // How many spaces each character in the line take up when displayed
-        char_widths: Vec<usize>,
     }
 
     for (line, end_line) in CursorLines::new(slice.source) {
-        let line_length = line.chars().count();
-        let line_range = (current_index, current_index + line_length);
-        let char_widths = line
+        let line_length: usize = line
             .chars()
             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-            .chain(std::iter::once(1)) // treat the end of line as single-width
-            .collect::<Vec<_>>();
+            .sum();
+        let line_range = (current_index, current_index + line_length);
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
             inline_marks: vec![],
@@ -978,7 +990,6 @@ fn format_body(
         line_info.push(LineInfo {
             line_start_index: line_range.0,
             line_end_index: line_range.1,
-            char_widths,
         });
         current_line += 1;
         current_index += line_length + end_line as usize;
@@ -991,7 +1002,6 @@ fn format_body(
         LineInfo {
             line_start_index,
             line_end_index,
-            char_widths,
         },
     ) in line_info.into_iter().enumerate()
     {
@@ -1012,16 +1022,8 @@ fn format_body(
                     if start >= line_start_index && end <= line_end_index
                         || start == line_end_index && end - start <= 1 =>
                 {
-                    let annotation_start_col = char_widths
-                        .iter()
-                        .take(start - line_start_index)
-                        .sum::<usize>()
-                        - margin_left;
-                    let annotation_end_col = char_widths
-                        .iter()
-                        .take(end - line_start_index)
-                        .sum::<usize>()
-                        - margin_left;
+                    let annotation_start_col = start - line_start_index - margin_left;
+                    let annotation_end_col = end - line_start_index - margin_left;
                     let range = (annotation_start_col, annotation_end_col);
                     body.insert(
                         body_idx + 1,
@@ -1064,10 +1066,7 @@ fn format_body(
                             });
                         }
                     } else {
-                        let annotation_start_col = char_widths
-                            .iter()
-                            .take(start - line_start_index)
-                            .sum::<usize>();
+                        let annotation_start_col = start - line_start_index;
                         let range = (annotation_start_col, annotation_start_col + 1);
                         body.insert(
                             body_idx + 1,
@@ -1125,11 +1124,7 @@ fn format_body(
                         });
                     }
 
-                    let end_mark = char_widths
-                        .iter()
-                        .take(end - line_start_index)
-                        .sum::<usize>()
-                        .saturating_sub(1);
+                    let end_mark = (end - line_start_index).saturating_sub(1);
                     let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
                     body.insert(
                         body_idx + 1,

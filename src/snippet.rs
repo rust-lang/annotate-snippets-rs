@@ -70,6 +70,7 @@ pub enum AnnotationType {
 /// An annotation for a `Slice`.
 #[derive(Debug)]
 pub struct SourceAnnotation<'a> {
+    /// The byte range of the annotation in the `source` string
     pub range: (usize, usize),
     pub label: &'a str,
     pub annotation_type: AnnotationType,

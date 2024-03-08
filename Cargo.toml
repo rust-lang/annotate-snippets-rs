@@ -25,6 +25,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 anstyle = "1.0.4"
+itertools = "0.12.1"
 unicode-width = "0.1.11"
 
 [dev-dependencies]
