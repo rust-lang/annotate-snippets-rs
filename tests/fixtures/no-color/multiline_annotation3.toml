@@ -12,7 +12,6 @@ label = "this should not be on separate lines"
 annotation_type = "Error"
 range = [11, 18]
 
-[snippet.title]
-label = "spacing error found"
+[snippet]
+title = { annotation_type = "Error", label = "spacing error found" }
 id = "E####"
-annotation_type = "Error"

@@ -1,3 +1,7 @@
+[snippet.title]
+annotation_type = "Error"
+label = ""
+
 [[snippet.slices]]
 source = """
 fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {

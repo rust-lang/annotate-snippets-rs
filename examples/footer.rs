@@ -1,31 +1,21 @@
-use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{Label, Renderer, Slice, Snippet};
 
 fn main() {
-    let snippet = Snippet {
-        title: Some(Annotation {
-            label: Some("mismatched types"),
-            id: Some("E0308"),
-            annotation_type: AnnotationType::Error,
-        }),
-        footer: vec![Annotation {
-            label: Some(
-                "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
-            ),
-            id: None,
-            annotation_type: AnnotationType::Note,
-        }],
-        slices: vec![Slice {
-            source: "        slices: vec![\"A\",",
-            line_start: 13,
-            origin: Some("src/multislice.rs"),
-            fold: false,
-            annotations: vec![SourceAnnotation {
-                label: "expected struct `annotate_snippets::snippet::Slice`, found reference",
-                range: 21..24,
-                annotation_type: AnnotationType::Error,
-            }],
-        }],
-    };
+    let snippet = Snippet::error("mismatched types")
+        .id("E0308")
+        .slice(
+            Slice::new("        slices: vec![\"A\",", 13)
+                .origin("src/multislice.rs")
+                .annotation(
+                    Label::error(
+                        "expected struct `annotate_snippets::snippet::Slice`, found reference",
+                    )
+                    .span(21..24),
+                ),
+        )
+        .footer(Label::note(
+            "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
+        ));
 
     let renderer = Renderer::plain();
     println!("{}", renderer.render(snippet));

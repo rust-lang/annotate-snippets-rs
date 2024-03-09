@@ -1,5 +1,6 @@
 [snippet.title]
 annotation_type = "Error"
+label = ""
 
 [[snippet.slices]]
 source = """

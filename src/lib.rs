@@ -48,7 +48,6 @@
 //! ```text
 //! cargo add annotate-snippets --dev --feature testing-colors
 //! ```
-//!
 
 pub mod renderer;
 mod snippet;

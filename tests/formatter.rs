@@ -1,26 +1,13 @@
-use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation};
+use annotate_snippets::{Label, Renderer, Slice, Snippet};
 
 #[test]
 fn test_i_29() {
-    let snippets = Snippet {
-        title: Some(Annotation {
-            id: None,
-            label: Some("oops"),
-            annotation_type: AnnotationType::Error,
-        }),
-        footer: vec![],
-        slices: vec![Slice {
-            source: "First line\r\nSecond oops line",
-            line_start: 1,
-            origin: Some("<current file>"),
-            annotations: vec![SourceAnnotation {
-                range: 19..23,
-                label: "oops",
-                annotation_type: AnnotationType::Error,
-            }],
-            fold: true,
-        }],
-    };
+    let snippets = Snippet::error("oops").slice(
+        Slice::new("First line\r\nSecond oops line", 1)
+            .origin("<current file>")
+            .annotation(Label::error("oops").span(19..23))
+            .fold(true),
+    );
     let expected = r#"error: oops
  --> <current file>:2:8
   |
@@ -35,23 +22,14 @@ fn test_i_29() {
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = Snippet {
-        slices: vec![Slice {
-            source: "こんにちは、世界",
-            line_start: 1,
-            origin: Some("<current file>"),
-            annotations: vec![SourceAnnotation {
-                range: 12..16,
-                label: "world",
-                annotation_type: AnnotationType::Error,
-            }],
-            fold: false,
-        }],
-        title: None,
-        footer: vec![],
-    };
+    let snippets = Snippet::error("").slice(
+        Slice::new("こんにちは、世界", 1)
+            .origin("<current file>")
+            .annotation(Label::error("world").span(12..16)),
+    );
 
-    let expected = r#" --> <current file>:1:7
+    let expected = r#"error
+ --> <current file>:1:7
   |
 1 | こんにちは、世界
   |             ^^^^ world
@@ -63,23 +41,14 @@ fn test_point_to_double_width_characters() {
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = Snippet {
-        slices: vec![Slice {
-            source: "おはよう\nございます",
-            line_start: 1,
-            origin: Some("<current file>"),
-            annotations: vec![SourceAnnotation {
-                range: 4..15,
-                label: "Good morning",
-                annotation_type: AnnotationType::Error,
-            }],
-            fold: false,
-        }],
-        title: None,
-        footer: vec![],
-    };
+    let snippets = Snippet::error("").slice(
+        Slice::new("おはよう\nございます", 1)
+            .origin("<current file>")
+            .annotation(Label::error("Good morning").span(4..15)),
+    );
 
-    let expected = r#" --> <current file>:1:3
+    let expected = r#"error
+ --> <current file>:1:3
   |
 1 |   おはよう
   |  _____^
@@ -93,30 +62,15 @@ fn test_point_to_double_width_characters_across_lines() {
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = Snippet {
-        slices: vec![Slice {
-            source: "お寿司\n食べたい🍣",
-            line_start: 1,
-            origin: Some("<current file>"),
-            annotations: vec![
-                SourceAnnotation {
-                    range: 0..6,
-                    label: "Sushi1",
-                    annotation_type: AnnotationType::Error,
-                },
-                SourceAnnotation {
-                    range: 11..15,
-                    label: "Sushi2",
-                    annotation_type: AnnotationType::Note,
-                },
-            ],
-            fold: false,
-        }],
-        title: None,
-        footer: vec![],
-    };
+    let snippets = Snippet::error("").slice(
+        Slice::new("お寿司\n食べたい🍣", 1)
+            .origin("<current file>")
+            .annotation(Label::error("Sushi1").span(0..6))
+            .annotation(Label::note("Sushi2").span(11..15)),
+    );
 
-    let expected = r#" --> <current file>:1:1
+    let expected = r#"error
+ --> <current file>:1:1
   |
 1 | お寿司
   | ^^^^^^ Sushi1
@@ -130,23 +84,14 @@ fn test_point_to_double_width_characters_multiple() {
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = Snippet {
-        slices: vec![Slice {
-            source: "こんにちは、新しいWorld！",
-            line_start: 1,
-            origin: Some("<current file>"),
-            annotations: vec![SourceAnnotation {
-                range: 12..23,
-                label: "New world",
-                annotation_type: AnnotationType::Error,
-            }],
-            fold: false,
-        }],
-        title: None,
-        footer: vec![],
-    };
+    let snippets = Snippet::error("").slice(
+        Slice::new("こんにちは、新しいWorld！", 1)
+            .origin("<current file>")
+            .annotation(Label::error("New world").span(12..23)),
+    );
 
-    let expected = r#" --> <current file>:1:7
+    let expected = r#"error
+ --> <current file>:1:7
   |
 1 | こんにちは、新しいWorld！
   |             ^^^^^^^^^^^ New world
