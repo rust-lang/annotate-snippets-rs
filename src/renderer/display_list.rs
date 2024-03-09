@@ -108,6 +108,7 @@ impl<'a> DisplayList<'a> {
     pub(crate) fn new(
         snippet::Snippet {
             title,
+            id,
             footer,
             slices,
         }: snippet::Snippet<'a>,
@@ -116,9 +117,8 @@ impl<'a> DisplayList<'a> {
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
         let mut body = vec![];
-        if let Some(annotation) = title {
-            body.push(format_title(annotation));
-        }
+
+        body.push(format_title(title, id));
 
         for (idx, slice) in slices.into_iter().enumerate() {
             body.append(&mut format_slice(
@@ -130,7 +130,7 @@ impl<'a> DisplayList<'a> {
         }
 
         for annotation in footer {
-            body.append(&mut format_annotation(annotation));
+            body.append(&mut format_footer(annotation));
         }
 
         Self {
@@ -733,26 +733,24 @@ fn format_label(
     result
 }
 
-fn format_title(annotation: snippet::Annotation<'_>) -> DisplayLine<'_> {
-    let label = annotation.label.unwrap_or_default();
+fn format_title<'a>(title: snippet::Label<'a>, id: Option<&'a str>) -> DisplayLine<'a> {
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
-            annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
-            id: annotation.id,
-            label: format_label(Some(label), Some(DisplayTextStyle::Emphasis)),
+            annotation_type: DisplayAnnotationType::from(title.annotation_type),
+            id,
+            label: format_label(Some(title.label), Some(DisplayTextStyle::Emphasis)),
         },
         source_aligned: false,
         continuation: false,
     })
 }
 
-fn format_annotation(annotation: snippet::Annotation<'_>) -> Vec<DisplayLine<'_>> {
+fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
     let mut result = vec![];
-    let label = annotation.label.unwrap_or_default();
-    for (i, line) in label.lines().enumerate() {
+    for (i, line) in footer.label.lines().enumerate() {
         result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
-                annotation_type: DisplayAnnotationType::from(annotation.annotation_type),
+                annotation_type: DisplayAnnotationType::from(footer.annotation_type),
                 id: None,
                 label: format_label(Some(line), None),
             },
@@ -1222,15 +1220,7 @@ mod tests {
 
     #[test]
     fn test_format_title() {
-        let input = snippet::Snippet {
-            title: Some(snippet::Annotation {
-                id: Some("E0001"),
-                label: Some("This is a title"),
-                annotation_type: snippet::AnnotationType::Error,
-            }),
-            footer: vec![],
-            slices: vec![],
-        };
+        let input = snippet::Snippet::error("This is a title").id("E0001");
         let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
                 annotation_type: DisplayAnnotationType::Error,
@@ -1251,18 +1241,20 @@ mod tests {
         let line_1 = "This is line 1";
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
-        let input = snippet::Snippet {
-            title: None,
-            footer: vec![],
-            slices: vec![snippet::Slice {
-                source: &source,
-                line_start: 5402,
-                origin: None,
-                annotations: vec![],
-                fold: false,
-            }],
-        };
+        let input = snippet::Snippet::error("").slice(snippet::Slice::new(&source, 5402));
         let output = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "",
+                        style: DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
             DisplayLine::Source {
                 lineno: None,
                 inline_marks: vec![],
@@ -1299,27 +1291,22 @@ mod tests {
         let src_0_len = src_0.len();
         let src_1 = "This is slice 2";
         let src_1_len = src_1.len();
-        let input = snippet::Snippet {
-            title: None,
-            footer: vec![],
-            slices: vec![
-                snippet::Slice {
-                    source: src_0,
-                    line_start: 5402,
-                    origin: Some("file1.rs"),
-                    annotations: vec![],
-                    fold: false,
-                },
-                snippet::Slice {
-                    source: src_1,
-                    line_start: 2,
-                    origin: Some("file2.rs"),
-                    annotations: vec![],
-                    fold: false,
-                },
-            ],
-        };
+        let input = snippet::Snippet::error("")
+            .slice(snippet::Slice::new(src_0, 5402).origin("file1.rs"))
+            .slice(snippet::Slice::new(src_1, 2).origin("file2.rs"));
         let output = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "",
+                        style: DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
             DisplayLine::Raw(DisplayRawLine::Origin {
                 path: "file1.rs",
                 pos: None,
@@ -1377,22 +1364,23 @@ mod tests {
         let source = [line_1, line_2].join("\n");
         // In line 2
         let range = 22..24;
-        let input = snippet::Snippet {
-            title: None,
-            footer: vec![],
-            slices: vec![snippet::Slice {
-                source: &source,
-                line_start: 5402,
-                origin: None,
-                annotations: vec![snippet::SourceAnnotation {
-                    range: range.clone(),
-                    label: "Test annotation",
-                    annotation_type: snippet::AnnotationType::Info,
-                }],
-                fold: false,
-            }],
-        };
+        let input = snippet::Snippet::error("").slice(
+            snippet::Slice::new(&source, 5402)
+                .annotation(snippet::Label::info("Test annotation").span(range.clone())),
+        );
         let output = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "",
+                        style: DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
             DisplayLine::Source {
                 lineno: None,
                 inline_marks: vec![],
@@ -1445,27 +1433,34 @@ mod tests {
 
     #[test]
     fn test_format_label() {
-        let input = snippet::Snippet {
-            title: None,
-            footer: vec![snippet::Annotation {
-                id: None,
-                label: Some("This __is__ a title"),
-                annotation_type: snippet::AnnotationType::Error,
-            }],
-            slices: vec![],
-        };
-        let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
-            annotation: Annotation {
-                annotation_type: DisplayAnnotationType::Error,
-                id: None,
-                label: vec![DisplayTextFragment {
-                    content: "This __is__ a title",
-                    style: DisplayTextStyle::Regular,
-                }],
-            },
-            source_aligned: true,
-            continuation: false,
-        })]);
+        let input =
+            snippet::Snippet::error("").footer(snippet::Label::error("This __is__ a title"));
+        let output = from_display_lines(vec![
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "",
+                        style: DisplayTextStyle::Emphasis,
+                    }],
+                },
+                source_aligned: false,
+                continuation: false,
+            }),
+            DisplayLine::Raw(DisplayRawLine::Annotation {
+                annotation: Annotation {
+                    annotation_type: DisplayAnnotationType::Error,
+                    id: None,
+                    label: vec![DisplayTextFragment {
+                        content: "This __is__ a title",
+                        style: DisplayTextStyle::Regular,
+                    }],
+                },
+                source_aligned: true,
+                continuation: false,
+            }),
+        ]);
         assert_eq!(DisplayList::new(input, &STYLESHEET, false, None), output);
     }
 
@@ -1474,45 +1469,21 @@ mod tests {
     fn test_i26() {
         let source = "short";
         let label = "label";
-        let input = snippet::Snippet {
-            title: None,
-            footer: vec![],
-            slices: vec![snippet::Slice {
-                annotations: vec![snippet::SourceAnnotation {
-                    range: 0..source.len() + 2,
-                    label,
-                    annotation_type: snippet::AnnotationType::Error,
-                }],
-                source,
-                line_start: 0,
-                origin: None,
-                fold: false,
-            }],
-        };
+        let input = snippet::Snippet::error("").slice(
+            snippet::Slice::new(source, 0)
+                .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
+        );
         let _ = DisplayList::new(input, &STYLESHEET, false, None);
     }
 
     #[test]
     fn test_i_29() {
-        let snippets = snippet::Snippet {
-            title: Some(snippet::Annotation {
-                id: None,
-                label: Some("oops"),
-                annotation_type: snippet::AnnotationType::Error,
-            }),
-            footer: vec![],
-            slices: vec![snippet::Slice {
-                source: "First line\r\nSecond oops line",
-                line_start: 1,
-                origin: Some("<current file>"),
-                annotations: vec![snippet::SourceAnnotation {
-                    range: 19..23,
-                    label: "oops",
-                    annotation_type: snippet::AnnotationType::Error,
-                }],
-                fold: true,
-            }],
-        };
+        let snippets = snippet::Snippet::error("oops").slice(
+            snippet::Slice::new("First line\r\nSecond oops line", 1)
+                .origin("<current file>")
+                .fold(true)
+                .annotation(snippet::Label::error("oops").span(19..23)),
+        );
 
         let expected = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {

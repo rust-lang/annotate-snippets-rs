@@ -1,7 +1,6 @@
-[snippet.title]
+[snippet]
+title = { annotation_type = "Error", label = "mismatched types" }
 id = "E0308"
-label = "mismatched types"
-annotation_type = "Error"
 
 [[snippet.slices]]
 source = "                                                                                                                                                                                    let _: () = 42ñ"

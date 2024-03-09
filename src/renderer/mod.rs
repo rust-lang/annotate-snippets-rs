@@ -2,31 +2,10 @@
 //!
 //! # Example
 //! ```
-//! use annotate_snippets::{Annotation, AnnotationType, Renderer, Slice, Snippet};
-//! let snippet = Snippet {
-//!     title: Some(Annotation {
-//!         label: Some("mismatched types"),
-//!         id: None,
-//!         annotation_type: AnnotationType::Error,
-//!     }),
-//!     footer: vec![],
-//!     slices: vec![
-//!         Slice {
-//!             source: "Foo",
-//!             line_start: 51,
-//!             origin: Some("src/format.rs"),
-//!             fold: false,
-//!             annotations: vec![],
-//!         },
-//!         Slice {
-//!             source: "Faa",
-//!             line_start: 129,
-//!             origin: Some("src/display.rs"),
-//!             fold: false,
-//!             annotations: vec![],
-//!         },
-//!     ],
-//!  };
+//! use annotate_snippets::{Renderer, Slice, Snippet};
+//! let snippet = Snippet::error("mismatched types")
+//!     .slice(Slice::new("Foo", 51).origin("src/format.rs"))
+//!     .slice(Slice::new("Faa", 129).origin("src/display.rs"));
 //!
 //!  let renderer = Renderer::styled();
 //!  println!("{}", renderer.render(snippet));

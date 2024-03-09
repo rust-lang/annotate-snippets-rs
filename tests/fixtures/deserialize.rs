@@ -2,7 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
 use annotate_snippets::{
-    renderer::Margin, Annotation, AnnotationType, Renderer, Slice, Snippet, SourceAnnotation,
+    renderer::Margin, AnnotationType, Label, Renderer, Slice, Snippet, SourceAnnotation,
 };
 
 #[derive(Deserialize)]
@@ -15,14 +15,16 @@ pub struct Fixture<'a> {
 
 #[derive(Deserialize)]
 pub struct SnippetDef<'a> {
-    #[serde(deserialize_with = "deserialize_annotation")]
+    #[serde(deserialize_with = "deserialize_label")]
+    #[serde(borrow)]
+    pub title: Label<'a>,
     #[serde(default)]
     #[serde(borrow)]
-    pub title: Option<Annotation<'a>>,
-    #[serde(deserialize_with = "deserialize_annotations")]
+    pub id: Option<&'a str>,
+    #[serde(deserialize_with = "deserialize_labels")]
     #[serde(default)]
     #[serde(borrow)]
-    pub footer: Vec<Annotation<'a>>,
+    pub footer: Vec<Label<'a>>,
     #[serde(deserialize_with = "deserialize_slices")]
     #[serde(borrow)]
     pub slices: Vec<Slice<'a>>,
@@ -32,15 +34,54 @@ impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
     fn from(val: SnippetDef<'a>) -> Self {
         let SnippetDef {
             title,
+            id,
             footer,
             slices,
         } = val;
-        Snippet {
-            title,
-            footer,
-            slices,
+        let mut snippet = Snippet::title(title);
+        if let Some(id) = id {
+            snippet = snippet.id(id);
         }
+        snippet = slices
+            .into_iter()
+            .fold(snippet, |snippet, slice| snippet.slice(slice));
+        snippet = footer
+            .into_iter()
+            .fold(snippet, |snippet, label| snippet.footer(label));
+        snippet
     }
+}
+
+fn deserialize_label<'de, D>(deserializer: D) -> Result<Label<'de>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper<'a>(
+        #[serde(with = "LabelDef")]
+        #[serde(borrow)]
+        LabelDef<'a>,
+    );
+
+    Wrapper::deserialize(deserializer)
+        .map(|Wrapper(label)| Label::new(label.annotation_type, label.label))
+}
+
+fn deserialize_labels<'de, D>(deserializer: D) -> Result<Vec<Label<'de>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    struct Wrapper<'a>(
+        #[serde(with = "LabelDef")]
+        #[serde(borrow)]
+        LabelDef<'a>,
+    );
+
+    let v = Vec::deserialize(deserializer)?;
+    Ok(v.into_iter()
+        .map(|Wrapper(a)| Label::new(a.annotation_type, a.label))
+        .collect())
 }
 
 fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice<'de>>, D::Error>
@@ -51,45 +92,14 @@ where
     struct Wrapper<'a>(
         #[serde(with = "SliceDef")]
         #[serde(borrow)]
-        Slice<'a>,
+        SliceDef<'a>,
     );
 
     let v = Vec::deserialize(deserializer)?;
-    Ok(v.into_iter().map(|Wrapper(a)| a).collect())
-}
-
-fn deserialize_annotation<'de, D>(deserializer: D) -> Result<Option<Annotation<'de>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper<'a>(
-        #[serde(with = "AnnotationDef")]
-        #[serde(borrow)]
-        Annotation<'a>,
-    );
-
-    Option::<Wrapper>::deserialize(deserializer)
-        .map(|opt_wrapped: Option<Wrapper>| opt_wrapped.map(|wrapped: Wrapper| wrapped.0))
-}
-
-fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation<'de>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper<'a>(
-        #[serde(with = "AnnotationDef")]
-        #[serde(borrow)]
-        Annotation<'a>,
-    );
-
-    let v = Vec::deserialize(deserializer)?;
-    Ok(v.into_iter().map(|Wrapper(a)| a).collect())
+    Ok(v.into_iter().map(|Wrapper(a)| a.into()).collect())
 }
 
 #[derive(Deserialize)]
-#[serde(remote = "Slice")]
 pub struct SliceDef<'a> {
     #[serde(borrow)]
     pub source: &'a str,
@@ -103,6 +113,26 @@ pub struct SliceDef<'a> {
     pub fold: bool,
 }
 
+impl<'a> From<SliceDef<'a>> for Slice<'a> {
+    fn from(val: SliceDef<'a>) -> Self {
+        let SliceDef {
+            source,
+            line_start,
+            origin,
+            annotations,
+            fold,
+        } = val;
+        let mut slice = Slice::new(source, line_start).fold(fold);
+        if let Some(origin) = origin {
+            slice = slice.origin(origin)
+        }
+        slice = annotations
+            .into_iter()
+            .fold(slice, |slice, annotation| slice.annotation(annotation));
+        slice
+    }
+}
+
 fn deserialize_source_annotations<'de, D>(
     deserializer: D,
 ) -> Result<Vec<SourceAnnotation<'de>>, D::Error>
@@ -110,18 +140,13 @@ where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
-    struct Wrapper<'a>(
-        #[serde(with = "SourceAnnotationDef")]
-        #[serde(borrow)]
-        SourceAnnotation<'a>,
-    );
+    struct Wrapper<'a>(#[serde(borrow)] SourceAnnotationDef<'a>);
 
     let v = Vec::deserialize(deserializer)?;
-    Ok(v.into_iter().map(|Wrapper(a)| a).collect())
+    Ok(v.into_iter().map(|Wrapper(a)| a.into()).collect())
 }
 
 #[derive(Serialize, Deserialize)]
-#[serde(remote = "SourceAnnotation")]
 pub struct SourceAnnotationDef<'a> {
     pub range: Range<usize>,
     #[serde(borrow)]
@@ -130,15 +155,23 @@ pub struct SourceAnnotationDef<'a> {
     pub annotation_type: AnnotationType,
 }
 
+impl<'a> From<SourceAnnotationDef<'a>> for SourceAnnotation<'a> {
+    fn from(val: SourceAnnotationDef<'a>) -> Self {
+        let SourceAnnotationDef {
+            range,
+            label,
+            annotation_type,
+        } = val;
+        Label::new(annotation_type, label).span(range)
+    }
+}
+
 #[derive(Serialize, Deserialize)]
-#[serde(remote = "Annotation")]
-pub struct AnnotationDef<'a> {
-    #[serde(borrow)]
-    pub id: Option<&'a str>,
-    #[serde(borrow)]
-    pub label: Option<&'a str>,
+pub struct LabelDef<'a> {
     #[serde(with = "AnnotationTypeDef")]
     pub annotation_type: AnnotationType,
+    #[serde(borrow)]
+    pub label: &'a str,
 }
 
 #[allow(dead_code)]
