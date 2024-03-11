@@ -147,7 +147,7 @@ impl<'a> From<AnnotationDef<'a>> for Annotation<'a> {
             label,
             level,
         } = val;
-        Label::new(level, label).span(range)
+        level.span(range).label(label)
     }
 }
 

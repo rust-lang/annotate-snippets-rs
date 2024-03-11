@@ -1040,7 +1040,7 @@ fn format_body(
                                 annotation: Annotation {
                                     annotation_type,
                                     id: None,
-                                    label: format_label(Some(annotation.label), None),
+                                    label: format_label(annotation.label, None),
                                 },
                                 range,
                                 annotation_type: DisplayAnnotationType::from(annotation.level),
@@ -1134,7 +1134,7 @@ fn format_body(
                                 annotation: Annotation {
                                     annotation_type,
                                     id: None,
-                                    label: format_label(Some(annotation.label), None),
+                                    label: format_label(annotation.label, None),
                                 },
                                 range,
                                 annotation_type: DisplayAnnotationType::from(annotation.level),
@@ -1371,7 +1371,11 @@ mod tests {
         let input = snippet::Level::Error.title("").snippet(
             snippet::Snippet::source(&source)
                 .line_start(5402)
-                .annotation(snippet::Label::info("Test annotation").span(range.clone())),
+                .annotation(
+                    snippet::Level::Info
+                        .span(range.clone())
+                        .label("Test annotation"),
+                ),
         );
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
@@ -1478,7 +1482,7 @@ mod tests {
         let input = snippet::Level::Error.title("").snippet(
             snippet::Snippet::source(source)
                 .line_start(0)
-                .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
+                .annotation(snippet::Level::Error.span(0..source.len() + 2).label(label)),
         );
         let _ = DisplayList::new(input, &STYLESHEET, false, None);
     }
@@ -1490,7 +1494,7 @@ mod tests {
                 .line_start(1)
                 .origin("<current file>")
                 .fold(true)
-                .annotation(snippet::Label::error("oops").span(19..23)),
+                .annotation(snippet::Level::Error.span(19..23).label("oops")),
         );
 
         let expected = from_display_lines(vec![

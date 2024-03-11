@@ -73,15 +73,6 @@ impl<'a> Label<'a> {
         self.label = label;
         self
     }
-
-    /// Create a [`Annotation`] with the given span for a [`Snippet`]
-    pub fn span(&self, span: Range<usize>) -> Annotation<'a> {
-        Annotation {
-            range: span,
-            label: self.label,
-            level: self.level,
-        }
-    }
 }
 
 /// Structure containing the slice of text to be annotated and
@@ -133,13 +124,20 @@ impl<'a> Snippet<'a> {
 
 /// An annotation for a [`Snippet`].
 ///
-/// This gets created by [`Label::span`].
+/// See [`Level::span`] to create a [`Annotation`]
 #[derive(Debug)]
 pub struct Annotation<'a> {
     /// The byte range of the annotation in the `source` string
     pub(crate) range: Range<usize>,
-    pub(crate) label: &'a str,
+    pub(crate) label: Option<&'a str>,
     pub(crate) level: Level,
+}
+
+impl<'a> Annotation<'a> {
+    pub fn label(mut self, label: &'a str) -> Self {
+        self.label = Some(label);
+        self
+    }
 }
 
 /// Types of annotations.
@@ -162,6 +160,15 @@ impl Level {
             title,
             snippets: vec![],
             footer: vec![],
+        }
+    }
+
+    /// Create a [`Annotation`] with the given span for a [`Snippet`]
+    pub fn span<'a>(self, span: Range<usize>) -> Annotation<'a> {
+        Annotation {
+            range: span,
+            label: None,
+            level: self,
         }
     }
 }

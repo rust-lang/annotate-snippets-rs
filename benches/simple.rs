@@ -4,7 +4,7 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
-use annotate_snippets::{Label, Level, Renderer, Snippet};
+use annotate_snippets::{Level, Renderer, Snippet};
 
 fn create_snippet(renderer: Renderer) {
     let source = r#") -> Option<String> {
@@ -34,9 +34,15 @@ fn create_snippet(renderer: Renderer) {
             .line_start(51)
             .origin("src/format.rs")
             .annotation(
-                Label::warning("expected `Option<String>` because of return type").span(5..19),
+                Level::Warning
+                    .span(5..19)
+                    .label("expected `Option<String>` because of return type"),
             )
-            .annotation(Label::error("expected enum `std::option::Option`").span(26..724)),
+            .annotation(
+                Level::Error
+                    .span(26..724)
+                    .label("expected enum `std::option::Option`"),
+            ),
     );
 
     let _result = renderer.render(message).to_string();

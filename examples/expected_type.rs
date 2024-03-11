@@ -1,4 +1,4 @@
-use annotate_snippets::{Label, Level, Renderer, Snippet};
+use annotate_snippets::{Level, Renderer, Snippet};
 
 fn main() {
     let source = r#"                annotations: vec![SourceAnnotation {
@@ -11,12 +11,11 @@ fn main() {
             .origin("examples/footer.rs")
             .fold(true)
             .annotation(
-                Label::error(
-                    "expected struct `annotate_snippets::snippet::Slice`, found reference",
-                )
-                .span(193..195),
+                Level::Error
+                    .span(193..195)
+                    .label("expected struct `annotate_snippets::snippet::Slice`, found reference"),
             )
-            .annotation(Label::info("while parsing this struct").span(34..50)),
+            .annotation(Level::Info.span(34..50).label("while parsing this struct")),
     );
 
     let renderer = Renderer::styled();
