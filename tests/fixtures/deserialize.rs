@@ -107,7 +107,7 @@ impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
             annotations,
             fold,
         } = val;
-        let mut snippet = Snippet::new(source).line_start(line_start).fold(fold);
+        let mut snippet = Snippet::source(source).line_start(line_start).fold(fold);
         if let Some(origin) = origin {
             snippet = snippet.origin(origin)
         }

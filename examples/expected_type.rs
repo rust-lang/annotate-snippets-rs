@@ -6,7 +6,7 @@ fn main() {
                     ,
                 range: <22, 25>,"#;
     let message = Level::Error.title("expected type, found `22`").snippet(
-        Snippet::new(source)
+        Snippet::source(source)
             .line_start(26)
             .origin("examples/footer.rs")
             .fold(true)

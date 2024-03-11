@@ -1236,7 +1236,7 @@ mod tests {
         let source = [line_1, line_2].join("\n");
         let input = snippet::Level::Error
             .title("")
-            .snippet(snippet::Snippet::new(&source).line_start(5402));
+            .snippet(snippet::Snippet::source(&source).line_start(5402));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1289,12 +1289,12 @@ mod tests {
         let input = snippet::Level::Error
             .title("")
             .snippet(
-                snippet::Snippet::new(src_0)
+                snippet::Snippet::source(src_0)
                     .line_start(5402)
                     .origin("file1.rs"),
             )
             .snippet(
-                snippet::Snippet::new(src_1)
+                snippet::Snippet::source(src_1)
                     .line_start(2)
                     .origin("file2.rs"),
             );
@@ -1369,7 +1369,7 @@ mod tests {
         // In line 2
         let range = 22..24;
         let input = snippet::Level::Error.title("").snippet(
-            snippet::Snippet::new(&source)
+            snippet::Snippet::source(&source)
                 .line_start(5402)
                 .annotation(snippet::Label::info("Test annotation").span(range.clone())),
         );
@@ -1476,7 +1476,7 @@ mod tests {
         let source = "short";
         let label = "label";
         let input = snippet::Level::Error.title("").snippet(
-            snippet::Snippet::new(source)
+            snippet::Snippet::source(source)
                 .line_start(0)
                 .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
         );
@@ -1486,7 +1486,7 @@ mod tests {
     #[test]
     fn test_i_29() {
         let snippets = snippet::Level::Error.title("oops").snippet(
-            snippet::Snippet::new("First line\r\nSecond oops line")
+            snippet::Snippet::source("First line\r\nSecond oops line")
                 .line_start(1)
                 .origin("<current file>")
                 .fold(true)

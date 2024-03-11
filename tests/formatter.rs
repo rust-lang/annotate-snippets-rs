@@ -3,7 +3,7 @@ use annotate_snippets::{Label, Level, Renderer, Snippet};
 #[test]
 fn test_i_29() {
     let snippets = Level::Error.title("oops").snippet(
-        Snippet::new("First line\r\nSecond oops line")
+        Snippet::source("First line\r\nSecond oops line")
             .origin("<current file>")
             .annotation(Label::error("oops").span(19..23))
             .fold(true),
@@ -23,7 +23,7 @@ fn test_i_29() {
 #[test]
 fn test_point_to_double_width_characters() {
     let snippets = Level::Error.title("").snippet(
-        Snippet::new("こんにちは、世界")
+        Snippet::source("こんにちは、世界")
             .origin("<current file>")
             .annotation(Label::error("world").span(12..16)),
     );
@@ -42,7 +42,7 @@ fn test_point_to_double_width_characters() {
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
     let snippets = Level::Error.title("").snippet(
-        Snippet::new("おはよう\nございます")
+        Snippet::source("おはよう\nございます")
             .origin("<current file>")
             .annotation(Label::error("Good morning").span(4..15)),
     );
@@ -63,7 +63,7 @@ fn test_point_to_double_width_characters_across_lines() {
 #[test]
 fn test_point_to_double_width_characters_multiple() {
     let snippets = Level::Error.title("").snippet(
-        Snippet::new("お寿司\n食べたい🍣")
+        Snippet::source("お寿司\n食べたい🍣")
             .origin("<current file>")
             .annotation(Label::error("Sushi1").span(0..6))
             .annotation(Label::note("Sushi2").span(11..15)),
@@ -85,7 +85,7 @@ fn test_point_to_double_width_characters_multiple() {
 #[test]
 fn test_point_to_double_width_characters_mixed() {
     let snippets = Level::Error.title("").snippet(
-        Snippet::new("こんにちは、新しいWorld！")
+        Snippet::source("こんにちは、新しいWorld！")
             .origin("<current file>")
             .annotation(Label::error("New world").span(12..23)),
     );

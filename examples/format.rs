@@ -24,7 +24,7 @@ fn main() {
         }
     }"#;
     let message = Level::Error.title("mismatched types").id("E0308").snippet(
-        Snippet::new(source)
+        Snippet::source(source)
             .line_start(51)
             .origin("src/format.rs")
             .annotation(

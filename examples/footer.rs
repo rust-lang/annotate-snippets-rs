@@ -5,7 +5,7 @@ fn main() {
         .title("mismatched types")
         .id("E0308")
         .snippet(
-            Snippet::new("        slices: vec![\"A\",")
+            Snippet::source("        slices: vec![\"A\",")
                 .line_start(13)
                 .origin("src/multislice.rs")
                 .annotation(
