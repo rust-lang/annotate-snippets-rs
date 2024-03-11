@@ -1,6 +1,6 @@
 [snippet.title]
 label = "expected one of `.`, `;`, `?`, or an operator, found `for`"
-annotation_type = "Error"
+level = "Error"
 
 [[snippet.slices]]
 source = "let x = vec![1];"
@@ -8,7 +8,7 @@ line_start = 4
 origin = "/code/rust/src/test/ui/annotate-snippet/suggestion.rs"
 [[snippet.slices.annotations]]
 label = "move occurs because `x` has type `std::vec::Vec<i32>`, which does not implement the `Copy` trait"
-annotation_type = "Warning"
+level = "Warning"
 range = [4, 5]
 
 [[snippet.slices]]
@@ -16,7 +16,7 @@ source = "let y = x;"
 line_start = 7
 [[snippet.slices.annotations]]
 label = "value moved here"
-annotation_type = "Warning"
+level = "Warning"
 range = [8, 9]
 
 [[snippet.slices]]
@@ -24,5 +24,5 @@ source = "x;"
 line_start = 9
 [[snippet.slices.annotations]]
 label = "value used here after move"
-annotation_type = "Error"
+level = "Error"
 range = [0, 1]

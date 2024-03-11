@@ -9,9 +9,9 @@ origin = "foo.txt"
 fold = false
 [[snippet.slices.annotations]]
 label = "this should not be on separate lines"
-annotation_type = "Error"
+level = "Error"
 range = [11, 18]
 
 [snippet]
-title = { annotation_type = "Error", label = "spacing error found" }
+title = { level = "Error", label = "spacing error found" }
 id = "E####"

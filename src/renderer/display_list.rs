@@ -649,14 +649,14 @@ pub enum DisplayAnnotationType {
     Help,
 }
 
-impl From<snippet::AnnotationType> for DisplayAnnotationType {
-    fn from(at: snippet::AnnotationType) -> Self {
+impl From<snippet::Level> for DisplayAnnotationType {
+    fn from(at: snippet::Level) -> Self {
         match at {
-            snippet::AnnotationType::Error => DisplayAnnotationType::Error,
-            snippet::AnnotationType::Warning => DisplayAnnotationType::Warning,
-            snippet::AnnotationType::Info => DisplayAnnotationType::Info,
-            snippet::AnnotationType::Note => DisplayAnnotationType::Note,
-            snippet::AnnotationType::Help => DisplayAnnotationType::Help,
+            snippet::Level::Error => DisplayAnnotationType::Error,
+            snippet::Level::Warning => DisplayAnnotationType::Warning,
+            snippet::Level::Info => DisplayAnnotationType::Info,
+            snippet::Level::Note => DisplayAnnotationType::Note,
+            snippet::Level::Help => DisplayAnnotationType::Help,
         }
     }
 }
@@ -736,7 +736,7 @@ fn format_label(
 fn format_title<'a>(title: snippet::Label<'a>, id: Option<&'a str>) -> DisplayLine<'a> {
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
-            annotation_type: DisplayAnnotationType::from(title.annotation_type),
+            annotation_type: DisplayAnnotationType::from(title.level),
             id,
             label: format_label(Some(title.label), Some(DisplayTextStyle::Emphasis)),
         },
@@ -750,7 +750,7 @@ fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
     for (i, line) in footer.label.lines().enumerate() {
         result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
-                annotation_type: DisplayAnnotationType::from(footer.annotation_type),
+                annotation_type: DisplayAnnotationType::from(footer.level),
                 id: None,
                 label: format_label(Some(line), None),
             },
@@ -1010,10 +1010,10 @@ fn format_body(
         // It would be nice to use filter_drain here once it's stable.
         annotations.retain(|annotation| {
             let body_idx = idx + annotation_line_count;
-            let annotation_type = match annotation.annotation_type {
-                snippet::AnnotationType::Error => DisplayAnnotationType::None,
-                snippet::AnnotationType::Warning => DisplayAnnotationType::None,
-                _ => DisplayAnnotationType::from(annotation.annotation_type),
+            let annotation_type = match annotation.level {
+                snippet::Level::Error => DisplayAnnotationType::None,
+                snippet::Level::Warning => DisplayAnnotationType::None,
+                _ => DisplayAnnotationType::from(annotation.level),
             };
             match annotation.range {
                 Range { start, .. } if start > line_end_index => true,
@@ -1036,9 +1036,7 @@ fn format_body(
                                     label: format_label(Some(annotation.label), None),
                                 },
                                 range,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                                 annotation_part: DisplayAnnotationPart::Standalone,
                             },
                         },
@@ -1059,9 +1057,7 @@ fn format_body(
                         {
                             inline_marks.push(DisplayMark {
                                 mark_type: DisplayMarkType::AnnotationStart,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                             });
                         }
                     } else {
@@ -1079,9 +1075,7 @@ fn format_body(
                                         label: vec![],
                                     },
                                     range,
-                                    annotation_type: DisplayAnnotationType::from(
-                                        annotation.annotation_type,
-                                    ),
+                                    annotation_type: DisplayAnnotationType::from(annotation.level),
                                     annotation_part: DisplayAnnotationPart::MultilineStart,
                                 },
                             },
@@ -1098,9 +1092,7 @@ fn format_body(
                     {
                         inline_marks.push(DisplayMark {
                             mark_type: DisplayMarkType::AnnotationThrough,
-                            annotation_type: DisplayAnnotationType::from(
-                                annotation.annotation_type,
-                            ),
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
                         });
                     }
                     true
@@ -1117,9 +1109,7 @@ fn format_body(
                     {
                         inline_marks.push(DisplayMark {
                             mark_type: DisplayMarkType::AnnotationThrough,
-                            annotation_type: DisplayAnnotationType::from(
-                                annotation.annotation_type,
-                            ),
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
                         });
                     }
 
@@ -1131,9 +1121,7 @@ fn format_body(
                             lineno: None,
                             inline_marks: vec![DisplayMark {
                                 mark_type: DisplayMarkType::AnnotationThrough,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                             }],
                             line: DisplaySourceLine::Annotation {
                                 annotation: Annotation {
@@ -1142,9 +1130,7 @@ fn format_body(
                                     label: format_label(Some(annotation.label), None),
                                 },
                                 range,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                                 annotation_part: DisplayAnnotationPart::MultilineEnd,
                             },
                         },

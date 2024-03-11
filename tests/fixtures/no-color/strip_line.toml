@@ -1,5 +1,5 @@
 [snippet]
-title = { annotation_type = "Error", label = "mismatched types" }
+title = { level = "Error", label = "mismatched types" }
 id = "E0308"
 
 [[snippet.slices]]
@@ -9,7 +9,7 @@ origin = "$DIR/whitespace-trimming.rs"
 
 [[snippet.slices.annotations]]
 label = "expected (), found integer"
-annotation_type = "Error"
+level = "Error"
 range = [192, 194]
 
 [renderer]

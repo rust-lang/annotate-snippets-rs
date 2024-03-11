@@ -67,35 +67,32 @@ impl<'a> Snippet<'a> {
 }
 
 pub struct Label<'a> {
-    pub(crate) annotation_type: AnnotationType,
+    pub(crate) level: Level,
     pub(crate) label: &'a str,
 }
 
 impl<'a> Label<'a> {
-    pub fn new(annotation_type: AnnotationType, label: &'a str) -> Self {
-        Self {
-            annotation_type,
-            label,
-        }
+    pub fn new(level: Level, label: &'a str) -> Self {
+        Self { level, label }
     }
     pub fn error(label: &'a str) -> Self {
-        Self::new(AnnotationType::Error, label)
+        Self::new(Level::Error, label)
     }
 
     pub fn warning(label: &'a str) -> Self {
-        Self::new(AnnotationType::Warning, label)
+        Self::new(Level::Warning, label)
     }
 
     pub fn info(label: &'a str) -> Self {
-        Self::new(AnnotationType::Info, label)
+        Self::new(Level::Info, label)
     }
 
     pub fn note(label: &'a str) -> Self {
-        Self::new(AnnotationType::Note, label)
+        Self::new(Level::Note, label)
     }
 
     pub fn help(label: &'a str) -> Self {
-        Self::new(AnnotationType::Help, label)
+        Self::new(Level::Help, label)
     }
 
     pub fn label(mut self, label: &'a str) -> Self {
@@ -108,7 +105,7 @@ impl<'a> Label<'a> {
         SourceAnnotation {
             range: span,
             label: self.label,
-            annotation_type: self.annotation_type,
+            level: self.level,
         }
     }
 }
@@ -155,7 +152,7 @@ impl<'a> Slice<'a> {
 
 /// Types of annotations.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AnnotationType {
+pub enum Level {
     /// Error annotations are displayed using red color and "^" character.
     Error,
     /// Warning annotations are displayed using blue color and "-" character.
@@ -173,5 +170,5 @@ pub struct SourceAnnotation<'a> {
     /// The byte range of the annotation in the `source` string
     pub(crate) range: Range<usize>,
     pub(crate) label: &'a str,
-    pub(crate) annotation_type: AnnotationType,
+    pub(crate) level: Level,
 }

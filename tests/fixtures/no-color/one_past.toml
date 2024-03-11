@@ -1,6 +1,6 @@
 [snippet.title]
 label = "expected `.`, `=`"
-annotation_type = "Error"
+level = "Error"
 
 [[snippet.slices]]
 source = "asdf"
@@ -8,5 +8,5 @@ line_start = 1
 origin = "Cargo.toml"
 [[snippet.slices.annotations]]
 label = ""
-annotation_type = "Error"
+level = "Error"
 range = [4, 5]

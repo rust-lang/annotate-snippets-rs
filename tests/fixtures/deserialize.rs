@@ -2,7 +2,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
 use annotate_snippets::{
-    renderer::Margin, AnnotationType, Label, Renderer, Slice, Snippet, SourceAnnotation,
+    renderer::Margin, Label, Level, Renderer, Slice, Snippet, SourceAnnotation,
 };
 
 #[derive(Deserialize)]
@@ -63,8 +63,7 @@ where
         LabelDef<'a>,
     );
 
-    Wrapper::deserialize(deserializer)
-        .map(|Wrapper(label)| Label::new(label.annotation_type, label.label))
+    Wrapper::deserialize(deserializer).map(|Wrapper(label)| Label::new(label.level, label.label))
 }
 
 fn deserialize_labels<'de, D>(deserializer: D) -> Result<Vec<Label<'de>>, D::Error>
@@ -80,7 +79,7 @@ where
 
     let v = Vec::deserialize(deserializer)?;
     Ok(v.into_iter()
-        .map(|Wrapper(a)| Label::new(a.annotation_type, a.label))
+        .map(|Wrapper(a)| Label::new(a.level, a.label))
         .collect())
 }
 
@@ -151,8 +150,8 @@ pub struct SourceAnnotationDef<'a> {
     pub range: Range<usize>,
     #[serde(borrow)]
     pub label: &'a str,
-    #[serde(with = "AnnotationTypeDef")]
-    pub annotation_type: AnnotationType,
+    #[serde(with = "LevelDef")]
+    pub level: Level,
 }
 
 impl<'a> From<SourceAnnotationDef<'a>> for SourceAnnotation<'a> {
@@ -160,24 +159,24 @@ impl<'a> From<SourceAnnotationDef<'a>> for SourceAnnotation<'a> {
         let SourceAnnotationDef {
             range,
             label,
-            annotation_type,
+            level,
         } = val;
-        Label::new(annotation_type, label).span(range)
+        Label::new(level, label).span(range)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct LabelDef<'a> {
-    #[serde(with = "AnnotationTypeDef")]
-    pub annotation_type: AnnotationType,
+    #[serde(with = "LevelDef")]
+    pub level: Level,
     #[serde(borrow)]
     pub label: &'a str,
 }
 
 #[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
-#[serde(remote = "AnnotationType")]
-enum AnnotationTypeDef {
+#[serde(remote = "Level")]
+enum LevelDef {
     Error,
     Warning,
     Info,
