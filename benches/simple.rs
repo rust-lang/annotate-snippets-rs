@@ -4,7 +4,7 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
-use annotate_snippets::{Label, Message, Renderer, Slice};
+use annotate_snippets::{Label, Message, Renderer, Snippet};
 
 fn create_snippet(renderer: Renderer) {
     let source = r#") -> Option<String> {
@@ -29,8 +29,8 @@ fn create_snippet(renderer: Renderer) {
             _ => continue,
         }
     }"#;
-    let message = Message::error("mismatched types").id("E0308").slice(
-        Slice::new(source, 51)
+    let message = Message::error("mismatched types").id("E0308").snippet(
+        Snippet::new(source, 51)
             .origin("src/format.rs")
             .annotation(
                 Label::warning("expected `Option<String>` because of return type").span(5..19),

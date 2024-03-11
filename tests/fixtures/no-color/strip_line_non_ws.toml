@@ -2,12 +2,12 @@
 title = { level = "Error", label = "mismatched types" }
 id = "E0308"
 
-[[message.slices]]
+[[message.snippets]]
 source = "    let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();"
 line_start = 4
 origin = "$DIR/non-whitespace-trimming.rs"
 
-[[message.slices.annotations]]
+[[message.snippets.annotations]]
 label = "expected (), found integer"
 level = "Error"
 range = [240, 242]

@@ -1,9 +1,9 @@
-use annotate_snippets::{Label, Message, Renderer, Slice};
+use annotate_snippets::{Label, Message, Renderer, Snippet};
 
 #[test]
 fn test_i_29() {
-    let snippets = Message::error("oops").slice(
-        Slice::new("First line\r\nSecond oops line", 1)
+    let snippets = Message::error("oops").snippet(
+        Snippet::new("First line\r\nSecond oops line", 1)
             .origin("<current file>")
             .annotation(Label::error("oops").span(19..23))
             .fold(true),
@@ -22,8 +22,8 @@ fn test_i_29() {
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = Message::error("").slice(
-        Slice::new("こんにちは、世界", 1)
+    let snippets = Message::error("").snippet(
+        Snippet::new("こんにちは、世界", 1)
             .origin("<current file>")
             .annotation(Label::error("world").span(12..16)),
     );
@@ -41,8 +41,8 @@ fn test_point_to_double_width_characters() {
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = Message::error("").slice(
-        Slice::new("おはよう\nございます", 1)
+    let snippets = Message::error("").snippet(
+        Snippet::new("おはよう\nございます", 1)
             .origin("<current file>")
             .annotation(Label::error("Good morning").span(4..15)),
     );
@@ -62,8 +62,8 @@ fn test_point_to_double_width_characters_across_lines() {
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = Message::error("").slice(
-        Slice::new("お寿司\n食べたい🍣", 1)
+    let snippets = Message::error("").snippet(
+        Snippet::new("お寿司\n食べたい🍣", 1)
             .origin("<current file>")
             .annotation(Label::error("Sushi1").span(0..6))
             .annotation(Label::note("Sushi2").span(11..15)),
@@ -84,8 +84,8 @@ fn test_point_to_double_width_characters_multiple() {
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = Message::error("").slice(
-        Slice::new("こんにちは、新しいWorld！", 1)
+    let snippets = Message::error("").snippet(
+        Snippet::new("こんにちは、新しいWorld！", 1)
             .origin("<current file>")
             .annotation(Label::error("New world").span(12..23)),
     );

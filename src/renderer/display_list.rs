@@ -110,7 +110,7 @@ impl<'a> DisplayList<'a> {
             title,
             id,
             footer,
-            slices,
+            snippets,
         }: snippet::Message<'a>,
         stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
@@ -120,9 +120,9 @@ impl<'a> DisplayList<'a> {
 
         body.push(format_title(title, id));
 
-        for (idx, slice) in slices.into_iter().enumerate() {
+        for (idx, snippet) in snippets.into_iter().enumerate() {
             body.append(&mut format_slice(
-                slice,
+                snippet,
                 idx == 0,
                 !footer.is_empty(),
                 margin,
@@ -542,7 +542,7 @@ pub enum DisplayLine<'a> {
 /// A source line.
 #[derive(Debug, PartialEq)]
 pub enum DisplaySourceLine<'a> {
-    /// A line with the content of the Slice.
+    /// A line with the content of the Snippet.
     Content {
         text: &'a str,
         range: (usize, usize), // meta information for annotation placement.
@@ -762,15 +762,15 @@ fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
 }
 
 fn format_slice(
-    slice: snippet::Slice<'_>,
+    snippet: snippet::Snippet<'_>,
     is_first: bool,
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let main_range = slice.annotations.first().map(|x| x.range.start);
-    let origin = slice.origin;
+    let main_range = snippet.annotations.first().map(|x| x.range.start);
+    let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
-    let mut body = format_body(slice, need_empty_header, has_footer, margin);
+    let mut body = format_body(snippet, need_empty_header, has_footer, margin);
     let header = format_header(origin, main_range, &body, is_first);
     let mut result = vec![];
 
@@ -942,13 +942,13 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
 }
 
 fn format_body(
-    slice: snippet::Slice<'_>,
+    snippet: snippet::Snippet<'_>,
     need_empty_header: bool,
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let source_len = slice.source.len();
-    if let Some(bigger) = slice.annotations.iter().find_map(|x| {
+    let source_len = snippet.source.len();
+    if let Some(bigger) = snippet.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
         if source_len + 1 < x.range.end {
             Some(&x.range)
@@ -963,7 +963,7 @@ fn format_body(
     }
 
     let mut body = vec![];
-    let mut current_line = slice.line_start;
+    let mut current_line = snippet.line_start;
     let mut current_index = 0;
     let mut line_info = vec![];
 
@@ -972,7 +972,7 @@ fn format_body(
         line_end_index: usize,
     }
 
-    for (line, end_line) in CursorLines::new(slice.source) {
+    for (line, end_line) in CursorLines::new(snippet.source) {
         let line_length: usize = line
             .chars()
             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
@@ -995,7 +995,7 @@ fn format_body(
     }
 
     let mut annotation_line_count = 0;
-    let mut annotations = slice.annotations;
+    let mut annotations = snippet.annotations;
     for (
         idx,
         LineInfo {
@@ -1143,7 +1143,7 @@ fn format_body(
         });
     }
 
-    if slice.fold {
+    if snippet.fold {
         body = fold_body(body);
     }
 
@@ -1227,7 +1227,7 @@ mod tests {
         let line_1 = "This is line 1";
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
-        let input = snippet::Message::error("").slice(snippet::Slice::new(&source, 5402));
+        let input = snippet::Message::error("").snippet(snippet::Snippet::new(&source, 5402));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1278,8 +1278,8 @@ mod tests {
         let src_1 = "This is slice 2";
         let src_1_len = src_1.len();
         let input = snippet::Message::error("")
-            .slice(snippet::Slice::new(src_0, 5402).origin("file1.rs"))
-            .slice(snippet::Slice::new(src_1, 2).origin("file2.rs"));
+            .snippet(snippet::Snippet::new(src_0, 5402).origin("file1.rs"))
+            .snippet(snippet::Snippet::new(src_1, 2).origin("file2.rs"));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1350,8 +1350,8 @@ mod tests {
         let source = [line_1, line_2].join("\n");
         // In line 2
         let range = 22..24;
-        let input = snippet::Message::error("").slice(
-            snippet::Slice::new(&source, 5402)
+        let input = snippet::Message::error("").snippet(
+            snippet::Snippet::new(&source, 5402)
                 .annotation(snippet::Label::info("Test annotation").span(range.clone())),
         );
         let output = from_display_lines(vec![
@@ -1455,8 +1455,8 @@ mod tests {
     fn test_i26() {
         let source = "short";
         let label = "label";
-        let input = snippet::Message::error("").slice(
-            snippet::Slice::new(source, 0)
+        let input = snippet::Message::error("").snippet(
+            snippet::Snippet::new(source, 0)
                 .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
         );
         let _ = DisplayList::new(input, &STYLESHEET, false, None);
@@ -1464,8 +1464,8 @@ mod tests {
 
     #[test]
     fn test_i_29() {
-        let snippets = snippet::Message::error("oops").slice(
-            snippet::Slice::new("First line\r\nSecond oops line", 1)
+        let snippets = snippet::Message::error("oops").snippet(
+            snippet::Snippet::new("First line\r\nSecond oops line", 1)
                 .origin("<current file>")
                 .fold(true)
                 .annotation(snippet::Label::error("oops").span(19..23)),

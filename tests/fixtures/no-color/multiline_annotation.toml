@@ -1,4 +1,4 @@
-[[message.slices]]
+[[message.snippets]]
 source = """
 ) -> Option<String> {
     for ann in annotations {
@@ -26,11 +26,11 @@ source = """
 line_start = 51
 origin = "src/format.rs"
 fold = true
-[[message.slices.annotations]]
+[[message.snippets.annotations]]
 label = "expected `std::option::Option<std::string::String>` because of return type"
 level = "Warning"
 range = [5, 19]
-[[message.slices.annotations]]
+[[message.snippets.annotations]]
 label = "expected enum `std::option::Option`, found ()"
 level = "Error"
 range = [22, 766]

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
-use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Message, Renderer, Slice};
+use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Message, Renderer, Snippet};
 
 #[derive(Deserialize)]
 pub struct Fixture<'a> {
@@ -23,9 +23,9 @@ pub struct MessageDef<'a> {
     #[serde(default)]
     #[serde(borrow)]
     pub footer: Vec<Label<'a>>,
-    #[serde(deserialize_with = "deserialize_slices")]
+    #[serde(deserialize_with = "deserialize_snippets")]
     #[serde(borrow)]
-    pub slices: Vec<Slice<'a>>,
+    pub snippets: Vec<Snippet<'a>>,
 }
 
 impl<'a> From<MessageDef<'a>> for Message<'a> {
@@ -34,15 +34,15 @@ impl<'a> From<MessageDef<'a>> for Message<'a> {
             title,
             id,
             footer,
-            slices,
+            snippets,
         } = val;
         let mut message = Message::title(title);
         if let Some(id) = id {
             message = message.id(id);
         }
-        message = slices
+        message = snippets
             .into_iter()
-            .fold(message, |message, slice| message.slice(slice));
+            .fold(message, |message, snippet| message.snippet(snippet));
         message = footer
             .into_iter()
             .fold(message, |message, label| message.footer(label));
@@ -81,15 +81,15 @@ where
         .collect())
 }
 
-fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice<'de>>, D::Error>
+fn deserialize_snippets<'de, D>(deserializer: D) -> Result<Vec<Snippet<'de>>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
     struct Wrapper<'a>(
-        #[serde(with = "SliceDef")]
+        #[serde(with = "SnippetDef")]
         #[serde(borrow)]
-        SliceDef<'a>,
+        SnippetDef<'a>,
     );
 
     let v = Vec::deserialize(deserializer)?;
@@ -97,7 +97,7 @@ where
 }
 
 #[derive(Deserialize)]
-pub struct SliceDef<'a> {
+pub struct SnippetDef<'a> {
     #[serde(borrow)]
     pub source: &'a str,
     pub line_start: usize,
@@ -110,23 +110,25 @@ pub struct SliceDef<'a> {
     pub fold: bool,
 }
 
-impl<'a> From<SliceDef<'a>> for Slice<'a> {
-    fn from(val: SliceDef<'a>) -> Self {
-        let SliceDef {
+impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
+    fn from(val: SnippetDef<'a>) -> Self {
+        let SnippetDef {
             source,
             line_start,
             origin,
             annotations,
             fold,
         } = val;
-        let mut slice = Slice::new(source, line_start).fold(fold);
+        let mut snippet = Snippet::new(source, line_start).fold(fold);
         if let Some(origin) = origin {
-            slice = slice.origin(origin)
+            snippet = snippet.origin(origin)
         }
-        slice = annotations
+        snippet = annotations
             .into_iter()
-            .fold(slice, |slice, annotation| slice.annotation(annotation));
-        slice
+            .fold(snippet, |snippet, annotation| {
+                snippet.annotation(annotation)
+            });
+        snippet
     }
 }
 

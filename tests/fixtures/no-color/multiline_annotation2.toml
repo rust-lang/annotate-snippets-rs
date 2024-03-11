@@ -1,4 +1,4 @@
-[[message.slices]]
+[[message.snippets]]
 source = """
                         if let DisplayLine::Source {
                             ref mut inline_marks,
@@ -7,7 +7,7 @@ source = """
 line_start = 139
 origin = "src/display_list.rs"
 fold = false
-[[message.slices.annotations]]
+[[message.snippets.annotations]]
 label = "missing fields `lineno`, `content`"
 level = "Error"
 range = [31, 128]

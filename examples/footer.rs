@@ -1,10 +1,10 @@
-use annotate_snippets::{Label, Message, Renderer, Slice};
+use annotate_snippets::{Label, Message, Renderer, Snippet};
 
 fn main() {
     let message = Message::error("mismatched types")
         .id("E0308")
-        .slice(
-            Slice::new("        slices: vec![\"A\",", 13)
+        .snippet(
+            Snippet::new("        slices: vec![\"A\",", 13)
                 .origin("src/multislice.rs")
                 .annotation(
                     Label::error(

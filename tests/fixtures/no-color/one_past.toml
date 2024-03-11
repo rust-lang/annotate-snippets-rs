@@ -2,11 +2,11 @@
 label = "expected `.`, `=`"
 level = "Error"
 
-[[message.slices]]
+[[message.snippets]]
 source = "asdf"
 line_start = 1
 origin = "Cargo.toml"
-[[message.slices.annotations]]
+[[message.snippets.annotations]]
 label = ""
 level = "Error"
 range = [4, 5]

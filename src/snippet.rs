@@ -6,8 +6,8 @@
 //! use annotate_snippets::*;
 //!
 //! Message::error("mismatched types")
-//!     .slice(Slice::new("Foo", 51).origin("src/format.rs"))
-//!     .slice(Slice::new("Faa", 129).origin("src/display.rs"));
+//!     .snippet(Snippet::new("Foo", 51).origin("src/format.rs"))
+//!     .snippet(Snippet::new("Faa", 129).origin("src/display.rs"));
 //! ```
 
 use std::ops::Range;
@@ -16,7 +16,7 @@ use std::ops::Range;
 pub struct Message<'a> {
     pub(crate) title: Label<'a>,
     pub(crate) id: Option<&'a str>,
-    pub(crate) slices: Vec<Slice<'a>>,
+    pub(crate) snippets: Vec<Snippet<'a>>,
     pub(crate) footer: Vec<Label<'a>>,
 }
 
@@ -25,7 +25,7 @@ impl<'a> Message<'a> {
         Self {
             title,
             id: None,
-            slices: vec![],
+            snippets: vec![],
             footer: vec![],
         }
     }
@@ -55,8 +55,8 @@ impl<'a> Message<'a> {
         self
     }
 
-    pub fn slice(mut self, slice: Slice<'a>) -> Self {
-        self.slices.push(slice);
+    pub fn snippet(mut self, slice: Snippet<'a>) -> Self {
+        self.snippets.push(slice);
         self
     }
 
@@ -100,7 +100,7 @@ impl<'a> Label<'a> {
         self
     }
 
-    /// Create a [`Annotation`] with the given span for a [`Slice`]
+    /// Create a [`Annotation`] with the given span for a [`Snippet`]
     pub fn span(&self, span: Range<usize>) -> Annotation<'a> {
         Annotation {
             range: span,
@@ -113,9 +113,9 @@ impl<'a> Label<'a> {
 /// Structure containing the slice of text to be annotated and
 /// basic information about the location of the slice.
 ///
-/// One `Slice` is meant to represent a single, continuous,
+/// One `Snippet` is meant to represent a single, continuous,
 /// slice of source code that you want to annotate.
-pub struct Slice<'a> {
+pub struct Snippet<'a> {
     pub(crate) source: &'a str,
     pub(crate) line_start: usize,
     pub(crate) origin: Option<&'a str>,
@@ -123,7 +123,7 @@ pub struct Slice<'a> {
     pub(crate) fold: bool,
 }
 
-impl<'a> Slice<'a> {
+impl<'a> Snippet<'a> {
     pub fn new(source: &'a str, line_start: usize) -> Self {
         Self {
             source,
@@ -162,7 +162,7 @@ pub enum Level {
     Help,
 }
 
-/// An annotation for a [`Slice`].
+/// An annotation for a [`Snippet`].
 ///
 /// This gets created by [`Label::span`].
 #[derive(Debug)]

@@ -1,4 +1,4 @@
-[[message.slices]]
+[[message.snippets]]
 source = """
 This is an exampl
 e of an edge case of an annotation overflowing
@@ -7,7 +7,7 @@ to exactly one character on next line.
 line_start = 26
 origin = "foo.txt"
 fold = false
-[[message.slices.annotations]]
+[[message.snippets.annotations]]
 label = "this should not be on separate lines"
 level = "Error"
 range = [11, 18]

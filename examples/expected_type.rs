@@ -1,12 +1,12 @@
-use annotate_snippets::{Label, Message, Renderer, Slice};
+use annotate_snippets::{Label, Message, Renderer, Snippet};
 
 fn main() {
     let source = r#"                annotations: vec![SourceAnnotation {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
                     ,
                 range: <22, 25>,"#;
-    let message = Message::error("expected type, found `22`").slice(
-        Slice::new(source, 26)
+    let message = Message::error("expected type, found `22`").snippet(
+        Snippet::new(source, 26)
             .origin("examples/footer.rs")
             .fold(true)
             .annotation(
