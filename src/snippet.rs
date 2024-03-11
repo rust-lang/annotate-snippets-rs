@@ -103,7 +103,7 @@ impl<'a> Label<'a> {
         self
     }
 
-    /// Create a [SourceAnnotation] with the given span for a [Slice]
+    /// Create a [`SourceAnnotation`] with the given span for a [`Slice`]
     pub fn span(&self, span: Range<usize>) -> SourceAnnotation<'a> {
         SourceAnnotation {
             range: span,
@@ -174,9 +174,9 @@ pub enum AnnotationType {
     Help,
 }
 
-/// An annotation for a `Slice`.
+/// An annotation for a [`Slice`].
 ///
-/// This gets created by [Label::span].
+/// This gets created by [`Label::span`].
 #[derive(Debug)]
 pub struct SourceAnnotation<'a> {
     /// The byte range of the annotation in the `source` string
