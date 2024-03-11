@@ -113,15 +113,6 @@ impl<'a> Label<'a> {
     }
 }
 
-impl From<AnnotationType> for Label<'_> {
-    fn from(annotation_type: AnnotationType) -> Self {
-        Label {
-            annotation_type,
-            label: "",
-        }
-    }
-}
-
 /// Structure containing the slice of text to be annotated and
 /// basic information about the location of the slice.
 ///
