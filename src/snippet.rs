@@ -152,6 +152,17 @@ impl<'a> Snippet<'a> {
     }
 }
 
+/// An annotation for a [`Snippet`].
+///
+/// This gets created by [`Label::span`].
+#[derive(Debug)]
+pub struct Annotation<'a> {
+    /// The byte range of the annotation in the `source` string
+    pub(crate) range: Range<usize>,
+    pub(crate) label: &'a str,
+    pub(crate) level: Level,
+}
+
 /// Types of annotations.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Level {
@@ -162,15 +173,4 @@ pub enum Level {
     Info,
     Note,
     Help,
-}
-
-/// An annotation for a [`Snippet`].
-///
-/// This gets created by [`Label::span`].
-#[derive(Debug)]
-pub struct Annotation<'a> {
-    /// The byte range of the annotation in the `source` string
-    pub(crate) range: Range<usize>,
-    pub(crate) label: &'a str,
-    pub(crate) level: Level,
 }
