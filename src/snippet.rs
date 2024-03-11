@@ -116,19 +116,21 @@ impl<'a> Label<'a> {
 /// One `Snippet` is meant to represent a single, continuous,
 /// slice of source code that you want to annotate.
 pub struct Snippet<'a> {
-    pub(crate) source: &'a str,
-    pub(crate) line_start: usize,
     pub(crate) origin: Option<&'a str>,
+    pub(crate) line_start: usize,
+
+    pub(crate) source: &'a str,
     pub(crate) annotations: Vec<Annotation<'a>>,
+
     pub(crate) fold: bool,
 }
 
 impl<'a> Snippet<'a> {
     pub fn new(source: &'a str, line_start: usize) -> Self {
         Self {
-            source,
-            line_start,
             origin: None,
+            line_start,
+            source,
             annotations: vec![],
             fold: false,
         }
