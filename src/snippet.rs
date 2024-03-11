@@ -34,8 +34,18 @@ impl<'a> Message<'a> {
         self
     }
 
+    pub fn snippets(mut self, slice: impl IntoIterator<Item = Snippet<'a>>) -> Self {
+        self.snippets.extend(slice);
+        self
+    }
+
     pub fn footer(mut self, footer: Label<'a>) -> Self {
         self.footer.push(footer);
+        self
+    }
+
+    pub fn footers(mut self, footer: impl IntoIterator<Item = Label<'a>>) -> Self {
+        self.footer.extend(footer);
         self
     }
 }
@@ -113,6 +123,11 @@ impl<'a> Snippet<'a> {
 
     pub fn annotation(mut self, annotation: Annotation<'a>) -> Self {
         self.annotations.push(annotation);
+        self
+    }
+
+    pub fn annotations(mut self, annotation: impl IntoIterator<Item = Annotation<'a>>) -> Self {
+        self.annotations.extend(annotation);
         self
     }
 

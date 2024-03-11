@@ -42,12 +42,8 @@ impl<'a> From<MessageDef<'a>> for Message<'a> {
         if let Some(id) = id {
             message = message.id(id);
         }
-        message = snippets
-            .into_iter()
-            .fold(message, |message, snippet| message.snippet(snippet));
-        message = footer
-            .into_iter()
-            .fold(message, |message, label| message.footer(label));
+        message = message.snippets(snippets);
+        message = message.footers(footer);
         message
     }
 }
@@ -111,11 +107,7 @@ impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
         if let Some(origin) = origin {
             snippet = snippet.origin(origin)
         }
-        snippet = annotations
-            .into_iter()
-            .fold(snippet, |snippet, annotation| {
-                snippet.annotation(annotation)
-            });
+        snippet = snippet.annotations(annotations);
         snippet
     }
 }
