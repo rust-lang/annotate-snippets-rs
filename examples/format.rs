@@ -32,6 +32,6 @@ fn main() {
             .annotation(Label::error("expected enum `std::option::Option`").span(26..724)),
     );
 
-    let renderer = Renderer::plain();
-    println!("{}", renderer.render(snippet));
+    let renderer = Renderer::styled();
+    anstream::println!("{}", renderer.render(snippet));
 }

@@ -17,6 +17,6 @@ fn main() {
             "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
         ));
 
-    let renderer = Renderer::plain();
-    println!("{}", renderer.render(snippet));
+    let renderer = Renderer::styled();
+    anstream::println!("{}", renderer.render(snippet));
 }

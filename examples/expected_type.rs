@@ -18,6 +18,6 @@ fn main() {
             .annotation(Label::info("while parsing this struct").span(34..50)),
     );
 
-    let renderer = Renderer::plain();
-    println!("{}", renderer.render(snippet));
+    let renderer = Renderer::styled();
+    anstream::println!("{}", renderer.render(snippet));
 }
