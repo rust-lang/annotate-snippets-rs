@@ -5,7 +5,7 @@
 //! ```
 //! use annotate_snippets::*;
 //!
-//! Message::error("mismatched types")
+//! Level::Error.title("mismatched types")
 //!     .snippet(Snippet::new("Foo").line_start(51).origin("src/format.rs"))
 //!     .snippet(Snippet::new("Faa").line_start(129).origin("src/display.rs"));
 //! ```
@@ -13,43 +13,17 @@
 use std::ops::Range;
 
 /// Primary structure provided for formatting
+///
+/// See [`Level::title`] to create a [`Message`]
 pub struct Message<'a> {
-    pub(crate) title: Label<'a>,
+    pub(crate) level: Level,
     pub(crate) id: Option<&'a str>,
+    pub(crate) title: &'a str,
     pub(crate) snippets: Vec<Snippet<'a>>,
     pub(crate) footer: Vec<Label<'a>>,
 }
 
 impl<'a> Message<'a> {
-    pub fn title(title: Label<'a>) -> Self {
-        Self {
-            title,
-            id: None,
-            snippets: vec![],
-            footer: vec![],
-        }
-    }
-
-    pub fn error(title: &'a str) -> Self {
-        Self::title(Label::error(title))
-    }
-
-    pub fn warning(title: &'a str) -> Self {
-        Self::title(Label::warning(title))
-    }
-
-    pub fn info(title: &'a str) -> Self {
-        Self::title(Label::info(title))
-    }
-
-    pub fn note(title: &'a str) -> Self {
-        Self::title(Label::note(title))
-    }
-
-    pub fn help(title: &'a str) -> Self {
-        Self::title(Label::help(title))
-    }
-
     pub fn id(mut self, id: &'a str) -> Self {
         self.id = Some(id);
         self
@@ -178,4 +152,16 @@ pub enum Level {
     Info,
     Note,
     Help,
+}
+
+impl Level {
+    pub fn title(self, title: &str) -> Message<'_> {
+        Message {
+            level: self,
+            id: None,
+            title,
+            snippets: vec![],
+            footer: vec![],
+        }
+    }
 }

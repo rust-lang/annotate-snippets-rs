@@ -1,6 +1,6 @@
-[message.title]
-label = "expected one of `.`, `;`, `?`, or an operator, found `for`"
+[message]
 level = "Error"
+title = "expected one of `.`, `;`, `?`, or an operator, found `for`"
 
 [[message.snippets]]
 source = "let x = vec![1];"

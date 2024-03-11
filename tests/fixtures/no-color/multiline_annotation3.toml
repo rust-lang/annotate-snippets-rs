@@ -1,3 +1,8 @@
+[message]
+level = "Error"
+id = "E####"
+title = "spacing error found"
+
 [[message.snippets]]
 source = """
 This is an exampl
@@ -11,7 +16,3 @@ fold = false
 label = "this should not be on separate lines"
 level = "Error"
 range = [11, 18]
-
-[message]
-title = { level = "Error", label = "spacing error found" }
-id = "E####"

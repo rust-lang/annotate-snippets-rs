@@ -4,7 +4,7 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
-use annotate_snippets::{Label, Message, Renderer, Snippet};
+use annotate_snippets::{Label, Level, Renderer, Snippet};
 
 fn create_snippet(renderer: Renderer) {
     let source = r#") -> Option<String> {
@@ -29,7 +29,7 @@ fn create_snippet(renderer: Renderer) {
             _ => continue,
         }
     }"#;
-    let message = Message::error("mismatched types").id("E0308").snippet(
+    let message = Level::Error.title("mismatched types").id("E0308").snippet(
         Snippet::new(source)
             .line_start(51)
             .origin("src/format.rs")

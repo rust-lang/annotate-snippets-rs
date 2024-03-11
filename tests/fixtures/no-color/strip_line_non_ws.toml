@@ -1,6 +1,7 @@
 [message]
-title = { level = "Error", label = "mismatched types" }
+level = "Error"
 id = "E0308"
+title = "mismatched types"
 
 [[message.snippets]]
 source = "    let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();"

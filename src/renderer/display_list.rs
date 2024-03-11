@@ -107,8 +107,9 @@ impl<'a> DisplayList<'a> {
 
     pub(crate) fn new(
         snippet::Message {
-            title,
+            level,
             id,
+            title,
             footer,
             snippets,
         }: snippet::Message<'a>,
@@ -118,7 +119,13 @@ impl<'a> DisplayList<'a> {
     ) -> DisplayList<'a> {
         let mut body = vec![];
 
-        body.push(format_title(title, id));
+        body.push(format_title(
+            snippet::Label {
+                level,
+                label: title,
+            },
+            id,
+        ));
 
         for (idx, snippet) in snippets.into_iter().enumerate() {
             body.append(&mut format_slice(
@@ -1206,7 +1213,7 @@ mod tests {
 
     #[test]
     fn test_format_title() {
-        let input = snippet::Message::error("This is a title").id("E0001");
+        let input = snippet::Level::Error.title("This is a title").id("E0001");
         let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
                 annotation_type: DisplayAnnotationType::Error,
@@ -1227,8 +1234,9 @@ mod tests {
         let line_1 = "This is line 1";
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
-        let input =
-            snippet::Message::error("").snippet(snippet::Snippet::new(&source).line_start(5402));
+        let input = snippet::Level::Error
+            .title("")
+            .snippet(snippet::Snippet::new(&source).line_start(5402));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1278,7 +1286,8 @@ mod tests {
         let src_0_len = src_0.len();
         let src_1 = "This is slice 2";
         let src_1_len = src_1.len();
-        let input = snippet::Message::error("")
+        let input = snippet::Level::Error
+            .title("")
             .snippet(
                 snippet::Snippet::new(src_0)
                     .line_start(5402)
@@ -1359,7 +1368,7 @@ mod tests {
         let source = [line_1, line_2].join("\n");
         // In line 2
         let range = 22..24;
-        let input = snippet::Message::error("").snippet(
+        let input = snippet::Level::Error.title("").snippet(
             snippet::Snippet::new(&source)
                 .line_start(5402)
                 .annotation(snippet::Label::info("Test annotation").span(range.clone())),
@@ -1429,8 +1438,9 @@ mod tests {
 
     #[test]
     fn test_format_label() {
-        let input =
-            snippet::Message::error("").footer(snippet::Label::error("This __is__ a title"));
+        let input = snippet::Level::Error
+            .title("")
+            .footer(snippet::Label::error("This __is__ a title"));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1465,7 +1475,7 @@ mod tests {
     fn test_i26() {
         let source = "short";
         let label = "label";
-        let input = snippet::Message::error("").snippet(
+        let input = snippet::Level::Error.title("").snippet(
             snippet::Snippet::new(source)
                 .line_start(0)
                 .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
@@ -1475,7 +1485,7 @@ mod tests {
 
     #[test]
     fn test_i_29() {
-        let snippets = snippet::Message::error("oops").snippet(
+        let snippets = snippet::Level::Error.title("oops").snippet(
             snippet::Snippet::new("First line\r\nSecond oops line")
                 .line_start(1)
                 .origin("<current file>")

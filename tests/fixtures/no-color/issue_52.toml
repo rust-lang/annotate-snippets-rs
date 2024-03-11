@@ -1,6 +1,6 @@
-[message.title]
+[message]
 level = "Error"
-label = ""
+title = ""
 
 [[message.snippets]]
 source = """

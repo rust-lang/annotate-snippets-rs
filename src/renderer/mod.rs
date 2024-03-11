@@ -2,8 +2,8 @@
 //!
 //! # Example
 //! ```
-//! use annotate_snippets::{Renderer, Snippet, Message};
-//! let snippet = Message::error("mismatched types")
+//! use annotate_snippets::{Renderer, Snippet, Level};
+//! let snippet = Level::Error.title("mismatched types")
 //!     .snippet(Snippet::new("Foo").line_start(51).origin("src/format.rs"))
 //!     .snippet(Snippet::new("Faa").line_start(129).origin("src/display.rs"));
 //!

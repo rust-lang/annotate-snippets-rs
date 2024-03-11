@@ -1,3 +1,8 @@
+[message]
+level = "Error"
+id = "E0027"
+title = "pattern does not mention fields `lineno`, `content`"
+
 [[message.snippets]]
 source = """
                         if let DisplayLine::Source {
@@ -11,7 +16,3 @@ fold = false
 label = "missing fields `lineno`, `content`"
 level = "Error"
 range = [31, 128]
-
-[message]
-title = { level = "Error", label = "pattern does not mention fields `lineno`, `content`" }
-id = "E0027"

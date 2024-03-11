@@ -1,3 +1,8 @@
+[message]
+level = "Error"
+id = "E0308"
+title = "mismatched types"
+
 [[message.snippets]]
 source = """
 ) -> Option<String> {
@@ -34,7 +39,3 @@ range = [5, 19]
 label = "expected enum `std::option::Option`, found ()"
 level = "Error"
 range = [22, 766]
-
-[message]
-title = { level = "Error", label = "mismatched types" }
-id = "E0308"

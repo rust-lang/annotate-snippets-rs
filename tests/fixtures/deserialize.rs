@@ -13,9 +13,10 @@ pub struct Fixture<'a> {
 
 #[derive(Deserialize)]
 pub struct MessageDef<'a> {
-    #[serde(deserialize_with = "deserialize_label")]
+    #[serde(with = "LevelDef")]
+    pub level: Level,
     #[serde(borrow)]
-    pub title: Label<'a>,
+    pub title: &'a str,
     #[serde(default)]
     #[serde(borrow)]
     pub id: Option<&'a str>,
@@ -31,12 +32,13 @@ pub struct MessageDef<'a> {
 impl<'a> From<MessageDef<'a>> for Message<'a> {
     fn from(val: MessageDef<'a>) -> Self {
         let MessageDef {
+            level,
             title,
             id,
             footer,
             snippets,
         } = val;
-        let mut message = Message::title(title);
+        let mut message = level.title(title);
         if let Some(id) = id {
             message = message.id(id);
         }
@@ -48,20 +50,6 @@ impl<'a> From<MessageDef<'a>> for Message<'a> {
             .fold(message, |message, label| message.footer(label));
         message
     }
-}
-
-fn deserialize_label<'de, D>(deserializer: D) -> Result<Label<'de>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper<'a>(
-        #[serde(with = "LabelDef")]
-        #[serde(borrow)]
-        LabelDef<'a>,
-    );
-
-    Wrapper::deserialize(deserializer).map(|Wrapper(label)| Label::new(label.level, label.label))
 }
 
 fn deserialize_labels<'de, D>(deserializer: D) -> Result<Vec<Label<'de>>, D::Error>

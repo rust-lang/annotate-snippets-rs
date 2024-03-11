@@ -1,7 +1,8 @@
-use annotate_snippets::{Label, Message, Renderer, Snippet};
+use annotate_snippets::{Label, Level, Renderer, Snippet};
 
 fn main() {
-    let message = Message::error("mismatched types")
+    let message = Level::Error
+        .title("mismatched types")
         .id("E0308")
         .snippet(
             Snippet::new("        slices: vec![\"A\",")
