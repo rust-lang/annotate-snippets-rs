@@ -7,21 +7,11 @@
 //!
 //! # Example
 //!
-//! ```text
-//! error[E0308]: mismatched types
-//!   --> src/format.rs:52:1
-//!    |
-//! 51 |   ) -> Option<String> {
-//!    |        -------------- expected `Option<String>` because of return type
-//! 52 | /     for ann in annotations {
-//! 53 | |         match (ann.range.0, ann.range.1) {
-//! 54 | |             (None, None) => continue,
-//! 55 | |             (Some(start), Some(end)) if start > end_index => continue,
-//! ...  |
-//! 71 | |         }
-//! 72 | |     }
-//!    | |_____^ expected enum `std::option::Option`, found ()
+//! ```rust
+#![doc = include_str!("../examples/expected_type.rs")]
 //! ```
+//!
+#![doc = include_str!("../examples/expected_type.svg")]
 //!
 //! The crate uses a three stage process with two conversions between states:
 //!

@@ -5,6 +5,6 @@ fn main() {
         .slice(Slice::new("Foo", 51).origin("src/format.rs"))
         .slice(Slice::new("Faa", 129).origin("src/display.rs"));
 
-    let renderer = Renderer::plain();
-    println!("{}", renderer.render(snippet));
+    let renderer = Renderer::styled();
+    anstream::println!("{}", renderer.render(snippet));
 }

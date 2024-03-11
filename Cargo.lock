@@ -21,6 +21,7 @@ checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 name = "annotate-snippets"
 version = "0.10.2"
 dependencies = [
+ "anstream",
  "anstyle",
  "criterion",
  "difference",
@@ -337,6 +338,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "escargot"
+version = "0.5.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f474c6844cbd04e783d0f25757583db4f491770ca618bedf2fb01815fc79939"
+dependencies = [
+ "log",
+ "once_cell",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -543,6 +556,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ab1bc2a289d34bd04a330323ac98a1b4bc82c9d9fcb1e66b63caa84da26b575"
 
 [[package]]
+name = "os_pipe"
+version = "1.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57119c3b893986491ec9aa85056780d3a0f3cf4da7cc09dd3650dbd6c6738fb9"
+dependencies = [
+ "libc",
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "plotters"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -734,15 +757,20 @@ dependencies = [
  "anstyle-svg",
  "content_inspector",
  "dunce",
+ "escargot",
  "filetime",
  "ignore",
+ "libc",
  "libtest-mimic",
  "normalize-line-endings",
+ "os_pipe",
  "serde_json",
  "similar",
  "snapbox-macros",
  "tempfile",
+ "wait-timeout",
  "walkdir",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -843,6 +871,15 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "wait-timeout"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f200f5b12eb75f8c1ed65abd4b2db8a6e1b138a20de009dacee265a2498f3f6"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "walkdir"
