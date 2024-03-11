@@ -100,9 +100,9 @@ impl<'a> Label<'a> {
         self
     }
 
-    /// Create a [`SourceAnnotation`] with the given span for a [`Slice`]
-    pub fn span(&self, span: Range<usize>) -> SourceAnnotation<'a> {
-        SourceAnnotation {
+    /// Create a [`Annotation`] with the given span for a [`Slice`]
+    pub fn span(&self, span: Range<usize>) -> Annotation<'a> {
+        Annotation {
             range: span,
             label: self.label,
             level: self.level,
@@ -119,7 +119,7 @@ pub struct Slice<'a> {
     pub(crate) source: &'a str,
     pub(crate) line_start: usize,
     pub(crate) origin: Option<&'a str>,
-    pub(crate) annotations: Vec<SourceAnnotation<'a>>,
+    pub(crate) annotations: Vec<Annotation<'a>>,
     pub(crate) fold: bool,
 }
 
@@ -139,7 +139,7 @@ impl<'a> Slice<'a> {
         self
     }
 
-    pub fn annotation(mut self, annotation: SourceAnnotation<'a>) -> Self {
+    pub fn annotation(mut self, annotation: Annotation<'a>) -> Self {
         self.annotations.push(annotation);
         self
     }
@@ -166,7 +166,7 @@ pub enum Level {
 ///
 /// This gets created by [`Label::span`].
 #[derive(Debug)]
-pub struct SourceAnnotation<'a> {
+pub struct Annotation<'a> {
     /// The byte range of the annotation in the `source` string
     pub(crate) range: Range<usize>,
     pub(crate) label: &'a str,

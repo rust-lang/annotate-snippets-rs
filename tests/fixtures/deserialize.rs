@@ -1,9 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
-use annotate_snippets::{
-    renderer::Margin, Label, Level, Renderer, Slice, Snippet, SourceAnnotation,
-};
+use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Renderer, Slice, Snippet};
 
 #[derive(Deserialize)]
 pub struct Fixture<'a> {
@@ -105,9 +103,9 @@ pub struct SliceDef<'a> {
     pub line_start: usize,
     #[serde(borrow)]
     pub origin: Option<&'a str>,
-    #[serde(deserialize_with = "deserialize_source_annotations")]
+    #[serde(deserialize_with = "deserialize_annotations")]
     #[serde(borrow)]
-    pub annotations: Vec<SourceAnnotation<'a>>,
+    pub annotations: Vec<Annotation<'a>>,
     #[serde(default)]
     pub fold: bool,
 }
@@ -132,21 +130,19 @@ impl<'a> From<SliceDef<'a>> for Slice<'a> {
     }
 }
 
-fn deserialize_source_annotations<'de, D>(
-    deserializer: D,
-) -> Result<Vec<SourceAnnotation<'de>>, D::Error>
+fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation<'de>>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
-    struct Wrapper<'a>(#[serde(borrow)] SourceAnnotationDef<'a>);
+    struct Wrapper<'a>(#[serde(borrow)] AnnotationDef<'a>);
 
     let v = Vec::deserialize(deserializer)?;
     Ok(v.into_iter().map(|Wrapper(a)| a.into()).collect())
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SourceAnnotationDef<'a> {
+pub struct AnnotationDef<'a> {
     pub range: Range<usize>,
     #[serde(borrow)]
     pub label: &'a str,
@@ -154,9 +150,9 @@ pub struct SourceAnnotationDef<'a> {
     pub level: Level,
 }
 
-impl<'a> From<SourceAnnotationDef<'a>> for SourceAnnotation<'a> {
-    fn from(val: SourceAnnotationDef<'a>) -> Self {
-        let SourceAnnotationDef {
+impl<'a> From<AnnotationDef<'a>> for Annotation<'a> {
+    fn from(val: AnnotationDef<'a>) -> Self {
+        let AnnotationDef {
             range,
             label,
             level,
