@@ -6,8 +6,8 @@
 //! use annotate_snippets::*;
 //!
 //! Message::error("mismatched types")
-//!     .snippet(Snippet::new("Foo", 51).origin("src/format.rs"))
-//!     .snippet(Snippet::new("Faa", 129).origin("src/display.rs"));
+//!     .snippet(Snippet::new("Foo").line_start(51).origin("src/format.rs"))
+//!     .snippet(Snippet::new("Faa").line_start(129).origin("src/display.rs"));
 //! ```
 
 use std::ops::Range;
@@ -126,14 +126,19 @@ pub struct Snippet<'a> {
 }
 
 impl<'a> Snippet<'a> {
-    pub fn new(source: &'a str, line_start: usize) -> Self {
+    pub fn new(source: &'a str) -> Self {
         Self {
             origin: None,
-            line_start,
+            line_start: 1,
             source,
             annotations: vec![],
             fold: false,
         }
+    }
+
+    pub fn line_start(mut self, line_start: usize) -> Self {
+        self.line_start = line_start;
+        self
     }
 
     pub fn origin(mut self, origin: &'a str) -> Self {

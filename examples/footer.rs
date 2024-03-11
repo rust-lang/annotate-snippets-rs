@@ -4,7 +4,8 @@ fn main() {
     let message = Message::error("mismatched types")
         .id("E0308")
         .snippet(
-            Snippet::new("        slices: vec![\"A\",", 13)
+            Snippet::new("        slices: vec![\"A\",")
+                .line_start(13)
                 .origin("src/multislice.rs")
                 .annotation(
                     Label::error(

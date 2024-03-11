@@ -6,7 +6,8 @@ fn main() {
                     ,
                 range: <22, 25>,"#;
     let message = Message::error("expected type, found `22`").snippet(
-        Snippet::new(source, 26)
+        Snippet::new(source)
+            .line_start(26)
             .origin("examples/footer.rs")
             .fold(true)
             .annotation(

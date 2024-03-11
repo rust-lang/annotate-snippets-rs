@@ -24,7 +24,8 @@ fn main() {
         }
     }"#;
     let message = Message::error("mismatched types").id("E0308").snippet(
-        Snippet::new(source, 51)
+        Snippet::new(source)
+            .line_start(51)
             .origin("src/format.rs")
             .annotation(
                 Label::warning("expected `Option<String>` because of return type").span(5..19),

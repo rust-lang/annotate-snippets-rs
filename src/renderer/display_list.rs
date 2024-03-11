@@ -1227,7 +1227,8 @@ mod tests {
         let line_1 = "This is line 1";
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
-        let input = snippet::Message::error("").snippet(snippet::Snippet::new(&source, 5402));
+        let input =
+            snippet::Message::error("").snippet(snippet::Snippet::new(&source).line_start(5402));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1278,8 +1279,16 @@ mod tests {
         let src_1 = "This is slice 2";
         let src_1_len = src_1.len();
         let input = snippet::Message::error("")
-            .snippet(snippet::Snippet::new(src_0, 5402).origin("file1.rs"))
-            .snippet(snippet::Snippet::new(src_1, 2).origin("file2.rs"));
+            .snippet(
+                snippet::Snippet::new(src_0)
+                    .line_start(5402)
+                    .origin("file1.rs"),
+            )
+            .snippet(
+                snippet::Snippet::new(src_1)
+                    .line_start(2)
+                    .origin("file2.rs"),
+            );
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1351,7 +1360,8 @@ mod tests {
         // In line 2
         let range = 22..24;
         let input = snippet::Message::error("").snippet(
-            snippet::Snippet::new(&source, 5402)
+            snippet::Snippet::new(&source)
+                .line_start(5402)
                 .annotation(snippet::Label::info("Test annotation").span(range.clone())),
         );
         let output = from_display_lines(vec![
@@ -1456,7 +1466,8 @@ mod tests {
         let source = "short";
         let label = "label";
         let input = snippet::Message::error("").snippet(
-            snippet::Snippet::new(source, 0)
+            snippet::Snippet::new(source)
+                .line_start(0)
                 .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
         );
         let _ = DisplayList::new(input, &STYLESHEET, false, None);
@@ -1465,7 +1476,8 @@ mod tests {
     #[test]
     fn test_i_29() {
         let snippets = snippet::Message::error("oops").snippet(
-            snippet::Snippet::new("First line\r\nSecond oops line", 1)
+            snippet::Snippet::new("First line\r\nSecond oops line")
+                .line_start(1)
                 .origin("<current file>")
                 .fold(true)
                 .annotation(snippet::Label::error("oops").span(19..23)),
