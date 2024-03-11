@@ -1,18 +1,18 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
-use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Renderer, Slice, Snippet};
+use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Message, Renderer, Slice};
 
 #[derive(Deserialize)]
 pub struct Fixture<'a> {
     #[serde(default)]
     pub renderer: RendererDef,
     #[serde(borrow)]
-    pub snippet: SnippetDef<'a>,
+    pub message: MessageDef<'a>,
 }
 
 #[derive(Deserialize)]
-pub struct SnippetDef<'a> {
+pub struct MessageDef<'a> {
     #[serde(deserialize_with = "deserialize_label")]
     #[serde(borrow)]
     pub title: Label<'a>,
@@ -28,25 +28,25 @@ pub struct SnippetDef<'a> {
     pub slices: Vec<Slice<'a>>,
 }
 
-impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
-    fn from(val: SnippetDef<'a>) -> Self {
-        let SnippetDef {
+impl<'a> From<MessageDef<'a>> for Message<'a> {
+    fn from(val: MessageDef<'a>) -> Self {
+        let MessageDef {
             title,
             id,
             footer,
             slices,
         } = val;
-        let mut snippet = Snippet::title(title);
+        let mut message = Message::title(title);
         if let Some(id) = id {
-            snippet = snippet.id(id);
+            message = message.id(id);
         }
-        snippet = slices
+        message = slices
             .into_iter()
-            .fold(snippet, |snippet, slice| snippet.slice(slice));
-        snippet = footer
+            .fold(message, |message, slice| message.slice(slice));
+        message = footer
             .into_iter()
-            .fold(snippet, |snippet, label| snippet.footer(label));
-        snippet
+            .fold(message, |message, label| message.footer(label));
+        message
     }
 }
 

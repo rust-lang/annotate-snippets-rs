@@ -1,8 +1,8 @@
-[snippet.title]
+[message.title]
 level = "Error"
 label = ""
 
-[[snippet.slices]]
+[[message.slices]]
 source = """
 
 
@@ -11,7 +11,7 @@ invalid syntax
 line_start = 1
 origin = "path/to/error.rs"
 fold = true
-[[snippet.slices.annotations]]
+[[message.slices.annotations]]
 label = "error here"
 level = "Warning"
 range = [2,16]

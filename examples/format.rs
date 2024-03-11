@@ -1,4 +1,4 @@
-use annotate_snippets::{Label, Renderer, Slice, Snippet};
+use annotate_snippets::{Label, Message, Renderer, Slice};
 
 fn main() {
     let source = r#") -> Option<String> {
@@ -23,7 +23,7 @@ fn main() {
             _ => continue,
         }
     }"#;
-    let snippet = Snippet::error("mismatched types").id("E0308").slice(
+    let message = Message::error("mismatched types").id("E0308").slice(
         Slice::new(source, 51)
             .origin("src/format.rs")
             .annotation(
@@ -33,5 +33,5 @@ fn main() {
     );
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(snippet));
+    anstream::println!("{}", renderer.render(message));
 }

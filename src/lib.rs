@@ -16,10 +16,10 @@
 //! The crate uses a three stage process with two conversions between states:
 //!
 //! ```text
-//! Snippet --> Renderer --> impl Display
+//! Message --> Renderer --> impl Display
 //! ```
 //!
-//! The input type - [Snippet] is a structure designed
+//! The input type - [Message] is a structure designed
 //! to align with likely output from any parser whose code snippet is to be
 //! annotated.
 //!

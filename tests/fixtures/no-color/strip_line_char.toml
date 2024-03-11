@@ -1,13 +1,13 @@
-[snippet]
+[message]
 title = { level = "Error", label = "mismatched types" }
 id = "E0308"
 
-[[snippet.slices]]
+[[message.slices]]
 source = "                                                                                                                                                                                    let _: () = 42ñ"
 line_start = 4
 origin = "$DIR/whitespace-trimming.rs"
 
-[[snippet.slices.annotations]]
+[[message.slices.annotations]]
 label = "expected (), found integer"
 level = "Error"
 range = [192, 194]

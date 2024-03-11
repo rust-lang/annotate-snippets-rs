@@ -5,7 +5,7 @@
 //! ```
 //! use annotate_snippets::*;
 //!
-//! Snippet::error("mismatched types")
+//! Message::error("mismatched types")
 //!     .slice(Slice::new("Foo", 51).origin("src/format.rs"))
 //!     .slice(Slice::new("Faa", 129).origin("src/display.rs"));
 //! ```
@@ -13,14 +13,14 @@
 use std::ops::Range;
 
 /// Primary structure provided for formatting
-pub struct Snippet<'a> {
+pub struct Message<'a> {
     pub(crate) title: Label<'a>,
     pub(crate) id: Option<&'a str>,
     pub(crate) slices: Vec<Slice<'a>>,
     pub(crate) footer: Vec<Label<'a>>,
 }
 
-impl<'a> Snippet<'a> {
+impl<'a> Message<'a> {
     pub fn title(title: Label<'a>) -> Self {
         Self {
             title,

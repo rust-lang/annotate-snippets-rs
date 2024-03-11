@@ -1,9 +1,9 @@
-//! The renderer for [`Snippet`]s
+//! The renderer for [`Message`]s
 //!
 //! # Example
 //! ```
-//! use annotate_snippets::{Renderer, Slice, Snippet};
-//! let snippet = Snippet::error("mismatched types")
+//! use annotate_snippets::{Renderer, Slice, Message};
+//! let snippet = Message::error("mismatched types")
 //!     .slice(Slice::new("Foo", 51).origin("src/format.rs"))
 //!     .slice(Slice::new("Faa", 129).origin("src/display.rs"));
 //!
@@ -14,14 +14,14 @@ mod display_list;
 mod margin;
 pub(crate) mod stylesheet;
 
-use crate::snippet::Snippet;
+use crate::snippet::Message;
 pub use anstyle::*;
 use display_list::DisplayList;
 pub use margin::Margin;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
 
-/// A renderer for [`Snippet`]s
+/// A renderer for [`Message`]s
 #[derive(Clone)]
 pub struct Renderer {
     anonymized_line_numbers: bool,
@@ -165,9 +165,9 @@ impl Renderer {
     }
 
     /// Render a snippet into a `Display`able object
-    pub fn render<'a>(&'a self, snippet: Snippet<'a>) -> impl Display + 'a {
+    pub fn render<'a>(&'a self, msg: Message<'a>) -> impl Display + 'a {
         DisplayList::new(
-            snippet,
+            msg,
             &self.stylesheet,
             self.anonymized_line_numbers,
             self.margin,

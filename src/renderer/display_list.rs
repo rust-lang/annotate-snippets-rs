@@ -106,12 +106,12 @@ impl<'a> DisplayList<'a> {
     const WARNING_TXT: &'static str = "warning";
 
     pub(crate) fn new(
-        snippet::Snippet {
+        snippet::Message {
             title,
             id,
             footer,
             slices,
-        }: snippet::Snippet<'a>,
+        }: snippet::Message<'a>,
         stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
@@ -1206,7 +1206,7 @@ mod tests {
 
     #[test]
     fn test_format_title() {
-        let input = snippet::Snippet::error("This is a title").id("E0001");
+        let input = snippet::Message::error("This is a title").id("E0001");
         let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
                 annotation_type: DisplayAnnotationType::Error,
@@ -1227,7 +1227,7 @@ mod tests {
         let line_1 = "This is line 1";
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
-        let input = snippet::Snippet::error("").slice(snippet::Slice::new(&source, 5402));
+        let input = snippet::Message::error("").slice(snippet::Slice::new(&source, 5402));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1277,7 +1277,7 @@ mod tests {
         let src_0_len = src_0.len();
         let src_1 = "This is slice 2";
         let src_1_len = src_1.len();
-        let input = snippet::Snippet::error("")
+        let input = snippet::Message::error("")
             .slice(snippet::Slice::new(src_0, 5402).origin("file1.rs"))
             .slice(snippet::Slice::new(src_1, 2).origin("file2.rs"));
         let output = from_display_lines(vec![
@@ -1350,7 +1350,7 @@ mod tests {
         let source = [line_1, line_2].join("\n");
         // In line 2
         let range = 22..24;
-        let input = snippet::Snippet::error("").slice(
+        let input = snippet::Message::error("").slice(
             snippet::Slice::new(&source, 5402)
                 .annotation(snippet::Label::info("Test annotation").span(range.clone())),
         );
@@ -1420,7 +1420,7 @@ mod tests {
     #[test]
     fn test_format_label() {
         let input =
-            snippet::Snippet::error("").footer(snippet::Label::error("This __is__ a title"));
+            snippet::Message::error("").footer(snippet::Label::error("This __is__ a title"));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1455,7 +1455,7 @@ mod tests {
     fn test_i26() {
         let source = "short";
         let label = "label";
-        let input = snippet::Snippet::error("").slice(
+        let input = snippet::Message::error("").slice(
             snippet::Slice::new(source, 0)
                 .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
         );
@@ -1464,7 +1464,7 @@ mod tests {
 
     #[test]
     fn test_i_29() {
-        let snippets = snippet::Snippet::error("oops").slice(
+        let snippets = snippet::Message::error("oops").slice(
             snippet::Slice::new("First line\r\nSecond oops line", 1)
                 .origin("<current file>")
                 .fold(true)

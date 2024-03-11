@@ -1,8 +1,8 @@
-[snippet.title]
+[message.title]
 level = "Error"
 label = ""
 
-[[snippet.slices]]
+[[message.slices]]
 source = """
 fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>) {
     if let Some(annotation) = main_annotation {
@@ -15,15 +15,15 @@ fn add_title_line(result: &mut Vec<String>, main_annotation: Option<&Annotation>
 }
 """
 line_start = 96
-[[snippet.slices.annotations]]
+[[message.slices.annotations]]
 label = "Variable defined here"
 level = "Error"
 range = [100, 110]
-[[snippet.slices.annotations]]
+[[message.slices.annotations]]
 label = "Referenced here"
 level = "Error"
 range = [184, 194]
-[[snippet.slices.annotations]]
+[[message.slices.annotations]]
 label = "Referenced again here"
 level = "Error"
 range = [243, 253]
