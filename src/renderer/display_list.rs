@@ -32,8 +32,6 @@
 //!
 //! The above snippet has been built out of the following structure:
 use crate::snippet;
-use itertools::FoldWhile::{Continue, Done};
-use itertools::Itertools;
 use std::fmt::{Display, Write};
 use std::ops::Range;
 use std::{cmp, fmt};
@@ -830,20 +828,7 @@ fn format_header<'a>(
             } = item
             {
                 if main_range >= range.0 && main_range <= range.1 {
-                    let char_column = text
-                        .chars()
-                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-                        .chain(std::iter::once(1)) // treat the end of line as single-width
-                        .enumerate()
-                        .fold_while((0, 0), |(count, acc), (i, width)| {
-                            if acc <= main_range - range.0 {
-                                Continue((i, acc + width))
-                            } else {
-                                Done((count, acc))
-                            }
-                        })
-                        .into_inner()
-                        .0;
+                    let char_column = text[0..(main_range - range.0)].chars().count();
                     col = char_column + 1;
                     line_offset = lineno.unwrap_or(1);
                     break;
@@ -984,18 +969,11 @@ fn format_body(
     let mut body = vec![];
     let mut current_line = snippet.line_start;
     let mut current_index = 0;
-    let mut line_info = vec![];
 
-    struct LineInfo {
-        line_start_index: usize,
-        line_end_index: usize,
-    }
-
-    for (line, end_line) in CursorLines::new(snippet.source) {
-        let line_length: usize = line
-            .chars()
-            .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-            .sum();
+    let mut annotation_line_count = 0;
+    let mut annotations = snippet.annotations;
+    for (idx, (line, end_line)) in CursorLines::new(snippet.source).enumerate() {
+        let line_length: usize = line.len();
         let line_range = (current_index, current_index + line_length);
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
@@ -1005,24 +983,11 @@ fn format_body(
                 range: line_range,
             },
         });
-        line_info.push(LineInfo {
-            line_start_index: line_range.0,
-            line_end_index: line_range.1,
-        });
+        let line_start_index = line_range.0;
+        let line_end_index = line_range.1;
         current_line += 1;
         current_index += line_length + end_line as usize;
-    }
 
-    let mut annotation_line_count = 0;
-    let mut annotations = snippet.annotations;
-    for (
-        idx,
-        LineInfo {
-            line_start_index,
-            line_end_index,
-        },
-    ) in line_info.into_iter().enumerate()
-    {
         let margin_left = margin
             .map(|m| m.left(line_end_index - line_start_index))
             .unwrap_or_default();
@@ -1040,8 +1005,20 @@ fn format_body(
                     if start >= line_start_index && end <= line_end_index
                         || start == line_end_index && end - start <= 1 =>
                 {
-                    let annotation_start_col = start - line_start_index - margin_left;
-                    let annotation_end_col = end - line_start_index - margin_left;
+                    let annotation_start_col = line[0..(start - line_start_index)]
+                        .chars()
+                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                        .sum::<usize>()
+                        - margin_left;
+                    // This allows for annotations to be placed one past the
+                    // last character
+                    let safe_end = (end - line_start_index).saturating_sub(line_length);
+                    let annotation_end_col = line[0..(end - line_start_index) - safe_end]
+                        .chars()
+                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                        .sum::<usize>()
+                        + safe_end
+                        - margin_left;
                     let range = (annotation_start_col, annotation_end_col);
                     body.insert(
                         body_idx + 1,
@@ -1080,7 +1057,10 @@ fn format_body(
                             });
                         }
                     } else {
-                        let annotation_start_col = start - line_start_index;
+                        let annotation_start_col = line[0..(start - line_start_index)]
+                            .chars()
+                            .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                            .sum::<usize>();
                         let range = (annotation_start_col, annotation_start_col + 1);
                         body.insert(
                             body_idx + 1,
@@ -1132,7 +1112,11 @@ fn format_body(
                         });
                     }
 
-                    let end_mark = (end - line_start_index).saturating_sub(1);
+                    let end_mark = line[0..(end - line_start_index)]
+                        .chars()
+                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                        .sum::<usize>()
+                        .saturating_sub(1);
                     let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
                     body.insert(
                         body_idx + 1,
