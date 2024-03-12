@@ -106,33 +106,12 @@ impl<'a> DisplayList<'a> {
     const WARNING_TXT: &'static str = "warning";
 
     pub(crate) fn new(
-        snippet::Message {
-            level,
-            id,
-            title,
-            footer,
-            snippets,
-        }: snippet::Message<'a>,
+        message: snippet::Message<'a>,
         stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
-        let mut body = vec![];
-
-        body.push(format_title(level, id, title));
-
-        for (idx, snippet) in snippets.into_iter().enumerate() {
-            body.append(&mut format_snippet(
-                snippet,
-                idx == 0,
-                !footer.is_empty(),
-                margin,
-            ));
-        }
-
-        for annotation in footer {
-            body.append(&mut format_footer(annotation));
-        }
+        let body = format_message(message, margin);
 
         Self {
             body,
@@ -717,6 +696,36 @@ impl<'a> Iterator for CursorLines<'a> {
                 })
         }
     }
+}
+
+fn format_message<'a>(
+    snippet::Message {
+        level,
+        id,
+        title,
+        footer,
+        snippets,
+    }: snippet::Message<'a>,
+    margin: Option<Margin>,
+) -> Vec<DisplayLine<'a>> {
+    let mut body = vec![];
+
+    body.push(format_title(level, id, title));
+
+    for (idx, snippet) in snippets.into_iter().enumerate() {
+        body.append(&mut format_snippet(
+            snippet,
+            idx == 0,
+            !footer.is_empty(),
+            margin,
+        ));
+    }
+
+    for annotation in footer {
+        body.append(&mut format_footer(annotation));
+    }
+
+    body
 }
 
 fn format_title<'a>(level: crate::Level, id: Option<&'a str>, label: &'a str) -> DisplayLine<'a> {
