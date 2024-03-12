@@ -719,21 +719,6 @@ impl<'a> Iterator for CursorLines<'a> {
     }
 }
 
-fn format_label(
-    label: Option<&str>,
-    style: Option<DisplayTextStyle>,
-) -> Vec<DisplayTextFragment<'_>> {
-    let mut result = vec![];
-    if let Some(label) = label {
-        let element_style = style.unwrap_or(DisplayTextStyle::Regular);
-        result.push(DisplayTextFragment {
-            content: label,
-            style: element_style,
-        });
-    }
-    result
-}
-
 fn format_title<'a>(level: crate::Level, id: Option<&'a str>, label: &'a str) -> DisplayLine<'a> {
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
@@ -758,6 +743,21 @@ fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
             source_aligned: true,
             continuation: i != 0,
         }));
+    }
+    result
+}
+
+fn format_label(
+    label: Option<&str>,
+    style: Option<DisplayTextStyle>,
+) -> Vec<DisplayTextFragment<'_>> {
+    let mut result = vec![];
+    if let Some(label) = label {
+        let element_style = style.unwrap_or(DisplayTextStyle::Regular);
+        result.push(DisplayTextFragment {
+            content: label,
+            style: element_style,
+        });
     }
     result
 }
