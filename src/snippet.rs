@@ -5,58 +5,37 @@
 //! ```
 //! use annotate_snippets::*;
 //!
-//! Snippet::error("mismatched types")
-//!     .slice(Slice::new("Foo", 51).origin("src/format.rs"))
-//!     .slice(Slice::new("Faa", 129).origin("src/display.rs"));
+//! Level::Error.title("mismatched types")
+//!     .snippet(Snippet::source("Foo").line_start(51).origin("src/format.rs"))
+//!     .snippet(Snippet::source("Faa").line_start(129).origin("src/display.rs"));
 //! ```
 
 use std::ops::Range;
 
 /// Primary structure provided for formatting
-pub struct Snippet<'a> {
-    pub(crate) title: Label<'a>,
+///
+/// See [`Level::title`] to create a [`Message`]
+pub struct Message<'a> {
+    pub(crate) level: Level,
     pub(crate) id: Option<&'a str>,
-    pub(crate) slices: Vec<Slice<'a>>,
+    pub(crate) title: &'a str,
+    pub(crate) snippets: Vec<Snippet<'a>>,
     pub(crate) footer: Vec<Label<'a>>,
 }
 
-impl<'a> Snippet<'a> {
-    pub fn title(title: Label<'a>) -> Self {
-        Self {
-            title,
-            id: None,
-            slices: vec![],
-            footer: vec![],
-        }
-    }
-
-    pub fn error(title: &'a str) -> Self {
-        Self::title(Label::error(title))
-    }
-
-    pub fn warning(title: &'a str) -> Self {
-        Self::title(Label::warning(title))
-    }
-
-    pub fn info(title: &'a str) -> Self {
-        Self::title(Label::info(title))
-    }
-
-    pub fn note(title: &'a str) -> Self {
-        Self::title(Label::note(title))
-    }
-
-    pub fn help(title: &'a str) -> Self {
-        Self::title(Label::help(title))
-    }
-
+impl<'a> Message<'a> {
     pub fn id(mut self, id: &'a str) -> Self {
         self.id = Some(id);
         self
     }
 
-    pub fn slice(mut self, slice: Slice<'a>) -> Self {
-        self.slices.push(slice);
+    pub fn snippet(mut self, slice: Snippet<'a>) -> Self {
+        self.snippets.push(slice);
+        self
+    }
+
+    pub fn snippets(mut self, slice: impl IntoIterator<Item = Snippet<'a>>) -> Self {
+        self.snippets.extend(slice);
         self
     }
 
@@ -64,86 +43,77 @@ impl<'a> Snippet<'a> {
         self.footer.push(footer);
         self
     }
+
+    pub fn footers(mut self, footer: impl IntoIterator<Item = Label<'a>>) -> Self {
+        self.footer.extend(footer);
+        self
+    }
 }
 
 pub struct Label<'a> {
-    pub(crate) annotation_type: AnnotationType,
+    pub(crate) level: Level,
     pub(crate) label: &'a str,
 }
 
 impl<'a> Label<'a> {
-    pub fn new(annotation_type: AnnotationType, label: &'a str) -> Self {
-        Self {
-            annotation_type,
-            label,
-        }
+    pub fn new(level: Level, label: &'a str) -> Self {
+        Self { level, label }
     }
     pub fn error(label: &'a str) -> Self {
-        Self::new(AnnotationType::Error, label)
+        Self::new(Level::Error, label)
     }
 
     pub fn warning(label: &'a str) -> Self {
-        Self::new(AnnotationType::Warning, label)
+        Self::new(Level::Warning, label)
     }
 
     pub fn info(label: &'a str) -> Self {
-        Self::new(AnnotationType::Info, label)
+        Self::new(Level::Info, label)
     }
 
     pub fn note(label: &'a str) -> Self {
-        Self::new(AnnotationType::Note, label)
+        Self::new(Level::Note, label)
     }
 
     pub fn help(label: &'a str) -> Self {
-        Self::new(AnnotationType::Help, label)
+        Self::new(Level::Help, label)
     }
 
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = label;
         self
     }
-
-    /// Create a [`SourceAnnotation`] with the given span for a [`Slice`]
-    pub fn span(&self, span: Range<usize>) -> SourceAnnotation<'a> {
-        SourceAnnotation {
-            range: span,
-            label: self.label,
-            annotation_type: self.annotation_type,
-        }
-    }
-}
-
-impl From<AnnotationType> for Label<'_> {
-    fn from(annotation_type: AnnotationType) -> Self {
-        Label {
-            annotation_type,
-            label: "",
-        }
-    }
 }
 
 /// Structure containing the slice of text to be annotated and
 /// basic information about the location of the slice.
 ///
-/// One `Slice` is meant to represent a single, continuous,
+/// One `Snippet` is meant to represent a single, continuous,
 /// slice of source code that you want to annotate.
-pub struct Slice<'a> {
-    pub(crate) source: &'a str,
-    pub(crate) line_start: usize,
+pub struct Snippet<'a> {
     pub(crate) origin: Option<&'a str>,
-    pub(crate) annotations: Vec<SourceAnnotation<'a>>,
+    pub(crate) line_start: usize,
+
+    pub(crate) source: &'a str,
+    pub(crate) annotations: Vec<Annotation<'a>>,
+
     pub(crate) fold: bool,
 }
 
-impl<'a> Slice<'a> {
-    pub fn new(source: &'a str, line_start: usize) -> Self {
+impl<'a> Snippet<'a> {
+    pub fn source(source: &'a str) -> Self {
         Self {
-            source,
-            line_start,
             origin: None,
+            line_start: 1,
+            source,
             annotations: vec![],
             fold: false,
         }
+    }
+
+    pub fn line_start(mut self, line_start: usize) -> Self {
+        self.line_start = line_start;
+        self
     }
 
     pub fn origin(mut self, origin: &'a str) -> Self {
@@ -151,20 +121,44 @@ impl<'a> Slice<'a> {
         self
     }
 
-    pub fn annotation(mut self, annotation: SourceAnnotation<'a>) -> Self {
+    pub fn annotation(mut self, annotation: Annotation<'a>) -> Self {
         self.annotations.push(annotation);
         self
     }
 
+    pub fn annotations(mut self, annotation: impl IntoIterator<Item = Annotation<'a>>) -> Self {
+        self.annotations.extend(annotation);
+        self
+    }
+
+    /// Hide lines without [`Annotation`]s
     pub fn fold(mut self, fold: bool) -> Self {
         self.fold = fold;
         self
     }
 }
 
+/// An annotation for a [`Snippet`].
+///
+/// See [`Level::span`] to create a [`Annotation`]
+#[derive(Debug)]
+pub struct Annotation<'a> {
+    /// The byte range of the annotation in the `source` string
+    pub(crate) range: Range<usize>,
+    pub(crate) label: Option<&'a str>,
+    pub(crate) level: Level,
+}
+
+impl<'a> Annotation<'a> {
+    pub fn label(mut self, label: &'a str) -> Self {
+        self.label = Some(label);
+        self
+    }
+}
+
 /// Types of annotations.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AnnotationType {
+pub enum Level {
     /// Error annotations are displayed using red color and "^" character.
     Error,
     /// Warning annotations are displayed using blue color and "-" character.
@@ -174,13 +168,23 @@ pub enum AnnotationType {
     Help,
 }
 
-/// An annotation for a [`Slice`].
-///
-/// This gets created by [`Label::span`].
-#[derive(Debug)]
-pub struct SourceAnnotation<'a> {
-    /// The byte range of the annotation in the `source` string
-    pub(crate) range: Range<usize>,
-    pub(crate) label: &'a str,
-    pub(crate) annotation_type: AnnotationType,
+impl Level {
+    pub fn title(self, title: &str) -> Message<'_> {
+        Message {
+            level: self,
+            id: None,
+            title,
+            snippets: vec![],
+            footer: vec![],
+        }
+    }
+
+    /// Create a [`Annotation`] with the given span for a [`Snippet`]
+    pub fn span<'a>(self, span: Range<usize>) -> Annotation<'a> {
+        Annotation {
+            range: span,
+            label: None,
+            level: self,
+        }
+    }
 }

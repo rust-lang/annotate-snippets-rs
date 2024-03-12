@@ -106,23 +106,30 @@ impl<'a> DisplayList<'a> {
     const WARNING_TXT: &'static str = "warning";
 
     pub(crate) fn new(
-        snippet::Snippet {
-            title,
+        snippet::Message {
+            level,
             id,
+            title,
             footer,
-            slices,
-        }: snippet::Snippet<'a>,
+            snippets,
+        }: snippet::Message<'a>,
         stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
         let mut body = vec![];
 
-        body.push(format_title(title, id));
+        body.push(format_title(
+            snippet::Label {
+                level,
+                label: title,
+            },
+            id,
+        ));
 
-        for (idx, slice) in slices.into_iter().enumerate() {
+        for (idx, snippet) in snippets.into_iter().enumerate() {
             body.append(&mut format_slice(
-                slice,
+                snippet,
                 idx == 0,
                 !footer.is_empty(),
                 margin,
@@ -542,7 +549,7 @@ pub enum DisplayLine<'a> {
 /// A source line.
 #[derive(Debug, PartialEq)]
 pub enum DisplaySourceLine<'a> {
-    /// A line with the content of the Slice.
+    /// A line with the content of the Snippet.
     Content {
         text: &'a str,
         range: (usize, usize), // meta information for annotation placement.
@@ -649,14 +656,14 @@ pub enum DisplayAnnotationType {
     Help,
 }
 
-impl From<snippet::AnnotationType> for DisplayAnnotationType {
-    fn from(at: snippet::AnnotationType) -> Self {
+impl From<snippet::Level> for DisplayAnnotationType {
+    fn from(at: snippet::Level) -> Self {
         match at {
-            snippet::AnnotationType::Error => DisplayAnnotationType::Error,
-            snippet::AnnotationType::Warning => DisplayAnnotationType::Warning,
-            snippet::AnnotationType::Info => DisplayAnnotationType::Info,
-            snippet::AnnotationType::Note => DisplayAnnotationType::Note,
-            snippet::AnnotationType::Help => DisplayAnnotationType::Help,
+            snippet::Level::Error => DisplayAnnotationType::Error,
+            snippet::Level::Warning => DisplayAnnotationType::Warning,
+            snippet::Level::Info => DisplayAnnotationType::Info,
+            snippet::Level::Note => DisplayAnnotationType::Note,
+            snippet::Level::Help => DisplayAnnotationType::Help,
         }
     }
 }
@@ -736,7 +743,7 @@ fn format_label(
 fn format_title<'a>(title: snippet::Label<'a>, id: Option<&'a str>) -> DisplayLine<'a> {
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
-            annotation_type: DisplayAnnotationType::from(title.annotation_type),
+            annotation_type: DisplayAnnotationType::from(title.level),
             id,
             label: format_label(Some(title.label), Some(DisplayTextStyle::Emphasis)),
         },
@@ -750,7 +757,7 @@ fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
     for (i, line) in footer.label.lines().enumerate() {
         result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
-                annotation_type: DisplayAnnotationType::from(footer.annotation_type),
+                annotation_type: DisplayAnnotationType::from(footer.level),
                 id: None,
                 label: format_label(Some(line), None),
             },
@@ -762,15 +769,15 @@ fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
 }
 
 fn format_slice(
-    slice: snippet::Slice<'_>,
+    snippet: snippet::Snippet<'_>,
     is_first: bool,
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let main_range = slice.annotations.first().map(|x| x.range.start);
-    let origin = slice.origin;
+    let main_range = snippet.annotations.first().map(|x| x.range.start);
+    let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
-    let mut body = format_body(slice, need_empty_header, has_footer, margin);
+    let mut body = format_body(snippet, need_empty_header, has_footer, margin);
     let header = format_header(origin, main_range, &body, is_first);
     let mut result = vec![];
 
@@ -942,13 +949,13 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
 }
 
 fn format_body(
-    slice: snippet::Slice<'_>,
+    snippet: snippet::Snippet<'_>,
     need_empty_header: bool,
     has_footer: bool,
     margin: Option<Margin>,
 ) -> Vec<DisplayLine<'_>> {
-    let source_len = slice.source.len();
-    if let Some(bigger) = slice.annotations.iter().find_map(|x| {
+    let source_len = snippet.source.len();
+    if let Some(bigger) = snippet.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
         if source_len + 1 < x.range.end {
             Some(&x.range)
@@ -963,7 +970,7 @@ fn format_body(
     }
 
     let mut body = vec![];
-    let mut current_line = slice.line_start;
+    let mut current_line = snippet.line_start;
     let mut current_index = 0;
     let mut line_info = vec![];
 
@@ -972,7 +979,7 @@ fn format_body(
         line_end_index: usize,
     }
 
-    for (line, end_line) in CursorLines::new(slice.source) {
+    for (line, end_line) in CursorLines::new(snippet.source) {
         let line_length: usize = line
             .chars()
             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
@@ -995,7 +1002,7 @@ fn format_body(
     }
 
     let mut annotation_line_count = 0;
-    let mut annotations = slice.annotations;
+    let mut annotations = snippet.annotations;
     for (
         idx,
         LineInfo {
@@ -1010,10 +1017,10 @@ fn format_body(
         // It would be nice to use filter_drain here once it's stable.
         annotations.retain(|annotation| {
             let body_idx = idx + annotation_line_count;
-            let annotation_type = match annotation.annotation_type {
-                snippet::AnnotationType::Error => DisplayAnnotationType::None,
-                snippet::AnnotationType::Warning => DisplayAnnotationType::None,
-                _ => DisplayAnnotationType::from(annotation.annotation_type),
+            let annotation_type = match annotation.level {
+                snippet::Level::Error => DisplayAnnotationType::None,
+                snippet::Level::Warning => DisplayAnnotationType::None,
+                _ => DisplayAnnotationType::from(annotation.level),
             };
             match annotation.range {
                 Range { start, .. } if start > line_end_index => true,
@@ -1033,12 +1040,10 @@ fn format_body(
                                 annotation: Annotation {
                                     annotation_type,
                                     id: None,
-                                    label: format_label(Some(annotation.label), None),
+                                    label: format_label(annotation.label, None),
                                 },
                                 range,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                                 annotation_part: DisplayAnnotationPart::Standalone,
                             },
                         },
@@ -1059,9 +1064,7 @@ fn format_body(
                         {
                             inline_marks.push(DisplayMark {
                                 mark_type: DisplayMarkType::AnnotationStart,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                             });
                         }
                     } else {
@@ -1079,9 +1082,7 @@ fn format_body(
                                         label: vec![],
                                     },
                                     range,
-                                    annotation_type: DisplayAnnotationType::from(
-                                        annotation.annotation_type,
-                                    ),
+                                    annotation_type: DisplayAnnotationType::from(annotation.level),
                                     annotation_part: DisplayAnnotationPart::MultilineStart,
                                 },
                             },
@@ -1098,9 +1099,7 @@ fn format_body(
                     {
                         inline_marks.push(DisplayMark {
                             mark_type: DisplayMarkType::AnnotationThrough,
-                            annotation_type: DisplayAnnotationType::from(
-                                annotation.annotation_type,
-                            ),
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
                         });
                     }
                     true
@@ -1117,9 +1116,7 @@ fn format_body(
                     {
                         inline_marks.push(DisplayMark {
                             mark_type: DisplayMarkType::AnnotationThrough,
-                            annotation_type: DisplayAnnotationType::from(
-                                annotation.annotation_type,
-                            ),
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
                         });
                     }
 
@@ -1131,20 +1128,16 @@ fn format_body(
                             lineno: None,
                             inline_marks: vec![DisplayMark {
                                 mark_type: DisplayMarkType::AnnotationThrough,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                             }],
                             line: DisplaySourceLine::Annotation {
                                 annotation: Annotation {
                                     annotation_type,
                                     id: None,
-                                    label: format_label(Some(annotation.label), None),
+                                    label: format_label(annotation.label, None),
                                 },
                                 range,
-                                annotation_type: DisplayAnnotationType::from(
-                                    annotation.annotation_type,
-                                ),
+                                annotation_type: DisplayAnnotationType::from(annotation.level),
                                 annotation_part: DisplayAnnotationPart::MultilineEnd,
                             },
                         },
@@ -1157,7 +1150,7 @@ fn format_body(
         });
     }
 
-    if slice.fold {
+    if snippet.fold {
         body = fold_body(body);
     }
 
@@ -1220,7 +1213,7 @@ mod tests {
 
     #[test]
     fn test_format_title() {
-        let input = snippet::Snippet::error("This is a title").id("E0001");
+        let input = snippet::Level::Error.title("This is a title").id("E0001");
         let output = from_display_lines(vec![DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
                 annotation_type: DisplayAnnotationType::Error,
@@ -1241,7 +1234,9 @@ mod tests {
         let line_1 = "This is line 1";
         let line_2 = "This is line 2";
         let source = [line_1, line_2].join("\n");
-        let input = snippet::Snippet::error("").slice(snippet::Slice::new(&source, 5402));
+        let input = snippet::Level::Error
+            .title("")
+            .snippet(snippet::Snippet::source(&source).line_start(5402));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1291,9 +1286,18 @@ mod tests {
         let src_0_len = src_0.len();
         let src_1 = "This is slice 2";
         let src_1_len = src_1.len();
-        let input = snippet::Snippet::error("")
-            .slice(snippet::Slice::new(src_0, 5402).origin("file1.rs"))
-            .slice(snippet::Slice::new(src_1, 2).origin("file2.rs"));
+        let input = snippet::Level::Error
+            .title("")
+            .snippet(
+                snippet::Snippet::source(src_0)
+                    .line_start(5402)
+                    .origin("file1.rs"),
+            )
+            .snippet(
+                snippet::Snippet::source(src_1)
+                    .line_start(2)
+                    .origin("file2.rs"),
+            );
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1364,9 +1368,14 @@ mod tests {
         let source = [line_1, line_2].join("\n");
         // In line 2
         let range = 22..24;
-        let input = snippet::Snippet::error("").slice(
-            snippet::Slice::new(&source, 5402)
-                .annotation(snippet::Label::info("Test annotation").span(range.clone())),
+        let input = snippet::Level::Error.title("").snippet(
+            snippet::Snippet::source(&source)
+                .line_start(5402)
+                .annotation(
+                    snippet::Level::Info
+                        .span(range.clone())
+                        .label("Test annotation"),
+                ),
         );
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
@@ -1433,8 +1442,9 @@ mod tests {
 
     #[test]
     fn test_format_label() {
-        let input =
-            snippet::Snippet::error("").footer(snippet::Label::error("This __is__ a title"));
+        let input = snippet::Level::Error
+            .title("")
+            .footer(snippet::Label::error("This __is__ a title"));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {
@@ -1469,20 +1479,22 @@ mod tests {
     fn test_i26() {
         let source = "short";
         let label = "label";
-        let input = snippet::Snippet::error("").slice(
-            snippet::Slice::new(source, 0)
-                .annotation(snippet::Label::error(label).span(0..source.len() + 2)),
+        let input = snippet::Level::Error.title("").snippet(
+            snippet::Snippet::source(source)
+                .line_start(0)
+                .annotation(snippet::Level::Error.span(0..source.len() + 2).label(label)),
         );
         let _ = DisplayList::new(input, &STYLESHEET, false, None);
     }
 
     #[test]
     fn test_i_29() {
-        let snippets = snippet::Snippet::error("oops").slice(
-            snippet::Slice::new("First line\r\nSecond oops line", 1)
+        let snippets = snippet::Level::Error.title("oops").snippet(
+            snippet::Snippet::source("First line\r\nSecond oops line")
+                .line_start(1)
                 .origin("<current file>")
                 .fold(true)
-                .annotation(snippet::Label::error("oops").span(19..23)),
+                .annotation(snippet::Level::Error.span(19..23).label("oops")),
         );
 
         let expected = from_display_lines(vec![

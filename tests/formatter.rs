@@ -1,11 +1,11 @@
-use annotate_snippets::{Label, Renderer, Slice, Snippet};
+use annotate_snippets::{Level, Renderer, Snippet};
 
 #[test]
 fn test_i_29() {
-    let snippets = Snippet::error("oops").slice(
-        Slice::new("First line\r\nSecond oops line", 1)
+    let snippets = Level::Error.title("oops").snippet(
+        Snippet::source("First line\r\nSecond oops line")
             .origin("<current file>")
-            .annotation(Label::error("oops").span(19..23))
+            .annotation(Level::Error.span(19..23).label("oops"))
             .fold(true),
     );
     let expected = r#"error: oops
@@ -22,10 +22,10 @@ fn test_i_29() {
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = Snippet::error("").slice(
-        Slice::new("こんにちは、世界", 1)
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("こんにちは、世界")
             .origin("<current file>")
-            .annotation(Label::error("world").span(12..16)),
+            .annotation(Level::Error.span(12..16).label("world")),
     );
 
     let expected = r#"error
@@ -41,10 +41,10 @@ fn test_point_to_double_width_characters() {
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = Snippet::error("").slice(
-        Slice::new("おはよう\nございます", 1)
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("おはよう\nございます")
             .origin("<current file>")
-            .annotation(Label::error("Good morning").span(4..15)),
+            .annotation(Level::Error.span(4..15).label("Good morning")),
     );
 
     let expected = r#"error
@@ -62,11 +62,11 @@ fn test_point_to_double_width_characters_across_lines() {
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = Snippet::error("").slice(
-        Slice::new("お寿司\n食べたい🍣", 1)
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("お寿司\n食べたい🍣")
             .origin("<current file>")
-            .annotation(Label::error("Sushi1").span(0..6))
-            .annotation(Label::note("Sushi2").span(11..15)),
+            .annotation(Level::Error.span(0..6).label("Sushi1"))
+            .annotation(Level::Note.span(11..15).label("Sushi2")),
     );
 
     let expected = r#"error
@@ -84,10 +84,10 @@ fn test_point_to_double_width_characters_multiple() {
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = Snippet::error("").slice(
-        Slice::new("こんにちは、新しいWorld！", 1)
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("こんにちは、新しいWorld！")
             .origin("<current file>")
-            .annotation(Label::error("New world").span(12..23)),
+            .annotation(Level::Error.span(12..23).label("New world")),
     );
 
     let expected = r#"error

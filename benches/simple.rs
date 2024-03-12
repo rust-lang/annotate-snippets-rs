@@ -4,7 +4,7 @@ extern crate criterion;
 
 use criterion::{black_box, Criterion};
 
-use annotate_snippets::{Label, Renderer, Slice, Snippet};
+use annotate_snippets::{Level, Renderer, Snippet};
 
 fn create_snippet(renderer: Renderer) {
     let source = r#") -> Option<String> {
@@ -29,16 +29,23 @@ fn create_snippet(renderer: Renderer) {
             _ => continue,
         }
     }"#;
-    let snippet = Snippet::error("mismatched types").id("E0308").slice(
-        Slice::new(source, 51)
+    let message = Level::Error.title("mismatched types").id("E0308").snippet(
+        Snippet::source(source)
+            .line_start(51)
             .origin("src/format.rs")
             .annotation(
-                Label::warning("expected `Option<String>` because of return type").span(5..19),
+                Level::Warning
+                    .span(5..19)
+                    .label("expected `Option<String>` because of return type"),
             )
-            .annotation(Label::error("expected enum `std::option::Option`").span(26..724)),
+            .annotation(
+                Level::Error
+                    .span(26..724)
+                    .label("expected enum `std::option::Option`"),
+            ),
     );
 
-    let _result = renderer.render(snippet).to_string();
+    let _result = renderer.render(message).to_string();
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {

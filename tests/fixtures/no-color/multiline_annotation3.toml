@@ -1,4 +1,9 @@
-[[snippet.slices]]
+[message]
+level = "Error"
+id = "E####"
+title = "spacing error found"
+
+[[message.snippets]]
 source = """
 This is an exampl
 e of an edge case of an annotation overflowing
@@ -7,11 +12,7 @@ to exactly one character on next line.
 line_start = 26
 origin = "foo.txt"
 fold = false
-[[snippet.slices.annotations]]
+[[message.snippets.annotations]]
 label = "this should not be on separate lines"
-annotation_type = "Error"
+level = "Error"
 range = [11, 18]
-
-[snippet]
-title = { annotation_type = "Error", label = "spacing error found" }
-id = "E####"

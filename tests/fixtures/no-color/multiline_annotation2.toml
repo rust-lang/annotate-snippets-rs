@@ -1,4 +1,9 @@
-[[snippet.slices]]
+[message]
+level = "Error"
+id = "E0027"
+title = "pattern does not mention fields `lineno`, `content`"
+
+[[message.snippets]]
 source = """
                         if let DisplayLine::Source {
                             ref mut inline_marks,
@@ -7,11 +12,7 @@ source = """
 line_start = 139
 origin = "src/display_list.rs"
 fold = false
-[[snippet.slices.annotations]]
+[[message.snippets.annotations]]
 label = "missing fields `lineno`, `content`"
-annotation_type = "Error"
+level = "Error"
 range = [31, 128]
-
-[snippet]
-title = { annotation_type = "Error", label = "pattern does not mention fields `lineno`, `content`" }
-id = "E0027"

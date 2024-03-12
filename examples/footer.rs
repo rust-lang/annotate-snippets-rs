@@ -1,22 +1,22 @@
-use annotate_snippets::{Label, Renderer, Slice, Snippet};
+use annotate_snippets::{Label, Level, Renderer, Snippet};
 
 fn main() {
-    let snippet = Snippet::error("mismatched types")
-        .id("E0308")
-        .slice(
-            Slice::new("        slices: vec![\"A\",", 13)
-                .origin("src/multislice.rs")
-                .annotation(
-                    Label::error(
+    let message =
+        Level::Error
+            .title("mismatched types")
+            .id("E0308")
+            .snippet(
+                Snippet::source("        slices: vec![\"A\",")
+                    .line_start(13)
+                    .origin("src/multislice.rs")
+                    .annotation(Level::Error.span(21..24).label(
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
-                    )
-                    .span(21..24),
-                ),
-        )
-        .footer(Label::note(
-            "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
-        ));
+                    )),
+            )
+            .footer(Label::note(
+                "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
+            ));
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(snippet));
+    anstream::println!("{}", renderer.render(message));
 }

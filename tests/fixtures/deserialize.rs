@@ -1,23 +1,22 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
-use annotate_snippets::{
-    renderer::Margin, AnnotationType, Label, Renderer, Slice, Snippet, SourceAnnotation,
-};
+use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Message, Renderer, Snippet};
 
 #[derive(Deserialize)]
 pub struct Fixture<'a> {
     #[serde(default)]
     pub renderer: RendererDef,
     #[serde(borrow)]
-    pub snippet: SnippetDef<'a>,
+    pub message: MessageDef<'a>,
 }
 
 #[derive(Deserialize)]
-pub struct SnippetDef<'a> {
-    #[serde(deserialize_with = "deserialize_label")]
+pub struct MessageDef<'a> {
+    #[serde(with = "LevelDef")]
+    pub level: Level,
     #[serde(borrow)]
-    pub title: Label<'a>,
+    pub title: &'a str,
     #[serde(default)]
     #[serde(borrow)]
     pub id: Option<&'a str>,
@@ -25,46 +24,28 @@ pub struct SnippetDef<'a> {
     #[serde(default)]
     #[serde(borrow)]
     pub footer: Vec<Label<'a>>,
-    #[serde(deserialize_with = "deserialize_slices")]
+    #[serde(deserialize_with = "deserialize_snippets")]
     #[serde(borrow)]
-    pub slices: Vec<Slice<'a>>,
+    pub snippets: Vec<Snippet<'a>>,
 }
 
-impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
-    fn from(val: SnippetDef<'a>) -> Self {
-        let SnippetDef {
+impl<'a> From<MessageDef<'a>> for Message<'a> {
+    fn from(val: MessageDef<'a>) -> Self {
+        let MessageDef {
+            level,
             title,
             id,
             footer,
-            slices,
+            snippets,
         } = val;
-        let mut snippet = Snippet::title(title);
+        let mut message = level.title(title);
         if let Some(id) = id {
-            snippet = snippet.id(id);
+            message = message.id(id);
         }
-        snippet = slices
-            .into_iter()
-            .fold(snippet, |snippet, slice| snippet.slice(slice));
-        snippet = footer
-            .into_iter()
-            .fold(snippet, |snippet, label| snippet.footer(label));
-        snippet
+        message = message.snippets(snippets);
+        message = message.footers(footer);
+        message
     }
-}
-
-fn deserialize_label<'de, D>(deserializer: D) -> Result<Label<'de>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper<'a>(
-        #[serde(with = "LabelDef")]
-        #[serde(borrow)]
-        LabelDef<'a>,
-    );
-
-    Wrapper::deserialize(deserializer)
-        .map(|Wrapper(label)| Label::new(label.annotation_type, label.label))
 }
 
 fn deserialize_labels<'de, D>(deserializer: D) -> Result<Vec<Label<'de>>, D::Error>
@@ -80,19 +61,19 @@ where
 
     let v = Vec::deserialize(deserializer)?;
     Ok(v.into_iter()
-        .map(|Wrapper(a)| Label::new(a.annotation_type, a.label))
+        .map(|Wrapper(a)| Label::new(a.level, a.label))
         .collect())
 }
 
-fn deserialize_slices<'de, D>(deserializer: D) -> Result<Vec<Slice<'de>>, D::Error>
+fn deserialize_snippets<'de, D>(deserializer: D) -> Result<Vec<Snippet<'de>>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
     struct Wrapper<'a>(
-        #[serde(with = "SliceDef")]
+        #[serde(with = "SnippetDef")]
         #[serde(borrow)]
-        SliceDef<'a>,
+        SnippetDef<'a>,
     );
 
     let v = Vec::deserialize(deserializer)?;
@@ -100,84 +81,80 @@ where
 }
 
 #[derive(Deserialize)]
-pub struct SliceDef<'a> {
+pub struct SnippetDef<'a> {
     #[serde(borrow)]
     pub source: &'a str,
     pub line_start: usize,
     #[serde(borrow)]
     pub origin: Option<&'a str>,
-    #[serde(deserialize_with = "deserialize_source_annotations")]
+    #[serde(deserialize_with = "deserialize_annotations")]
     #[serde(borrow)]
-    pub annotations: Vec<SourceAnnotation<'a>>,
+    pub annotations: Vec<Annotation<'a>>,
     #[serde(default)]
     pub fold: bool,
 }
 
-impl<'a> From<SliceDef<'a>> for Slice<'a> {
-    fn from(val: SliceDef<'a>) -> Self {
-        let SliceDef {
+impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
+    fn from(val: SnippetDef<'a>) -> Self {
+        let SnippetDef {
             source,
             line_start,
             origin,
             annotations,
             fold,
         } = val;
-        let mut slice = Slice::new(source, line_start).fold(fold);
+        let mut snippet = Snippet::source(source).line_start(line_start).fold(fold);
         if let Some(origin) = origin {
-            slice = slice.origin(origin)
+            snippet = snippet.origin(origin)
         }
-        slice = annotations
-            .into_iter()
-            .fold(slice, |slice, annotation| slice.annotation(annotation));
-        slice
+        snippet = snippet.annotations(annotations);
+        snippet
     }
 }
 
-fn deserialize_source_annotations<'de, D>(
-    deserializer: D,
-) -> Result<Vec<SourceAnnotation<'de>>, D::Error>
+fn deserialize_annotations<'de, D>(deserializer: D) -> Result<Vec<Annotation<'de>>, D::Error>
 where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
-    struct Wrapper<'a>(#[serde(borrow)] SourceAnnotationDef<'a>);
+    struct Wrapper<'a>(#[serde(borrow)] AnnotationDef<'a>);
 
     let v = Vec::deserialize(deserializer)?;
     Ok(v.into_iter().map(|Wrapper(a)| a.into()).collect())
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SourceAnnotationDef<'a> {
+pub struct AnnotationDef<'a> {
     pub range: Range<usize>,
     #[serde(borrow)]
     pub label: &'a str,
-    #[serde(with = "AnnotationTypeDef")]
-    pub annotation_type: AnnotationType,
+    #[serde(with = "LevelDef")]
+    pub level: Level,
 }
 
-impl<'a> From<SourceAnnotationDef<'a>> for SourceAnnotation<'a> {
-    fn from(val: SourceAnnotationDef<'a>) -> Self {
-        let SourceAnnotationDef {
+impl<'a> From<AnnotationDef<'a>> for Annotation<'a> {
+    fn from(val: AnnotationDef<'a>) -> Self {
+        let AnnotationDef {
             range,
             label,
-            annotation_type,
+            level,
         } = val;
-        Label::new(annotation_type, label).span(range)
+        level.span(range).label(label)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct LabelDef<'a> {
-    #[serde(with = "AnnotationTypeDef")]
-    pub annotation_type: AnnotationType,
+    #[serde(with = "LevelDef")]
+    pub level: Level,
     #[serde(borrow)]
     pub label: &'a str,
 }
 
 #[allow(dead_code)]
 #[derive(Serialize, Deserialize)]
-#[serde(remote = "AnnotationType")]
-enum AnnotationTypeDef {
+#[serde(remote = "Level")]
+enum LevelDef {
     Error,
     Warning,
     Info,
