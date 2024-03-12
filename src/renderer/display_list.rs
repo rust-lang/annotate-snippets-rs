@@ -119,13 +119,7 @@ impl<'a> DisplayList<'a> {
     ) -> DisplayList<'a> {
         let mut body = vec![];
 
-        body.push(format_title(
-            snippet::Label {
-                level,
-                label: title,
-            },
-            id,
-        ));
+        body.push(format_title(level, id, title));
 
         for (idx, snippet) in snippets.into_iter().enumerate() {
             body.append(&mut format_slice(
@@ -740,12 +734,12 @@ fn format_label(
     result
 }
 
-fn format_title<'a>(title: snippet::Label<'a>, id: Option<&'a str>) -> DisplayLine<'a> {
+fn format_title<'a>(level: crate::Level, id: Option<&'a str>, label: &'a str) -> DisplayLine<'a> {
     DisplayLine::Raw(DisplayRawLine::Annotation {
         annotation: Annotation {
-            annotation_type: DisplayAnnotationType::from(title.level),
+            annotation_type: DisplayAnnotationType::from(level),
             id,
-            label: format_label(Some(title.label), Some(DisplayTextStyle::Emphasis)),
+            label: format_label(Some(label), Some(DisplayTextStyle::Emphasis)),
         },
         source_aligned: false,
         continuation: false,
