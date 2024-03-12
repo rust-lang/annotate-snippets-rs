@@ -111,7 +111,7 @@ impl<'a> DisplayList<'a> {
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
-        let body = format_message(message, margin);
+        let body = format_message(message, margin, true);
 
         Self {
             body,
@@ -698,19 +698,24 @@ impl<'a> Iterator for CursorLines<'a> {
     }
 }
 
-fn format_message<'a>(
+fn format_message(
     snippet::Message {
         level,
         id,
         title,
         footer,
         snippets,
-    }: snippet::Message<'a>,
+    }: snippet::Message<'_>,
     margin: Option<Margin>,
-) -> Vec<DisplayLine<'a>> {
+    primary: bool,
+) -> Vec<DisplayLine<'_>> {
     let mut body = vec![];
 
-    body.push(format_title(level, id, title));
+    if !snippets.is_empty() || primary {
+        body.push(format_title(level, id, title));
+    } else {
+        body.append(&mut format_footer(level, id, title));
+    }
 
     for (idx, snippet) in snippets.into_iter().enumerate() {
         body.append(&mut format_snippet(
@@ -722,7 +727,7 @@ fn format_message<'a>(
     }
 
     for annotation in footer {
-        body.append(&mut format_footer(annotation));
+        body.append(&mut format_message(annotation, margin, false));
     }
 
     body
@@ -740,13 +745,17 @@ fn format_title<'a>(level: crate::Level, id: Option<&'a str>, label: &'a str) ->
     })
 }
 
-fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
+fn format_footer<'a>(
+    level: crate::Level,
+    id: Option<&'a str>,
+    label: &'a str,
+) -> Vec<DisplayLine<'a>> {
     let mut result = vec![];
-    for (i, line) in footer.label.lines().enumerate() {
+    for (i, line) in label.lines().enumerate() {
         result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
             annotation: Annotation {
-                annotation_type: DisplayAnnotationType::from(footer.level),
-                id: None,
+                annotation_type: DisplayAnnotationType::from(level),
+                id,
                 label: format_label(Some(line), None),
             },
             source_aligned: true,
@@ -1447,7 +1456,7 @@ mod tests {
     fn test_format_label() {
         let input = snippet::Level::Error
             .title("")
-            .footer(snippet::Label::error("This __is__ a title"));
+            .footer(snippet::Level::Error.title("This __is__ a title"));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {

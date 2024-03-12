@@ -1,4 +1,4 @@
-use annotate_snippets::{Label, Level, Renderer, Snippet};
+use annotate_snippets::{Level, Renderer, Snippet};
 
 fn main() {
     let message =
@@ -13,7 +13,7 @@ fn main() {
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
                     )),
             )
-            .footer(Label::note(
+            .footer(Level::Note.title(
                 "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
             ));
 
