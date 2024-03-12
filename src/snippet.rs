@@ -20,7 +20,7 @@ pub struct Message<'a> {
     pub(crate) id: Option<&'a str>,
     pub(crate) title: &'a str,
     pub(crate) snippets: Vec<Snippet<'a>>,
-    pub(crate) footer: Vec<Label<'a>>,
+    pub(crate) footer: Vec<Message<'a>>,
 }
 
 impl<'a> Message<'a> {
@@ -39,48 +39,13 @@ impl<'a> Message<'a> {
         self
     }
 
-    pub fn footer(mut self, footer: Label<'a>) -> Self {
+    pub fn footer(mut self, footer: Message<'a>) -> Self {
         self.footer.push(footer);
         self
     }
 
-    pub fn footers(mut self, footer: impl IntoIterator<Item = Label<'a>>) -> Self {
+    pub fn footers(mut self, footer: impl IntoIterator<Item = Message<'a>>) -> Self {
         self.footer.extend(footer);
-        self
-    }
-}
-
-pub struct Label<'a> {
-    pub(crate) level: Level,
-    pub(crate) label: &'a str,
-}
-
-impl<'a> Label<'a> {
-    pub fn new(level: Level, label: &'a str) -> Self {
-        Self { level, label }
-    }
-    pub fn error(label: &'a str) -> Self {
-        Self::new(Level::Error, label)
-    }
-
-    pub fn warning(label: &'a str) -> Self {
-        Self::new(Level::Warning, label)
-    }
-
-    pub fn info(label: &'a str) -> Self {
-        Self::new(Level::Info, label)
-    }
-
-    pub fn note(label: &'a str) -> Self {
-        Self::new(Level::Note, label)
-    }
-
-    pub fn help(label: &'a str) -> Self {
-        Self::new(Level::Help, label)
-    }
-
-    pub fn label(mut self, label: &'a str) -> Self {
-        self.label = label;
         self
     }
 }

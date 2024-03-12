@@ -106,39 +106,12 @@ impl<'a> DisplayList<'a> {
     const WARNING_TXT: &'static str = "warning";
 
     pub(crate) fn new(
-        snippet::Message {
-            level,
-            id,
-            title,
-            footer,
-            snippets,
-        }: snippet::Message<'a>,
+        message: snippet::Message<'a>,
         stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
         margin: Option<Margin>,
     ) -> DisplayList<'a> {
-        let mut body = vec![];
-
-        body.push(format_title(
-            snippet::Label {
-                level,
-                label: title,
-            },
-            id,
-        ));
-
-        for (idx, snippet) in snippets.into_iter().enumerate() {
-            body.append(&mut format_slice(
-                snippet,
-                idx == 0,
-                !footer.is_empty(),
-                margin,
-            ));
-        }
-
-        for annotation in footer {
-            body.append(&mut format_footer(annotation));
-        }
+        let body = format_message(message, margin, true);
 
         Self {
             body,
@@ -725,6 +698,73 @@ impl<'a> Iterator for CursorLines<'a> {
     }
 }
 
+fn format_message(
+    snippet::Message {
+        level,
+        id,
+        title,
+        footer,
+        snippets,
+    }: snippet::Message<'_>,
+    margin: Option<Margin>,
+    primary: bool,
+) -> Vec<DisplayLine<'_>> {
+    let mut body = vec![];
+
+    if !snippets.is_empty() || primary {
+        body.push(format_title(level, id, title));
+    } else {
+        body.extend(format_footer(level, id, title));
+    }
+
+    for (idx, snippet) in snippets.into_iter().enumerate() {
+        body.extend(format_snippet(
+            snippet,
+            idx == 0,
+            !footer.is_empty(),
+            margin,
+        ));
+    }
+
+    for annotation in footer {
+        body.extend(format_message(annotation, margin, false));
+    }
+
+    body
+}
+
+fn format_title<'a>(level: crate::Level, id: Option<&'a str>, label: &'a str) -> DisplayLine<'a> {
+    DisplayLine::Raw(DisplayRawLine::Annotation {
+        annotation: Annotation {
+            annotation_type: DisplayAnnotationType::from(level),
+            id,
+            label: format_label(Some(label), Some(DisplayTextStyle::Emphasis)),
+        },
+        source_aligned: false,
+        continuation: false,
+    })
+}
+
+fn format_footer<'a>(
+    level: crate::Level,
+    id: Option<&'a str>,
+    label: &'a str,
+) -> Vec<DisplayLine<'a>> {
+    let mut result = vec![];
+    for (i, line) in label.lines().enumerate() {
+        result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
+            annotation: Annotation {
+                annotation_type: DisplayAnnotationType::from(level),
+                id,
+                label: format_label(Some(line), None),
+            },
+            source_aligned: true,
+            continuation: i != 0,
+        }));
+    }
+    result
+}
+
 fn format_label(
     label: Option<&str>,
     style: Option<DisplayTextStyle>,
@@ -740,35 +780,7 @@ fn format_label(
     result
 }
 
-fn format_title<'a>(title: snippet::Label<'a>, id: Option<&'a str>) -> DisplayLine<'a> {
-    DisplayLine::Raw(DisplayRawLine::Annotation {
-        annotation: Annotation {
-            annotation_type: DisplayAnnotationType::from(title.level),
-            id,
-            label: format_label(Some(title.label), Some(DisplayTextStyle::Emphasis)),
-        },
-        source_aligned: false,
-        continuation: false,
-    })
-}
-
-fn format_footer(footer: snippet::Label<'_>) -> Vec<DisplayLine<'_>> {
-    let mut result = vec![];
-    for (i, line) in footer.label.lines().enumerate() {
-        result.push(DisplayLine::Raw(DisplayRawLine::Annotation {
-            annotation: Annotation {
-                annotation_type: DisplayAnnotationType::from(footer.level),
-                id: None,
-                label: format_label(Some(line), None),
-            },
-            source_aligned: true,
-            continuation: i != 0,
-        }));
-    }
-    result
-}
-
-fn format_slice(
+fn format_snippet(
     snippet: snippet::Snippet<'_>,
     is_first: bool,
     has_footer: bool,
@@ -777,14 +789,14 @@ fn format_slice(
     let main_range = snippet.annotations.first().map(|x| x.range.start);
     let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
-    let mut body = format_body(snippet, need_empty_header, has_footer, margin);
+    let body = format_body(snippet, need_empty_header, has_footer, margin);
     let header = format_header(origin, main_range, &body, is_first);
     let mut result = vec![];
 
     if let Some(header) = header {
         result.push(header);
     }
-    result.append(&mut body);
+    result.extend(body);
     result
 }
 
@@ -1444,7 +1456,7 @@ mod tests {
     fn test_format_label() {
         let input = snippet::Level::Error
             .title("")
-            .footer(snippet::Label::error("This __is__ a title"));
+            .footer(snippet::Level::Error.title("This __is__ a title"));
         let output = from_display_lines(vec![
             DisplayLine::Raw(DisplayRawLine::Annotation {
                 annotation: Annotation {

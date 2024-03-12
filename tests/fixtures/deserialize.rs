@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
-use annotate_snippets::{renderer::Margin, Annotation, Label, Level, Message, Renderer, Snippet};
+use annotate_snippets::{renderer::Margin, Annotation, Level, Message, Renderer, Snippet};
 
 #[derive(Deserialize)]
 pub struct Fixture<'a> {
@@ -20,10 +20,9 @@ pub struct MessageDef<'a> {
     #[serde(default)]
     #[serde(borrow)]
     pub id: Option<&'a str>,
-    #[serde(deserialize_with = "deserialize_labels")]
     #[serde(default)]
     #[serde(borrow)]
-    pub footer: Vec<Label<'a>>,
+    pub footer: Vec<MessageDef<'a>>,
     #[serde(deserialize_with = "deserialize_snippets")]
     #[serde(borrow)]
     pub snippets: Vec<Snippet<'a>>,
@@ -43,26 +42,9 @@ impl<'a> From<MessageDef<'a>> for Message<'a> {
             message = message.id(id);
         }
         message = message.snippets(snippets);
-        message = message.footers(footer);
+        message = message.footers(footer.into_iter().map(Into::into));
         message
     }
-}
-
-fn deserialize_labels<'de, D>(deserializer: D) -> Result<Vec<Label<'de>>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper<'a>(
-        #[serde(with = "LabelDef")]
-        #[serde(borrow)]
-        LabelDef<'a>,
-    );
-
-    let v = Vec::deserialize(deserializer)?;
-    Ok(v.into_iter()
-        .map(|Wrapper(a)| Label::new(a.level, a.label))
-        .collect())
 }
 
 fn deserialize_snippets<'de, D>(deserializer: D) -> Result<Vec<Snippet<'de>>, D::Error>
