@@ -714,11 +714,11 @@ fn format_message(
     if !snippets.is_empty() || primary {
         body.push(format_title(level, id, title));
     } else {
-        body.append(&mut format_footer(level, id, title));
+        body.extend(format_footer(level, id, title));
     }
 
     for (idx, snippet) in snippets.into_iter().enumerate() {
-        body.append(&mut format_snippet(
+        body.extend(format_snippet(
             snippet,
             idx == 0,
             !footer.is_empty(),
@@ -727,7 +727,7 @@ fn format_message(
     }
 
     for annotation in footer {
-        body.append(&mut format_message(annotation, margin, false));
+        body.extend(format_message(annotation, margin, false));
     }
 
     body
@@ -789,14 +789,14 @@ fn format_snippet(
     let main_range = snippet.annotations.first().map(|x| x.range.start);
     let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
-    let mut body = format_body(snippet, need_empty_header, has_footer, margin);
+    let body = format_body(snippet, need_empty_header, has_footer, margin);
     let header = format_header(origin, main_range, &body, is_first);
     let mut result = vec![];
 
     if let Some(header) = header {
         result.push(header);
     }
-    result.append(&mut body);
+    result.extend(body);
     result
 }
 
