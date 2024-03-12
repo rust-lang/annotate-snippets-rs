@@ -131,6 +131,7 @@ impl<'a> Snippet<'a> {
         self
     }
 
+    /// Hide lines without [`Annotation`]s
     pub fn fold(mut self, fold: bool) -> Self {
         self.fold = fold;
         self
