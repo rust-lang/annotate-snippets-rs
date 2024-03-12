@@ -122,7 +122,7 @@ impl<'a> DisplayList<'a> {
         body.push(format_title(level, id, title));
 
         for (idx, snippet) in snippets.into_iter().enumerate() {
-            body.append(&mut format_slice(
+            body.append(&mut format_snippet(
                 snippet,
                 idx == 0,
                 !footer.is_empty(),
@@ -762,7 +762,7 @@ fn format_label(
     result
 }
 
-fn format_slice(
+fn format_snippet(
     snippet: snippet::Snippet<'_>,
     is_first: bool,
     has_footer: bool,
