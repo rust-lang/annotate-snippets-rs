@@ -4,7 +4,7 @@ const ELLIPSIS_PASSING: usize = 6;
 const LONG_WHITESPACE: usize = 20;
 const LONG_WHITESPACE_PADDING: usize = 4;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Margin {
     /// The available whitespace in the left that can be consumed when centering.
     whitespace_left: usize,
