@@ -1,5 +1,7 @@
 use annotate_snippets::{Level, Renderer, Snippet};
 
+use snapbox::{assert_eq, str};
+
 #[test]
 fn test_i_29() {
     let snippets = Level::Error.title("oops").snippet(
@@ -8,16 +10,18 @@ fn test_i_29() {
             .annotation(Level::Error.span(19..23).label("oops"))
             .fold(true),
     );
-    let expected = r#"error: oops
+    let expected = str![[r#"
+error: oops
  --> <current file>:2:8
   |
 1 | First line
 2 | Second oops line
   |        ^^^^ oops
-  |"#;
+  |"#]]
+    .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(snippets).to_string(), expected);
+    assert_eq(expected, renderer.render(snippets).to_string());
 }
 
 #[test]
@@ -28,15 +32,17 @@ fn test_point_to_double_width_characters() {
             .annotation(Level::Error.span(18..24).label("world")),
     );
 
-    let expected = r#"error
+    let expected = str![[r#"
+error
  --> <current file>:1:7
   |
 1 | こんにちは、世界
   |             ^^^^ world
-  |"#;
+  |"#]]
+    .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(snippets).to_string(), expected);
+    assert_eq(expected, renderer.render(snippets).to_string());
 }
 
 #[test]
@@ -47,17 +53,19 @@ fn test_point_to_double_width_characters_across_lines() {
             .annotation(Level::Error.span(6..22).label("Good morning")),
     );
 
-    let expected = r#"error
+    let expected = str![[r#"
+error
  --> <current file>:1:3
   |
 1 |   おはよう
   |  _____^
 2 | | ございます
   | |______^ Good morning
-  |"#;
+  |"#]]
+    .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(snippets).to_string(), expected);
+    assert_eq(expected, renderer.render(snippets).to_string());
 }
 
 #[test]
@@ -69,17 +77,19 @@ fn test_point_to_double_width_characters_multiple() {
             .annotation(Level::Note.span(16..22).label("Sushi2")),
     );
 
-    let expected = r#"error
+    let expected = str![[r#"
+error
  --> <current file>:1:1
   |
 1 | お寿司
   | ^^^^^^ Sushi1
 2 | 食べたい🍣
   |     ---- note: Sushi2
-  |"#;
+  |"#]]
+    .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(snippets).to_string(), expected);
+    assert_eq(expected, renderer.render(snippets).to_string());
 }
 
 #[test]
@@ -90,24 +100,26 @@ fn test_point_to_double_width_characters_mixed() {
             .annotation(Level::Error.span(18..32).label("New world")),
     );
 
-    let expected = r#"error
+    let expected = str![[r#"
+error
  --> <current file>:1:7
   |
 1 | こんにちは、新しいWorld！
   |             ^^^^^^^^^^^ New world
-  |"#;
+  |"#]]
+    .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(snippets).to_string(), expected);
+    assert_eq(expected, renderer.render(snippets).to_string());
 }
 
 #[test]
 fn test_format_title() {
     let input = Level::Error.title("This is a title").id("E0001");
 
-    let expected = r#"error[E0001]: This is a title"#;
+    let expected = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -117,13 +129,15 @@ fn test_format_snippet_only() {
         .title("")
         .snippet(Snippet::source(source).line_start(5402));
 
-    let expected = r#"error
+    let expected = str![[r#"
+error
      |
 5402 | This is line 1
 5403 | This is line 2
-     |"#;
+     |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -134,7 +148,8 @@ fn test_format_snippets_continuation() {
         .title("")
         .snippet(Snippet::source(src_0).line_start(5402).origin("file1.rs"))
         .snippet(Snippet::source(src_1).line_start(2).origin("file2.rs"));
-    let expected = r#"error
+    let expected = str![[r#"
+error
     --> file1.rs
      |
 5402 | This is slice 1
@@ -142,9 +157,10 @@ fn test_format_snippets_continuation() {
     ::: file2.rs
      |
    2 | This is slice 2
-     |"#;
+     |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -159,14 +175,16 @@ fn test_format_snippet_annotation_standalone() {
             .line_start(5402)
             .annotation(Level::Info.span(range.clone()).label("Test annotation")),
     );
-    let expected = r#"error
+    let expected = str![[r#"
+error
      |
 5402 | This is line 1
 5403 | This is line 2
      |        -- info: Test annotation
-     |"#;
+     |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -174,10 +192,12 @@ fn test_format_footer_title() {
     let input = Level::Error
         .title("")
         .footer(Level::Error.title("This __is__ a title"));
-    let expected = r#"error
- = error: This __is__ a title"#;
+    let expected = str![[r#"
+error
+ = error: This __is__ a title"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -200,13 +220,15 @@ fn test_source_content() {
     let input = Level::Error
         .title("")
         .snippet(Snippet::source(source).line_start(56));
-    let expected = r#"error
+    let expected = str![[r#"
+error
    |
 56 | This is an example
 57 | of content lines
-   |"#;
+   |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -217,13 +239,15 @@ fn test_source_annotation_standalone_singleline() {
             .line_start(1)
             .annotation(Level::Help.span(0..5).label("Example string")),
     );
-    let expected = r#"error
+    let expected = str![[r#"
+error
   |
 1 | tests
   | ----- help: Example string
-  |"#;
+  |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -235,14 +259,16 @@ fn test_source_annotation_standalone_multiline() {
             .annotation(Level::Help.span(0..5).label("Example string"))
             .annotation(Level::Help.span(0..5).label("Second line")),
     );
-    let expected = r#"error
+    let expected = str![[r#"
+error
   |
 1 | tests
   | ----- help: Example string
   | ----- help: Second line
-  |"#;
+  |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -250,12 +276,14 @@ fn test_only_source() {
     let input = Level::Error
         .title("")
         .snippet(Snippet::source("").origin("file.rs"));
-    let expected = r#"error
+    let expected = str![[r#"
+error
 --> file.rs
  |
- |"#;
+ |"#]]
+    .indent(false);
     let renderer = Renderer::plain();
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
 
 #[test]
@@ -264,13 +292,15 @@ fn test_anon_lines() {
     let input = Level::Error
         .title("")
         .snippet(Snippet::source(source).line_start(56));
-    let expected = r#"error
+    let expected = str![[r#"
+error
    |
 LL | This is an example
 LL | of content lines
 LL | 
 LL | abc
-   |"#;
+   |"#]]
+    .indent(false);
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_eq!(renderer.render(input).to_string(), expected);
+    assert_eq(expected, renderer.render(input).to_string());
 }
