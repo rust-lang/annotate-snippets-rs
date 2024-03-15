@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Breaking Changes
+
+- Switched from char spans to byte spans [#90](https://github.com/rust-lang/annotate-snippets-rs/pull/90/commits/b65b8cabcd34da9fed88490a7a1cd8085777706a)
+- Renamed `AnnotationType` to `Level` [#94](https://github.com/rust-lang/annotate-snippets-rs/pull/94/commits/b49f9471d920c7f561fa61970039b0ba44e448ac)
+- Renamed `SourceAnnotation` to `Annotation` [#94](https://github.com/rust-lang/annotate-snippets-rs/pull/94/commits/bbf9c5fe27e83652433151cbfc7d6cafc02a8c47)
+- Renamed `Snippet` to `Message` [#94](https://github.com/rust-lang/annotate-snippets-rs/pull/94/commits/105da760b6e1bd4cfce4c642ac679ecf6011f511)
+- Renamed `Slice` to `Snippet` [#94](https://github.com/rust-lang/annotate-snippets-rs/pull/94/commits/1c18950300cf8b93d92d89e9797ed0bae02c0a37)
+- `Message`, `Snippet`, `Annotation` and `Level` can only be built with a builder pattern [#91](https://github.com/rust-lang/annotate-snippets-rs/pull/91) and [#94](https://github.com/rust-lang/annotate-snippets-rs/pull/94)
+- `Annotation` labels are now optional [#94](https://github.com/rust-lang/annotate-snippets-rs/pull/94/commits/c821084068a1acd2688b6c8d0b3423e143d359e2)
+- `Annotation` now takes in `Range<usize>` instead of `(usize, usize)` [#90](https://github.com/rust-lang/annotate-snippets-rs/pull/90/commits/c3bd0c3a63f983f5f2b4793a099972b1f6e97a9f)
+- `Margin` is now an internal detail, only `term_width` is exposed [#105](https://github.com/rust-lang/annotate-snippets-rs/pull/105)
+- `footer` was generalized to be a `Message` [#98](https://github.com/rust-lang/annotate-snippets-rs/pull/98)
+
+### Added
+- `term_width` was added to `Renderer` to control the rendering width [#105](https://github.com/rust-lang/annotate-snippets-rs/pull/105)
+  - defaults to 140 when not set
+
+### Fixed
+- `Margin`s are now calculated per `Snippet`, rather than for the entire `Message` [#105](https://github.com/rust-lang/annotate-snippets-rs/pull/105)
+- `Annotation`s can be created without labels
+
+### Features
+- `footer` was expanded to allow annotating sources by accepting `Message` [#98](https://github.com/rust-lang/annotate-snippets-rs/pull/98)
 
 ## [0.10.2] - 2024-02-29
 
