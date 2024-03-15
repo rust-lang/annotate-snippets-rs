@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.11.0] - 2024-03-15
+
 ### Breaking Changes
 
 - Switched from char spans to byte spans [#90](https://github.com/rust-lang/annotate-snippets-rs/pull/90/commits/b65b8cabcd34da9fed88490a7a1cd8085777706a)
@@ -116,7 +118,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.2...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.0...HEAD
+[0.11.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.2...0.11.0
 [0.10.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.1...0.10.2
 [0.10.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.0...0.10.1
 [0.10.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.9.2...0.10.0
