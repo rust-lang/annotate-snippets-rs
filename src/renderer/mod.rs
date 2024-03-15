@@ -21,11 +21,13 @@ pub use margin::Margin;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
 
+pub const DEFAULT_TERM_WIDTH: usize = 140;
+
 /// A renderer for [`Message`]s
 #[derive(Clone)]
 pub struct Renderer {
     anonymized_line_numbers: bool,
-    margin: Option<Margin>,
+    term_width: usize,
     stylesheet: Stylesheet,
 }
 
@@ -34,7 +36,7 @@ impl Renderer {
     pub const fn plain() -> Self {
         Self {
             anonymized_line_numbers: false,
-            margin: None,
+            term_width: DEFAULT_TERM_WIDTH,
             stylesheet: Stylesheet::plain(),
         }
     }
@@ -94,25 +96,9 @@ impl Renderer {
         self
     }
 
-    /// Set the margin for the output
-    ///
-    /// This controls the various margins of the output.
-    ///
-    /// # Example
-    ///
-    /// ```text
-    /// error: expected type, found `22`
-    ///   --> examples/footer.rs:29:25
-    ///    |
-    /// 26 | ...         annotations: vec![SourceAnnotation {
-    ///    |                               ---------------- info: while parsing this struct
-    /// ...
-    /// 29 | ...         range: <22, 25>,
-    ///    |                     ^^
-    ///    |
-    /// ```
-    pub const fn margin(mut self, margin: Option<Margin>) -> Self {
-        self.margin = margin;
+    // Set the terminal width
+    pub const fn term_width(mut self, term_width: usize) -> Self {
+        self.term_width = term_width;
         self
     }
 
@@ -170,7 +156,7 @@ impl Renderer {
             msg,
             &self.stylesheet,
             self.anonymized_line_numbers,
-            self.margin,
+            self.term_width,
         )
     }
 }

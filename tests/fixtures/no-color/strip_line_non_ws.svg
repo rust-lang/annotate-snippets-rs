@@ -1,4 +1,4 @@
-<svg width="1238px" height="128px" xmlns="http://www.w3.org/2000/svg">
+<svg width="1196px" height="146px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -18,15 +18,17 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error[E0308]: mismatched types</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>  --&gt; $DIR/non-whitespace-trimming.rs:4:241</tspan>
+    <tspan x="10px" y="46px"><tspan>  --&gt; $DIR/non-whitespace-trimming.rs:4:242</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan>   |</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan>LL | ... = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();...</tspan>
+    <tspan x="10px" y="82px"><tspan>LL | ... = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () ...</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>   |                                                       ^^ expected (), found integer</tspan>
+    <tspan x="10px" y="100px"><tspan>   |                                                       ^^ expected `()`, found integer</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan>   |</tspan>
+    <tspan x="10px" y="118px"><tspan>   |                                                  ^^ expected due to this</tspan>
+</tspan>
+    <tspan x="10px" y="136px"><tspan>   |</tspan>
 </tspan>
   </text>
 

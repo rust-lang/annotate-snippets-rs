@@ -32,11 +32,12 @@
 //!
 //! The above snippet has been built out of the following structure:
 use crate::snippet;
+use std::cmp::{max, min};
 use std::fmt::{Display, Write};
 use std::ops::Range;
 use std::{cmp, fmt};
 
-use crate::renderer::{stylesheet::Stylesheet, Margin, Style};
+use crate::renderer::{stylesheet::Stylesheet, Margin, Style, DEFAULT_TERM_WIDTH};
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
 const ERROR_TXT: &str = "error";
@@ -103,9 +104,9 @@ impl<'a> DisplayList<'a> {
         message: snippet::Message<'a>,
         stylesheet: &'a Stylesheet,
         anonymized_line_numbers: bool,
-        margin: Option<Margin>,
+        term_width: usize,
     ) -> DisplayList<'a> {
-        let body = format_message(message, margin, true);
+        let body = format_message(message, term_width, anonymized_line_numbers, true);
 
         Self {
             body,
@@ -147,7 +148,7 @@ impl<'a> DisplayList<'a> {
 #[derive(Debug, PartialEq)]
 pub(crate) struct DisplaySet<'a> {
     pub display_lines: Vec<DisplayLine<'a>>,
-    pub margin: Option<Margin>,
+    pub margin: Margin,
 }
 
 impl<'a> DisplaySet<'a> {
@@ -335,66 +336,50 @@ impl<'a> DisplaySet<'a> {
                         self.format_inline_marks(inline_marks, inline_marks_width, stylesheet, f)?;
                     }
                     f.write_char(' ')?;
-                    if let Some(margin) = self.margin {
-                        let line_len = text.chars().count();
-                        let mut left = margin.left(line_len);
-                        let right = margin.right(line_len);
 
-                        if margin.was_cut_left() {
-                            // We have stripped some code/whitespace from the beginning, make it clear.
-                            "...".fmt(f)?;
-                            left += 3;
-                        }
+                    let text = normalize_whitespace(text);
+                    let line_len = text.as_bytes().len();
+                    let mut left = self.margin.left(line_len);
+                    let right = self.margin.right(line_len);
 
-                        // On long lines, we strip the source line, accounting for unicode.
-                        let mut taken = 0;
-                        let cut_right = if margin.was_cut_right(line_len) {
-                            taken += 3;
+                    if self.margin.was_cut_left() {
+                        "...".fmt(f)?;
+                        left += 3;
+                    }
+                    // On long lines, we strip the source line, accounting for unicode.
+                    let mut taken = 0;
+                    let code: String = text
+                        .chars()
+                        .skip(left)
+                        .take_while(|ch| {
+                            // Make sure that the trimming on the right will fall within the terminal width.
+                            // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char`
+                            // is. For now, just accept that sometimes the code line will be longer than
+                            // desired.
+                            let next = unicode_width::UnicodeWidthChar::width(*ch).unwrap_or(1);
+                            if taken + next > right - left {
+                                return false;
+                            }
+                            taken += next;
                             true
-                        } else {
-                            false
-                        };
-                        // Specifies that it will end on the next character, so it will return
-                        // until the next one to the final condition.
-                        let mut ended = false;
-                        let range = text
-                            .char_indices()
-                            .skip(left)
-                            // Complete char iterator with final character
-                            .chain(std::iter::once((text.len(), '\0')))
-                            // Take until the next one to the final condition
-                            .take_while(|(_, ch)| {
-                                // Fast return to iterate over final byte position
-                                if ended {
-                                    return false;
-                                }
-                                // Make sure that the trimming on the right will fall within the terminal width.
-                                // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char` is.
-                                // For now, just accept that sometimes the code line will be longer than desired.
-                                taken += unicode_width::UnicodeWidthChar::width(*ch).unwrap_or(1);
-                                if taken > right - left {
-                                    ended = true;
-                                }
-                                true
-                            })
-                            // Reduce to start and end byte position
-                            .fold((None, 0), |acc, (i, _)| {
-                                if acc.0.is_some() {
-                                    (acc.0, i)
-                                } else {
-                                    (Some(i), i)
-                                }
-                            });
+                        })
+                        .collect();
 
-                        // Format text with margins
-                        text[range.0.expect("One character at line")..range.1].fmt(f)?;
-
-                        if cut_right {
-                            // We have stripped some code after the right-most span end, make it clear we did so.
-                            "...".fmt(f)?;
-                        }
+                    if self.margin.was_cut_right(line_len) {
+                        code[..taken.saturating_sub(3)].fmt(f)?;
+                        "...".fmt(f)?;
                     } else {
-                        text.fmt(f)?;
+                        code.fmt(f)?;
+                    }
+
+                    let mut left: usize = text
+                        .chars()
+                        .take(left)
+                        .map(|ch| unicode_width::UnicodeWidthChar::width(ch).unwrap_or(1))
+                        .sum();
+
+                    if self.margin.was_cut_left() {
+                        left = left.saturating_sub(3);
                     }
 
                     for annotation in annotations {
@@ -415,7 +400,7 @@ impl<'a> DisplaySet<'a> {
                                 f,
                             )?;
                         }
-                        self.format_source_annotation(annotation, stylesheet, f)?;
+                        self.format_source_annotation(annotation, left, stylesheet, f)?;
                     }
                 } else if !inline_marks.is_empty() {
                     f.write_char(' ')?;
@@ -458,6 +443,7 @@ impl<'a> DisplaySet<'a> {
     fn format_source_annotation(
         &self,
         annotation: &DisplaySourceAnnotation<'_>,
+        left: usize,
         stylesheet: &Stylesheet,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
@@ -476,13 +462,17 @@ impl<'a> DisplaySet<'a> {
             DisplayAnnotationType::None => ' ',
         };
         let color = get_annotation_style(&annotation.annotation_type, stylesheet);
+        let range = (
+            annotation.range.0.saturating_sub(left),
+            annotation.range.1.saturating_sub(left),
+        );
         let indent_length = match annotation.annotation_part {
-            DisplayAnnotationPart::LabelContinuation => annotation.range.1,
-            _ => annotation.range.0,
+            DisplayAnnotationPart::LabelContinuation => range.1,
+            _ => range.0,
         };
         write!(f, "{}", color.render())?;
         format_repeat_char(indent_char, indent_length + 1, f)?;
-        format_repeat_char(mark, annotation.range.1 - indent_length, f)?;
+        format_repeat_char(mark, range.1 - indent_length, f)?;
         write!(f, "{}", color.render_reset())?;
 
         if !is_annotation_empty(&annotation.annotation) {
@@ -713,7 +703,8 @@ fn format_message(
         footer,
         snippets,
     }: snippet::Message<'_>,
-    margin: Option<Margin>,
+    term_width: usize,
+    anonymized_line_numbers: bool,
     primary: bool,
 ) -> Vec<DisplaySet<'_>> {
     let mut sets = vec![];
@@ -728,7 +719,8 @@ fn format_message(
             snippet,
             idx == 0,
             !footer.is_empty(),
-            margin,
+            term_width,
+            anonymized_line_numbers,
         ));
     }
 
@@ -739,12 +731,17 @@ fn format_message(
     } else {
         sets.push(DisplaySet {
             display_lines: body,
-            margin,
+            margin: Margin::new(0, 0, 0, 0, DEFAULT_TERM_WIDTH, 0),
         });
     }
 
     for annotation in footer {
-        sets.extend(format_message(annotation, margin, false));
+        sets.extend(format_message(
+            annotation,
+            term_width,
+            anonymized_line_numbers,
+            false,
+        ));
     }
 
     sets
@@ -801,23 +798,26 @@ fn format_snippet(
     snippet: snippet::Snippet<'_>,
     is_first: bool,
     has_footer: bool,
-    margin: Option<Margin>,
+    term_width: usize,
+    anonymized_line_numbers: bool,
 ) -> DisplaySet<'_> {
     let main_range = snippet.annotations.first().map(|x| x.range.start);
     let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
-    let body = format_body(snippet, need_empty_header, has_footer, margin);
-    let header = format_header(origin, main_range, &body, is_first);
-    let mut result = vec![];
+    let mut body = format_body(
+        snippet,
+        need_empty_header,
+        has_footer,
+        term_width,
+        anonymized_line_numbers,
+    );
+    let header = format_header(origin, main_range, &body.display_lines, is_first);
 
     if let Some(header) = header {
-        result.push(header);
+        body.display_lines.insert(0, header);
     }
-    result.extend(body);
-    DisplaySet {
-        display_lines: result,
-        margin,
-    }
+
+    body
 }
 
 #[inline]
@@ -981,8 +981,9 @@ fn format_body(
     snippet: snippet::Snippet<'_>,
     need_empty_header: bool,
     has_footer: bool,
-    margin: Option<Margin>,
-) -> Vec<DisplayLine<'_>> {
+    term_width: usize,
+    anonymized_line_numbers: bool,
+) -> DisplaySet<'_> {
     let source_len = snippet.source.len();
     if let Some(bigger) = snippet.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
@@ -1002,6 +1003,12 @@ fn format_body(
     let mut current_line = snippet.line_start;
     let mut current_index = 0;
 
+    let mut whitespace_margin = usize::MAX;
+    let mut span_left_margin = usize::MAX;
+    let mut span_right_margin = 0;
+    let mut label_right_margin = 0;
+    let mut max_line_len = 0;
+
     let mut annotations = snippet.annotations;
     for (idx, (line, end_line)) in CursorLines::new(snippet.source).enumerate() {
         let line_length: usize = line.len();
@@ -1015,14 +1022,28 @@ fn format_body(
             },
             annotations: vec![],
         });
+
+        let leading_whitespace = line
+            .chars()
+            .take_while(|c| c.is_whitespace())
+            .map(|c| {
+                match c {
+                    // Tabs are displayed as 4 spaces
+                    '\t' => 4,
+                    _ => 1,
+                }
+            })
+            .sum();
+        if line.chars().any(|c| !c.is_whitespace()) {
+            whitespace_margin = min(whitespace_margin, leading_whitespace);
+        }
+        max_line_len = max(max_line_len, line_length);
+
         let line_start_index = line_range.0;
         let line_end_index = line_range.1;
         current_line += 1;
         current_index += line_length + end_line as usize;
 
-        let margin_left = margin
-            .map(|m| m.left(line_end_index - line_start_index))
-            .unwrap_or_default();
         // It would be nice to use filter_drain here once it's stable.
         annotations.retain(|annotation| {
             let body_idx = idx;
@@ -1031,6 +1052,7 @@ fn format_body(
                 snippet::Level::Warning => DisplayAnnotationType::None,
                 _ => DisplayAnnotationType::from(annotation.level),
             };
+            let label_right = annotation.label.map_or(0, |label| label.len() + 1);
             match annotation.range {
                 Range { start, .. } if start > line_end_index => true,
                 Range { start, end }
@@ -1045,8 +1067,7 @@ fn format_body(
                         let annotation_start_col = line[0..(start - line_start_index)]
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-                            .sum::<usize>()
-                            - margin_left;
+                            .sum::<usize>();
                         // This allows for annotations to be placed one past the
                         // last character
                         let safe_end = (end - line_start_index).saturating_sub(line_length);
@@ -1054,8 +1075,12 @@ fn format_body(
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>()
-                            + safe_end
-                            - margin_left;
+                            + safe_end;
+
+                        span_left_margin = min(span_left_margin, annotation_start_col);
+                        span_right_margin = max(span_right_margin, annotation_end_col);
+                        label_right_margin =
+                            max(label_right_margin, annotation_end_col + label_right);
 
                         let range = (annotation_start_col, annotation_end_col);
                         annotations.push(DisplaySourceAnnotation {
@@ -1097,6 +1122,12 @@ fn format_body(
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>();
                         let annotation_end_col = annotation_start_col + 1;
+
+                        span_left_margin = min(span_left_margin, annotation_start_col);
+                        span_right_margin = max(span_right_margin, annotation_end_col);
+                        label_right_margin =
+                            max(label_right_margin, annotation_end_col + label_right);
+
                         let range = (annotation_start_col, annotation_end_col);
                         annotations.push(DisplaySourceAnnotation {
                             annotation: Annotation {
@@ -1143,9 +1174,15 @@ fn format_body(
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>()
-                            .saturating_sub(1)
-                            - margin_left;
-                        let range = (end_mark, end_mark + 1);
+                            .saturating_sub(1);
+
+                        let end_plus_one = end_mark + 1;
+
+                        span_left_margin = min(span_left_margin, end_mark);
+                        span_right_margin = max(span_right_margin, end_plus_one);
+                        label_right_margin = max(label_right_margin, end_plus_one + label_right);
+
+                        let range = (end_mark, end_plus_one);
                         annotations.push(DisplaySourceAnnotation {
                             annotation: Annotation {
                                 annotation_type,
@@ -1195,7 +1232,31 @@ fn format_body(
             annotations: vec![],
         });
     }
-    body
+    let max_line_num_len = if anonymized_line_numbers {
+        ANONYMIZED_LINE_NUM.len()
+    } else {
+        current_line.to_string().len()
+    };
+
+    let width_offset = 3 + max_line_num_len;
+
+    if span_left_margin == usize::MAX {
+        span_left_margin = 0;
+    }
+
+    let margin = Margin::new(
+        whitespace_margin,
+        span_left_margin,
+        span_right_margin,
+        label_right_margin,
+        term_width.saturating_sub(width_offset),
+        max_line_len,
+    );
+
+    DisplaySet {
+        display_lines: body,
+        margin,
+    }
 }
 
 fn format_repeat_char(c: char, n: usize, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1251,4 +1312,27 @@ fn is_annotation_empty(annotation: &Annotation<'_>) -> bool {
         .label
         .iter()
         .all(|fragment| fragment.content.is_empty())
+}
+
+// We replace some characters so the CLI output is always consistent and underlines aligned.
+const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
+    ('\t', "    "),   // We do our own tab replacement
+    ('\u{200D}', ""), // Replace ZWJ with nothing for consistent terminal output of grapheme clusters.
+    ('\u{202A}', ""), // The following unicode text flow control characters are inconsistently
+    ('\u{202B}', ""), // supported across CLIs and can cause confusion due to the bytes on disk
+    ('\u{202D}', ""), // not corresponding to the visible source code, so we replace them always.
+    ('\u{202E}', ""),
+    ('\u{2066}', ""),
+    ('\u{2067}', ""),
+    ('\u{2068}', ""),
+    ('\u{202C}', ""),
+    ('\u{2069}', ""),
+];
+
+fn normalize_whitespace(str: &str) -> String {
+    let mut s = str.to_string();
+    for (c, replacement) in OUTPUT_REPLACEMENTS {
+        s = s.replace(*c, replacement);
+    }
+    s
 }

@@ -16,10 +16,3 @@ range = [192, 194]
 [renderer]
 color = false
 anonymized_line_numbers = true
-[renderer.margin]
-whitespace_left = 180
-span_left = 192
-span_right = 194
-label_right = 221
-column_width = 140
-max_line_len = 195
