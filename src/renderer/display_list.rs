@@ -32,18 +32,25 @@
 //!
 //! The above snippet has been built out of the following structure:
 use crate::snippet;
+use std::cmp::{max, min};
 use std::fmt::{Display, Write};
 use std::ops::Range;
 use std::{cmp, fmt};
 
-use crate::renderer::{stylesheet::Stylesheet, Margin, Style};
+use crate::renderer::{stylesheet::Stylesheet, Margin, Style, DEFAULT_TERM_WIDTH};
+
+const ANONYMIZED_LINE_NUM: &str = "LL";
+const ERROR_TXT: &str = "error";
+const HELP_TXT: &str = "help";
+const INFO_TXT: &str = "info";
+const NOTE_TXT: &str = "note";
+const WARNING_TXT: &str = "warning";
 
 /// List of lines to be displayed.
 pub(crate) struct DisplayList<'a> {
-    pub body: Vec<DisplayLine<'a>>,
+    pub body: Vec<DisplaySet<'a>>,
     pub stylesheet: &'a Stylesheet,
     pub anonymized_line_numbers: bool,
-    pub margin: Option<Margin>,
 }
 
 impl<'a> PartialEq for DisplayList<'a> {
@@ -63,31 +70,74 @@ impl<'a> fmt::Debug for DisplayList<'a> {
 
 impl<'a> Display for DisplayList<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let lineno_width = self.body.iter().fold(0, |max, line| match line {
-            DisplayLine::Source {
-                lineno: Some(lineno),
-                ..
-            } => {
-                // The largest line is the largest width.
-                cmp::max(*lineno, max)
-            }
-            _ => max,
+        let lineno_width = self.body.iter().fold(0, |max, set| {
+            set.display_lines.iter().fold(max, |max, line| match line {
+                DisplayLine::Source { lineno, .. } => cmp::max(lineno.unwrap_or(0), max),
+                _ => max,
+            })
         });
         let lineno_width = if lineno_width == 0 {
             lineno_width
         } else if self.anonymized_line_numbers {
-            Self::ANONYMIZED_LINE_NUM.len()
+            ANONYMIZED_LINE_NUM.len()
         } else {
             ((lineno_width as f64).log10().floor() as usize) + 1
         };
-        let inline_marks_width = self.body.iter().fold(0, |max, line| match line {
-            DisplayLine::Source { inline_marks, .. } => cmp::max(inline_marks.len(), max),
-            _ => max,
+        let inline_marks_width = self.body.iter().fold(0, |max, set| {
+            set.display_lines.iter().fold(max, |max, line| match line {
+                DisplayLine::Source { inline_marks, .. } => cmp::max(inline_marks.len(), max),
+                _ => max,
+            })
         });
 
-        for (i, line) in self.body.iter().enumerate() {
-            self.format_line(line, lineno_width, inline_marks_width, f)?;
-            if i + 1 < self.body.len() {
+        let mut count_offset = 0;
+        for set in self.body.iter() {
+            self.format_set(set, lineno_width, inline_marks_width, count_offset, f)?;
+            count_offset += set.display_lines.len();
+        }
+        Ok(())
+    }
+}
+
+impl<'a> DisplayList<'a> {
+    pub(crate) fn new(
+        message: snippet::Message<'a>,
+        stylesheet: &'a Stylesheet,
+        anonymized_line_numbers: bool,
+        term_width: usize,
+    ) -> DisplayList<'a> {
+        let body = format_message(message, term_width, anonymized_line_numbers, true);
+
+        Self {
+            body,
+            stylesheet,
+            anonymized_line_numbers,
+        }
+    }
+
+    fn format_set(
+        &self,
+        set: &DisplaySet<'_>,
+        lineno_width: usize,
+        inline_marks_width: usize,
+        count_offset: usize,
+        f: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
+        let body_len = self
+            .body
+            .iter()
+            .map(|set| set.display_lines.len())
+            .sum::<usize>();
+        for (i, line) in set.display_lines.iter().enumerate() {
+            set.format_line(
+                line,
+                lineno_width,
+                inline_marks_width,
+                self.stylesheet,
+                self.anonymized_line_numbers,
+                f,
+            )?;
+            if i + count_offset + 1 < body_len {
                 f.write_char('\n')?;
             }
         }
@@ -95,73 +145,20 @@ impl<'a> Display for DisplayList<'a> {
     }
 }
 
-impl<'a> DisplayList<'a> {
-    const ANONYMIZED_LINE_NUM: &'static str = "LL";
-    const ERROR_TXT: &'static str = "error";
-    const HELP_TXT: &'static str = "help";
-    const INFO_TXT: &'static str = "info";
-    const NOTE_TXT: &'static str = "note";
-    const WARNING_TXT: &'static str = "warning";
+#[derive(Debug, PartialEq)]
+pub(crate) struct DisplaySet<'a> {
+    pub display_lines: Vec<DisplayLine<'a>>,
+    pub margin: Margin,
+}
 
-    pub(crate) fn new(
-        message: snippet::Message<'a>,
-        stylesheet: &'a Stylesheet,
-        anonymized_line_numbers: bool,
-        margin: Option<Margin>,
-    ) -> DisplayList<'a> {
-        let body = format_message(message, margin, true);
-
-        Self {
-            body,
-            stylesheet,
-            anonymized_line_numbers,
-            margin,
-        }
-    }
-
-    #[inline]
-    fn format_annotation_type(
-        annotation_type: &DisplayAnnotationType,
-        f: &mut fmt::Formatter<'_>,
-    ) -> fmt::Result {
-        match annotation_type {
-            DisplayAnnotationType::Error => f.write_str(Self::ERROR_TXT),
-            DisplayAnnotationType::Help => f.write_str(Self::HELP_TXT),
-            DisplayAnnotationType::Info => f.write_str(Self::INFO_TXT),
-            DisplayAnnotationType::Note => f.write_str(Self::NOTE_TXT),
-            DisplayAnnotationType::Warning => f.write_str(Self::WARNING_TXT),
-            DisplayAnnotationType::None => Ok(()),
-        }
-    }
-
-    fn annotation_type_len(annotation_type: &DisplayAnnotationType) -> usize {
-        match annotation_type {
-            DisplayAnnotationType::Error => Self::ERROR_TXT.len(),
-            DisplayAnnotationType::Help => Self::HELP_TXT.len(),
-            DisplayAnnotationType::Info => Self::INFO_TXT.len(),
-            DisplayAnnotationType::Note => Self::NOTE_TXT.len(),
-            DisplayAnnotationType::Warning => Self::WARNING_TXT.len(),
-            DisplayAnnotationType::None => 0,
-        }
-    }
-
-    fn get_annotation_style(&self, annotation_type: &DisplayAnnotationType) -> &Style {
-        match annotation_type {
-            DisplayAnnotationType::Error => self.stylesheet.error(),
-            DisplayAnnotationType::Warning => self.stylesheet.warning(),
-            DisplayAnnotationType::Info => self.stylesheet.info(),
-            DisplayAnnotationType::Note => self.stylesheet.note(),
-            DisplayAnnotationType::Help => self.stylesheet.help(),
-            DisplayAnnotationType::None => self.stylesheet.none(),
-        }
-    }
-
+impl<'a> DisplaySet<'a> {
     fn format_label(
         &self,
         label: &[DisplayTextFragment<'_>],
+        stylesheet: &Stylesheet,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
-        let emphasis_style = self.stylesheet.emphasis();
+        let emphasis_style = stylesheet.emphasis();
 
         for fragment in label {
             match fragment.style {
@@ -185,24 +182,25 @@ impl<'a> DisplayList<'a> {
         annotation: &Annotation<'_>,
         continuation: bool,
         in_source: bool,
+        stylesheet: &Stylesheet,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
-        let color = self.get_annotation_style(&annotation.annotation_type);
+        let color = get_annotation_style(&annotation.annotation_type, stylesheet);
         let formatted_len = if let Some(id) = &annotation.id {
-            2 + id.len() + Self::annotation_type_len(&annotation.annotation_type)
+            2 + id.len() + annotation_type_len(&annotation.annotation_type)
         } else {
-            Self::annotation_type_len(&annotation.annotation_type)
+            annotation_type_len(&annotation.annotation_type)
         };
 
         if continuation {
             format_repeat_char(' ', formatted_len + 2, f)?;
-            return self.format_label(&annotation.label, f);
+            return self.format_label(&annotation.label, stylesheet, f);
         }
         if formatted_len == 0 {
-            self.format_label(&annotation.label, f)
+            self.format_label(&annotation.label, stylesheet, f)
         } else {
             write!(f, "{}", color.render())?;
-            Self::format_annotation_type(&annotation.annotation_type, f)?;
+            format_annotation_type(&annotation.annotation_type, f)?;
             if let Some(id) = &annotation.id {
                 f.write_char('[')?;
                 f.write_str(id)?;
@@ -214,135 +212,14 @@ impl<'a> DisplayList<'a> {
                 if in_source {
                     write!(f, "{}", color.render())?;
                     f.write_str(": ")?;
-                    self.format_label(&annotation.label, f)?;
+                    self.format_label(&annotation.label, stylesheet, f)?;
                     write!(f, "{}", color.render_reset())?;
                 } else {
                     f.write_str(": ")?;
-                    self.format_label(&annotation.label, f)?;
+                    self.format_label(&annotation.label, stylesheet, f)?;
                 }
             }
             Ok(())
-        }
-    }
-
-    #[inline]
-    fn format_source_line(
-        &self,
-        line: &DisplaySourceLine<'_>,
-        f: &mut fmt::Formatter<'_>,
-    ) -> fmt::Result {
-        match line {
-            DisplaySourceLine::Empty => Ok(()),
-            DisplaySourceLine::Content { text, .. } => {
-                f.write_char(' ')?;
-                if let Some(margin) = self.margin {
-                    let line_len = text.chars().count();
-                    let mut left = margin.left(line_len);
-                    let right = margin.right(line_len);
-
-                    if margin.was_cut_left() {
-                        // We have stripped some code/whitespace from the beginning, make it clear.
-                        "...".fmt(f)?;
-                        left += 3;
-                    }
-
-                    // On long lines, we strip the source line, accounting for unicode.
-                    let mut taken = 0;
-                    let cut_right = if margin.was_cut_right(line_len) {
-                        taken += 3;
-                        true
-                    } else {
-                        false
-                    };
-                    // Specifies that it will end on the next character, so it will return
-                    // until the next one to the final condition.
-                    let mut ended = false;
-                    let range = text
-                        .char_indices()
-                        .skip(left)
-                        // Complete char iterator with final character
-                        .chain(std::iter::once((text.len(), '\0')))
-                        // Take until the next one to the final condition
-                        .take_while(|(_, ch)| {
-                            // Fast return to iterate over final byte position
-                            if ended {
-                                return false;
-                            }
-                            // Make sure that the trimming on the right will fall within the terminal width.
-                            // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char` is.
-                            // For now, just accept that sometimes the code line will be longer than desired.
-                            taken += unicode_width::UnicodeWidthChar::width(*ch).unwrap_or(1);
-                            if taken > right - left {
-                                ended = true;
-                            }
-                            true
-                        })
-                        // Reduce to start and end byte position
-                        .fold((None, 0), |acc, (i, _)| {
-                            if acc.0.is_some() {
-                                (acc.0, i)
-                            } else {
-                                (Some(i), i)
-                            }
-                        });
-
-                    // Format text with margins
-                    text[range.0.expect("One character at line")..range.1].fmt(f)?;
-
-                    if cut_right {
-                        // We have stripped some code after the right-most span end, make it clear we did so.
-                        "...".fmt(f)?;
-                    }
-                    Ok(())
-                } else {
-                    text.fmt(f)
-                }
-            }
-            DisplaySourceLine::Annotation {
-                range,
-                annotation,
-                annotation_type,
-                annotation_part,
-            } => {
-                let indent_char = match annotation_part {
-                    DisplayAnnotationPart::Standalone => ' ',
-                    DisplayAnnotationPart::LabelContinuation => ' ',
-                    DisplayAnnotationPart::MultilineStart => '_',
-                    DisplayAnnotationPart::MultilineEnd => '_',
-                };
-                let mark = match annotation_type {
-                    DisplayAnnotationType::Error => '^',
-                    DisplayAnnotationType::Warning => '-',
-                    DisplayAnnotationType::Info => '-',
-                    DisplayAnnotationType::Note => '-',
-                    DisplayAnnotationType::Help => '-',
-                    DisplayAnnotationType::None => ' ',
-                };
-                let color = self.get_annotation_style(annotation_type);
-                let indent_length = match annotation_part {
-                    DisplayAnnotationPart::LabelContinuation => range.1,
-                    _ => range.0,
-                };
-
-                write!(f, "{}", color.render())?;
-                format_repeat_char(indent_char, indent_length + 1, f)?;
-                format_repeat_char(mark, range.1 - indent_length, f)?;
-                write!(f, "{}", color.render_reset())?;
-
-                if !is_annotation_empty(annotation) {
-                    f.write_char(' ')?;
-                    write!(f, "{}", color.render())?;
-                    self.format_annotation(
-                        annotation,
-                        annotation_part == &DisplayAnnotationPart::LabelContinuation,
-                        true,
-                        f,
-                    )?;
-                    write!(f, "{}", color.render_reset())?;
-                }
-
-                Ok(())
-            }
         }
     }
 
@@ -351,6 +228,7 @@ impl<'a> DisplayList<'a> {
         &self,
         line: &DisplayRawLine<'_>,
         lineno_width: usize,
+        stylesheet: &Stylesheet,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         match line {
@@ -363,7 +241,7 @@ impl<'a> DisplayList<'a> {
                     DisplayHeaderType::Initial => "-->",
                     DisplayHeaderType::Continuation => ":::",
                 };
-                let lineno_color = self.stylesheet.line_no();
+                let lineno_color = stylesheet.line_no();
 
                 if let Some((col, row)) = pos {
                     format_repeat_char(' ', lineno_width, f)?;
@@ -402,7 +280,7 @@ impl<'a> DisplayList<'a> {
                     if *continuation {
                         format_repeat_char(' ', lineno_width + 3, f)?;
                     } else {
-                        let lineno_color = self.stylesheet.line_no();
+                        let lineno_color = stylesheet.line_no();
                         format_repeat_char(' ', lineno_width, f)?;
                         f.write_char(' ')?;
                         write!(
@@ -414,7 +292,7 @@ impl<'a> DisplayList<'a> {
                         f.write_char(' ')?;
                     }
                 }
-                self.format_annotation(annotation, *continuation, false, f)
+                self.format_annotation(annotation, *continuation, false, stylesheet, f)
             }
         }
     }
@@ -425,6 +303,8 @@ impl<'a> DisplayList<'a> {
         dl: &DisplayLine<'_>,
         lineno_width: usize,
         inline_marks_width: usize,
+        stylesheet: &Stylesheet,
+        anonymized_line_numbers: bool,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         match dl {
@@ -432,11 +312,12 @@ impl<'a> DisplayList<'a> {
                 lineno,
                 inline_marks,
                 line,
+                annotations,
             } => {
-                let lineno_color = self.stylesheet.line_no();
-                if self.anonymized_line_numbers && lineno.is_some() {
+                let lineno_color = stylesheet.line_no();
+                if anonymized_line_numbers && lineno.is_some() {
                     write!(f, "{}", lineno_color.render())?;
-                    f.write_str(Self::ANONYMIZED_LINE_NUM)?;
+                    f.write_str(ANONYMIZED_LINE_NUM)?;
                     f.write_str(" |")?;
                     write!(f, "{}", lineno_color.render_reset())?;
                 } else {
@@ -448,15 +329,82 @@ impl<'a> DisplayList<'a> {
                     f.write_str(" |")?;
                     write!(f, "{}", lineno_color.render_reset())?;
                 }
-                if *line != DisplaySourceLine::Empty {
+
+                if let DisplaySourceLine::Content { text, .. } = line {
                     if !inline_marks.is_empty() || 0 < inline_marks_width {
                         f.write_char(' ')?;
-                        self.format_inline_marks(inline_marks, inline_marks_width, f)?;
+                        self.format_inline_marks(inline_marks, inline_marks_width, stylesheet, f)?;
                     }
-                    self.format_source_line(line, f)?;
+                    f.write_char(' ')?;
+
+                    let text = normalize_whitespace(text);
+                    let line_len = text.as_bytes().len();
+                    let mut left = self.margin.left(line_len);
+                    let right = self.margin.right(line_len);
+
+                    if self.margin.was_cut_left() {
+                        "...".fmt(f)?;
+                        left += 3;
+                    }
+                    // On long lines, we strip the source line, accounting for unicode.
+                    let mut taken = 0;
+                    let code: String = text
+                        .chars()
+                        .skip(left)
+                        .take_while(|ch| {
+                            // Make sure that the trimming on the right will fall within the terminal width.
+                            // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char`
+                            // is. For now, just accept that sometimes the code line will be longer than
+                            // desired.
+                            let next = unicode_width::UnicodeWidthChar::width(*ch).unwrap_or(1);
+                            if taken + next > right - left {
+                                return false;
+                            }
+                            taken += next;
+                            true
+                        })
+                        .collect();
+
+                    if self.margin.was_cut_right(line_len) {
+                        code[..taken.saturating_sub(3)].fmt(f)?;
+                        "...".fmt(f)?;
+                    } else {
+                        code.fmt(f)?;
+                    }
+
+                    let mut left: usize = text
+                        .chars()
+                        .take(left)
+                        .map(|ch| unicode_width::UnicodeWidthChar::width(ch).unwrap_or(1))
+                        .sum();
+
+                    if self.margin.was_cut_left() {
+                        left = left.saturating_sub(3);
+                    }
+
+                    for annotation in annotations {
+                        // Each annotation should be on its own line
+                        f.write_char('\n')?;
+                        // Add the line number and the line number delimiter
+                        write!(f, "{}", stylesheet.line_no.render())?;
+                        format_repeat_char(' ', lineno_width, f)?;
+                        f.write_str(" |")?;
+                        write!(f, "{}", stylesheet.line_no.render_reset())?;
+
+                        if !inline_marks.is_empty() || 0 < inline_marks_width {
+                            f.write_char(' ')?;
+                            self.format_inline_marks(
+                                inline_marks,
+                                inline_marks_width,
+                                stylesheet,
+                                f,
+                            )?;
+                        }
+                        self.format_source_annotation(annotation, left, stylesheet, f)?;
+                    }
                 } else if !inline_marks.is_empty() {
                     f.write_char(' ')?;
-                    self.format_inline_marks(inline_marks, inline_marks_width, f)?;
+                    self.format_inline_marks(inline_marks, inline_marks_width, stylesheet, f)?;
                 }
                 Ok(())
             }
@@ -464,11 +412,11 @@ impl<'a> DisplayList<'a> {
                 f.write_str("...")?;
                 if !inline_marks.is_empty() || 0 < inline_marks_width {
                     format_repeat_char(' ', lineno_width, f)?;
-                    self.format_inline_marks(inline_marks, inline_marks_width, f)?;
+                    self.format_inline_marks(inline_marks, inline_marks_width, stylesheet, f)?;
                 }
                 Ok(())
             }
-            DisplayLine::Raw(line) => self.format_raw_line(line, lineno_width, f),
+            DisplayLine::Raw(line) => self.format_raw_line(line, lineno_width, stylesheet, f),
         }
     }
 
@@ -476,17 +424,68 @@ impl<'a> DisplayList<'a> {
         &self,
         inline_marks: &[DisplayMark],
         inline_marks_width: usize,
+        stylesheet: &Stylesheet,
         f: &mut fmt::Formatter<'_>,
     ) -> fmt::Result {
         format_repeat_char(' ', inline_marks_width - inline_marks.len(), f)?;
         for mark in inline_marks {
-            let annotation_style = self.get_annotation_style(&mark.annotation_type);
+            let annotation_style = get_annotation_style(&mark.annotation_type, stylesheet);
             write!(f, "{}", annotation_style.render())?;
             f.write_char(match mark.mark_type {
                 DisplayMarkType::AnnotationThrough => '|',
                 DisplayMarkType::AnnotationStart => '/',
             })?;
             write!(f, "{}", annotation_style.render_reset())?;
+        }
+        Ok(())
+    }
+
+    fn format_source_annotation(
+        &self,
+        annotation: &DisplaySourceAnnotation<'_>,
+        left: usize,
+        stylesheet: &Stylesheet,
+        f: &mut fmt::Formatter<'_>,
+    ) -> fmt::Result {
+        let indent_char = match annotation.annotation_part {
+            DisplayAnnotationPart::Standalone => ' ',
+            DisplayAnnotationPart::LabelContinuation => ' ',
+            DisplayAnnotationPart::MultilineStart => '_',
+            DisplayAnnotationPart::MultilineEnd => '_',
+        };
+        let mark = match annotation.annotation_type {
+            DisplayAnnotationType::Error => '^',
+            DisplayAnnotationType::Warning => '-',
+            DisplayAnnotationType::Info => '-',
+            DisplayAnnotationType::Note => '-',
+            DisplayAnnotationType::Help => '-',
+            DisplayAnnotationType::None => ' ',
+        };
+        let color = get_annotation_style(&annotation.annotation_type, stylesheet);
+        let range = (
+            annotation.range.0.saturating_sub(left),
+            annotation.range.1.saturating_sub(left),
+        );
+        let indent_length = match annotation.annotation_part {
+            DisplayAnnotationPart::LabelContinuation => range.1,
+            _ => range.0,
+        };
+        write!(f, "{}", color.render())?;
+        format_repeat_char(indent_char, indent_length + 1, f)?;
+        format_repeat_char(mark, range.1 - indent_length, f)?;
+        write!(f, "{}", color.render_reset())?;
+
+        if !is_annotation_empty(&annotation.annotation) {
+            f.write_char(' ')?;
+            write!(f, "{}", color.render())?;
+            self.format_annotation(
+                &annotation.annotation,
+                annotation.annotation_part == DisplayAnnotationPart::LabelContinuation,
+                true,
+                stylesheet,
+                f,
+            )?;
+            write!(f, "{}", color.render_reset())?;
         }
         Ok(())
     }
@@ -508,6 +507,7 @@ pub enum DisplayLine<'a> {
         lineno: Option<usize>,
         inline_marks: Vec<DisplayMark>,
         line: DisplaySourceLine<'a>,
+        annotations: Vec<DisplaySourceAnnotation<'a>>,
     },
 
     /// A line indicating a folded part of the slice.
@@ -525,17 +525,16 @@ pub enum DisplaySourceLine<'a> {
         text: &'a str,
         range: (usize, usize), // meta information for annotation placement.
     },
-
-    /// An annotation line which is displayed in context of the slice.
-    Annotation {
-        annotation: Annotation<'a>,
-        range: (usize, usize),
-        annotation_type: DisplayAnnotationType,
-        annotation_part: DisplayAnnotationPart,
-    },
-
     /// An empty source line.
     Empty,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct DisplaySourceAnnotation<'a> {
+    pub annotation: Annotation<'a>,
+    pub range: (usize, usize),
+    pub annotation_type: DisplayAnnotationType,
+    pub annotation_part: DisplayAnnotationPart,
 }
 
 /// Raw line - a line which does not have the `lineno` part and is not considered
@@ -704,31 +703,48 @@ fn format_message(
         footer,
         snippets,
     }: snippet::Message<'_>,
-    margin: Option<Margin>,
+    term_width: usize,
+    anonymized_line_numbers: bool,
     primary: bool,
-) -> Vec<DisplayLine<'_>> {
-    let mut body = vec![];
-
-    if !snippets.is_empty() || primary {
-        body.push(format_title(level, id, title));
+) -> Vec<DisplaySet<'_>> {
+    let mut sets = vec![];
+    let body = if !snippets.is_empty() || primary {
+        vec![format_title(level, id, title)]
     } else {
-        body.extend(format_footer(level, id, title));
-    }
+        format_footer(level, id, title)
+    };
 
     for (idx, snippet) in snippets.into_iter().enumerate() {
-        body.extend(format_snippet(
+        sets.push(format_snippet(
             snippet,
             idx == 0,
             !footer.is_empty(),
-            margin,
+            term_width,
+            anonymized_line_numbers,
         ));
     }
 
-    for annotation in footer {
-        body.extend(format_message(annotation, margin, false));
+    if let Some(first) = sets.first_mut() {
+        body.into_iter().for_each(|line| {
+            first.display_lines.insert(0, line);
+        });
+    } else {
+        sets.push(DisplaySet {
+            display_lines: body,
+            margin: Margin::new(0, 0, 0, 0, DEFAULT_TERM_WIDTH, 0),
+        });
     }
 
-    body
+    for annotation in footer {
+        sets.extend(format_message(
+            annotation,
+            term_width,
+            anonymized_line_numbers,
+            false,
+        ));
+    }
+
+    sets
 }
 
 fn format_title<'a>(level: crate::Level, id: Option<&'a str>, label: &'a str) -> DisplayLine<'a> {
@@ -782,20 +798,26 @@ fn format_snippet(
     snippet: snippet::Snippet<'_>,
     is_first: bool,
     has_footer: bool,
-    margin: Option<Margin>,
-) -> Vec<DisplayLine<'_>> {
+    term_width: usize,
+    anonymized_line_numbers: bool,
+) -> DisplaySet<'_> {
     let main_range = snippet.annotations.first().map(|x| x.range.start);
     let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
-    let body = format_body(snippet, need_empty_header, has_footer, margin);
-    let header = format_header(origin, main_range, &body, is_first);
-    let mut result = vec![];
+    let mut body = format_body(
+        snippet,
+        need_empty_header,
+        has_footer,
+        term_width,
+        anonymized_line_numbers,
+    );
+    let header = format_header(origin, main_range, &body.display_lines, is_first);
 
     if let Some(header) = header {
-        result.push(header);
+        body.display_lines.insert(0, header);
     }
-    result.extend(body);
-    result
+
+    body
 }
 
 #[inline]
@@ -862,49 +884,54 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
 
     let mut lines = vec![];
     let mut no_annotation_lines_counter = 0;
-
     for (idx, line) in body.iter().enumerate() {
         match line {
             DisplayLine::Source {
-                line: DisplaySourceLine::Annotation { .. },
+                line: DisplaySourceLine::Content { .. },
+                annotations,
                 ..
             } => {
-                let fold_start = idx - no_annotation_lines_counter;
-                if no_annotation_lines_counter > 2 {
-                    let fold_end = idx;
-                    let pre_len = if no_annotation_lines_counter > 8 {
-                        4
-                    } else {
-                        0
-                    };
-                    let post_len = if no_annotation_lines_counter > 8 {
-                        2
-                    } else {
-                        1
-                    };
-                    for (i, _) in body
-                        .iter()
-                        .enumerate()
-                        .take(fold_start + pre_len)
-                        .skip(fold_start)
-                    {
-                        lines.push(Line::Source(i));
-                    }
-                    lines.push(Line::Fold(idx));
-                    for (i, _) in body
-                        .iter()
-                        .enumerate()
-                        .take(fold_end)
-                        .skip(fold_end - post_len)
-                    {
-                        lines.push(Line::Source(i));
-                    }
+                if annotations.is_empty() {
+                    no_annotation_lines_counter += 1;
+                    continue;
                 } else {
-                    for (i, _) in body.iter().enumerate().take(idx).skip(fold_start) {
-                        lines.push(Line::Source(i));
+                    let fold_start = idx - no_annotation_lines_counter;
+                    if no_annotation_lines_counter >= 2 {
+                        let fold_end = idx;
+                        let pre_len = if no_annotation_lines_counter > 8 {
+                            4
+                        } else {
+                            0
+                        };
+                        let post_len = if no_annotation_lines_counter > 8 {
+                            2
+                        } else {
+                            1
+                        };
+                        for (i, _) in body
+                            .iter()
+                            .enumerate()
+                            .take(fold_start + pre_len)
+                            .skip(fold_start)
+                        {
+                            lines.push(Line::Source(i));
+                        }
+                        lines.push(Line::Fold(idx));
+                        for (i, _) in body
+                            .iter()
+                            .enumerate()
+                            .take(fold_end)
+                            .skip(fold_end + 1 - post_len)
+                        {
+                            lines.push(Line::Source(i));
+                        }
+                    } else {
+                        for (i, _) in body.iter().enumerate().take(idx).skip(fold_start) {
+                            lines.push(Line::Source(i));
+                        }
                     }
+                    no_annotation_lines_counter = 0;
                 }
-                no_annotation_lines_counter = 0;
             }
             DisplayLine::Source { .. } => {
                 no_annotation_lines_counter += 1;
@@ -927,14 +954,19 @@ fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
             }
             Line::Fold(i) => {
                 if let DisplayLine::Source {
-                    line: DisplaySourceLine::Annotation { .. },
+                    line: DisplaySourceLine::Content { .. },
                     ref inline_marks,
+                    ref annotations,
                     ..
                 } = body.get(i - removed).unwrap()
                 {
-                    new_body.push(DisplayLine::Fold {
-                        inline_marks: inline_marks.clone(),
-                    })
+                    if !annotations.is_empty() {
+                        new_body.push(DisplayLine::Fold {
+                            inline_marks: inline_marks.clone(),
+                        });
+                    } else {
+                        unreachable!()
+                    }
                 } else {
                     unreachable!()
                 }
@@ -949,8 +981,9 @@ fn format_body(
     snippet: snippet::Snippet<'_>,
     need_empty_header: bool,
     has_footer: bool,
-    margin: Option<Margin>,
-) -> Vec<DisplayLine<'_>> {
+    term_width: usize,
+    anonymized_line_numbers: bool,
+) -> DisplaySet<'_> {
     let source_len = snippet.source.len();
     if let Some(bigger) = snippet.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
@@ -970,7 +1003,12 @@ fn format_body(
     let mut current_line = snippet.line_start;
     let mut current_index = 0;
 
-    let mut annotation_line_count = 0;
+    let mut whitespace_margin = usize::MAX;
+    let mut span_left_margin = usize::MAX;
+    let mut span_right_margin = 0;
+    let mut label_right_margin = 0;
+    let mut max_line_len = 0;
+
     let mut annotations = snippet.annotations;
     for (idx, (line, end_line)) in CursorLines::new(snippet.source).enumerate() {
         let line_length: usize = line.len();
@@ -982,62 +1020,80 @@ fn format_body(
                 text: line,
                 range: line_range,
             },
+            annotations: vec![],
         });
+
+        let leading_whitespace = line
+            .chars()
+            .take_while(|c| c.is_whitespace())
+            .map(|c| {
+                match c {
+                    // Tabs are displayed as 4 spaces
+                    '\t' => 4,
+                    _ => 1,
+                }
+            })
+            .sum();
+        if line.chars().any(|c| !c.is_whitespace()) {
+            whitespace_margin = min(whitespace_margin, leading_whitespace);
+        }
+        max_line_len = max(max_line_len, line_length);
+
         let line_start_index = line_range.0;
         let line_end_index = line_range.1;
         current_line += 1;
         current_index += line_length + end_line as usize;
 
-        let margin_left = margin
-            .map(|m| m.left(line_end_index - line_start_index))
-            .unwrap_or_default();
         // It would be nice to use filter_drain here once it's stable.
         annotations.retain(|annotation| {
-            let body_idx = idx + annotation_line_count;
+            let body_idx = idx;
             let annotation_type = match annotation.level {
                 snippet::Level::Error => DisplayAnnotationType::None,
                 snippet::Level::Warning => DisplayAnnotationType::None,
                 _ => DisplayAnnotationType::from(annotation.level),
             };
+            let label_right = annotation.label.map_or(0, |label| label.len() + 1);
             match annotation.range {
                 Range { start, .. } if start > line_end_index => true,
                 Range { start, end }
                     if start >= line_start_index && end <= line_end_index
                         || start == line_end_index && end - start <= 1 =>
                 {
-                    let annotation_start_col = line[0..(start - line_start_index)]
-                        .chars()
-                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-                        .sum::<usize>()
-                        - margin_left;
-                    // This allows for annotations to be placed one past the
-                    // last character
-                    let safe_end = (end - line_start_index).saturating_sub(line_length);
-                    let annotation_end_col = line[0..(end - line_start_index) - safe_end]
-                        .chars()
-                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-                        .sum::<usize>()
-                        + safe_end
-                        - margin_left;
-                    let range = (annotation_start_col, annotation_end_col);
-                    body.insert(
-                        body_idx + 1,
-                        DisplayLine::Source {
-                            lineno: None,
-                            inline_marks: vec![],
-                            line: DisplaySourceLine::Annotation {
-                                annotation: Annotation {
-                                    annotation_type,
-                                    id: None,
-                                    label: format_label(annotation.label, None),
-                                },
-                                range,
-                                annotation_type: DisplayAnnotationType::from(annotation.level),
-                                annotation_part: DisplayAnnotationPart::Standalone,
+                    if let DisplayLine::Source {
+                        ref mut annotations,
+                        ..
+                    } = body[body_idx]
+                    {
+                        let annotation_start_col = line[0..(start - line_start_index)]
+                            .chars()
+                            .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                            .sum::<usize>();
+                        // This allows for annotations to be placed one past the
+                        // last character
+                        let safe_end = (end - line_start_index).saturating_sub(line_length);
+                        let annotation_end_col = line[0..(end - line_start_index) - safe_end]
+                            .chars()
+                            .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                            .sum::<usize>()
+                            + safe_end;
+
+                        span_left_margin = min(span_left_margin, annotation_start_col);
+                        span_right_margin = max(span_right_margin, annotation_end_col);
+                        label_right_margin =
+                            max(label_right_margin, annotation_end_col + label_right);
+
+                        let range = (annotation_start_col, annotation_end_col);
+                        annotations.push(DisplaySourceAnnotation {
+                            annotation: Annotation {
+                                annotation_type,
+                                id: None,
+                                label: format_label(annotation.label, None),
                             },
-                        },
-                    );
-                    annotation_line_count += 1;
+                            range,
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
+                            annotation_part: DisplayAnnotationPart::Standalone,
+                        });
+                    }
                     false
                 }
                 Range { start, end }
@@ -1056,30 +1112,33 @@ fn format_body(
                                 annotation_type: DisplayAnnotationType::from(annotation.level),
                             });
                         }
-                    } else {
+                    } else if let DisplayLine::Source {
+                        ref mut annotations,
+                        ..
+                    } = body[body_idx]
+                    {
                         let annotation_start_col = line[0..(start - line_start_index)]
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>();
-                        let range = (annotation_start_col, annotation_start_col + 1);
-                        body.insert(
-                            body_idx + 1,
-                            DisplayLine::Source {
-                                lineno: None,
-                                inline_marks: vec![],
-                                line: DisplaySourceLine::Annotation {
-                                    annotation: Annotation {
-                                        annotation_type: DisplayAnnotationType::None,
-                                        id: None,
-                                        label: vec![],
-                                    },
-                                    range,
-                                    annotation_type: DisplayAnnotationType::from(annotation.level),
-                                    annotation_part: DisplayAnnotationPart::MultilineStart,
-                                },
+                        let annotation_end_col = annotation_start_col + 1;
+
+                        span_left_margin = min(span_left_margin, annotation_start_col);
+                        span_right_margin = max(span_right_margin, annotation_end_col);
+                        label_right_margin =
+                            max(label_right_margin, annotation_end_col + label_right);
+
+                        let range = (annotation_start_col, annotation_end_col);
+                        annotations.push(DisplaySourceAnnotation {
+                            annotation: Annotation {
+                                annotation_type,
+                                id: None,
+                                label: vec![],
                             },
-                        );
-                        annotation_line_count += 1;
+                            range,
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
+                            annotation_part: DisplayAnnotationPart::MultilineStart,
+                        });
                     }
                     true
                 }
@@ -1103,6 +1162,7 @@ fn format_body(
                 {
                     if let DisplayLine::Source {
                         ref mut inline_marks,
+                        ref mut annotations,
                         ..
                     } = body[body_idx]
                     {
@@ -1110,35 +1170,30 @@ fn format_body(
                             mark_type: DisplayMarkType::AnnotationThrough,
                             annotation_type: DisplayAnnotationType::from(annotation.level),
                         });
-                    }
+                        let end_mark = line[0..(end - line_start_index)]
+                            .chars()
+                            .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
+                            .sum::<usize>()
+                            .saturating_sub(1);
 
-                    let end_mark = line[0..(end - line_start_index)]
-                        .chars()
-                        .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-                        .sum::<usize>()
-                        .saturating_sub(1);
-                    let range = (end_mark - margin_left, (end_mark + 1) - margin_left);
-                    body.insert(
-                        body_idx + 1,
-                        DisplayLine::Source {
-                            lineno: None,
-                            inline_marks: vec![DisplayMark {
-                                mark_type: DisplayMarkType::AnnotationThrough,
-                                annotation_type: DisplayAnnotationType::from(annotation.level),
-                            }],
-                            line: DisplaySourceLine::Annotation {
-                                annotation: Annotation {
-                                    annotation_type,
-                                    id: None,
-                                    label: format_label(annotation.label, None),
-                                },
-                                range,
-                                annotation_type: DisplayAnnotationType::from(annotation.level),
-                                annotation_part: DisplayAnnotationPart::MultilineEnd,
+                        let end_plus_one = end_mark + 1;
+
+                        span_left_margin = min(span_left_margin, end_mark);
+                        span_right_margin = max(span_right_margin, end_plus_one);
+                        label_right_margin = max(label_right_margin, end_plus_one + label_right);
+
+                        let range = (end_mark, end_plus_one);
+                        annotations.push(DisplaySourceAnnotation {
+                            annotation: Annotation {
+                                annotation_type,
+                                id: None,
+                                label: format_label(annotation.label, None),
                             },
-                        },
-                    );
-                    annotation_line_count += 1;
+                            range,
+                            annotation_type: DisplayAnnotationType::from(annotation.level),
+                            annotation_part: DisplayAnnotationPart::MultilineEnd,
+                        });
+                    }
                     false
                 }
                 _ => true,
@@ -1157,6 +1212,7 @@ fn format_body(
                 lineno: None,
                 inline_marks: vec![],
                 line: DisplaySourceLine::Empty,
+                annotations: vec![],
             },
         );
     }
@@ -1166,15 +1222,41 @@ fn format_body(
             lineno: None,
             inline_marks: vec![],
             line: DisplaySourceLine::Empty,
+            annotations: vec![],
         });
     } else if let Some(DisplayLine::Source { .. }) = body.last() {
         body.push(DisplayLine::Source {
             lineno: None,
             inline_marks: vec![],
             line: DisplaySourceLine::Empty,
+            annotations: vec![],
         });
     }
-    body
+    let max_line_num_len = if anonymized_line_numbers {
+        ANONYMIZED_LINE_NUM.len()
+    } else {
+        current_line.to_string().len()
+    };
+
+    let width_offset = 3 + max_line_num_len;
+
+    if span_left_margin == usize::MAX {
+        span_left_margin = 0;
+    }
+
+    let margin = Margin::new(
+        whitespace_margin,
+        span_left_margin,
+        span_right_margin,
+        label_right_margin,
+        term_width.saturating_sub(width_offset),
+        max_line_len,
+    );
+
+    DisplaySet {
+        display_lines: body,
+        margin,
+    }
 }
 
 fn format_repeat_char(c: char, n: usize, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1185,9 +1267,72 @@ fn format_repeat_char(c: char, n: usize, f: &mut fmt::Formatter<'_>) -> fmt::Res
 }
 
 #[inline]
+fn format_annotation_type(
+    annotation_type: &DisplayAnnotationType,
+    f: &mut fmt::Formatter<'_>,
+) -> fmt::Result {
+    match annotation_type {
+        DisplayAnnotationType::Error => f.write_str(ERROR_TXT),
+        DisplayAnnotationType::Help => f.write_str(HELP_TXT),
+        DisplayAnnotationType::Info => f.write_str(INFO_TXT),
+        DisplayAnnotationType::Note => f.write_str(NOTE_TXT),
+        DisplayAnnotationType::Warning => f.write_str(WARNING_TXT),
+        DisplayAnnotationType::None => Ok(()),
+    }
+}
+
+fn annotation_type_len(annotation_type: &DisplayAnnotationType) -> usize {
+    match annotation_type {
+        DisplayAnnotationType::Error => ERROR_TXT.len(),
+        DisplayAnnotationType::Help => HELP_TXT.len(),
+        DisplayAnnotationType::Info => INFO_TXT.len(),
+        DisplayAnnotationType::Note => NOTE_TXT.len(),
+        DisplayAnnotationType::Warning => WARNING_TXT.len(),
+        DisplayAnnotationType::None => 0,
+    }
+}
+
+fn get_annotation_style<'a>(
+    annotation_type: &DisplayAnnotationType,
+    stylesheet: &'a Stylesheet,
+) -> &'a Style {
+    match annotation_type {
+        DisplayAnnotationType::Error => stylesheet.error(),
+        DisplayAnnotationType::Warning => stylesheet.warning(),
+        DisplayAnnotationType::Info => stylesheet.info(),
+        DisplayAnnotationType::Note => stylesheet.note(),
+        DisplayAnnotationType::Help => stylesheet.help(),
+        DisplayAnnotationType::None => stylesheet.none(),
+    }
+}
+
+#[inline]
 fn is_annotation_empty(annotation: &Annotation<'_>) -> bool {
     annotation
         .label
         .iter()
         .all(|fragment| fragment.content.is_empty())
+}
+
+// We replace some characters so the CLI output is always consistent and underlines aligned.
+const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
+    ('\t', "    "),   // We do our own tab replacement
+    ('\u{200D}', ""), // Replace ZWJ with nothing for consistent terminal output of grapheme clusters.
+    ('\u{202A}', ""), // The following unicode text flow control characters are inconsistently
+    ('\u{202B}', ""), // supported across CLIs and can cause confusion due to the bytes on disk
+    ('\u{202D}', ""), // not corresponding to the visible source code, so we replace them always.
+    ('\u{202E}', ""),
+    ('\u{2066}', ""),
+    ('\u{2067}', ""),
+    ('\u{2068}', ""),
+    ('\u{202C}', ""),
+    ('\u{2069}', ""),
+];
+
+fn normalize_whitespace(str: &str) -> String {
+    let mut s = str.to_string();
+    for (c, replacement) in OUTPUT_REPLACEMENTS {
+        s = s.replace(*c, replacement);
+    }
+    s
 }

@@ -4,21 +4,22 @@ id = "E0308"
 title = "mismatched types"
 
 [[message.snippets]]
-source = "    let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();"
+source = """
+	let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();
+"""
 line_start = 4
 origin = "$DIR/non-whitespace-trimming.rs"
 
 [[message.snippets.annotations]]
-label = "expected (), found integer"
+label = "expected `()`, found integer"
 level = "Error"
-range = [240, 242]
+range = [241, 243]
+
+[[message.snippets.annotations]]
+label = "expected due to this"
+level = "Error"
+range = [236, 238]
+
 
 [renderer]
 anonymized_line_numbers = true
-[renderer.margin]
-whitespace_left = 4
-span_left = 240
-span_right = 242
-label_right = 271
-column_width = 140
-max_line_len = 371

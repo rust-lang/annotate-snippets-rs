@@ -1,7 +1,8 @@
 use serde::{Deserialize, Deserializer, Serialize};
 use std::ops::Range;
 
-use annotate_snippets::{renderer::Margin, Annotation, Level, Message, Renderer, Snippet};
+use annotate_snippets::renderer::DEFAULT_TERM_WIDTH;
+use annotate_snippets::{Annotation, Level, Message, Renderer, Snippet};
 
 #[derive(Deserialize)]
 pub struct Fixture<'a> {
@@ -148,55 +149,18 @@ enum LevelDef {
 pub struct RendererDef {
     #[serde(default)]
     anonymized_line_numbers: bool,
-    #[serde(deserialize_with = "deserialize_margin")]
     #[serde(default)]
-    margin: Option<Margin>,
+    term_width: Option<usize>,
 }
 
 impl From<RendererDef> for Renderer {
     fn from(val: RendererDef) -> Self {
         let RendererDef {
             anonymized_line_numbers,
-            margin,
+            term_width,
         } = val;
         Renderer::plain()
             .anonymized_line_numbers(anonymized_line_numbers)
-            .margin(margin)
+            .term_width(term_width.unwrap_or(DEFAULT_TERM_WIDTH))
     }
-}
-
-fn deserialize_margin<'de, D>(deserializer: D) -> Result<Option<Margin>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrapper {
-        whitespace_left: usize,
-        span_left: usize,
-        span_right: usize,
-        label_right: usize,
-        column_width: usize,
-        max_line_len: usize,
-    }
-
-    Option::<Wrapper>::deserialize(deserializer).map(|opt_wrapped: Option<Wrapper>| {
-        opt_wrapped.map(|wrapped: Wrapper| {
-            let Wrapper {
-                whitespace_left,
-                span_left,
-                span_right,
-                label_right,
-                column_width,
-                max_line_len,
-            } = wrapped;
-            Margin::new(
-                whitespace_left,
-                span_left,
-                span_right,
-                label_right,
-                column_width,
-                max_line_len,
-            )
-        })
-    })
 }
