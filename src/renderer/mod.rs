@@ -17,7 +17,7 @@ pub(crate) mod stylesheet;
 use crate::snippet::Message;
 pub use anstyle::*;
 use display_list::DisplayList;
-pub use margin::Margin;
+use margin::Margin;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
 
