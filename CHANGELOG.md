@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.11.1] - 2024-03-21
+
 ### Fixes
 
 - Switch `fold` to use rustc's logic: always show first and last line of folded section and detect if its worth folding
@@ -124,7 +126,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.0...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.1...HEAD
+[0.11.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.2...0.11.0
 [0.10.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.1...0.10.2
 [0.10.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.0...0.10.1
