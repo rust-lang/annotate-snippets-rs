@@ -919,105 +919,65 @@ fn fold_prefix_suffix(mut snippet: snippet::Snippet<'_>) -> snippet::Snippet<'_>
     snippet
 }
 
-fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
-    enum Line {
-        Fold(usize),
-        Source(usize),
-    }
+fn fold_body(body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
+    const INNER_CONTEXT: usize = 1;
+    const INNER_UNFOLD_SIZE: usize = INNER_CONTEXT * 2 + 1;
 
     let mut lines = vec![];
-    let mut no_annotation_lines_counter = 0;
-    for (idx, line) in body.iter().enumerate() {
-        match line {
-            DisplayLine::Source {
-                line: DisplaySourceLine::Content { .. },
-                annotations,
-                ..
-            } => {
+    let mut unhighlighed_lines = vec![];
+    for line in body {
+        match &line {
+            DisplayLine::Source { annotations, .. } => {
                 if annotations.is_empty() {
-                    no_annotation_lines_counter += 1;
-                    continue;
+                    unhighlighed_lines.push(line);
                 } else {
-                    let fold_start = idx - no_annotation_lines_counter;
-                    if no_annotation_lines_counter >= 2 {
-                        let fold_end = idx;
-                        let pre_len = if no_annotation_lines_counter > 8 {
-                            4
-                        } else {
-                            0
-                        };
-                        let post_len = if no_annotation_lines_counter > 8 {
-                            2
-                        } else {
-                            1
-                        };
-                        for (i, _) in body
-                            .iter()
-                            .enumerate()
-                            .take(fold_start + pre_len)
-                            .skip(fold_start)
-                        {
-                            lines.push(Line::Source(i));
+                    if lines.is_empty() {
+                        // Ignore leading unhighlighed lines
+                        unhighlighed_lines.clear();
+                    }
+                    match unhighlighed_lines.len() {
+                        0 => {}
+                        n if n <= INNER_UNFOLD_SIZE => {
+                            // Rather than render `...`, don't fold
+                            lines.append(&mut unhighlighed_lines);
                         }
-                        lines.push(Line::Fold(idx));
-                        for (i, _) in body
-                            .iter()
-                            .enumerate()
-                            .take(fold_end)
-                            .skip(fold_end + 1 - post_len)
-                        {
-                            lines.push(Line::Source(i));
-                        }
-                    } else {
-                        for (i, _) in body.iter().enumerate().take(idx).skip(fold_start) {
-                            lines.push(Line::Source(i));
+                        _ => {
+                            lines.extend(unhighlighed_lines.drain(..INNER_CONTEXT));
+                            let inline_marks = lines
+                                .last()
+                                .and_then(|line| {
+                                    if let DisplayLine::Source {
+                                        ref inline_marks, ..
+                                    } = line
+                                    {
+                                        let mut inline_marks = inline_marks.clone();
+                                        for mark in &mut inline_marks {
+                                            mark.mark_type = DisplayMarkType::AnnotationThrough;
+                                        }
+                                        Some(inline_marks)
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .unwrap_or_default();
+                            lines.push(DisplayLine::Fold {
+                                inline_marks: inline_marks.clone(),
+                            });
+                            unhighlighed_lines
+                                .drain(..unhighlighed_lines.len().saturating_sub(INNER_CONTEXT));
+                            lines.append(&mut unhighlighed_lines);
                         }
                     }
-                    no_annotation_lines_counter = 0;
+                    lines.push(line);
                 }
-            }
-            DisplayLine::Source { .. } => {
-                no_annotation_lines_counter += 1;
-                continue;
             }
             _ => {
-                no_annotation_lines_counter += 1;
-            }
-        }
-        lines.push(Line::Source(idx));
-    }
-
-    let mut new_body = vec![];
-    let mut removed = 0;
-    for line in lines {
-        match line {
-            Line::Source(i) => {
-                new_body.push(body.remove(i - removed));
-                removed += 1;
-            }
-            Line::Fold(i) => {
-                if let DisplayLine::Source {
-                    line: DisplaySourceLine::Content { .. },
-                    ref inline_marks,
-                    ref annotations,
-                    ..
-                } = body.get(i - removed).unwrap()
-                {
-                    if !annotations.is_empty() {
-                        new_body.push(DisplayLine::Fold {
-                            inline_marks: inline_marks.clone(),
-                        });
-                    } else {
-                        unreachable!()
-                    }
-                } else {
-                    unreachable!()
-                }
+                unhighlighed_lines.push(line);
             }
         }
     }
 
-    new_body
+    lines
 }
 
 fn format_body(
