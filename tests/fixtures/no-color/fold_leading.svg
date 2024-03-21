@@ -1,4 +1,4 @@
-<svg width="740px" height="236px" xmlns="http://www.w3.org/2000/svg">
+<svg width="740px" height="128px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -22,23 +22,11 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>   |</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan> 1 | [workspace]</tspan>
+    <tspan x="10px" y="82px"><tspan>11 | workspace = 20</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan> 2 | </tspan>
+    <tspan x="10px" y="100px"><tspan>   |             ^^</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan> 3 | [package]</tspan>
-</tspan>
-    <tspan x="10px" y="136px"><tspan> 4 | name = "hello"</tspan>
-</tspan>
-    <tspan x="10px" y="154px"><tspan>...</tspan>
-</tspan>
-    <tspan x="10px" y="172px"><tspan>10 | [lints]</tspan>
-</tspan>
-    <tspan x="10px" y="190px"><tspan>11 | workspace = 20</tspan>
-</tspan>
-    <tspan x="10px" y="208px"><tspan>   |             ^^</tspan>
-</tspan>
-    <tspan x="10px" y="226px"><tspan>   |</tspan>
+    <tspan x="10px" y="118px"><tspan>   |</tspan>
 </tspan>
   </text>
 

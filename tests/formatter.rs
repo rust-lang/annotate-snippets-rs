@@ -14,7 +14,6 @@ fn test_i_29() {
 error: oops
  --> <current file>:2:8
   |
-1 | First line
 2 | Second oops line
   |        ^^^^ oops
   |"#]]

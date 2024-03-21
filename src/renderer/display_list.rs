@@ -696,17 +696,19 @@ impl<'a> Iterator for CursorLines<'a> {
 }
 
 fn format_message(
-    snippet::Message {
+    message: snippet::Message<'_>,
+    term_width: usize,
+    anonymized_line_numbers: bool,
+    primary: bool,
+) -> Vec<DisplaySet<'_>> {
+    let snippet::Message {
         level,
         id,
         title,
         footer,
         snippets,
-    }: snippet::Message<'_>,
-    term_width: usize,
-    anonymized_line_numbers: bool,
-    primary: bool,
-) -> Vec<DisplaySet<'_>> {
+    } = message;
+
     let mut sets = vec![];
     let body = if !snippets.is_empty() || primary {
         vec![format_title(level, id, title)]
@@ -715,6 +717,7 @@ fn format_message(
     };
 
     for (idx, snippet) in snippets.into_iter().enumerate() {
+        let snippet = fold_prefix_suffix(snippet);
         sets.push(format_snippet(
             snippet,
             idx == 0,
@@ -874,6 +877,46 @@ fn format_header<'a>(
     }
 
     None
+}
+
+fn fold_prefix_suffix(mut snippet: snippet::Snippet<'_>) -> snippet::Snippet<'_> {
+    if !snippet.fold {
+        return snippet;
+    }
+
+    let ann_start = snippet
+        .annotations
+        .iter()
+        .map(|ann| ann.range.start)
+        .min()
+        .unwrap_or(0);
+    if let Some(before_new_start) = snippet.source[0..ann_start].rfind('\n') {
+        let new_start = before_new_start + 1;
+
+        let line_offset = snippet.source[..new_start].lines().count();
+        snippet.line_start += line_offset;
+
+        snippet.source = &snippet.source[new_start..];
+
+        for ann in &mut snippet.annotations {
+            let range_start = ann.range.start - new_start;
+            let range_end = ann.range.end - new_start;
+            ann.range = range_start..range_end;
+        }
+    }
+
+    let ann_end = snippet
+        .annotations
+        .iter()
+        .map(|ann| ann.range.end)
+        .max()
+        .unwrap_or(snippet.source.len());
+    if let Some(end_offset) = snippet.source[ann_end..].find('\n') {
+        let new_end = ann_end + end_offset;
+        snippet.source = &snippet.source[..new_end];
+    }
+
+    snippet
 }
 
 fn fold_body(mut body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
