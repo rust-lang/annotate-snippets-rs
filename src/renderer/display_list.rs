@@ -1057,6 +1057,7 @@ fn format_body(
                 Range { start, .. } if start > line_end_index => true,
                 Range { start, end }
                     if start >= line_start_index && end <= line_end_index
+                        // Allow annotating eof or stripped eol
                         || start == line_end_index && end - start <= 1 =>
                 {
                     if let DisplayLine::Source {
@@ -1068,14 +1069,15 @@ fn format_body(
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>();
-                        // This allows for annotations to be placed one past the
-                        // last character
-                        let safe_end = (end - line_start_index).saturating_sub(line_length);
-                        let annotation_end_col = line[0..(end - line_start_index) - safe_end]
+                        let mut annotation_end_col = line
+                            [0..(end - line_start_index).min(line_length)]
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
-                            .sum::<usize>()
-                            + safe_end;
+                            .sum::<usize>();
+                        if annotation_start_col == annotation_end_col {
+                            // At least highlight something
+                            annotation_end_col += 1;
+                        }
 
                         span_left_margin = min(span_left_margin, annotation_start_col);
                         span_right_margin = max(span_right_margin, annotation_end_col);
