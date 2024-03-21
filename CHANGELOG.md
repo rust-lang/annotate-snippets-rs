@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Switch `fold` to use rustc's logic: always show first and last line of folded section and detect if its worth folding
+- When `fold`ing the start of a `source`, don't show anything, like we do for the end of the `source`
+- Render an underline for an empty span on `Annotation`s
+
 ## [0.11.0] - 2024-03-15
 
 ### Breaking Changes
