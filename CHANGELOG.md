@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- All public types now implement `Debug` [#119](https://github.com/rust-lang/annotate-snippets-rs/pull/119)
+
 ## [0.11.1] - 2024-03-21
 
 ### Fixes
