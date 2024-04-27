@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.11.2] - 2024-04-27
+
 ### Added
 
 - All public types now implement `Debug` [#119](https://github.com/rust-lang/annotate-snippets-rs/pull/119)
@@ -130,7 +132,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.1...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.2...HEAD
+[0.11.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.1...0.11.2
 [0.11.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.2...0.11.0
 [0.10.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.1...0.10.2
