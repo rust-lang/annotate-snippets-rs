@@ -15,6 +15,7 @@ use std::ops::Range;
 /// Primary structure provided for formatting
 ///
 /// See [`Level::title`] to create a [`Message`]
+#[derive(Debug)]
 pub struct Message<'a> {
     pub(crate) level: Level,
     pub(crate) id: Option<&'a str>,
@@ -55,6 +56,7 @@ impl<'a> Message<'a> {
 ///
 /// One `Snippet` is meant to represent a single, continuous,
 /// slice of source code that you want to annotate.
+#[derive(Debug)]
 pub struct Snippet<'a> {
     pub(crate) origin: Option<&'a str>,
     pub(crate) line_start: usize,

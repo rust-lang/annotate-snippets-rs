@@ -24,7 +24,7 @@ use stylesheet::Stylesheet;
 pub const DEFAULT_TERM_WIDTH: usize = 140;
 
 /// A renderer for [`Message`]s
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Renderer {
     anonymized_line_numbers: bool,
     term_width: usize,
