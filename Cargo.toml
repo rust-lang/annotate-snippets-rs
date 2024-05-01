@@ -32,7 +32,7 @@ anstream = "0.6.13"
 criterion = "0.5.1"
 difference = "2.0.0"
 glob = "0.3.1"
-serde = { version = "1.0.197", features = ["derive"] }
+serde = { version = "1.0.199", features = ["derive"] }
 snapbox = { version = "0.5.9", features = ["diff", "harness", "path", "term-svg", "cmd", "examples"] }
 toml = "0.5.11"
 
