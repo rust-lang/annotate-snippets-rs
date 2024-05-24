@@ -8,15 +8,15 @@ use std::error::Error;
 
 fn main() {
     #[cfg(not(windows))]
-    snapbox::harness::Harness::new("tests/fixtures/", setup, test)
+    tryfn::Harness::new("tests/fixtures/", setup, test)
         .select(["*/*.toml"])
         .test();
 }
 
-fn setup(input_path: std::path::PathBuf) -> snapbox::harness::Case {
+fn setup(input_path: std::path::PathBuf) -> tryfn::Case {
     let name = input_path.file_name().unwrap().to_str().unwrap().to_owned();
-    let expected = input_path.with_extension("svg");
-    snapbox::harness::Case {
+    let expected = tryfn::Data::read_from(&input_path.with_extension("svg"), None);
+    tryfn::Case {
         name,
         fixture: input_path,
         expected,
