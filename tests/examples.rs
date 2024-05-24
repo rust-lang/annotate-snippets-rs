@@ -33,5 +33,5 @@ fn assert_example(target: &str, expected: snapbox::Data) {
         .env("CLICOLOR_FORCE", "1")
         .assert()
         .success()
-        .stdout_eq_(expected.raw());
+        .stdout_eq(expected.raw());
 }
