@@ -10,7 +10,6 @@ fn main() {
     #[cfg(not(windows))]
     snapbox::harness::Harness::new("tests/fixtures/", setup, test)
         .select(["*/*.toml"])
-        .action_env("SNAPSHOTS")
         .test();
 }
 

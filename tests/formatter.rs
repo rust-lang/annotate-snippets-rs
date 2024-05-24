@@ -1,6 +1,6 @@
 use annotate_snippets::{Level, Renderer, Snippet};
 
-use snapbox::{assert_eq, str};
+use snapbox::{assert_data_eq, str};
 
 #[test]
 fn test_i_29() {
@@ -20,7 +20,7 @@ error: oops
     .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -41,7 +41,7 @@ error
     .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -64,7 +64,7 @@ error
     .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -88,7 +88,7 @@ error
     .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -109,7 +109,7 @@ error
     .indent(false);
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -118,7 +118,7 @@ fn test_format_title() {
 
     let expected = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -136,7 +136,7 @@ error
      |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -159,7 +159,7 @@ error
      |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -183,7 +183,7 @@ error
      |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -196,7 +196,7 @@ error
  = error: This __is__ a title"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -227,7 +227,7 @@ error
    |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -246,7 +246,7 @@ error
   |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -267,7 +267,7 @@ error
   |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -282,7 +282,7 @@ error
  |"#]]
     .indent(false);
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -301,5 +301,5 @@ LL | abc
    |"#]]
     .indent(false);
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
