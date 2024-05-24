@@ -1,6 +1,6 @@
 use annotate_snippets::{Level, Renderer, Snippet};
 
-use snapbox::{assert_eq, str};
+use snapbox::{assert_data_eq, str};
 
 #[test]
 fn test_i_29() {
@@ -16,11 +16,11 @@ error: oops
   |
 2 | Second oops line
   |        ^^^^ oops
-  |"#]]
-    .indent(false);
+  |
+"#]];
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -37,11 +37,11 @@ error
   |
 1 | こんにちは、世界
   |             ^^^^ world
-  |"#]]
-    .indent(false);
+  |
+"#]];
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -60,11 +60,11 @@ error
   |  _____^
 2 | | ございます
   | |______^ Good morning
-  |"#]]
-    .indent(false);
+  |
+"#]];
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -84,11 +84,11 @@ error
   | ^^^^^^ Sushi1
 2 | 食べたい🍣
   |     ---- note: Sushi2
-  |"#]]
-    .indent(false);
+  |
+"#]];
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -105,11 +105,11 @@ error
   |
 1 | こんにちは、新しいWorld！
   |             ^^^^^^^^^^^ New world
-  |"#]]
-    .indent(false);
+  |
+"#]];
 
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(snippets).to_string());
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
 }
 
 #[test]
@@ -118,7 +118,7 @@ fn test_format_title() {
 
     let expected = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -133,10 +133,10 @@ error
      |
 5402 | This is line 1
 5403 | This is line 2
-     |"#]]
-    .indent(false);
+     |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -156,10 +156,10 @@ error
     ::: file2.rs
      |
    2 | This is slice 2
-     |"#]]
-    .indent(false);
+     |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -180,10 +180,10 @@ error
 5402 | This is line 1
 5403 | This is line 2
      |        -- info: Test annotation
-     |"#]]
-    .indent(false);
+     |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -193,10 +193,10 @@ fn test_format_footer_title() {
         .footer(Level::Error.title("This __is__ a title"));
     let expected = str![[r#"
 error
- = error: This __is__ a title"#]]
-    .indent(false);
+ = error: This __is__ a title
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -224,10 +224,10 @@ error
    |
 56 | This is an example
 57 | of content lines
-   |"#]]
-    .indent(false);
+   |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -243,10 +243,10 @@ error
   |
 1 | tests
   | ----- help: Example string
-  |"#]]
-    .indent(false);
+  |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -264,10 +264,10 @@ error
 1 | tests
   | ----- help: Example string
   | ----- help: Second line
-  |"#]]
-    .indent(false);
+  |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -279,10 +279,10 @@ fn test_only_source() {
 error
 --> file.rs
  |
- |"#]]
-    .indent(false);
+ |
+"#]];
     let renderer = Renderer::plain();
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
 
 #[test]
@@ -298,8 +298,8 @@ LL | This is an example
 LL | of content lines
 LL | 
 LL | abc
-   |"#]]
-    .indent(false);
+   |
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_eq(expected, renderer.render(input).to_string());
+    assert_data_eq!(renderer.render(input).to_string(), expected);
 }
