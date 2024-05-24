@@ -27,7 +27,7 @@ dependencies = [
  "difference",
  "glob",
  "serde",
- "snapbox 0.5.14",
+ "snapbox",
  "toml",
  "tryfn",
  "unicode-width",
@@ -691,9 +691,9 @@ checksum = "32fea41aca09ee824cc9724996433064c89f7777e60762749a4170a14abbfa21"
 
 [[package]]
 name = "snapbox"
-version = "0.5.14"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f37d101fcafc8e73748fd8a1b7048f5979f93d372fd17027d7724c1643bc379b"
+checksum = "28bef451bfd0a7a395fb3979e130422658926bb2e0d9a168e72aca4c9b5c5738"
 dependencies = [
  "anstream",
  "anstyle",
@@ -707,19 +707,6 @@ dependencies = [
  "snapbox-macros",
  "wait-timeout",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "snapbox"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28bef451bfd0a7a395fb3979e130422658926bb2e0d9a168e72aca4c9b5c5738"
-dependencies = [
- "anstream",
- "anstyle",
- "normalize-line-endings",
- "similar",
- "snapbox-macros",
 ]
 
 [[package]]
@@ -793,7 +780,7 @@ checksum = "493e1390312bb94363f762687be32a1bd01c3333dfad25a5a7fffab1edc64839"
 dependencies = [
  "ignore",
  "libtest-mimic",
- "snapbox 0.6.0",
+ "snapbox",
 ]
 
 [[package]]
