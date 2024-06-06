@@ -3,6 +3,7 @@
     'before 5am on the first day of the month',
   ],
   semanticCommits: 'enabled',
+  commitMessageLowerCase: 'never',
   configMigration: true,
   dependencyDashboard: true,
   customManagers: [
@@ -17,30 +18,35 @@
         '^\\.github/workflows/rust-next.yml$',
       ],
       matchStrings: [
-        'MSRV.*?(?<currentValue>\\d+\\.\\d+(\\.\\d+)?)',
-        '(?<currentValue>\\d+\\.\\d+(\\.\\d+)?).*?MSRV',
+        'STABLE.*?(?<currentValue>\\d+\\.\\d+(\\.\\d+)?)',
+        '(?<currentValue>\\d+\\.\\d+(\\.\\d+)?).*?STABLE',
       ],
-      depNameTemplate: 'rust',
+      depNameTemplate: 'STABLE',
       packageNameTemplate: 'rust-lang/rust',
       datasourceTemplate: 'github-releases',
     },
   ],
   packageRules: [
     {
-      commitMessageTopic: 'MSRV',
+      commitMessageTopic: 'Rust Stable',
       matchManagers: [
         'custom.regex',
       ],
       matchPackageNames: [
-        'rust',
+        'STABLE',
       ],
-      minimumReleaseAge: '84 days',
-      internalChecksFilter: 'strict',
-      extractVersion: '^(?<version>\\d+\\.\\d+)',
+      extractVersion: '^(?<version>\\d+\\.\\d+)',  // Drop the patch version
       schedule: [
         '* * * * *',
       ],
+      automerge: true,
     },
+    // Goals:
+    // - Keep version reqs low, ignoring compatible normal/build dependencies
+    // - Take advantage of latest dev-dependencies
+    // - Rollup safe upgrades to reduce CI runner load
+    // - Help keep number of versions down by always using latest breaking change
+    // - Have lockfile and manifest in-sync
     {
       matchManagers: [
         'cargo',
@@ -66,6 +72,7 @@
       matchCurrentVersion: '>=1.0.0',
       matchUpdateTypes: [
         'minor',
+        'patch',
       ],
       enabled: false,
     },
@@ -93,6 +100,7 @@
       matchCurrentVersion: '>=1.0.0',
       matchUpdateTypes: [
         'minor',
+        'patch',
       ],
       automerge: true,
       groupName: 'compatible (dev)',

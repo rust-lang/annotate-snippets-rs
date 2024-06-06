@@ -5,11 +5,11 @@ use annotate_snippets::renderer::DEFAULT_TERM_WIDTH;
 use annotate_snippets::{Annotation, Level, Message, Renderer, Snippet};
 
 #[derive(Deserialize)]
-pub struct Fixture<'a> {
+pub(crate) struct Fixture<'a> {
     #[serde(default)]
-    pub renderer: RendererDef,
+    pub(crate) renderer: RendererDef,
     #[serde(borrow)]
-    pub message: MessageDef<'a>,
+    pub(crate) message: MessageDef<'a>,
 }
 
 #[derive(Deserialize)]
@@ -88,7 +88,7 @@ impl<'a> From<SnippetDef<'a>> for Snippet<'a> {
         } = val;
         let mut snippet = Snippet::source(source).line_start(line_start).fold(fold);
         if let Some(origin) = origin {
-            snippet = snippet.origin(origin)
+            snippet = snippet.origin(origin);
         }
         snippet = snippet.annotations(annotations);
         snippet
@@ -127,11 +127,11 @@ impl<'a> From<AnnotationDef<'a>> for Annotation<'a> {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LabelDef<'a> {
+pub(crate) struct LabelDef<'a> {
     #[serde(with = "LevelDef")]
-    pub level: Level,
+    pub(crate) level: Level,
     #[serde(borrow)]
-    pub label: &'a str,
+    pub(crate) label: &'a str,
 }
 
 #[allow(dead_code)]

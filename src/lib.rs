@@ -1,6 +1,3 @@
-#![deny(rust_2018_idioms)]
-#![warn(missing_debug_implementations)]
-
 //! A library for formatting of text or programming code snippets.
 //!
 //! It's primary purpose is to build an ASCII-graphical representation of the snippet
@@ -39,6 +36,11 @@
 //! ```text
 //! cargo add annotate-snippets --dev --feature testing-colors
 //! ```
+
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![warn(clippy::print_stderr)]
+#![warn(clippy::print_stdout)]
+#![warn(missing_debug_implementations)]
 
 pub mod renderer;
 mod snippet;

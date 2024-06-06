@@ -5,7 +5,7 @@ const LONG_WHITESPACE: usize = 20;
 const LONG_WHITESPACE_PADDING: usize = 4;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Margin {
+pub(crate) struct Margin {
     /// The available whitespace in the left that can be consumed when centering.
     whitespace_left: usize,
     /// The column of the beginning of left-most span.
@@ -24,7 +24,7 @@ pub struct Margin {
 }
 
 impl Margin {
-    pub fn new(
+    pub(crate) fn new(
         whitespace_left: usize,
         span_left: usize,
         span_right: usize,
