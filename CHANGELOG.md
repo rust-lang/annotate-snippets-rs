@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.11.3] - 2024-06-06
+
 ### Fixes
 
 - Dropped MSRV to 1.65
@@ -136,7 +138,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.2...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.3...HEAD
+[0.11.3]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.2...0.11.3
 [0.11.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.1...0.11.2
 [0.11.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.0...0.11.1
 [0.11.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.10.2...0.11.0
