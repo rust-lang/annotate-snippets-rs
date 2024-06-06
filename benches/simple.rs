@@ -50,7 +50,7 @@ fn create_snippet(renderer: Renderer) {
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("format", |b| {
-        b.iter(|| black_box(create_snippet(Renderer::plain())))
+        b.iter(|| black_box(create_snippet(Renderer::plain())));
     });
 }
 

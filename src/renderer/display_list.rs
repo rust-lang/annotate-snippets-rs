@@ -1,4 +1,4 @@
-//! display_list module stores the output model for the snippet.
+//! `display_list` module stores the output model for the snippet.
 //!
 //! `DisplayList` is a central structure in the crate, which contains
 //! the structured list of lines to be displayed.
@@ -48,9 +48,9 @@ const WARNING_TXT: &str = "warning";
 
 /// List of lines to be displayed.
 pub(crate) struct DisplayList<'a> {
-    pub body: Vec<DisplaySet<'a>>,
-    pub stylesheet: &'a Stylesheet,
-    pub anonymized_line_numbers: bool,
+    pub(crate) body: Vec<DisplaySet<'a>>,
+    pub(crate) stylesheet: &'a Stylesheet,
+    pub(crate) anonymized_line_numbers: bool,
 }
 
 impl<'a> PartialEq for DisplayList<'a> {
@@ -147,8 +147,8 @@ impl<'a> DisplayList<'a> {
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct DisplaySet<'a> {
-    pub display_lines: Vec<DisplayLine<'a>>,
-    pub margin: Margin,
+    pub(crate) display_lines: Vec<DisplayLine<'a>>,
+    pub(crate) margin: Margin,
 }
 
 impl<'a> DisplaySet<'a> {
@@ -493,15 +493,15 @@ impl<'a> DisplaySet<'a> {
 
 /// Inline annotation which can be used in either Raw or Source line.
 #[derive(Debug, PartialEq)]
-pub struct Annotation<'a> {
-    pub annotation_type: DisplayAnnotationType,
-    pub id: Option<&'a str>,
-    pub label: Vec<DisplayTextFragment<'a>>,
+pub(crate) struct Annotation<'a> {
+    pub(crate) annotation_type: DisplayAnnotationType,
+    pub(crate) id: Option<&'a str>,
+    pub(crate) label: Vec<DisplayTextFragment<'a>>,
 }
 
 /// A single line used in `DisplayList`.
 #[derive(Debug, PartialEq)]
-pub enum DisplayLine<'a> {
+pub(crate) enum DisplayLine<'a> {
     /// A line with `lineno` portion of the slice.
     Source {
         lineno: Option<usize>,
@@ -519,7 +519,7 @@ pub enum DisplayLine<'a> {
 
 /// A source line.
 #[derive(Debug, PartialEq)]
-pub enum DisplaySourceLine<'a> {
+pub(crate) enum DisplaySourceLine<'a> {
     /// A line with the content of the Snippet.
     Content {
         text: &'a str,
@@ -530,17 +530,17 @@ pub enum DisplaySourceLine<'a> {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct DisplaySourceAnnotation<'a> {
-    pub annotation: Annotation<'a>,
-    pub range: (usize, usize),
-    pub annotation_type: DisplayAnnotationType,
-    pub annotation_part: DisplayAnnotationPart,
+pub(crate) struct DisplaySourceAnnotation<'a> {
+    pub(crate) annotation: Annotation<'a>,
+    pub(crate) range: (usize, usize),
+    pub(crate) annotation_type: DisplayAnnotationType,
+    pub(crate) annotation_part: DisplayAnnotationPart,
 }
 
 /// Raw line - a line which does not have the `lineno` part and is not considered
 /// a part of the snippet.
 #[derive(Debug, PartialEq)]
-pub enum DisplayRawLine<'a> {
+pub(crate) enum DisplayRawLine<'a> {
     /// A line which provides information about the location of the given
     /// slice in the project structure.
     Origin {
@@ -566,23 +566,23 @@ pub enum DisplayRawLine<'a> {
 
 /// An inline text fragment which any label is composed of.
 #[derive(Debug, PartialEq)]
-pub struct DisplayTextFragment<'a> {
-    pub content: &'a str,
-    pub style: DisplayTextStyle,
+pub(crate) struct DisplayTextFragment<'a> {
+    pub(crate) content: &'a str,
+    pub(crate) style: DisplayTextStyle,
 }
 
 /// A style for the `DisplayTextFragment` which can be visually formatted.
 ///
 /// This information may be used to emphasis parts of the label.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DisplayTextStyle {
+pub(crate) enum DisplayTextStyle {
     Regular,
     Emphasis,
 }
 
 /// An indicator of what part of the annotation a given `Annotation` is.
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplayAnnotationPart {
+pub(crate) enum DisplayAnnotationPart {
     /// A standalone, single-line annotation.
     Standalone,
     /// A continuation of a multi-line label of an annotation.
@@ -595,14 +595,14 @@ pub enum DisplayAnnotationPart {
 
 /// A visual mark used in `inline_marks` field of the `DisplaySourceLine`.
 #[derive(Debug, Clone, PartialEq)]
-pub struct DisplayMark {
-    pub mark_type: DisplayMarkType,
-    pub annotation_type: DisplayAnnotationType,
+pub(crate) struct DisplayMark {
+    pub(crate) mark_type: DisplayMarkType,
+    pub(crate) annotation_type: DisplayAnnotationType,
 }
 
 /// A type of the `DisplayMark`.
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplayMarkType {
+pub(crate) enum DisplayMarkType {
     /// A mark indicating a multiline annotation going through the current line.
     AnnotationThrough,
     /// A mark indicating a multiline annotation starting on the given line.
@@ -617,7 +617,7 @@ pub enum DisplayMarkType {
 /// * An underline for `Error` may be `^^^` while for `Warning` it could be `---`.
 /// * `ColorStylesheet` may use different colors for different annotations.
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplayAnnotationType {
+pub(crate) enum DisplayAnnotationType {
     None,
     Error,
     Warning,
@@ -642,7 +642,7 @@ impl From<snippet::Level> for DisplayAnnotationType {
 /// for multi-slice cases.
 // TODO: private
 #[derive(Debug, Clone, PartialEq)]
-pub enum DisplayHeaderType {
+pub(crate) enum DisplayHeaderType {
     /// Initial header is the first header in the snippet.
     Initial,
 
@@ -728,9 +728,9 @@ fn format_message(
     }
 
     if let Some(first) = sets.first_mut() {
-        body.into_iter().for_each(|line| {
+        for line in body {
             first.display_lines.insert(0, line);
-        });
+        }
     } else {
         sets.push(DisplaySet {
             display_lines: body,
@@ -1335,7 +1335,7 @@ const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
 ];
 
 fn normalize_whitespace(str: &str) -> String {
-    let mut s = str.to_string();
+    let mut s = str.to_owned();
     for (c, replacement) in OUTPUT_REPLACEMENTS {
         s = s.replace(*c, replacement);
     }
