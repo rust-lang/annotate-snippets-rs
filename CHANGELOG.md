@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Dropped MSRV to 1.65
+
 ## [0.11.2] - 2024-04-27
 
 ### Added
