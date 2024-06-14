@@ -524,6 +524,7 @@ pub(crate) enum DisplaySourceLine<'a> {
     Content {
         text: &'a str,
         range: (usize, usize), // meta information for annotation placement.
+        end_line: EndLine,
     },
     /// An empty source line.
     Empty,
@@ -658,7 +659,8 @@ impl<'a> CursorLines<'a> {
     }
 }
 
-enum EndLine {
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub(crate) enum EndLine {
     Eof = 0,
     Crlf = 1,
     Lf = 2,
@@ -847,13 +849,20 @@ fn format_header<'a>(
 
         for item in body {
             if let DisplayLine::Source {
-                line: DisplaySourceLine::Content { text, range },
+                line:
+                    DisplaySourceLine::Content {
+                        text,
+                        range,
+                        end_line,
+                    },
                 lineno,
                 ..
             } = item
             {
-                if main_range >= range.0 && main_range <= range.1 {
-                    let char_column = text[0..(main_range - range.0)].chars().count();
+                if main_range >= range.0 && main_range <= range.1 + *end_line as usize {
+                    let char_column = text[0..(main_range - range.0).min(text.len())]
+                        .chars()
+                        .count();
                     col = char_column + 1;
                     line_offset = lineno.unwrap_or(1);
                     break;
@@ -927,8 +936,18 @@ fn fold_body(body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
     let mut unhighlighed_lines = vec![];
     for line in body {
         match &line {
-            DisplayLine::Source { annotations, .. } => {
-                if annotations.is_empty() {
+            DisplayLine::Source {
+                annotations,
+                inline_marks,
+                ..
+            } => {
+                if annotations.is_empty()
+                    // A multiline start mark (`/`) needs be treated as an
+                    // annotation or the line could get folded.
+                    && inline_marks
+                        .iter()
+                        .all(|m| m.mark_type != DisplayMarkType::AnnotationStart)
+                {
                     unhighlighed_lines.push(line);
                 } else {
                     if lines.is_empty() {
@@ -1016,12 +1035,14 @@ fn format_body(
     for (idx, (line, end_line)) in CursorLines::new(snippet.source).enumerate() {
         let line_length: usize = line.len();
         let line_range = (current_index, current_index + line_length);
+        let end_line_size = end_line as usize;
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
             inline_marks: vec![],
             line: DisplaySourceLine::Content {
                 text: line,
                 range: line_range,
+                end_line,
             },
             annotations: vec![],
         });
@@ -1045,7 +1066,7 @@ fn format_body(
         let line_start_index = line_range.0;
         let line_end_index = line_range.1;
         current_line += 1;
-        current_index += line_length + end_line as usize;
+        current_index += line_length + end_line_size;
 
         // It would be nice to use filter_drain here once it's stable.
         annotations.retain(|annotation| {
@@ -1057,18 +1078,24 @@ fn format_body(
             };
             let label_right = annotation.label.map_or(0, |label| label.len() + 1);
             match annotation.range {
-                Range { start, .. } if start > line_end_index => true,
+                // This handles if the annotation is on the next line. We add
+                // the `end_line_size` to account for annotating the line end.
+                Range { start, .. } if start > line_end_index + end_line_size => true,
+                // This handles the case where an annotation is contained
+                // within the current line including any line-end characters.
                 Range { start, end }
-                    if start >= line_start_index && end <= line_end_index
-                        // Allow annotating eof or stripped eol
-                        || start == line_end_index && end - start <= 1 =>
+                    if start >= line_start_index
+                        // We add at least one to `line_end_index` to allow
+                        // highlighting the end of a file
+                        && end <= line_end_index + max(end_line_size, 1) =>
                 {
                     if let DisplayLine::Source {
                         ref mut annotations,
                         ..
                     } = body[body_idx]
                     {
-                        let annotation_start_col = line[0..(start - line_start_index)]
+                        let annotation_start_col = line
+                            [0..(start - line_start_index).min(line_length)]
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>();
@@ -1101,11 +1128,16 @@ fn format_body(
                     }
                     false
                 }
+                // This handles the case where a multiline annotation starts
+                // somewhere on the current line, including any line-end chars
                 Range { start, end }
                     if start >= line_start_index
-                        && start <= line_end_index
+                        // The annotation can start on a line ending
+                        && start <= line_end_index + end_line_size.saturating_sub(1)
                         && end > line_end_index =>
                 {
+                    // Special case for multiline annotations that start at the
+                    // beginning of a line, which requires a special mark (`/`)
                     if start - line_start_index == 0 {
                         if let DisplayLine::Source {
                             ref mut inline_marks,
@@ -1122,7 +1154,8 @@ fn format_body(
                         ..
                     } = body[body_idx]
                     {
-                        let annotation_start_col = line[0..(start - line_start_index)]
+                        let annotation_start_col = line
+                            [0..(start - line_start_index).min(line_length)]
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>();
@@ -1147,7 +1180,11 @@ fn format_body(
                     }
                     true
                 }
-                Range { start, end } if start < line_start_index && end > line_end_index => {
+                // This handles the case where a multiline annotation starts
+                // somewhere before this line and ends after it as well
+                Range { start, end }
+                    if start < line_start_index && end > line_end_index + max(end_line_size, 1) =>
+                {
                     if let DisplayLine::Source {
                         ref mut inline_marks,
                         ..
@@ -1160,10 +1197,14 @@ fn format_body(
                     }
                     true
                 }
+                // This handles the case where a multiline annotation ends
+                // somewhere on the current line, including any line-end chars
                 Range { start, end }
                     if start < line_start_index
                         && end >= line_start_index
-                        && end <= line_end_index =>
+                        // We add at least one to `line_end_index` to allow
+                        // highlighting the end of a file
+                        && end <= line_end_index + max(end_line_size, 1) =>
                 {
                     if let DisplayLine::Source {
                         ref mut inline_marks,
@@ -1175,13 +1216,21 @@ fn format_body(
                             mark_type: DisplayMarkType::AnnotationThrough,
                             annotation_type: DisplayAnnotationType::from(annotation.level),
                         });
-                        let end_mark = line[0..(end - line_start_index)]
+                        let end_mark = line[0..(end - line_start_index).min(line_length)]
                             .chars()
                             .map(|c| unicode_width::UnicodeWidthChar::width(c).unwrap_or(0))
                             .sum::<usize>()
                             .saturating_sub(1);
-
-                        let end_plus_one = end_mark + 1;
+                        // If the annotation ends on a line-end character, we
+                        // need to annotate one past the end of the line
+                        let (end_mark, end_plus_one) = if end > line_end_index
+                            // Special case for highlighting the end of a file
+                            || (end == line_end_index + 1 && end_line_size == 0)
+                        {
+                            (end_mark + 1, end_mark + 2)
+                        } else {
+                            (end_mark, end_mark + 1)
+                        };
 
                         span_left_margin = min(span_left_margin, end_mark);
                         span_right_margin = max(span_right_margin, end_plus_one);

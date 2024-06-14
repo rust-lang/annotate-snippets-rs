@@ -303,3 +303,432 @@ LL | abc
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
+
+#[test]
+fn issue_130() {
+    let input = Level::Error.title("dummy").snippet(
+        Snippet::source("foo\nbar\nbaz")
+            .origin("file/path")
+            .line_start(3)
+            .fold(true)
+            .annotation(Level::Error.span(4..11)), // bar\nbaz
+    );
+
+    let expected = str![[r#"
+error: dummy
+ --> file/path:4:1
+  |
+4 | / bar
+5 | | baz
+  | |___^
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn unterminated_string_multiline() {
+    let source = "\
+a\"
+// ...
+";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .fold(true)
+            .annotation(Level::Error.span(0..10)), // 1..10 works
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:1
+  |
+3 | / a"
+4 | | // ...
+  | |_______^
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn char_and_nl_annotate_char() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(0..2)), // a\r
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:1
+  |
+3 | a
+  | ^
+4 | b
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn char_eol_annotate_char() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(0..3)), // a\r\n
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:1
+  |
+3 | a
+  | ^
+4 | b
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn char_eol_annotate_char_double_width() {
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("こん\r\nにちは\r\n世界")
+            .origin("<current file>")
+            .annotation(Level::Error.span(3..8)), // ん\r\n
+    );
+
+    let expected = str![[r#"
+error
+ --> <current file>:1:2
+  |
+1 | こん
+  |   ^^
+2 | にちは
+3 | 世界
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
+
+#[test]
+fn annotate_eol() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(1..2)), // \r
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 | a
+  |  ^
+4 | b
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn annotate_eol2() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(1..3)), // \r\n
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 | a
+  |  ^
+4 | b
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn annotate_eol3() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(2..3)), // \n
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 | a
+  |  ^
+4 | b
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn annotate_eol4() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(2..2)), // \n
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 | a
+  |  ^
+4 | b
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn annotate_eol_double_width() {
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("こん\r\nにちは\r\n世界")
+            .origin("<current file>")
+            .annotation(Level::Error.span(7..8)), // \n
+    );
+
+    let expected = str![[r#"
+error
+ --> <current file>:1:3
+  |
+1 | こん
+  |     ^
+2 | にちは
+3 | 世界
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(1..4)), // \r\nb
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |_^
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start2() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(2..4)), // \nb
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |_^
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start3() {
+    let source = "a\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(1..3)), // \nb
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |_^
+  |"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start_double_width() {
+    let snippets = Level::Error.title("").snippet(
+        Snippet::source("こん\r\nにちは\r\n世界")
+            .origin("<current file>")
+            .annotation(Level::Error.span(7..11)), // \r\nに
+    );
+
+    let expected = str![[r#"
+error
+ --> <current file>:1:3
+  |
+1 |   こん
+  |  _____^
+2 | | にちは
+  | |__^
+3 |   世界
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start_eol_end() {
+    let source = "a\nb\nc";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(1..4)), // \nb\n
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |__^
+5 |   c
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start_eol_end2() {
+    let source = "a\r\nb\r\nc";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(2..5)), // \nb\r
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |__^
+5 |   c
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start_eol_end3() {
+    let source = "a\r\nb\r\nc";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(2..6)), // \nb\r\n
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |__^
+5 |   c
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start_eof_end() {
+    let source = "a\r\nb";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(1..5)), // \r\nb(EOF)
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   a
+  |  __^
+4 | | b
+  | |__^
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multiline_eol_start_eof_end_double_width() {
+    let source = "ん\r\nに";
+    let input = Level::Error.title("").snippet(
+        Snippet::source(source)
+            .origin("file/path")
+            .line_start(3)
+            .annotation(Level::Error.span(3..9)), // \r\nに(EOF)
+    );
+    let expected = str![[r#"
+error
+ --> file/path:3:2
+  |
+3 |   ん
+  |  ___^
+4 | | に
+  | |___^
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
