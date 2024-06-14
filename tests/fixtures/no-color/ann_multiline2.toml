@@ -5,8 +5,8 @@ title = "spacing error found"
 
 [[message.snippets]]
 source = """
-This is an exampl
-e of an edge case of an annotation overflowing
+This is an example
+of an edge case of an annotation overflowing
 to exactly one character on next line.
 """
 line_start = 26
@@ -15,4 +15,4 @@ fold = false
 [[message.snippets.annotations]]
 label = "this should not be on separate lines"
 level = "Error"
-range = [11, 18]
+range = [11, 19]

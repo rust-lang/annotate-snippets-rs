@@ -22,11 +22,11 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>   |</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan>26 |   This is an exampl</tspan>
+    <tspan x="10px" y="82px"><tspan>26 |   This is an example</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>   |  ____________^</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan>27 | | e of an edge case of an annotation overflowing</tspan>
+    <tspan x="10px" y="118px"><tspan>27 | | of an edge case of an annotation overflowing</tspan>
 </tspan>
     <tspan x="10px" y="136px"><tspan>   | |_^ this should not be on separate lines</tspan>
 </tspan>
