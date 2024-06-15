@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Annotations for `\r\n` are now correctly handled [#131](https://github.com/rust-lang/annotate-snippets-rs/pull/131)
+
 ## [0.11.3] - 2024-06-06
 
 ### Fixes
