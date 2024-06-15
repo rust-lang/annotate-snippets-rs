@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.11.4] - 2024-06-15
+
+### Fixes
+
+- Annotations for `\r\n` are now correctly handled [#131](https://github.com/rust-lang/annotate-snippets-rs/pull/131)
+
 ## [0.11.3] - 2024-06-06
 
 ### Fixes
@@ -138,7 +144,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.3...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.4...HEAD
+[0.11.4]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.3...0.11.4
 [0.11.3]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.2...0.11.3
 [0.11.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.1...0.11.2
 [0.11.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.0...0.11.1
