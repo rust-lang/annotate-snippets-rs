@@ -1248,6 +1248,58 @@ fn format_body(
     let mut depth_map: HashMap<usize, usize> = HashMap::new();
     let mut current_depth = 0;
     let mut annotations = snippet.annotations;
+    let ranges = annotations
+        .iter()
+        .map(|a| a.range.clone())
+        .collect::<Vec<_>>();
+    // We want to merge multiline annotations that have the same range into one
+    // multiline annotation to save space. This is done by making any duplicate
+    // multiline annotations into a single-line annotation pointing at the end
+    // of the range.
+    //
+    // 3 |       X0 Y0 Z0
+    //   |  _____^
+    //   | | ____|
+    //   | || ___|
+    //   | |||
+    // 4 | |||   X1 Y1 Z1
+    // 5 | |||   X2 Y2 Z2
+    //   | |||    ^
+    //   | |||____|
+    //   |  ||____`X` is a good letter
+    //   |   |____`Y` is a good letter too
+    //   |        `Z` label
+    // Should be
+    // error: foo
+    //  --> test.rs:3:3
+    //   |
+    // 3 | /   X0 Y0 Z0
+    // 4 | |   X1 Y1 Z1
+    // 5 | |   X2 Y2 Z2
+    //   | |    ^
+    //   | |____|
+    //   |      `X` is a good letter
+    //   |      `Y` is a good letter too
+    //   |      `Z` label
+    //   |
+    ranges.iter().enumerate().for_each(|(r_idx, range)| {
+        annotations
+            .iter_mut()
+            .enumerate()
+            .skip(r_idx + 1)
+            .for_each(|(ann_idx, ann)| {
+                // Skip if the annotation's index matches the range index
+                if ann_idx != r_idx
+                    // We only want to merge multiline annotations
+                    && snippet.source[ann.range.clone()].lines().count() > 1
+                    // We only want to merge annotations that have the same range
+                    && ann.range.start == range.start
+                    && ann.range.end == range.end
+                {
+                    ann.range.start = ann.range.end.saturating_sub(1);
+                }
+            });
+    });
     annotations.sort_by_key(|a| a.range.start);
     let mut annotations = annotations.into_iter().enumerate().collect::<Vec<_>>();
 

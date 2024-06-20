@@ -248,22 +248,21 @@ fn foo() {
             .annotation(Level::Warning.span(14..38).label("`Z` label")),
     );
 
+    // This should have a `^` but we currently don't support the idea of a
+    // "primary" annotation, which would solve this
     let expected = str![[r#"
 error: foo
  --> test.rs:3:3
   |
-3 |       X0 Y0 Z0
-  |  _____-
-  | | ____|
-  | || ___|
-  | |||
-4 | |||   X1 Y1 Z1
-5 | |||   X2 Y2 Z2
-  | |||    -
-  | |||____|
-  |  ||____`X` is a good letter
-  |   |____`Y` is a good letter too
-  |        `Z` label
+3 |     X0 Y0 Z0
+  |  ___^
+4 | |   X1 Y1 Z1
+5 | |   X2 Y2 Z2
+  | |    -
+  | |____|
+  |      `X` is a good letter
+  |      `Y` is a good letter too
+  |      `Z` label
   |
 "#]];
     let renderer = Renderer::plain();
