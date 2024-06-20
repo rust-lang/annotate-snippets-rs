@@ -442,6 +442,42 @@ impl<'a> DisplaySet<'a> {
                         line_len += 1;
                     }
 
+                    // This is a special case where we have a multiline
+                    // annotation that is at the start of the line disregarding
+                    // any leading whitespace, and no other multiline
+                    // annotations overlap it. In this case, we want to draw
+                    //
+                    // 2 |   fn foo() {
+                    //   |  _^
+                    // 3 | |
+                    // 4 | | }
+                    //   | |_^ test
+                    //
+                    // we simplify the output to:
+                    //
+                    // 2 | / fn foo() {
+                    // 3 | |
+                    // 4 | | }
+                    //   | |_^ test
+                    if multiline_depth == 1
+                        && annotations_positions.len() == 1
+                        && annotations_positions
+                            .first()
+                            .map_or(false, |(_, annotation)| {
+                                matches!(
+                                    annotation.annotation_part,
+                                    DisplayAnnotationPart::MultilineStart(_)
+                                ) && text
+                                    .chars()
+                                    .take(annotation.range.0)
+                                    .all(|c| c.is_whitespace())
+                            })
+                    {
+                        let (_, ann) = annotations_positions.remove(0);
+                        let style = get_annotation_style(&ann.annotation_type, stylesheet);
+                        buffer.putc(line_offset, 3 + lineno_width, '/', *style);
+                    }
+
                     // Draw the column separator for any extra lines that were
                     // created
                     //
@@ -535,15 +571,13 @@ impl<'a> DisplaySet<'a> {
                     // Add in any inline marks for any extra lines that have
                     // been created. Output should look like above.
                     for inline_mark in inline_marks {
-                        if let DisplayMarkType::AnnotationThrough(depth) = inline_mark.mark_type {
-                            let style =
-                                get_annotation_style(&inline_mark.annotation_type, stylesheet);
-                            if annotations_positions.is_empty() {
-                                buffer.putc(line_offset, width_offset + depth, '|', *style);
-                            } else {
-                                for p in line_offset..=line_offset + line_len + 1 {
-                                    buffer.putc(p, width_offset + depth, '|', *style);
-                                }
+                        let DisplayMarkType::AnnotationThrough(depth) = inline_mark.mark_type;
+                        let style = get_annotation_style(&inline_mark.annotation_type, stylesheet);
+                        if annotations_positions.is_empty() {
+                            buffer.putc(line_offset, width_offset + depth, '|', *style);
+                        } else {
+                            for p in line_offset..=line_offset + line_len + 1 {
+                                buffer.putc(p, width_offset + depth, '|', *style);
                             }
                         }
                     }
@@ -823,8 +857,6 @@ pub(crate) struct DisplayMark {
 pub(crate) enum DisplayMarkType {
     /// A mark indicating a multiline annotation going through the current line.
     AnnotationThrough(usize),
-    /// A mark indicating a multiline annotation starting on the given line.
-    AnnotationStart,
 }
 
 /// A type of the `Annotation` which may impact the sigils, style or text displayed.
@@ -1153,18 +1185,8 @@ fn fold_body(body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
     let mut unhighlighed_lines = vec![];
     for line in body {
         match &line {
-            DisplayLine::Source {
-                annotations,
-                inline_marks,
-                ..
-            } => {
-                if annotations.is_empty()
-                    // A multiline start mark (`/`) needs be treated as an
-                    // annotation or the line could get folded.
-                    && inline_marks
-                        .iter()
-                        .all(|m| m.mark_type != DisplayMarkType::AnnotationStart)
-                {
+            DisplayLine::Source { annotations, .. } => {
+                if annotations.is_empty() {
                     unhighlighed_lines.push(line);
                 } else {
                     if lines.is_empty() {
@@ -1407,20 +1429,7 @@ fn format_body(
                         && start <= line_end_index + end_line_size.saturating_sub(1)
                         && end > line_end_index =>
                 {
-                    // Special case for multiline annotations that start at the
-                    // beginning of a line, which requires a special mark (`/`)
-                    if start - line_start_index == 0 {
-                        if let DisplayLine::Source {
-                            ref mut inline_marks,
-                            ..
-                        } = body[body_idx]
-                        {
-                            inline_marks.push(DisplayMark {
-                                mark_type: DisplayMarkType::AnnotationStart,
-                                annotation_type: DisplayAnnotationType::from(annotation.level),
-                            });
-                        }
-                    } else if let DisplayLine::Source {
+                    if let DisplayLine::Source {
                         ref mut annotations,
                         ..
                     } = body[body_idx]
@@ -1678,9 +1687,6 @@ fn format_inline_marks(
         match mark.mark_type {
             DisplayMarkType::AnnotationThrough(depth) => {
                 buf.putc(line, 3 + lineno_width + depth, '|', *annotation_style);
-            }
-            DisplayMarkType::AnnotationStart => {
-                buf.putc(line, 3 + lineno_width, '/', *annotation_style);
             }
         };
     }

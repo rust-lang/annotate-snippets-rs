@@ -254,8 +254,7 @@ fn foo() {
 error: foo
  --> test.rs:3:3
   |
-3 |     X0 Y0 Z0
-  |  ___^
+3 | /   X0 Y0 Z0
 4 | |   X1 Y1 Z1
 5 | |   X2 Y2 Z2
   | |    -
@@ -340,8 +339,7 @@ fn foo() {
 error: foo
  --> test.rs:3:3
   |
-3 |     X0 Y0 Z0
-  |  ___^
+3 | /   X0 Y0 Z0
 4 | |   X1 Y1 Z1
   | |____^ `X` is a good letter
 5 |     X2 Y2 Z2
