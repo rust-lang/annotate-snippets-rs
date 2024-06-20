@@ -23,11 +23,11 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt;</tspan><tspan> examples/footer.rs:29:25</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan class="fg-bright-blue bold">   |</tspan>
+    <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">26 |</tspan><tspan>                 annotations: vec![SourceAnnotation {</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan class="fg-bright-blue bold">   |</tspan><tspan class="fg-bright-blue bold">                                   ----------------</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">info</tspan><tspan class="fg-bright-blue bold">: while parsing this struct</tspan>
+    <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                                   </tspan><tspan class="fg-bright-blue bold">----------------</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">info: while parsing this struct</tspan>
 </tspan>
     <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">27 |</tspan><tspan>                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"</tspan>
 </tspan>
@@ -35,9 +35,9 @@
 </tspan>
     <tspan x="10px" y="154px"><tspan class="fg-bright-blue bold">29 |</tspan><tspan>                 range: &lt;22, 25&gt;,</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan class="fg-bright-blue bold">   |</tspan><tspan class="fg-bright-red bold">                         ^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected struct `annotate_snippets::snippet::Slice`, found reference</tspan>
+    <tspan x="10px" y="172px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                         </tspan><tspan class="fg-bright-red bold">^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected struct `annotate_snippets::snippet::Slice`, found reference</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan class="fg-bright-blue bold">   |</tspan>
+    <tspan x="10px" y="190px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
     <tspan x="10px" y="208px">
 </tspan>

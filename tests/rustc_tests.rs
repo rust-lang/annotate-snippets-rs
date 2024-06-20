@@ -55,8 +55,8 @@ error: foo
   |
 2 |   fn foo() {
   |  __________^
-3 | | 
-4 | | 
+3 | |
+4 | |
 5 | |   }
   | |___^ test
   |
@@ -91,12 +91,14 @@ error: foo
  --> test.rs:3:3
   |
 3 |      X0 Y0
-  |   ___^
-  |   ______-
+  |   ___^__-
+  |  |___|
+  | ||
 4 | ||   X1 Y1
 5 | ||   X2 Y2
-  | ||____^ `X` is a good letter
-  | ||_______- `Y` is a good letter too
+  | ||____^__- `Y` is a good letter too
+  | |_____|
+  |       `X` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -128,11 +130,13 @@ error: foo
  --> test.rs:3:3
   |
 3 |      X0 Y0
-  |   ___^
-  |   ______-
+  |   ___^__-
+  |  |___|
+  | ||
 4 | ||   Y1 X1
-  | ||_______^ `X` is a good letter
-  | ||____- `Y` is a good letter too
+  | ||____-__^ `X` is a good letter
+  |  |____|
+  |       `Y` is a good letter too
   |
 "#]];
     let renderer = Renderer::plain();
@@ -166,9 +170,9 @@ error: foo
  --> test.rs:3:6
   |
 3 |      X0 Y0 Z0
-  |   ______^
-4 |  |   X1 Y1 Z1
-  |  |_________-
+  |  _______^
+4 | |    X1 Y1 Z1
+  | | _________-
 5 | ||   X2 Y2 Z2
   | ||____^ `X` is a good letter
 6 |  |   X3 Y3 Z3
@@ -206,14 +210,16 @@ error: foo
  --> test.rs:3:3
   |
 3 |       X0 Y0 Z0
-  |    ___^
-  |    ______-
-  |    _________-
+  |    ___^__-__-
+  |   |___|__|
+  |  ||___|
+  | |||
 4 | |||   X1 Y1 Z1
 5 | |||   X2 Y2 Z2
-  | |||____^ `X` is a good letter
-  | |||_______- `Y` is a good letter too
-  | |||__________- `Z` label
+  | |||____^__-__- `Z` label
+  | ||_____|__|
+  | |______|  `Y` is a good letter too
+  |        `X` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -247,14 +253,17 @@ error: foo
  --> test.rs:3:3
   |
 3 |       X0 Y0 Z0
-  |    ___^
-  |    ___-
-  |    ___-
+  |  _____-
+  | | ____|
+  | || ___|
+  | |||
 4 | |||   X1 Y1 Z1
 5 | |||   X2 Y2 Z2
-  | |||____^ `X` is a good letter
-  | |||____- `Y` is a good letter too
-  | |||____- `Z` label
+  | |||    -
+  | |||____|
+  |  ||____`X` is a good letter
+  |   |____`Y` is a good letter too
+  |        `Z` label
   |
 "#]];
     let renderer = Renderer::plain();
@@ -288,16 +297,18 @@ fn foo() {
 error: foo
  --> test.rs:3:6
   |
-3 |     X0 Y0 Z0
-  |  ______^
-4 | |   X1 Y1 Z1
-  | |____^ `X` is a good letter
-  | |______-
-5 | |   X2 Y2 Z2
-  | |__________- `Y` is a good letter too
-  | |___-
-6 | |   X3 Y3 Z3
-  | |_______- `Z`
+3 |      X0 Y0 Z0
+  |  _______^
+4 | |    X1 Y1 Z1
+  | | ____^_-
+  | ||____|
+  |  |    `X` is a good letter
+5 |  |   X2 Y2 Z2
+  |  |___-______- `Y` is a good letter too
+  |   ___|
+  |  |
+6 |  |   X3 Y3 Z3
+  |  |_______- `Z`
   |
 "#]];
     let renderer = Renderer::plain();
@@ -370,14 +381,15 @@ fn foo() {
 error: foo
  --> test.rs:3:6
   |
-3 |     X0 Y0 Z0
-  |  ______^
-4 | |   X1 Y1 Z1
-  | |____^ `X` is a good letter
-  | |_________-
-5 | |   X2 Y2 Z2
-6 | |   X3 Y3 Z3
-  | |__________- `Y` is a good letter too
+3 |      X0 Y0 Z0
+  |  _______^
+4 | |    X1 Y1 Z1
+  | | ____^____-
+  | ||____|
+  |  |    `X` is a good letter
+5 |  |   X2 Y2 Z2
+6 |  |   X3 Y3 Z3
+  |  |__________- `Y` is a good letter too
   |
 "#]];
     let renderer = Renderer::plain();
@@ -405,9 +417,7 @@ error: foo
  --> test.rs:3:7
   |
 3 |   a { b { c } d }
-  |       ^^^^^^^
-  |   ------------- `a` is a good letter
-  |           -
+  |   ----^^^^-^^-- `a` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -434,8 +444,7 @@ error: foo
  --> test.rs:3:3
   |
 3 |   a { b { c } d }
-  |   ^^^^^^^^^^^^^ `a` is a good letter
-  |       -------
+  |   ^^^^-------^^ `a` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -463,9 +472,9 @@ error: foo
  --> test.rs:3:7
   |
 3 |   a { b { c } d }
-  |       ^^^^^^^ `b` is a good letter
-  |   -------------
-  |           -
+  |   ----^^^^-^^--
+  |       |
+  |       `b` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -492,8 +501,9 @@ error: foo
  --> test.rs:3:3
   |
 3 |   a { b { c } d }
-  |   ^^^^^^^^^^^^^
-  |       ------- `b` is a good letter
+  |   ^^^^-------^^
+  |       |
+  |       `b` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -520,8 +530,9 @@ error: foo
  --> test.rs:3:3
   |
 3 |   a  bc  d
-  |   ^^^^ `a` is a good letter
-  |       ----
+  |   ^^^^----
+  |   |
+  |   `a` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -548,8 +559,7 @@ error: foo
  --> test.rs:3:3
   |
 3 |   a { b { c } d }
-  |   ^^^^^^^^^^^^^
-  |       -------
+  |   ^^^^-------^^
   |
 "#]];
     let renderer = Renderer::plain();
@@ -577,9 +587,7 @@ error: foo
  --> test.rs:3:7
   |
 3 |   a { b { c } d }
-  |       ^^^^^^^
-  |   -------------
-  |           -
+  |   ----^^^^-^^--
   |
 "#]];
     let renderer = Renderer::plain();
@@ -606,8 +614,10 @@ error: foo
  --> test.rs:3:3
   |
 3 |   a { b { c } d }
-  |   ^^^^^^^^^^^^^ `a` is a good letter
-  |       ------- `b` is a good letter
+  |   ^^^^-------^^
+  |   |   |
+  |   |   `b` is a good letter
+  |   `a` is a good letter
   |
 "#]];
     let renderer = Renderer::plain();
@@ -702,16 +712,17 @@ fn foo() {
 error: foo
   --> test.rs:3:6
    |
- 3 |     X0 Y0 Z0
-   |  ______^
- 4 | |   X1 Y1 Z1
-   | |____^ `X` is a good letter
-   | |_________-
- 5 | | 1
-...  |
-15 | |   X2 Y2 Z2
-16 | |   X3 Y3 Z3
-   | |__________- `Y` is a good letter too
+ 3 |      X0 Y0 Z0
+   |  _______^
+ 4 | |    X1 Y1 Z1
+   | | ____^____-
+   | ||____|
+   |  |    `X` is a good letter
+ 5 |  | 1
+...   |
+15 |  |   X2 Y2 Z2
+16 |  |   X3 Y3 Z3
+   |  |__________- `Y` is a good letter too
    |
 "#]];
     let renderer = Renderer::plain();
@@ -755,22 +766,22 @@ error: foo
   --> test.rs:3:6
    |
  3 |      X0 Y0 Z0
-   |   ______^
- 4 |  | 1
- 5 |  | 2
- 6 |  | 3
- 7 |  |   X1 Y1 Z1
-   |  |_________-
+   |  _______^
+ 4 | |  1
+ 5 | |  2
+ 6 | |  3
+ 7 | |    X1 Y1 Z1
+   | | _________-
  8 | || 4
  9 | || 5
 10 | || 6
 11 | ||   X2 Y2 Z2
    | ||__________- `Z` is a good letter too
-12 |  | 7
-...   |
-15 |  | 10
-16 |  |   X3 Y3 Z3
-   |  |_______^ `Y` is a good letter
+12 | |  7
+...  |
+15 | |  10
+16 | |    X3 Y3 Z3
+   | |________^ `Y` is a good letter
    |
 "#]];
     let renderer = Renderer::plain();
