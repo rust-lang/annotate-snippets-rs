@@ -12,6 +12,7 @@
 
 mod display_list;
 mod margin;
+mod styled_buffer;
 pub(crate) mod stylesheet;
 
 use crate::snippet::Message;

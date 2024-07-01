@@ -262,8 +262,10 @@ fn test_source_annotation_standalone_multiline() {
 error
   |
 1 | tests
-  | ----- help: Example string
-  | ----- help: Second line
+  | -----
+  | |
+  | help: Example string
+  | help: Second line
   |
 "#]];
     let renderer = Renderer::plain();
@@ -296,7 +298,7 @@ error
    |
 LL | This is an example
 LL | of content lines
-LL | 
+LL |
 LL | abc
    |
 "#]];
@@ -730,5 +732,176 @@ error
   |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn two_single_line_same_line() {
+    let source = r#"bar = { version = "0.1.0", optional = true }"#;
+    let input = Level::Error.title("unused optional dependency").snippet(
+        Snippet::source(source)
+            .origin("Cargo.toml")
+            .line_start(4)
+            .annotation(
+                Level::Error
+                    .span(0..3)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Info
+                    .span(27..42)
+                    .label("This should also be long but not too long"),
+            ),
+    );
+    let expected = str![[r#"
+error: unused optional dependency
+ --> Cargo.toml:4:1
+  |
+4 | bar = { version = "0.1.0", optional = true }
+  | ^^^                        --------------- info: This should also be long but not too long
+  | |
+  | I need this to be really long so I can test overlaps
+  |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(false);
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn multi_and_single() {
+    let source = r#"bar = { version = "0.1.0", optional = true }
+this is another line
+so is this
+bar = { version = "0.1.0", optional = true }
+"#;
+    let input = Level::Error.title("unused optional dependency").snippet(
+        Snippet::source(source)
+            .line_start(4)
+            .annotation(
+                Level::Error
+                    .span(41..119)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Info
+                    .span(27..42)
+                    .label("This should also be long but not too long"),
+            ),
+    );
+    let expected = str![[r#"
+error: unused optional dependency
+  |
+4 |   bar = { version = "0.1.0", optional = true }
+  |  ____________________________--------------^
+  | |                            |
+  | |                            info: This should also be long but not too long
+5 | | this is another line
+6 | | so is this
+7 | | bar = { version = "0.1.0", optional = true }
+  | |__________________________________________^ I need this to be really long so I can test overlaps
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn two_multi_and_single() {
+    let source = r#"bar = { version = "0.1.0", optional = true }
+this is another line
+so is this
+bar = { version = "0.1.0", optional = true }
+"#;
+    let input = Level::Error.title("unused optional dependency").snippet(
+        Snippet::source(source)
+            .line_start(4)
+            .annotation(
+                Level::Error
+                    .span(41..119)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Error
+                    .span(8..102)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Info
+                    .span(27..42)
+                    .label("This should also be long but not too long"),
+            ),
+    );
+    let expected = str![[r#"
+error: unused optional dependency
+  |
+4 |    bar = { version = "0.1.0", optional = true }
+  |   _________^__________________--------------^
+  |  |         |                  |
+  |  |_________|                  info: This should also be long but not too long
+  | ||
+5 | || this is another line
+6 | || so is this
+7 | || bar = { version = "0.1.0", optional = true }
+  | ||_________________________^________________^ I need this to be really long so I can test overlaps
+  | |__________________________|
+  |                            I need this to be really long so I can test overlaps
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn three_multi_and_single() {
+    let source = r#"bar = { version = "0.1.0", optional = true }
+this is another line
+so is this
+bar = { version = "0.1.0", optional = true }
+this is another line
+"#;
+    let input = Level::Error.title("unused optional dependency").snippet(
+        Snippet::source(source)
+            .line_start(4)
+            .annotation(
+                Level::Error
+                    .span(41..119)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Error
+                    .span(8..102)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Error
+                    .span(48..126)
+                    .label("I need this to be really long so I can test overlaps"),
+            )
+            .annotation(
+                Level::Info
+                    .span(27..42)
+                    .label("This should also be long but not too long"),
+            ),
+    );
+    let expected = str![[r#"
+error: unused optional dependency
+  |
+4 |     bar = { version = "0.1.0", optional = true }
+  |   __________^__________________--------------^
+  |  |          |                  |
+  |  |__________|                  info: This should also be long but not too long
+  | ||
+5 | ||  this is another line
+  | || ____^
+6 | ||| so is this
+7 | ||| bar = { version = "0.1.0", optional = true }
+  | |||_________________________^________________^ I need this to be really long so I can test overlaps
+  | |_|_________________________|
+  |   |                         I need this to be really long so I can test overlaps
+8 |   | this is another line
+  |   |____^ I need this to be really long so I can test overlaps
+  |
+"#]];
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
