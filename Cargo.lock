@@ -21,7 +21,7 @@ checksum = "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299"
 name = "annotate-snippets"
 version = "0.11.4"
 dependencies = [
- "anstream 0.6.14",
+ "anstream 0.6.15",
  "anstyle",
  "criterion",
  "difference",
@@ -50,9 +50,9 @@ dependencies = [
 
 [[package]]
 name = "anstream"
-version = "0.6.14"
+version = "0.6.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "418c75fa768af9c03be99d17643f93f79bbba589895012a80e3452a19ddda15b"
+checksum = "64e15c1ab1f89faffbf04a634d5e1962e9074f2741eef6d97f3c4e322426d526"
 dependencies = [
  "anstyle",
  "anstyle-parse",
@@ -102,7 +102,7 @@ version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbbf0bf947d663010f0b4132f28ca08da9151f3b9035fa7578a38de521c1d1aa"
 dependencies = [
- "anstream 0.6.14",
+ "anstream 0.6.15",
  "anstyle",
  "anstyle-lossy",
  "html-escape",
@@ -648,18 +648,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.203"
+version = "1.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7253ab4de971e72fb7be983802300c30b5a7f0c2e56fab8abfc6a214307c0094"
+checksum = "bc76f558e0cbb2a839d37354c575f1dc3fdc6546b5be373ba43d95f231bf7c12"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.203"
+version = "1.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "500cbc0ebeb6f46627f50f3f5811ccf6bf00643be300b4c3eabc0ef55dc5b5ba"
+checksum = "e0cd7e117be63d3c3678776753929474f3b04a43a080c744d6b0ae2a8c28e222"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -685,11 +685,11 @@ checksum = "fa42c91313f1d05da9b26f267f931cf178d4aba455b4c4622dd7355eb80c6640"
 
 [[package]]
 name = "snapbox"
-version = "0.6.10"
+version = "0.6.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40e14d10e4c2b4331ac24c33baa5a03e1fbca81c045b285b53b2a612d28569fb"
+checksum = "027c936207f85d10d015e21faf5c676c7e08c453ed371adf55c0874c443ca77a"
 dependencies = [
- "anstream 0.6.14",
+ "anstream 0.6.15",
  "anstyle",
  "anstyle-svg",
  "escargot",
@@ -705,11 +705,11 @@ dependencies = [
 
 [[package]]
 name = "snapbox-macros"
-version = "0.3.9"
+version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f4c14672714436c09254801c934b203196a51182a5107fb76591c7cc56424d"
+checksum = "16569f53ca23a41bb6f62e0a5084aa1661f4814a67fa33696a79073e03a664af"
 dependencies = [
- "anstream 0.6.14",
+ "anstream 0.6.15",
 ]
 
 [[package]]
@@ -778,9 +778,9 @@ dependencies = [
 
 [[package]]
 name = "tryfn"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "493e1390312bb94363f762687be32a1bd01c3333dfad25a5a7fffab1edc64839"
+checksum = "5fe242ee9e646acec9ab73a5c540e8543ed1b107f0ce42be831e0775d423c396"
 dependencies = [
  "ignore",
  "libtest-mimic",
