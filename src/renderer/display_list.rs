@@ -23,7 +23,7 @@
 //!     |
 //! ```
 //!
-//! The first two lines of the example above are `Raw` lines, while the rest
+//! The first two rows of the example above are `Raw` lines, while the rest
 //! are `Source` lines.
 //!
 //! `DisplayList` does not store column alignment information, and those are
