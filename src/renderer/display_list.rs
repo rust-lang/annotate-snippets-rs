@@ -1722,3 +1722,32 @@ fn format_inline_marks(
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Level, Snippet};
+
+    #[test]
+    fn test_fold_prefix_suffix() {
+        // No folding
+        let snippets = Snippet::source("No folding");
+        let unfold_snippets = fold_prefix_suffix(snippets);
+
+        assert_eq!(unfold_snippets.fold, false);
+        assert_eq!(unfold_snippets.line_start, 1);
+        assert_eq!(unfold_snippets.source, "No folding");
+        assert_eq!(unfold_snippets.annotations.len(), 0);
+
+        // Folding
+        let snippets = Snippet::source("First line\r\nSecond line\r\nThird oops line")
+            .annotation(Level::Error.span(32..36).label("oops"))
+            .fold(true);
+
+        let fold_snippets = fold_prefix_suffix(snippets);
+        assert_eq!(fold_snippets.fold, true);
+        assert_eq!(fold_snippets.line_start, 3);
+        assert_eq!(fold_snippets.source, "Third oops line");
+        assert_eq!(fold_snippets.annotations.len(), 1);
+    }
+}
