@@ -72,13 +72,13 @@ impl<'a> fmt::Debug for DisplayList<'a> {
 
 impl<'a> Display for DisplayList<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let lineno_width = self.body.iter().fold(None, |max, set| {
+        let max_lineno = self.body.iter().fold(None, |max, set| {
             set.display_lines.iter().fold(max, |max, line| match line {
                 DisplayLine::Source { lineno, .. } => std::cmp::max(max, *lineno),
                 _ => max,
             })
         });
-        let lineno_width = match lineno_width {
+        let lineno_width = match max_lineno {
             None => 0,
             Some(_max) if self.anonymized_line_numbers => ANONYMIZED_LINE_NUM.len(),
             Some(0) => 1,
