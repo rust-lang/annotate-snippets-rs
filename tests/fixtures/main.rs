@@ -14,7 +14,15 @@ fn main() {
 }
 
 fn setup(input_path: std::path::PathBuf) -> tryfn::Case {
-    let name = input_path.file_name().unwrap().to_str().unwrap().to_owned();
+    let parent = input_path
+        .parent()
+        .unwrap()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
+    let file_name = input_path.file_name().unwrap().to_str().unwrap();
+    let name = format!("{}/{}", parent, file_name);
     let expected = Data::read_from(&input_path.with_extension("svg"), None);
     tryfn::Case {
         name,
