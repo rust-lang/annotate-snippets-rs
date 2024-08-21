@@ -905,3 +905,25 @@ error: unused optional dependency
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
+
+// for issue 57
+#[test]
+fn test_line_number_0() {
+    let input = Level::Error.title("dummy").snippet(
+        Snippet::source("foo")
+            .origin("file/path")
+            .line_start(0)
+            .annotation(Level::Error.span(2..3)), // bar\nbaz
+    );
+
+    let expected = str![[r#"
+error: dummy
+ --> file/path:0:3
+  |
+0 | foo
+  |   ^
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
