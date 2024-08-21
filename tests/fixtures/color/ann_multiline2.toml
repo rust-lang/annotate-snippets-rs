@@ -16,3 +16,6 @@ fold = false
 label = "this should not be on separate lines"
 level = "Error"
 range = [11, 19]
+
+[renderer]
+color = true

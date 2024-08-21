@@ -27,3 +27,6 @@ range = [184, 194]
 label = "Referenced again here"
 level = "Error"
 range = [243, 253]
+
+[renderer]
+color = true

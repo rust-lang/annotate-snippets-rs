@@ -16,3 +16,6 @@ fold = false
 label = "missing fields `lineno`, `content`"
 level = "Error"
 range = [31, 128]
+
+[renderer]
+color = true

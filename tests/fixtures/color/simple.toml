@@ -17,3 +17,6 @@ range = [20, 23]
 label = "expected one of `.`, `;`, `?`, or an operator here"
 level = "Warning"
 range = [10, 11]
+
+[renderer]
+color = true

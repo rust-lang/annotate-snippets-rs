@@ -10,3 +10,6 @@ origin = "Cargo.toml"
 label = "'d' belongs here"
 level = "Error"
 range = [2, 2]
+
+[renderer]
+color = true

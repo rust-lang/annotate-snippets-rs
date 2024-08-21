@@ -10,3 +10,6 @@ origin = "Cargo.toml"
 label = ""
 level = "Error"
 range = [4, 4]
+
+[renderer]
+color = true

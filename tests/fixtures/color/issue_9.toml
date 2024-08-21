@@ -26,3 +26,6 @@ line_start = 9
 label = "value used here after move"
 level = "Error"
 range = [0, 1]
+
+[renderer]
+color = true

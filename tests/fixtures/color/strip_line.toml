@@ -14,5 +14,5 @@ level = "Error"
 range = [192, 194]
 
 [renderer]
-color = false
+color = true
 anonymized_line_numbers = true

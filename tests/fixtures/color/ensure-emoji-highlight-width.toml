@@ -13,3 +13,6 @@ origin = "<file>"
 label = ""
 level = "Error"
 range = [0, 35]
+
+[renderer]
+color = true

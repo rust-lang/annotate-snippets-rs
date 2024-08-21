@@ -23,3 +23,6 @@ fold = true
 label = ""
 level = "Error"
 range = [8, 10]
+
+[renderer]
+color = true

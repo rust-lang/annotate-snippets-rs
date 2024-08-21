@@ -39,3 +39,6 @@ range = [5, 19]
 label = "expected enum `std::option::Option`, found ()"
 level = "Error"
 range = [22, 766]
+
+[renderer]
+color = true
