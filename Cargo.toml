@@ -28,6 +28,7 @@ anstyle = "1.0.4"
 unicode-width = "0.1.11"
 
 [dev-dependencies]
+annotate-snippets = { path = ".", features = ["testing-colors"] }
 anstream = "0.6.13"
 criterion = "0.5.1"
 difference = "2.0.0"

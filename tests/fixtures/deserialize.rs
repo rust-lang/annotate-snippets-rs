@@ -151,6 +151,8 @@ pub struct RendererDef {
     anonymized_line_numbers: bool,
     #[serde(default)]
     term_width: Option<usize>,
+    #[serde(default)]
+    color: bool,
 }
 
 impl From<RendererDef> for Renderer {
@@ -158,8 +160,15 @@ impl From<RendererDef> for Renderer {
         let RendererDef {
             anonymized_line_numbers,
             term_width,
+            color,
         } = val;
-        Renderer::plain()
+
+        let renderer = if color {
+            Renderer::styled()
+        } else {
+            Renderer::plain()
+        };
+        renderer
             .anonymized_line_numbers(anonymized_line_numbers)
             .term_width(term_width.unwrap_or(DEFAULT_TERM_WIDTH))
     }
