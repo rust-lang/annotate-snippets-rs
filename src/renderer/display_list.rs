@@ -72,18 +72,17 @@ impl<'a> fmt::Debug for DisplayList<'a> {
 
 impl<'a> Display for DisplayList<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let lineno_width = self.body.iter().fold(0, |max, set| {
+        let lineno_width = self.body.iter().fold(None, |max, set| {
             set.display_lines.iter().fold(max, |max, line| match line {
-                DisplayLine::Source { lineno, .. } => cmp::max(lineno.unwrap_or(0), max),
+                DisplayLine::Source { lineno, .. } => std::cmp::max(max, *lineno),
                 _ => max,
             })
         });
-        let lineno_width = if lineno_width == 0 {
-            lineno_width
-        } else if self.anonymized_line_numbers {
-            ANONYMIZED_LINE_NUM.len()
-        } else {
-            ((lineno_width as f64).log10().floor() as usize) + 1
+        let lineno_width = match lineno_width {
+            None => 0,
+            Some(_max) if self.anonymized_line_numbers => ANONYMIZED_LINE_NUM.len(),
+            Some(0) => 1,
+            Some(max) => (max as f64).log10().floor() as usize + 1,
         };
 
         let multiline_depth = self.body.iter().fold(0, |max, set| {
