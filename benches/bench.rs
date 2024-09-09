@@ -45,6 +45,45 @@ fn simple() -> String {
     rendered
 }
 
+#[divan::bench(args=[0, 1, 10, 100, 1_000, 10_000, 100_000])]
+fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
+    bencher
+        .with_inputs(|| {
+            let line = "012345678901234567890123456789";
+            let mut input = String::new();
+            for _ in 1..=context {
+                input.push_str(line);
+                input.push('\n');
+            }
+            let span_start = input.len() + line.len();
+            let span = span_start..span_start;
+
+            input.push_str(line);
+            input.push('\n');
+            for _ in 1..=context {
+                input.push_str(line);
+                input.push('\n');
+            }
+            (input, span)
+        })
+        .bench_values(|(input, span)| {
+            let message = Level::Error.title("mismatched types").id("E0308").snippet(
+                Snippet::source(&input)
+                    .fold(true)
+                    .origin("src/format.rs")
+                    .annotation(
+                        Level::Warning
+                            .span(span)
+                            .label("expected `Option<String>` because of return type"),
+                    ),
+            );
+
+            let renderer = Renderer::plain();
+            let rendered = renderer.render(message).to_string();
+            rendered
+        });
+}
+
 fn main() {
     divan::main();
 }
