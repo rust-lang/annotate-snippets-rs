@@ -1,7 +1,7 @@
 use annotate_snippets::{Level, Renderer, Snippet};
 
 #[divan::bench]
-fn create_and_render() -> String {
+fn simple() -> String {
     let source = r#") -> Option<String> {
     for ann in annotations {
         match (ann.range.0, ann.range.1) {

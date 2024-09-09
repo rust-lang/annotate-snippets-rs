@@ -38,7 +38,7 @@ toml = "0.5.11"
 tryfn = "0.2.1"
 
 [[bench]]
-name = "simple"
+name = "bench"
 harness = false
 
 [[test]]
