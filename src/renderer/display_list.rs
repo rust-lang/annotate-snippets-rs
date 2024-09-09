@@ -1181,7 +1181,7 @@ fn fold_prefix_suffix(mut snippet: snippet::Snippet<'_>) -> snippet::Snippet<'_>
     if let Some(before_new_start) = snippet.source[0..ann_start].rfind('\n') {
         let new_start = before_new_start + 1;
 
-        let line_offset = snippet.source[..new_start].lines().count();
+        let line_offset = newline_count(&snippet.source[..new_start]);
         snippet.line_start += line_offset;
 
         snippet.source = &snippet.source[new_start..];
@@ -1205,6 +1205,17 @@ fn fold_prefix_suffix(mut snippet: snippet::Snippet<'_>) -> snippet::Snippet<'_>
     }
 
     snippet
+}
+
+fn newline_count(body: &str) -> usize {
+    #[cfg(feature = "simd")]
+    {
+        memchr::memchr_iter(b'\n', body.as_bytes()).count()
+    }
+    #[cfg(not(feature = "simd"))]
+    {
+        body.lines().count()
+    }
 }
 
 fn fold_body(body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {

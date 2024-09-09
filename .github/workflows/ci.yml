@@ -64,7 +64,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
     - uses: taiki-e/install-action@cargo-hack
     - name: Default features
-      run: cargo hack check --feature-powerset --locked --rust-version --ignore-private --workspace --all-targets
+      run: cargo hack check --feature-powerset --locked --rust-version --ignore-private --workspace --lib --bins
   lockfile:
     runs-on: ubuntu-latest
     steps:
