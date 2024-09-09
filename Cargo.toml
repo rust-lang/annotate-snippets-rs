@@ -25,6 +25,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 anstyle = "1.0.4"
+memchr = { version = "2.7.4", optional = true }
 unicode-width = "0.1.11"
 
 [dev-dependencies]
@@ -47,6 +48,7 @@ harness = false
 
 [features]
 default = []
+simd = ["memchr"]
 testing-colors = []
 
 [lints.rust]
