@@ -1,12 +1,7 @@
-#![allow(clippy::unit_arg)]
-#[macro_use]
-extern crate criterion;
-
-use criterion::{black_box, Criterion};
-
 use annotate_snippets::{Level, Renderer, Snippet};
 
-fn create_snippet(renderer: Renderer) {
+#[divan::bench]
+fn create_and_render() -> String {
     let source = r#") -> Option<String> {
     for ann in annotations {
         match (ann.range.0, ann.range.1) {
@@ -45,14 +40,11 @@ fn create_snippet(renderer: Renderer) {
             ),
     );
 
-    let _result = renderer.render(message).to_string();
+    let renderer = Renderer::plain();
+    let rendered = renderer.render(message).to_string();
+    rendered
 }
 
-pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("format", |b| {
-        b.iter(|| black_box(create_snippet(Renderer::plain())));
-    });
+fn main() {
+    divan::main();
 }
-
-criterion_group!(benches, criterion_benchmark);
-criterion_main!(benches);
