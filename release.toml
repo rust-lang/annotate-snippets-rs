@@ -1,1 +1,2 @@
-allow-branch = ["master"]
+dependent-version = "fix"
+allow-branch = ["main"]
