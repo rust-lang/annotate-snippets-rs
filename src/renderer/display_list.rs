@@ -198,7 +198,7 @@ impl<'a> DisplaySet<'a> {
             self.format_label(line_offset, &annotation.label, stylesheet, buffer)
         } else {
             let id = match &annotation.id {
-                Some(id) => format!("[{}]", id),
+                Some(id) => format!("[{id}]"),
                 None => String::new(),
             };
             buffer.append(
@@ -290,12 +290,12 @@ impl<'a> DisplaySet<'a> {
             } => {
                 let lineno_color = stylesheet.line_no();
                 if anonymized_line_numbers && lineno.is_some() {
-                    let num = format!("{:>width$} |", ANONYMIZED_LINE_NUM, width = lineno_width);
+                    let num = format!("{ANONYMIZED_LINE_NUM:>lineno_width$} |");
                     buffer.puts(line_offset, 0, &num, *lineno_color);
                 } else {
                     match lineno {
                         Some(n) => {
-                            let num = format!("{:>width$} |", n, width = lineno_width);
+                            let num = format!("{n:>lineno_width$} |");
                             buffer.puts(line_offset, 0, &num, *lineno_color);
                         }
                         None => {
@@ -645,7 +645,7 @@ impl<'a> DisplaySet<'a> {
                             } else if formatted_len != 0 {
                                 formatted_len += 2;
                                 let id = match &annotation.annotation.id {
-                                    Some(id) => format!("[{}]", id),
+                                    Some(id) => format!("[{id}]"),
                                     None => String::new(),
                                 };
                                 buffer.puts(
@@ -1292,10 +1292,7 @@ fn format_body(
             None
         }
     }) {
-        panic!(
-            "SourceAnnotation range `{:?}` is beyond the end of buffer `{}`",
-            bigger, source_len
-        )
+        panic!("SourceAnnotation range `{bigger:?}` is beyond the end of buffer `{source_len}`")
     }
 
     let mut body = vec![];
