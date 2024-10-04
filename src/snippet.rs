@@ -10,7 +10,7 @@
 //!     .snippet(Snippet::source("Faa").line_start(129).origin("src/display.rs"));
 //! ```
 
-use std::ops::Range;
+use std::ops::{Bound, Range, RangeBounds};
 
 /// Primary structure provided for formatting
 ///
@@ -111,7 +111,7 @@ impl<'a> Snippet<'a> {
 #[derive(Debug)]
 pub struct Annotation<'a> {
     /// The byte range of the annotation in the `source` string
-    pub(crate) range: Range<usize>,
+    pub(crate) range: (Bound<usize>, Bound<usize>),
     pub(crate) label: Option<&'a str>,
     pub(crate) level: Level,
 }
@@ -120,6 +120,29 @@ impl<'a> Annotation<'a> {
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
         self
+    }
+
+    pub(crate) fn inclusive_start(&self) -> usize {
+        match self.range.0 {
+            Bound::Included(i) => i,
+            Bound::Excluded(e) => e.checked_add(1).expect("start bound too large"),
+            Bound::Unbounded => 0,
+        }
+    }
+
+    pub(crate) fn exclusive_end(&self, len: usize) -> usize {
+        match self.range.1 {
+            Bound::Unbounded => len,
+            Bound::Included(i) => i.checked_add(1).expect("end bound too large"),
+            Bound::Excluded(e) => e,
+        }
+    }
+
+    pub(crate) fn make_range(&self, len: usize) -> Range<usize> {
+        let start = self.inclusive_start();
+        let end = self.exclusive_end(len);
+
+        start..end
     }
 }
 
@@ -147,9 +170,12 @@ impl Level {
     }
 
     /// Create a [`Annotation`] with the given span for a [`Snippet`]
-    pub fn span<'a>(self, span: Range<usize>) -> Annotation<'a> {
+    pub fn span<'a, T>(self, span: T) -> Annotation<'a>
+    where
+        T: RangeBounds<usize>,
+    {
         Annotation {
-            range: span,
+            range: (span.start_bound().cloned(), span.end_bound().cloned()),
             label: None,
             level: self,
         }

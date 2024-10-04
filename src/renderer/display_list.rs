@@ -35,7 +35,7 @@ use crate::snippet;
 use std::cmp::{max, min, Reverse};
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::ops::Range;
+use std::ops::{Bound, Range};
 use std::{cmp, fmt};
 
 use crate::renderer::styled_buffer::StyledBuffer;
@@ -1085,7 +1085,7 @@ fn format_snippet(
     term_width: usize,
     anonymized_line_numbers: bool,
 ) -> DisplaySet<'_> {
-    let main_range = snippet.annotations.first().map(|x| x.range.start);
+    let main_range = snippet.annotations.first().map(|x| x.inclusive_start());
     let origin = snippet.origin;
     let need_empty_header = origin.is_some() || is_first;
     let mut body = format_body(
@@ -1175,7 +1175,7 @@ fn fold_prefix_suffix(mut snippet: snippet::Snippet<'_>) -> snippet::Snippet<'_>
     let ann_start = snippet
         .annotations
         .iter()
-        .map(|ann| ann.range.start)
+        .map(|ann| ann.inclusive_start())
         .min()
         .unwrap_or(0);
     if let Some(before_new_start) = snippet.source[0..ann_start].rfind('\n') {
@@ -1187,16 +1187,24 @@ fn fold_prefix_suffix(mut snippet: snippet::Snippet<'_>) -> snippet::Snippet<'_>
         snippet.source = &snippet.source[new_start..];
 
         for ann in &mut snippet.annotations {
-            let range_start = ann.range.start - new_start;
-            let range_end = ann.range.end - new_start;
-            ann.range = range_start..range_end;
+            let range_start = match ann.range.0 {
+                Bound::Unbounded => Bound::Unbounded,
+                Bound::Excluded(e) => Bound::Excluded(e - new_start),
+                Bound::Included(e) => Bound::Included(e - new_start),
+            };
+            let range_end = match ann.range.1 {
+                Bound::Unbounded => Bound::Unbounded,
+                Bound::Excluded(e) => Bound::Excluded(e - new_start),
+                Bound::Included(e) => Bound::Included(e - new_start),
+            };
+            ann.range = (range_start, range_end);
         }
     }
 
     let ann_end = snippet
         .annotations
         .iter()
-        .map(|ann| ann.range.end)
+        .map(|ann| ann.exclusive_end(snippet.source.len()))
         .max()
         .unwrap_or(snippet.source.len());
     if let Some(end_offset) = snippet.source[ann_end..].find('\n') {
@@ -1286,7 +1294,7 @@ fn format_body(
     let source_len = snippet.source.len();
     if let Some(bigger) = snippet.annotations.iter().find_map(|x| {
         // Allow highlighting one past the last character in the source.
-        if source_len + 1 < x.range.end {
+        if source_len + 1 < x.exclusive_end(source_len) {
             Some(&x.range)
         } else {
             None
@@ -1313,7 +1321,7 @@ fn format_body(
     let mut annotations = snippet.annotations;
     let ranges = annotations
         .iter()
-        .map(|a| a.range.clone())
+        .map(|a| (a.inclusive_start(), a.exclusive_end(source_len)))
         .collect::<Vec<_>>();
     // We want to merge multiline annotations that have the same range into one
     // multiline annotation to save space. This is done by making any duplicate
@@ -1351,19 +1359,20 @@ fn format_body(
             .enumerate()
             .skip(r_idx + 1)
             .for_each(|(ann_idx, ann)| {
+                let ann_range = ann.make_range(source_len);
                 // Skip if the annotation's index matches the range index
                 if ann_idx != r_idx
                     // We only want to merge multiline annotations
-                    && snippet.source[ann.range.clone()].lines().count() > 1
+                    && snippet.source[ann_range].lines().count() > 1
                     // We only want to merge annotations that have the same range
-                    && ann.range.start == range.start
-                    && ann.range.end == range.end
+                    && ann.inclusive_start() == range.0
+                    && ann.exclusive_end(source_len) == range.1
                 {
-                    ann.range.start = ann.range.end.saturating_sub(1);
+                    ann.range.0 = Bound::Included(ann.exclusive_end(source_len).saturating_sub(1));
                 }
             });
     });
-    annotations.sort_by_key(|a| a.range.start);
+    annotations.sort_by_key(|a| a.inclusive_start());
     let mut annotations = annotations.into_iter().enumerate().collect::<Vec<_>>();
 
     for (idx, (line, end_line)) in CursorLines::new(snippet.source).enumerate() {
@@ -1411,7 +1420,7 @@ fn format_body(
                 _ => DisplayAnnotationType::from(annotation.level),
             };
             let label_right = annotation.label.map_or(0, |label| label.len() + 1);
-            match annotation.range {
+            match annotation.make_range(source_len) {
                 // This handles if the annotation is on the next line. We add
                 // the `end_line_size` to account for annotating the line end.
                 Range { start, .. } if start > line_end_index + end_line_size => true,

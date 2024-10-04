@@ -1,6 +1,97 @@
+use std::ops::Bound;
+
 use annotate_snippets::{Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, str};
+
+#[test]
+fn test_i_29_unbounded_start() {
+    let snippets = Level::Error.title("oops").snippet(
+        Snippet::source("First line\r\nSecond oops line")
+            .origin("<current file>")
+            .annotation(Level::Error.span(..23).label("oops"))
+            .fold(true),
+    );
+    let expected = str![[r#"
+error: oops
+ --> <current file>:1:1
+  |
+1 | / First line
+2 | | Second oops line
+  | |___________^ oops
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
+
+#[test]
+fn test_i_29_unbounded_end() {
+    let snippets = Level::Error.title("oops").snippet(
+        Snippet::source("First line\r\nSecond oops line")
+            .origin("<current file>")
+            .annotation(Level::Error.span(19..).label("oops"))
+            .fold(true),
+    );
+    let expected = str![[r#"
+error: oops
+ --> <current file>:2:8
+  |
+2 | Second oops line
+  |        ^^^^^^^^^ oops
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
+
+#[test]
+fn test_i_29_included_end() {
+    let snippets = Level::Error.title("oops").snippet(
+        Snippet::source("First line\r\nSecond oops line")
+            .origin("<current file>")
+            .annotation(Level::Error.span(19..=22).label("oops"))
+            .fold(true),
+    );
+    let expected = str![[r#"
+error: oops
+ --> <current file>:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
+
+#[test]
+fn test_i_29_excluded_start() {
+    let snippets = Level::Error.title("oops").snippet(
+        Snippet::source("First line\r\nSecond oops line")
+            .origin("<current file>")
+            .annotation(
+                Level::Error
+                    .span((Bound::Excluded(18), Bound::Excluded(23)))
+                    .label("oops"),
+            )
+            .fold(true),
+    );
+    let expected = str![[r#"
+error: oops
+ --> <current file>:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+}
 
 #[test]
 fn test_i_29() {
