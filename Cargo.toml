@@ -1,58 +1,23 @@
-[package]
-name = "annotate-snippets"
-version = "0.11.4"
-edition = "2021"
-rust-version = "1.65"  # MSRV
-authors = ["Zibi Braniecki <gandalf@mozilla.com>"]
-description = "Library for building code annotations"
-license = "Apache-2.0/MIT"
-repository = "https://github.com/rust-lang/annotate-snippets-rs"
-readme = "README.md"
-keywords = ["code", "analysis", "ascii", "errors", "debug"]
+[workspace]
+resolver = "2"
 
-[package.metadata.release]
-tag-name = "{{version}}"
-pre-release-replacements = [
-  {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=1},
-  {file="CHANGELOG.md", search="\\.\\.\\.HEAD", replace="...{{tag_name}}", exactly=1},
-  {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}", min=1},
-  {file="CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n## [Unreleased] - ReleaseDate\n", exactly=1},
-  {file="CHANGELOG.md", search="<!-- next-url -->", replace="<!-- next-url -->\n[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/{{tag_name}}...HEAD", exactly=1},
+[workspace.package]
+repository = "https://github.com/rust-lang/annotate-snippets-rs"
+license = "MIT OR Apache-2.0"
+edition = "2021"
+rust-version = "1.65.0"  # MSRV
+include = [
+  "build.rs",
+  "src/**/*",
+  "Cargo.toml",
+  "Cargo.lock",
+  "LICENSE*",
+  "README.md",
+  "benches/**/*",
+  "examples/**/*"
 ]
 
-[badges]
-maintenance = { status = "actively-developed" }
-
-[dependencies]
-anstyle = "1.0.4"
-memchr = { version = "2.7.4", optional = true }
-unicode-width = "0.1.11"
-
-[dev-dependencies]
-annotate-snippets = { path = ".", features = ["testing-colors"] }
-anstream = "0.6.13"
-difference = "2.0.0"
-divan = "0.1.14"
-glob = "0.3.1"
-serde = { version = "1.0.199", features = ["derive"] }
-snapbox = { version = "0.6.0", features = ["diff", "term-svg", "cmd", "examples"] }
-toml = "0.5.11"
-tryfn = "0.2.1"
-
-[[bench]]
-name = "bench"
-harness = false
-
-[[test]]
-name = "fixtures"
-harness = false
-
-[features]
-default = []
-simd = ["memchr"]
-testing-colors = []
-
-[lints.rust]
+[workspace.lints.rust]
 rust_2018_idioms = { level = "warn", priority = -1 }
 unreachable_pub = "warn"
 unsafe_op_in_unsafe_fn = "warn"
@@ -60,7 +25,7 @@ unused_lifetimes = "warn"
 unused_macro_rules = "warn"
 unused_qualifications = "warn"
 
-[lints.clippy]
+[workspace.lints.clippy]
 bool_assert_comparison = "allow"
 branches_sharing_code = "allow"
 checked_conversions = "warn"
@@ -115,6 +80,68 @@ string_lit_as_bytes = "warn"
 string_to_string = "warn"
 todo = "warn"
 trait_duplication_in_bounds = "warn"
+uninlined_format_args = "warn"
 verbose_file_reads = "warn"
 wildcard_imports = "warn"
 zero_sized_map_values = "warn"
+
+[package]
+name = "annotate-snippets"
+version = "0.11.4"
+description = "Library for building code annotations"
+categories = []
+keywords = ["code", "analysis", "ascii", "errors", "debug"]
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+include.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[package.metadata.release]
+tag-name = "{{version}}"
+pre-release-replacements = [
+  {file="CHANGELOG.md", search="Unreleased", replace="{{version}}", min=1},
+  {file="CHANGELOG.md", search="\\.\\.\\.HEAD", replace="...{{tag_name}}", exactly=1},
+  {file="CHANGELOG.md", search="ReleaseDate", replace="{{date}}", min=1},
+  {file="CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n## [Unreleased] - ReleaseDate\n", exactly=1},
+  {file="CHANGELOG.md", search="<!-- next-url -->", replace="<!-- next-url -->\n[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/{{tag_name}}...HEAD", exactly=1},
+]
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[dependencies]
+anstyle = "1.0.4"
+memchr = { version = "2.7.4", optional = true }
+unicode-width = "0.1.11"
+
+[dev-dependencies]
+annotate-snippets = { path = ".", features = ["testing-colors"] }
+anstream = "0.6.13"
+difference = "2.0.0"
+divan = "0.1.14"
+glob = "0.3.1"
+serde = { version = "1.0.199", features = ["derive"] }
+snapbox = { version = "0.6.0", features = ["diff", "term-svg", "cmd", "examples"] }
+toml = "0.5.11"
+tryfn = "0.2.1"
+
+[[bench]]
+name = "bench"
+harness = false
+
+[[test]]
+name = "fixtures"
+harness = false
+
+[features]
+default = []
+simd = ["memchr"]
+testing-colors = []
+
+[lints]
+workspace = true
