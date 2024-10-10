@@ -26,7 +26,7 @@ dependencies = [
  "snapbox",
  "toml",
  "tryfn",
- "unicode-width",
+ "unicode-width 0.2.0",
 ]
 
 [[package]]
@@ -102,7 +102,7 @@ dependencies = [
  "anstyle",
  "anstyle-lossy",
  "html-escape",
- "unicode-width",
+ "unicode-width 0.1.13",
 ]
 
 [[package]]
@@ -671,6 +671,12 @@ name = "unicode-width"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
+
+[[package]]
+name = "unicode-width"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 
 [[package]]
 name = "utf8-width"
