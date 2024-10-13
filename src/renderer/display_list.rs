@@ -940,9 +940,20 @@ impl<'a> CursorLines<'a> {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum EndLine {
-    Eof = 0,
-    Crlf = 1,
-    Lf = 2,
+    Eof,
+    Lf,
+    Crlf,
+}
+
+impl EndLine {
+    /// The number of characters this line ending occupies in bytes.
+    pub(crate) fn len(self) -> usize {
+        match self {
+            EndLine::Eof => 0,
+            EndLine::Lf => 1,
+            EndLine::Crlf => 2,
+        }
+    }
 }
 
 impl<'a> Iterator for CursorLines<'a> {
@@ -957,12 +968,12 @@ impl<'a> Iterator for CursorLines<'a> {
                 .map(|x| {
                     let ret = if 0 < x {
                         if self.0.as_bytes()[x - 1] == b'\r' {
-                            (&self.0[..x - 1], EndLine::Lf)
+                            (&self.0[..x - 1], EndLine::Crlf)
                         } else {
-                            (&self.0[..x], EndLine::Crlf)
+                            (&self.0[..x], EndLine::Lf)
                         }
                     } else {
-                        ("", EndLine::Crlf)
+                        ("", EndLine::Lf)
                     };
                     self.0 = &self.0[x + 1..];
                     ret
@@ -1138,7 +1149,7 @@ fn format_header<'a>(
                 ..
             } = item
             {
-                if main_range >= range.0 && main_range <= range.1 + *end_line as usize {
+                if main_range >= range.0 && main_range <= range.1 + end_line.len() {
                     let char_column = text[0..(main_range - range.0).min(text.len())]
                         .chars()
                         .count();
@@ -1366,7 +1377,7 @@ fn format_body(
     for (idx, (line, end_line)) in CursorLines::new(snippet.source).enumerate() {
         let line_length: usize = line.len();
         let line_range = (current_index, current_index + line_length);
-        let end_line_size = end_line as usize;
+        let end_line_size = end_line.len();
         body.push(DisplayLine::Source {
             lineno: Some(current_line),
             inline_marks: vec![],
