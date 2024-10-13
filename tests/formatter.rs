@@ -918,7 +918,7 @@ fn origin_correct_start_line() {
 
     let expected = str![[r#"
 error: title
- --> origin.txt:2:4
+ --> origin.txt:3:1
   |
 1 | aaa
 2 | bbb
