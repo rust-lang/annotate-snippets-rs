@@ -905,3 +905,53 @@ error: unused optional dependency
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
+
+#[test]
+fn origin_correct_start_line() {
+    let source = "aaa\nbbb\nccc\nddd\n";
+    let input = Level::Error.title("title").snippet(
+        Snippet::source(source)
+            .origin("origin.txt")
+            .fold(false)
+            .annotation(Level::Error.span(8..8 + 3).label("annotation")),
+    );
+
+    let expected = str![[r#"
+error: title
+ --> origin.txt:2:4
+  |
+1 | aaa
+2 | bbb
+3 | ccc
+  | ^^^ annotation
+4 | ddd
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
+#[test]
+fn origin_correct_mid_line() {
+    let source = "aaa\nbbb\nccc\nddd\n";
+    let input = Level::Error.title("title").snippet(
+        Snippet::source(source)
+            .origin("origin.txt")
+            .fold(false)
+            .annotation(Level::Error.span(8 + 1..8 + 3).label("annotation")),
+    );
+
+    let expected = str![[r#"
+error: title
+ --> origin.txt:3:2
+  |
+1 | aaa
+2 | bbb
+3 | ccc
+  |  ^^ annotation
+4 | ddd
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
