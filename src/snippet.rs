@@ -126,12 +126,15 @@ impl<'a> Annotation<'a> {
 /// Types of annotations.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Level {
-    /// Error annotations are displayed using red color and "^" character.
+    /// Error annotations are displayed in red with "^" characters.
     Error,
-    /// Warning annotations are displayed using blue color and "-" character.
+    /// Warning annotations are displayed in yellow with "-" characters.
     Warning,
+    /// Info annotations are displayed in blue with "-" characters and the prefix `info: `.
     Info,
+    /// Note annotations are displayed in green with "-" characters and the prefix `note: `.
     Note,
+    /// Help annotations are displayed in blue with "-" characters and the prefix `help: `.
     Help,
 }
 
