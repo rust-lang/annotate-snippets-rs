@@ -1149,7 +1149,7 @@ fn format_header<'a>(
                 ..
             } = item
             {
-                if main_range >= range.0 && main_range <= range.1 + end_line.len() {
+                if main_range >= range.0 && main_range < range.1 + max(*end_line as usize, 1) {
                     let char_column = text[0..(main_range - range.0).min(text.len())]
                         .chars()
                         .count();
