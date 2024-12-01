@@ -955,3 +955,28 @@ error: title
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
+
+#[test]
+fn level_none() {
+    let source = "aaa\nbbb\nccc\nddd\n";
+    let input = Level::None.title("title").snippet(
+        Snippet::source(source)
+            .origin("origin.txt")
+            .fold(false)
+            .annotation(Level::Error.span(8 + 1..8 + 3).label("annotation")),
+    );
+
+    let expected = str![[r#"
+title
+ --> origin.txt:3:2
+  |
+1 | aaa
+2 | bbb
+3 | ccc
+  |  ^^ annotation
+4 | ddd
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}

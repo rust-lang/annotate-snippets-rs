@@ -914,6 +914,7 @@ impl From<snippet::Level> for DisplayAnnotationType {
             snippet::Level::Info => DisplayAnnotationType::Info,
             snippet::Level::Note => DisplayAnnotationType::Note,
             snippet::Level::Help => DisplayAnnotationType::Help,
+            snippet::Level::None => DisplayAnnotationType::None,
         }
     }
 }
