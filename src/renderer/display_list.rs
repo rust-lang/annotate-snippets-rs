@@ -55,13 +55,13 @@ pub(crate) struct DisplayList<'a> {
     pub(crate) anonymized_line_numbers: bool,
 }
 
-impl<'a> PartialEq for DisplayList<'a> {
+impl PartialEq for DisplayList<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.body == other.body && self.anonymized_line_numbers == other.anonymized_line_numbers
     }
 }
 
-impl<'a> fmt::Debug for DisplayList<'a> {
+impl fmt::Debug for DisplayList<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("DisplayList")
             .field("body", &self.body)
@@ -70,7 +70,7 @@ impl<'a> fmt::Debug for DisplayList<'a> {
     }
 }
 
-impl<'a> Display for DisplayList<'a> {
+impl Display for DisplayList<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let lineno_width = self.body.iter().fold(0, |max, set| {
             set.display_lines.iter().fold(max, |max, line| match line {
@@ -156,7 +156,7 @@ pub(crate) struct DisplaySet<'a> {
     pub(crate) margin: Margin,
 }
 
-impl<'a> DisplaySet<'a> {
+impl DisplaySet<'_> {
     fn format_label(
         &self,
         line_offset: usize,
@@ -791,7 +791,7 @@ pub(crate) struct DisplaySourceAnnotation<'a> {
     pub(crate) annotation_part: DisplayAnnotationPart,
 }
 
-impl<'a> DisplaySourceAnnotation<'a> {
+impl DisplaySourceAnnotation<'_> {
     fn has_label(&self) -> bool {
         !self
             .annotation
@@ -932,7 +932,7 @@ pub(crate) enum DisplayHeaderType {
 
 struct CursorLines<'a>(&'a str);
 
-impl<'a> CursorLines<'a> {
+impl CursorLines<'_> {
     fn new(src: &str) -> CursorLines<'_> {
         CursorLines(src)
     }
