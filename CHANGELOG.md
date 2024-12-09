@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- `rustc`'s multiline annotation special case [#133](https://github.com/rust-lang/annotate-snippets-rs/pull/133)
+  - This special case happens when:
+    - The start of a multiline annotation is at the start of the line disregarding any leading whitespace
+    - No other multiline annotations overlap it
+- `simd` feature for faster folding [#146](https://github.com/rust-lang/annotate-snippets-rs/pull/146)
+
+### Changed
+
+- Multiline annotations with matching spans get merged [#133](https://github.com/rust-lang/annotate-snippets-rs/pull/133)
+- Multiple annotations on one line are no longer rendered on separate lines [#133](https://github.com/rust-lang/annotate-snippets-rs/pull/133)
+
+### Fixed
+
+- Overlapping multiline annotations are now correctly rendered [#133](https://github.com/rust-lang/annotate-snippets-rs/pull/133)
+- Origin position is now correctly calculated when an annotation starts at the beginning of the line [#154](https://github.com/rust-lang/annotate-snippets-rs/pull/154)
+
 ## [0.11.4] - 2024-06-15
 
 ### Fixes
