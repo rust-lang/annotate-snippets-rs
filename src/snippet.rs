@@ -133,6 +133,7 @@ pub enum Level {
     Info,
     Note,
     Help,
+    None,
 }
 
 impl Level {
