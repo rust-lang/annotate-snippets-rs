@@ -30,7 +30,7 @@ error: foo
   | |_^ test
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn ends_on_col2() {
@@ -54,13 +54,12 @@ error: foo
   |
 2 |   fn foo() {
   |  __________^
-3 | |
-4 | |
+... |
 5 | |   }
   | |___^ test
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn non_nested() {
@@ -98,7 +97,7 @@ error: foo
   |       `X` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn nested() {
@@ -134,7 +133,7 @@ error: foo
   |       `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn different_overlap() {
@@ -173,7 +172,7 @@ error: foo
   |  |____- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn triple_overlap() {
@@ -214,7 +213,7 @@ error: foo
   |        `X` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn triple_exact_overlap() {
@@ -249,13 +248,13 @@ error: foo
 4 | |   X1 Y1 Z1
 5 | |   X2 Y2 Z2
   | |    -
-  | |____|
-  |      `X` is a good letter
-  |      `Y` is a good letter too
+  | |    |
+  | |    `X` is a good letter
+  | |____`Y` is a good letter too
   |      `Z` label
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn minimum_depth() {
@@ -299,7 +298,7 @@ error: foo
   |  |_______- `Z`
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn non_overlapping() {
@@ -337,7 +336,7 @@ error: foo
   | |__________- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn overlapping_start_and_end() {
@@ -377,7 +376,7 @@ error: foo
   |  |__________- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_primary_without_message() {
@@ -398,13 +397,13 @@ fn foo() {
 
     let expected = str![[r#"
 error: foo
- --> test.rs:3:7
+ --> test.rs:3:3
   |
 3 |   a { b { c } d }
   |   ----^^^^-^^-- `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_secondary_without_message() {
@@ -430,7 +429,7 @@ error: foo
   |   ^^^^-------^^ `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_primary_without_message_2() {
@@ -451,7 +450,7 @@ fn foo() {
 
     let expected = str![[r#"
 error: foo
- --> test.rs:3:7
+ --> test.rs:3:3
   |
 3 |   a { b { c } d }
   |   ----^^^^-^^--
@@ -459,7 +458,7 @@ error: foo
   |       `b` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_secondary_without_message_2() {
@@ -487,7 +486,7 @@ error: foo
   |       `b` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_secondary_without_message_3() {
@@ -515,7 +514,7 @@ error: foo
   |   `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_without_message() {
@@ -541,7 +540,7 @@ error: foo
   |   ^^^^-------^^
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_without_message_2() {
@@ -562,13 +561,13 @@ fn foo() {
 
     let expected = str![[r#"
 error: foo
- --> test.rs:3:7
+ --> test.rs:3:3
   |
 3 |   a { b { c } d }
   |   ----^^^^-^^--
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn multiple_labels_with_message() {
@@ -597,7 +596,7 @@ error: foo
   |   `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn ingle_label_with_message() {
@@ -622,7 +621,7 @@ error: foo
   |   ^^^^^^^^^^^^^ `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn single_label_without_message() {
@@ -647,7 +646,7 @@ error: foo
   |   ^^^^^^^^^^^^^
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn long_snippet() {
@@ -693,13 +692,15 @@ error: foo
    | ||____|
    |  |    `X` is a good letter
 5  |  | 1
+6  |  | 2
+7  |  | 3
 ...   |
 15 |  |   X2 Y2 Z2
 16 |  |   X3 Y3 Z3
    |  |__________- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 #[test]
 fn long_snippet_multiple_spans() {
@@ -750,14 +751,13 @@ error: foo
 10 | || 6
 11 | ||   X2 Y2 Z2
    | ||__________- `Z` is a good letter too
-12 | |  7
 ...  |
 15 | |  10
 16 | |    X3 Y3 Z3
    | |________^ `Y` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -798,7 +798,7 @@ LL | fn f(){||yield(((){),
    |       unclosed delimiter
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -863,7 +863,7 @@ fn main() {
         );
     let expected = str![[r#"
 error[E0571]: `break` with value from a `while` loop
-  --> $DIR/issue-114529-illegal-break-with-value.rs:22:9
+  --> $DIR/issue-114529-illegal-break-with-value.rs:21:5
    |
 LL |       while true {
    |       ---------- you can't `break` with a value in a `while` loop
@@ -877,11 +877,11 @@ help: use `break` on its own without a value inside this `while` loop
 LL | /         break (|| { //~ ERROR `break` with value from a `while` loop
 LL | |             let local = 9;
 LL | |         });
-   | |__________- help: break
+   | |__________- break
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1072,24 +1072,25 @@ fn nsize() {
 error[E0277]: `V0usize` cannot be safely transmuted into `[usize; 2]`
   --> $DIR/primitive_reprs_should_have_correct_length.rs:144:44
    |
-LL |           assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
-   |                                              ^^^^^^ the size of `V0usize` is smaller than the size of `[usize; 2]`
+LL |         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
+   |                                            ^^^^^^ the size of `V0usize` is smaller than the size of `[usize; 2]`
 note: required by a bound in `is_transmutable`
   --> $DIR/primitive_reprs_should_have_correct_length.rs:10:12
    |
 LL |       pub fn is_transmutable<Src, Dst>()
-   |              --------------- note: required by a bound in this function
+   |              --------------- required by a bound in this function
 LL |       where
 LL |           Dst: TransmuteFrom<Src, {
    |  ______________^
 LL | |             Assume {
+LL | |                 alignment: true,
+LL | |                 lifetimes: true,
 ...  |
-LL | |             }
 LL | |         }>
    | |__________^ required by this bound in `is_transmutable`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1139,7 +1140,7 @@ LL | ...ic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely 
    |                ^^^^^^^^^^^^^^^^^ the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1210,12 +1211,12 @@ fn main() {}
             );
     let expected = str![[r#"
 error[E0618]: expected function, found `{integer}`
-  --> $DIR/missing-semicolon.rs:5:13
+  --> $DIR/missing-semicolon.rs:4:9
    |
 LL |       let x = 5;
    |           - `x` has type `{integer}`
 LL |       let y = x //~ ERROR expected function
-   |               ^- help: consider using a semicolon here to finish the statement: `;`
+   |               -- help: consider using a semicolon here to finish the statement: `;`
    |  _____________|
    | |
 LL | |     () //~ ERROR expected `;`, found `}`
@@ -1223,7 +1224,7 @@ LL | |     () //~ ERROR expected `;`, found `}`
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1319,25 +1320,26 @@ LL |   macro_rules! outer_macro {
 ...
 LL | /         macro_rules! inner_macro {
 LL | |             ($bang_macro:ident, $attr_macro:ident) => {
-...  |
+LL | |                 $bang_macro!($name);
+LL | |                 #[$attr_macro] struct $attr_struct_name {}
 LL | |             }
 LL | |         }
    | |_________^
    |
   ::: $DIR/nested-macro-rules.rs:23:5
    |
-LL |       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
-   |       ---------------------------------------------------------------- in this macro invocation
+LL |     nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
+   |     ---------------------------------------------------------------- in this macro invocation
    = help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
    = note: a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute
 note: the lint level is defined here
   --> $DIR/nested-macro-rules.rs:8:9
    |
-LL |   #![warn(non_local_definitions)]
-   |           ^^^^^^^^^^^^^^^^^^^^^
+LL | #![warn(non_local_definitions)]
+   |         ^^^^^^^^^^^^^^^^^^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1425,10 +1427,10 @@ help: you must specify a type for this binding, like `i32`
   --> $DIR/auxiliary/macro-in-other-crate.rs:3:35
    |
 LL |     ($ident:ident) => { let $ident = 42; }
-   |                                   - help: : i32
+   |                                   - : i32
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1475,7 +1477,7 @@ LL |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1628,13 +1630,13 @@ help: ensure that all possible cases are being handled by adding a match arm wit
   --> $DIR/empty-match.rs:17:33
    |
 LL |                 _ if false => {}
-   |                                 - help: ,
+   |                                 - ,
                 _ => todo!()
 "#]];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(annotate_snippets::renderer::DEFAULT_TERM_WIDTH + 4);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -1695,7 +1697,7 @@ error[E0038]: the trait alias `EqAlias` is not dyn compatible
 LL |     let _: &dyn EqAlias = &123;
    |                 ^^^^^^^ `EqAlias` is not dyn compatible
 note: for a trait to be dyn compatible it needs to allow building a vtable
-for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
+      for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
   --> $SRC_DIR/core/src/cmp.rs
    |
    |
@@ -1706,5 +1708,5 @@ LL | trait EqAlias = Eq;
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }

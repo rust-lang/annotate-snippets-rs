@@ -10,7 +10,15 @@
 //!     .snippet(Snippet::source("Faa").line_start(129).origin("src/display.rs"));
 //! ```
 
+use crate::renderer::stylesheet::Stylesheet;
+use anstyle::Style;
 use std::ops::Range;
+
+pub(crate) const ERROR_TXT: &str = "error";
+pub(crate) const HELP_TXT: &str = "help";
+pub(crate) const INFO_TXT: &str = "info";
+pub(crate) const NOTE_TXT: &str = "note";
+pub(crate) const WARNING_TXT: &str = "warning";
 
 /// Primary structure provided for formatting
 ///
@@ -48,6 +56,46 @@ impl<'a> Message<'a> {
     pub fn footers(mut self, footer: impl IntoIterator<Item = Message<'a>>) -> Self {
         self.footer.extend(footer);
         self
+    }
+}
+
+impl Message<'_> {
+    pub(crate) fn has_primary_spans(&self) -> bool {
+        self.snippets.iter().any(|s| !s.annotations.is_empty())
+    }
+    pub(crate) fn has_span_labels(&self) -> bool {
+        self.snippets.iter().any(|s| !s.annotations.is_empty())
+    }
+
+    pub(crate) fn max_line_number(&self) -> usize {
+        let mut max = self
+            .snippets
+            .iter()
+            .map(|s| {
+                let start = s
+                    .annotations
+                    .iter()
+                    .map(|a| a.range.start)
+                    .min()
+                    .unwrap_or(0);
+
+                let end = s
+                    .annotations
+                    .iter()
+                    .map(|a| a.range.end)
+                    .max()
+                    .unwrap_or(s.source.len())
+                    .min(s.source.len());
+
+                s.line_start + newline_count(&s.source[start..end])
+            })
+            .max()
+            .unwrap_or(1);
+
+        for footer in &self.footer {
+            max = max.max(footer.max_line_number());
+        }
+        max
     }
 }
 
@@ -108,7 +156,7 @@ impl<'a> Snippet<'a> {
 /// An annotation for a [`Snippet`].
 ///
 /// See [`Level::span`] to create a [`Annotation`]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Annotation<'a> {
     /// The byte range of the annotation in the `source` string
     pub(crate) range: Range<usize>,
@@ -124,7 +172,7 @@ impl<'a> Annotation<'a> {
 }
 
 /// Types of annotations.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
 pub enum Level {
     /// Error annotations are displayed using red color and "^" character.
     Error,
@@ -153,5 +201,38 @@ impl Level {
             label: None,
             level: self,
         }
+    }
+}
+
+impl Level {
+    pub(crate) fn as_str(&self) -> &'static str {
+        match self {
+            Level::Error => ERROR_TXT,
+            Level::Warning => WARNING_TXT,
+            Level::Info => INFO_TXT,
+            Level::Note => NOTE_TXT,
+            Level::Help => HELP_TXT,
+        }
+    }
+
+    pub(crate) fn style(&self, stylesheet: &Stylesheet) -> Style {
+        match self {
+            Level::Error => stylesheet.error,
+            Level::Warning => stylesheet.warning,
+            Level::Info => stylesheet.info,
+            Level::Note => stylesheet.note,
+            Level::Help => stylesheet.help,
+        }
+    }
+}
+
+fn newline_count(body: &str) -> usize {
+    #[cfg(feature = "simd")]
+    {
+        memchr::memchr_iter(b'\n', body.as_bytes()).count()
+    }
+    #[cfg(not(feature = "simd"))]
+    {
+        body.lines().count()
     }
 }

@@ -32,37 +32,3 @@ impl Stylesheet {
         }
     }
 }
-
-impl Stylesheet {
-    pub(crate) fn error(&self) -> &Style {
-        &self.error
-    }
-
-    pub(crate) fn warning(&self) -> &Style {
-        &self.warning
-    }
-
-    pub(crate) fn info(&self) -> &Style {
-        &self.info
-    }
-
-    pub(crate) fn note(&self) -> &Style {
-        &self.note
-    }
-
-    pub(crate) fn help(&self) -> &Style {
-        &self.help
-    }
-
-    pub(crate) fn line_no(&self) -> &Style {
-        &self.line_no
-    }
-
-    pub(crate) fn emphasis(&self) -> &Style {
-        &self.emphasis
-    }
-
-    pub(crate) fn none(&self) -> &Style {
-        &self.none
-    }
-}

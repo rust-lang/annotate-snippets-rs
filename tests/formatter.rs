@@ -19,7 +19,7 @@ error: oops
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn test_point_to_double_width_characters() {
     );
 
     let expected = str![[r#"
-error
+error: 
  --> <current file>:1:7
   |
 1 | こんにちは、世界
@@ -39,7 +39,7 @@ error
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn test_point_to_double_width_characters_across_lines() {
     );
 
     let expected = str![[r#"
-error
+error: 
  --> <current file>:1:3
   |
 1 |   おはよう
@@ -61,7 +61,7 @@ error
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -74,17 +74,17 @@ fn test_point_to_double_width_characters_multiple() {
     );
 
     let expected = str![[r#"
-error
+error: 
  --> <current file>:1:1
   |
 1 | お寿司
   | ^^^^^^ Sushi1
 2 | 食べたい🍣
-  |     ---- note: Sushi2
+  |     ---- Sushi2
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -96,7 +96,7 @@ fn test_point_to_double_width_characters_mixed() {
     );
 
     let expected = str![[r#"
-error
+error: 
  --> <current file>:1:7
   |
 1 | こんにちは、新しいWorld！
@@ -104,7 +104,7 @@ error
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn test_format_title() {
 
     let expected = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -124,13 +124,13 @@ fn test_format_snippet_only() {
         .snippet(Snippet::source(source).line_start(5402));
 
     let expected = str![[r#"
-error
+error: 
      |
 5402 | This is line 1
 5403 | This is line 2
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -142,7 +142,7 @@ fn test_format_snippets_continuation() {
         .snippet(Snippet::source(src_0).line_start(5402).origin("file1.rs"))
         .snippet(Snippet::source(src_1).line_start(2).origin("file2.rs"));
     let expected = str![[r#"
-error
+error: 
     --> file1.rs
      |
 5402 | This is slice 1
@@ -152,7 +152,7 @@ error
 2    | This is slice 2
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -168,14 +168,14 @@ fn test_format_snippet_annotation_standalone() {
             .annotation(Level::Info.span(range.clone()).label("Test annotation")),
     );
     let expected = str![[r#"
-error
+error: 
      |
 5402 | This is line 1
 5403 | This is line 2
-     |        -- info: Test annotation
+     |        -- Test annotation
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -184,11 +184,11 @@ fn test_format_footer_title() {
         .title("")
         .footer(Level::Error.title("This __is__ a title"));
     let expected = str![[r#"
-error
- = error: This __is__ a title
+error: 
+  = error: This __is__ a title
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -202,7 +202,7 @@ fn test_i26() {
             .annotation(Level::Error.span(0..source.len() + 2).label(label)),
     );
     let renderer = Renderer::plain();
-    let _ = renderer.render(input).to_string();
+    let _ = renderer.render(input);
 }
 
 #[test]
@@ -212,13 +212,13 @@ fn test_source_content() {
         .title("")
         .snippet(Snippet::source(source).line_start(56));
     let expected = str![[r#"
-error
+error: 
    |
 56 | This is an example
 57 | of content lines
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -230,13 +230,13 @@ fn test_source_annotation_standalone_singleline() {
             .annotation(Level::Help.span(0..5).label("Example string")),
     );
     let expected = str![[r#"
-error
+error: 
   |
 1 | tests
-  | ----- help: Example string
+  | ----- Example string
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -249,16 +249,16 @@ fn test_source_annotation_standalone_multiline() {
             .annotation(Level::Help.span(0..5).label("Second line")),
     );
     let expected = str![[r#"
-error
+error: 
   |
 1 | tests
   | -----
   | |
-  | help: Example string
-  | help: Second line
+  | Example string
+  | Second line
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -267,12 +267,12 @@ fn test_only_source() {
         .title("")
         .snippet(Snippet::source("").origin("file.rs"));
     let expected = str![[r#"
-error
---> file.rs
- |
+error: 
+ --> file.rs
+  |
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -282,7 +282,7 @@ fn test_anon_lines() {
         .title("")
         .snippet(Snippet::source(source).line_start(56));
     let expected = str![[r#"
-error
+error: 
    |
 LL | This is an example
 LL | of content lines
@@ -290,7 +290,7 @@ LL |
 LL | abc
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -312,7 +312,7 @@ error: dummy
   | |___^
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -329,7 +329,7 @@ a\"
             .annotation(Level::Error.span(0..10)), // 1..10 works
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:1
   |
 3 | / a"
@@ -337,7 +337,7 @@ error
   | |_______^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -350,7 +350,7 @@ fn char_and_nl_annotate_char() {
             .annotation(Level::Error.span(0..2)), // a\r
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:1
   |
 3 | a
@@ -358,7 +358,7 @@ error
 4 | b
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -371,7 +371,7 @@ fn char_eol_annotate_char() {
             .annotation(Level::Error.span(0..3)), // a\r\n
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:1
   |
 3 | a
@@ -379,7 +379,7 @@ error
 4 | b
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -391,7 +391,7 @@ fn char_eol_annotate_char_double_width() {
     );
 
     let expected = str![[r#"
-error
+error: 
  --> <current file>:1:2
   |
 1 | こん
@@ -401,7 +401,7 @@ error
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -414,7 +414,7 @@ fn annotate_eol() {
             .annotation(Level::Error.span(1..2)), // \r
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 | a
@@ -422,7 +422,7 @@ error
 4 | b
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -435,7 +435,7 @@ fn annotate_eol2() {
             .annotation(Level::Error.span(1..3)), // \r\n
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 | a
@@ -443,7 +443,7 @@ error
 4 | b
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -456,15 +456,15 @@ fn annotate_eol3() {
             .annotation(Level::Error.span(2..3)), // \n
     );
     let expected = str![[r#"
-error
- --> file/path:3:2
+error: 
+ --> file/path:3:3
   |
 3 | a
   |  ^
 4 | b
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -477,15 +477,15 @@ fn annotate_eol4() {
             .annotation(Level::Error.span(2..2)), // \n
     );
     let expected = str![[r#"
-error
- --> file/path:3:2
+error: 
+ --> file/path:3:3
   |
 3 | a
   |  ^
 4 | b
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -497,8 +497,8 @@ fn annotate_eol_double_width() {
     );
 
     let expected = str![[r#"
-error
- --> <current file>:1:3
+error: 
+ --> <current file>:1:4
   |
 1 | こん
   |     ^
@@ -507,7 +507,7 @@ error
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -520,7 +520,7 @@ fn multiline_eol_start() {
             .annotation(Level::Error.span(1..4)), // \r\nb
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 |   a
@@ -529,7 +529,7 @@ error
   | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -542,8 +542,8 @@ fn multiline_eol_start2() {
             .annotation(Level::Error.span(2..4)), // \nb
     );
     let expected = str![[r#"
-error
- --> file/path:3:2
+error: 
+ --> file/path:3:3
   |
 3 |   a
   |  __^
@@ -551,7 +551,7 @@ error
   | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -564,7 +564,7 @@ fn multiline_eol_start3() {
             .annotation(Level::Error.span(1..3)), // \nb
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 |   a
@@ -573,7 +573,7 @@ error
   | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -585,8 +585,8 @@ fn multiline_eol_start_double_width() {
     );
 
     let expected = str![[r#"
-error
- --> <current file>:1:3
+error: 
+ --> <current file>:1:4
   |
 1 |   こん
   |  _____^
@@ -596,7 +596,7 @@ error
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets).to_string(), expected);
+    assert_data_eq!(renderer.render(snippets), expected);
 }
 
 #[test]
@@ -609,7 +609,7 @@ fn multiline_eol_start_eol_end() {
             .annotation(Level::Error.span(1..4)), // \nb\n
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 |   a
@@ -619,7 +619,7 @@ error
 5 |   c
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -632,8 +632,8 @@ fn multiline_eol_start_eol_end2() {
             .annotation(Level::Error.span(2..5)), // \nb\r
     );
     let expected = str![[r#"
-error
- --> file/path:3:2
+error: 
+ --> file/path:3:3
   |
 3 |   a
   |  __^
@@ -642,7 +642,7 @@ error
 5 |   c
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -655,8 +655,8 @@ fn multiline_eol_start_eol_end3() {
             .annotation(Level::Error.span(2..6)), // \nb\r\n
     );
     let expected = str![[r#"
-error
- --> file/path:3:2
+error: 
+ --> file/path:3:3
   |
 3 |   a
   |  __^
@@ -665,7 +665,7 @@ error
 5 |   c
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -678,7 +678,7 @@ fn multiline_eol_start_eof_end() {
             .annotation(Level::Error.span(1..5)), // \r\nb(EOF)
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 |   a
@@ -687,7 +687,7 @@ error
   | |__^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -700,7 +700,7 @@ fn multiline_eol_start_eof_end_double_width() {
             .annotation(Level::Error.span(3..9)), // \r\nに(EOF)
     );
     let expected = str![[r#"
-error
+error: 
  --> file/path:3:2
   |
 3 |   ん
@@ -709,7 +709,7 @@ error
   | |___^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -735,12 +735,12 @@ error: unused optional dependency
  --> Cargo.toml:4:1
   |
 4 | bar = { version = "0.1.0", optional = true }
-  | ^^^                        --------------- info: This should also be long but not too long
+  | ^^^                        --------------- This should also be long but not too long
   | |
   | I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -770,14 +770,14 @@ error: unused optional dependency
 4 |   bar = { version = "0.1.0", optional = true }
   |  ____________________________--------------^
   | |                            |
-  | |                            info: This should also be long but not too long
+  | |                            This should also be long but not too long
 5 | | this is another line
 6 | | so is this
 7 | | bar = { version = "0.1.0", optional = true }
   | |__________________________________________^ I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -812,7 +812,7 @@ error: unused optional dependency
 4 |    bar = { version = "0.1.0", optional = true }
   |   _________^__________________--------------^
   |  |         |                  |
-  |  |_________|                  info: This should also be long but not too long
+  |  |_________|                  This should also be long but not too long
   | ||
 5 | || this is another line
 6 | || so is this
@@ -822,7 +822,7 @@ error: unused optional dependency
   |                            I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -863,7 +863,7 @@ error: unused optional dependency
 4 |     bar = { version = "0.1.0", optional = true }
   |   __________^__________________--------------^
   |  |          |                  |
-  |  |__________|                  info: This should also be long but not too long
+  |  |__________|                  This should also be long but not too long
   | ||
 5 | ||  this is another line
   | || ____^
@@ -876,7 +876,7 @@ error: unused optional dependency
   |   |____^ I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -900,7 +900,7 @@ error: title
 4 | ddd
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }
 
 #[test]
@@ -924,5 +924,5 @@ error: title
 4 | ddd
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input).to_string(), expected);
+    assert_data_eq!(renderer.render(input), expected);
 }

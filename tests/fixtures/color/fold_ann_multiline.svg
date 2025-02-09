@@ -1,4 +1,4 @@
-<svg width="869px" height="218px" xmlns="http://www.w3.org/2000/svg">
+<svg width="869px" height="236px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -34,13 +34,15 @@
 </tspan>
     <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">53</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>         match (ann.range.0, ann.range.1) {</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan class="fg-bright-blue bold">...</tspan><tspan>  </tspan><tspan class="fg-bright-red bold">|</tspan>
+    <tspan x="10px" y="154px"><tspan class="fg-bright-blue bold">54</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>             (None, None) =&gt; continue,</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan class="fg-bright-blue bold">71</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>         }</tspan>
+    <tspan x="10px" y="172px"><tspan class="fg-bright-blue bold">55</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>             (Some(start), Some(end)) if start &gt; end_index || end &lt; start_index =&gt; continue,</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan class="fg-bright-blue bold">72</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>     }</tspan>
+    <tspan x="10px" y="190px"><tspan class="fg-bright-blue bold">...</tspan><tspan>  </tspan><tspan class="fg-bright-red bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="208px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|_____^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected enum `std::option::Option`, found ()</tspan>
+    <tspan x="10px" y="208px"><tspan class="fg-bright-blue bold">72</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>     }</tspan>
+</tspan>
+    <tspan x="10px" y="226px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|_____^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected enum `std::option::Option`, found ()</tspan>
 </tspan>
   </text>
 

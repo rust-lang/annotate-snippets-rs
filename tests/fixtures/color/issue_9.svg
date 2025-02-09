@@ -1,4 +1,4 @@
-<svg width="911px" height="200px" xmlns="http://www.w3.org/2000/svg">
+<svg width="919px" height="218px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -22,23 +22,25 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan class="bold">: expected one of `.`, `;`, `?`, or an operator, found `for`</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>/code/rust/src/test/ui/annotate-snippet/suggestion.rs:4:5</tspan>
+    <tspan x="10px" y="46px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>/code/rust/src/test/ui/annotate-snippet/suggestion.rs:4:5</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
+    <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">4</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> let x = vec![1];</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">4</tspan><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> let x = vec![1];</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     </tspan><tspan class="fg-yellow bold">-</tspan><tspan> </tspan><tspan class="fg-yellow bold">move occurs because `x` has type `std::vec::Vec&lt;i32&gt;`, which does not implement the `Copy` trait</tspan>
+    <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     </tspan><tspan class="fg-yellow bold">-</tspan><tspan> </tspan><tspan class="fg-yellow bold">move occurs because `x` has type `std::vec::Vec&lt;i32&gt;`, which does not implement the `Copy` trait</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
+    <tspan x="10px" y="118px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">7</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> let y = x;</tspan>
+    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">7</tspan><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> let y = x;</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>         </tspan><tspan class="fg-yellow bold">-</tspan><tspan> </tspan><tspan class="fg-yellow bold">value moved here</tspan>
+    <tspan x="10px" y="154px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>         </tspan><tspan class="fg-yellow bold">-</tspan><tspan> </tspan><tspan class="fg-yellow bold">value moved here</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan class="fg-bright-blue bold">9</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> x;</tspan>
+    <tspan x="10px" y="172px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">value used here after move</tspan>
+    <tspan x="10px" y="190px"><tspan class="fg-bright-blue bold">9</tspan><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> x;</tspan>
+</tspan>
+    <tspan x="10px" y="208px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">value used here after move</tspan>
 </tspan>
   </text>
 

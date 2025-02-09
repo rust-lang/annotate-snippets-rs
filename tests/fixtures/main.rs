@@ -37,6 +37,6 @@ fn test(input_path: &std::path::Path) -> Result<Data, Box<dyn Error>> {
     let renderer: Renderer = fixture.renderer.into();
     let message: Message<'_> = (&fixture.message).into();
 
-    let actual = renderer.render(message).to_string();
+    let actual = renderer.render(message);
     Ok(Data::from(actual).coerce_to(DataFormat::TermSvg))
 }

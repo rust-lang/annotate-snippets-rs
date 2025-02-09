@@ -41,7 +41,7 @@ fn simple() -> String {
     );
 
     let renderer = Renderer::plain();
-    let rendered = renderer.render(message).to_string();
+    let rendered = renderer.render(message);
     rendered
 }
 
@@ -79,7 +79,7 @@ fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
             );
 
             let renderer = Renderer::plain();
-            let rendered = renderer.render(message).to_string();
+            let rendered = renderer.render(message);
             rendered
         });
 }

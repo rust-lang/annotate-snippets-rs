@@ -1,4 +1,4 @@
-<svg width="860px" height="200px" xmlns="http://www.w3.org/2000/svg">
+<svg width="860px" height="182px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -21,23 +21,21 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan class="bold">: expected type, found `22`</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>examples/footer.rs:29:25</tspan>
+    <tspan x="10px" y="46px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>examples/footer.rs:26:35</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">26</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                 annotations: vec![SourceAnnotation {</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                                   </tspan><tspan class="fg-bright-blue bold">----------------</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">info: while parsing this struct</tspan>
+    <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                                   </tspan><tspan class="fg-bright-blue bold">----------------</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">while parsing this struct</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">27</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"</tspan>
+    <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">...</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">28</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                     ,</tspan>
+    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">29</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                 range: &lt;22, 25&gt;,</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan class="fg-bright-blue bold">29</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                 range: &lt;22, 25&gt;,</tspan>
+    <tspan x="10px" y="154px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                         </tspan><tspan class="fg-bright-red bold">^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected struct `annotate_snippets::snippet::Slice`, found reference</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                         </tspan><tspan class="fg-bright-red bold">^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected struct `annotate_snippets::snippet::Slice`, found reference</tspan>
-</tspan>
-    <tspan x="10px" y="190px">
+    <tspan x="10px" y="172px">
 </tspan>
   </text>
 
