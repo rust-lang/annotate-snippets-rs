@@ -47,4 +47,5 @@ mod snippet;
 
 #[doc(inline)]
 pub use renderer::Renderer;
+pub use snippet::ColumnSeparator;
 pub use snippet::*;

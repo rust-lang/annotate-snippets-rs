@@ -2,20 +2,21 @@
 level = "Error"
 title = "expected one of `.`, `;`, `?`, or an operator, found `for`"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = """
         })
 
         for line in &self.body {"""
 line_start = 169
 origin = "src/format_color.rs"
-[[message.snippets.annotations]]
+[[message.sections.annotations]]
 label = "unexpected token"
-level = "Error"
+kind = "Primary"
 range = [20, 23]
-[[message.snippets.annotations]]
+[[message.sections.annotations]]
 label = "expected one of `.`, `;`, `?`, or an operator here"
-level = "Warning"
+kind = "Context"
 range = [10, 11]
 
 [renderer]

@@ -3,16 +3,16 @@ title = "invalid character ` ` in package name: `haha this isn't a valid name ğŸ
 level = "Error"
 
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = """
 "haha this isn't a valid name ğŸ›" = { package = "libc", version = "0.1" }
 """
 line_start = 7
 origin = "<file>"
-[[message.snippets.annotations]]
-label = ""
-level = "Error"
-range = [0, 35]
+annotations = [
+    { label = "", kind = "Primary", range = [0, 35] },
+]
 
 [renderer]
 color = true

@@ -10,6 +10,7 @@ pub(crate) struct Stylesheet {
     pub(crate) line_no: Style,
     pub(crate) emphasis: Style,
     pub(crate) none: Style,
+    pub(crate) context: Style,
 }
 
 impl Default for Stylesheet {
@@ -29,6 +30,7 @@ impl Stylesheet {
             line_no: Style::new(),
             emphasis: Style::new(),
             none: Style::new(),
+            context: Style::new(),
         }
     }
 }

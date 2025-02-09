@@ -4,6 +4,8 @@
 
 use crate::renderer::stylesheet::Stylesheet;
 use crate::renderer::ElementStyle;
+use crate::Level;
+
 use std::fmt;
 use std::fmt::Write;
 
@@ -37,12 +39,16 @@ impl StyledBuffer {
         }
     }
 
-    pub(crate) fn render(&self, stylesheet: &Stylesheet) -> Result<String, fmt::Error> {
+    pub(crate) fn render(
+        &self,
+        level: Level,
+        stylesheet: &Stylesheet,
+    ) -> Result<String, fmt::Error> {
         let mut str = String::new();
         for (i, line) in self.lines.iter().enumerate() {
             let mut current_style = stylesheet.none;
             for StyledChar { ch, style } in line {
-                let ch_style = style.color_spec(stylesheet);
+                let ch_style = style.color_spec(level, stylesheet);
                 if ch_style != current_style {
                     if !line.is_empty() {
                         write!(str, "{}", current_style.render_reset())?;

@@ -4,7 +4,6 @@
     .bg { background: #000000 }
     .fg-bright-blue { fill: #5555FF }
     .fg-bright-red { fill: #FF5555 }
-    .fg-yellow { fill: #AA5500 }
     .container {
       padding: 0 10px;
       line-height: 18px;
@@ -22,13 +21,13 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan class="bold">: expected one of `.`, `;`, `?`, or an operator, found `for`</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>   </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>src/format_color.rs:169:11</tspan>
+    <tspan x="10px" y="46px"><tspan>   </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>src/format_color.rs:171:9</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan>    </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">169</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>         })</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>    </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>           </tspan><tspan class="fg-yellow bold">-</tspan><tspan> </tspan><tspan class="fg-yellow bold">expected one of `.`, `;`, `?`, or an operator here</tspan>
+    <tspan x="10px" y="100px"><tspan>    </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>           </tspan><tspan class="fg-bright-blue bold">-</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">expected one of `.`, `;`, `?`, or an operator here</tspan>
 </tspan>
     <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">170</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>

@@ -4,7 +4,6 @@
     .bg { background: #000000 }
     .fg-bright-blue { fill: #5555FF }
     .fg-bright-red { fill: #FF5555 }
-    .fg-yellow { fill: #AA5500 }
     .container {
       padding: 0 10px;
       line-height: 18px;
@@ -28,7 +27,7 @@
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> invalid syntax</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-yellow bold">--------------</tspan><tspan> </tspan><tspan class="fg-yellow bold">error here</tspan>
+    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">--------------</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">error here</tspan>
 </tspan>
   </text>
 

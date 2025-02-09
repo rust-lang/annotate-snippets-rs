@@ -3,7 +3,8 @@ level = "Error"
 id = "E0308"
 title = "invalid type: integer `20`, expected a lints table"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = """
 lints = 20
 
@@ -19,10 +20,9 @@ edition = "2021"
 line_start = 1
 origin = "Cargo.toml"
 fold = true
-[[message.snippets.annotations]]
-label = ""
-level = "Error"
-range = [8, 10]
+annotations = [
+    { label = "", kind = "Primary", range = [8, 10] },
+]
 
 [renderer]
 color = true

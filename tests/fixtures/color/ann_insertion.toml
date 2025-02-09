@@ -2,14 +2,14 @@
 level = "Error"
 title = "expected `.`, `=`"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = "asf"
 line_start = 1
 origin = "Cargo.toml"
-[[message.snippets.annotations]]
-label = "'d' belongs here"
-level = "Error"
-range = [2, 2]
+annotations = [
+    { label = "'d' belongs here", kind = "Primary", range = [2, 2] }
+]
 
 [renderer]
 color = true

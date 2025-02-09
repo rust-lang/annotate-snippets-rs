@@ -1,5 +1,5 @@
 use crate::renderer::{char_width, num_overlap, LineAnnotation, LineAnnotationType};
-use crate::{Annotation, Level};
+use crate::{Annotation, AnnotationKind};
 use std::cmp::{max, min};
 use std::ops::Range;
 
@@ -105,7 +105,7 @@ impl<'a> SourceMap<'a> {
         &self,
         annotations: Vec<Annotation<'a>>,
         fold: bool,
-    ) -> Vec<AnnotatedLineInfo<'a>> {
+    ) -> (usize, Vec<AnnotatedLineInfo<'a>>) {
         let source_len = self.source.len();
         if let Some(bigger) = annotations.iter().find_map(|x| {
             // Allow highlighting one past the last character in the source.
@@ -129,12 +129,7 @@ impl<'a> SourceMap<'a> {
             .collect::<Vec<_>>();
         let mut multiline_annotations = vec![];
 
-        for Annotation {
-            range,
-            label,
-            level,
-        } in annotations
-        {
+        for Annotation { range, label, kind } in annotations {
             let (lo, mut hi) = self.span_to_locations(range);
 
             // Watch out for "empty spans". If we get a span like 6..6, we
@@ -151,7 +146,7 @@ impl<'a> SourceMap<'a> {
                 let line_ann = LineAnnotation {
                     start: lo,
                     end: hi,
-                    level,
+                    kind,
                     label,
                     annotation_type: LineAnnotationType::Singleline,
                 };
@@ -161,17 +156,22 @@ impl<'a> SourceMap<'a> {
                     depth: 1,
                     start: lo,
                     end: hi,
-                    level,
+                    kind,
                     label,
                     overlaps_exactly: false,
                 });
             }
         }
 
+        let mut primary_spans = vec![];
+
         // Find overlapping multiline annotations, put them at different depths
         multiline_annotations
             .sort_by_key(|ml| (ml.start.line, usize::MAX - ml.end.line, ml.start.byte));
         for ann in multiline_annotations.clone() {
+            if ann.kind.is_primary() {
+                primary_spans.push((ann.start, ann.end));
+            }
             for a in &mut multiline_annotations {
                 // Move all other multiline annotations overlapping with this one
                 // one level to the right.
@@ -182,6 +182,12 @@ impl<'a> SourceMap<'a> {
                 } else if ann.same_span(a) && &ann != a {
                     a.overlaps_exactly = true;
                 } else {
+                    if primary_spans
+                        .iter()
+                        .any(|(s, e)| a.start == *s && a.end == *e)
+                    {
+                        a.kind = AnnotationKind::Primary;
+                    }
                     break;
                 }
             }
@@ -268,7 +274,7 @@ impl<'a> SourceMap<'a> {
             .iter_mut()
             .for_each(|l| l.annotations.sort_by(|a, b| a.start.cmp(&b.start)));
 
-        annotated_line_infos
+        (max_depth, annotated_line_infos)
     }
 
     fn add_annotation_to_file(
@@ -303,7 +309,7 @@ pub(crate) struct MultilineAnnotation<'a> {
     pub depth: usize,
     pub start: Loc,
     pub end: Loc,
-    pub level: Level,
+    pub kind: AnnotationKind,
     pub label: Option<&'a str>,
     pub overlaps_exactly: bool,
 }
@@ -327,7 +333,7 @@ impl<'a> MultilineAnnotation<'a> {
                 display: self.start.display + 1,
                 byte: self.start.byte + 1,
             },
-            level: self.level,
+            kind: self.kind,
             label: None,
             annotation_type: LineAnnotationType::MultilineStart(self.depth),
         }
@@ -342,7 +348,7 @@ impl<'a> MultilineAnnotation<'a> {
                 byte: self.end.byte.saturating_sub(1),
             },
             end: self.end,
-            level: self.level,
+            kind: self.kind,
             label: self.label,
             annotation_type: LineAnnotationType::MultilineEnd(self.depth),
         }
@@ -352,7 +358,7 @@ impl<'a> MultilineAnnotation<'a> {
         LineAnnotation {
             start: Loc::default(),
             end: Loc::default(),
-            level: self.level,
+            kind: self.kind,
             label: None,
             annotation_type: LineAnnotationType::MultilineLine(self.depth),
         }

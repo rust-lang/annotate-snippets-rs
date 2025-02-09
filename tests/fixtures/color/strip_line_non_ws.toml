@@ -3,21 +3,22 @@ level = "Error"
 id = "E0308"
 title = "mismatched types"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = """
 	let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();
 """
 line_start = 4
 origin = "$DIR/non-whitespace-trimming.rs"
 
-[[message.snippets.annotations]]
+[[message.sections.annotations]]
 label = "expected `()`, found integer"
-level = "Error"
+kind = "Primary"
 range = [237, 239]
 
-[[message.snippets.annotations]]
+[[message.sections.annotations]]
 label = "expected due to this"
-level = "Error"
+kind = "Primary"
 range = [232, 234]
 
 
