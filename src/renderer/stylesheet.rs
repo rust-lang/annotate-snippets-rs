@@ -11,6 +11,8 @@ pub(crate) struct Stylesheet {
     pub(crate) emphasis: Style,
     pub(crate) none: Style,
     pub(crate) context: Style,
+    pub(crate) addition: Style,
+    pub(crate) removal: Style,
 }
 
 impl Default for Stylesheet {
@@ -31,6 +33,8 @@ impl Stylesheet {
             emphasis: Style::new(),
             none: Style::new(),
             context: Style::new(),
+            addition: Style::new(),
+            removal: Style::new(),
         }
     }
 }

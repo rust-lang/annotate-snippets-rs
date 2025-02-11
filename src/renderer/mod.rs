@@ -36,18 +36,23 @@
 //! ```
 
 mod margin;
-mod source_map;
+pub(crate) mod source_map;
 mod styled_buffer;
 pub(crate) mod stylesheet;
 
-use crate::renderer::source_map::{AnnotatedLineInfo, Loc, SourceMap};
+use crate::renderer::source_map::{
+    AnnotatedLineInfo, LineInfo, Loc, SourceMap, SubstitutionHighlight,
+};
 use crate::renderer::styled_buffer::StyledBuffer;
-use crate::{Annotation, AnnotationKind, Element, Group, Level, Message, Origin, Snippet, Title};
+use crate::{
+    Annotation, AnnotationKind, Element, Group, Level, Message, Origin, Patch, Snippet, Title,
+};
 pub use anstyle::*;
 use margin::Margin;
 use std::borrow::Cow;
 use std::cmp::{max, min, Ordering, Reverse};
 use std::collections::{HashMap, VecDeque};
+use std::ops::Range;
 use stylesheet::Stylesheet;
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
@@ -103,6 +108,8 @@ impl Renderer {
                 .effects(Effects::BOLD),
                 none: Style::new(),
                 context: BRIGHT_BLUE.effects(Effects::BOLD),
+                addition: AnsiColor::BrightGreen.on_default(),
+                removal: AnsiColor::BrightRed.on_default(),
             },
             ..Self::plain()
         }
@@ -213,6 +220,41 @@ impl Renderer {
         message: Message<'_>,
         max_line_num_len: usize,
     ) {
+        let og_primary_origin = message
+            .groups
+            .iter()
+            .find_map(|group| {
+                group.elements.iter().find_map(|s| match &s {
+                    Element::Cause(cause) => {
+                        if cause.markers.iter().any(|m| m.kind.is_primary()) {
+                            Some(cause.origin)
+                        } else {
+                            None
+                        }
+                    }
+                    Element::Origin(origin) => {
+                        if origin.primary {
+                            Some(Some(origin.origin))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                })
+            })
+            .unwrap_or(
+                message
+                    .groups
+                    .iter()
+                    .find_map(|group| {
+                        group.elements.iter().find_map(|s| match &s {
+                            Element::Cause(cause) => Some(cause.origin),
+                            Element::Origin(origin) => Some(Some(origin.origin)),
+                            _ => None,
+                        })
+                    })
+                    .unwrap_or_default(),
+            );
         let group_len = message.groups.len();
         for (g, group) in message.groups.into_iter().enumerate() {
             let primary_origin = group
@@ -258,6 +300,7 @@ impl Renderer {
                 }
             }
             let mut message_iter = group.elements.iter().enumerate().peekable();
+            let mut last_was_suggestion = false;
             while let Some((i, section)) = message_iter.next() {
                 let peek = message_iter.peek().map(|(_, s)| s).copied();
                 match &section {
@@ -276,6 +319,7 @@ impl Renderer {
                                 }
                             }),
                         );
+                        last_was_suggestion = false;
                     }
                     Element::Cause(cause) => {
                         if let Some((source_map, annotated_lines)) =
@@ -312,9 +356,25 @@ impl Renderer {
                                 }
                             }
                         }
+
+                        last_was_suggestion = false;
                     }
+                    Element::Suggestion(suggestion) => {
+                        let source_map = SourceMap::new(suggestion.source, suggestion.line_start);
+                        self.emit_suggestion_default(
+                            buffer,
+                            suggestion,
+                            max_line_num_len,
+                            &source_map,
+                            primary_origin.or(og_primary_origin),
+                            last_was_suggestion,
+                        );
+                        last_was_suggestion = true;
+                    }
+
                     Element::Origin(origin) => {
                         self.render_origin(buffer, max_line_num_len, origin);
+                        last_was_suggestion = false;
                     }
                     Element::ColumnSeparator(_) => {
                         self.draw_col_separator_no_space(
@@ -368,6 +428,7 @@ impl Renderer {
                     cause.markers.iter().any(|m| m.kind.is_primary()),
                     cause.markers.iter().any(|m| m.label.is_some()),
                 ),
+                Element::Suggestion(_) => (true, false),
                 Element::Origin(_) => (false, true),
             });
 
@@ -1389,6 +1450,534 @@ impl Renderer {
             .collect::<Vec<_>>()
     }
 
+    fn emit_suggestion_default(
+        &self,
+        buffer: &mut StyledBuffer,
+        suggestion: &Snippet<'_, Patch<'_>>,
+        max_line_num_len: usize,
+        sm: &SourceMap<'_>,
+        primary_origin: Option<&str>,
+        is_cont: bool,
+    ) {
+        let suggestions = sm.splice_lines(suggestion.markers.clone());
+
+        let buffer_offset = buffer.num_lines();
+        let mut row_num = buffer_offset + usize::from(!is_cont);
+        for (i, (complete, parts, highlights)) in suggestions.iter().enumerate() {
+            let has_deletion = parts
+                .iter()
+                .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
+            let is_multiline = complete.lines().count() > 1;
+
+            if i == 0 {
+                self.draw_col_separator_no_space_with_style(
+                    buffer,
+                    '|',
+                    row_num - 1,
+                    max_line_num_len + 1,
+                    ElementStyle::LineNumber,
+                );
+            } else {
+                buffer.puts(
+                    row_num - 1,
+                    max_line_num_len + 1,
+                    "|",
+                    ElementStyle::LineNumber,
+                );
+            }
+            if suggestion.origin != primary_origin {
+                if let Some(origin) = suggestion.origin {
+                    let (loc, _) = sm.span_to_locations(parts[0].range.clone());
+                    // --> file.rs:line:col
+                    //  |
+                    let arrow = self.file_start();
+                    buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
+                    let message = format!("{}:{}:{}", origin, loc.line, loc.char + 1);
+                    if is_cont {
+                        buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
+                    } else {
+                        let col = usize::max(max_line_num_len + 1, arrow.len());
+                        buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
+                    }
+                    for _ in 0..max_line_num_len {
+                        buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
+                    }
+                    self.draw_col_separator_no_space(buffer, row_num, max_line_num_len + 1);
+                    row_num += 1;
+                }
+            }
+            let show_code_change = if has_deletion && !is_multiline {
+                DisplaySuggestion::Diff
+            } else if parts.len() == 1
+                && parts.first().map_or(false, |p| {
+                    p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
+                })
+            {
+                // We are adding a line(s) of code before code that was already there.
+                DisplaySuggestion::Add
+            } else if (parts.len() != 1 || parts[0].replacement.trim() != complete.trim())
+                && !is_multiline
+            {
+                DisplaySuggestion::Underline
+            } else {
+                DisplaySuggestion::None
+            };
+
+            if let DisplaySuggestion::Diff = show_code_change {
+                row_num += 1;
+            }
+
+            let file_lines = sm.span_to_lines(parts[0].range.clone());
+            let (line_start, line_end) = sm.span_to_locations(parts[0].range.clone());
+            let mut lines = complete.lines();
+            if lines.clone().next().is_none() {
+                // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
+                for line in line_start.line..=line_end.line {
+                    buffer.puts(
+                        row_num - 1 + line - line_start.line,
+                        0,
+                        &self.maybe_anonymized(line),
+                        ElementStyle::LineNumber,
+                    );
+                    buffer.puts(
+                        row_num - 1 + line - line_start.line,
+                        max_line_num_len + 1,
+                        "- ",
+                        ElementStyle::Removal,
+                    );
+                    buffer.puts(
+                        row_num - 1 + line - line_start.line,
+                        max_line_num_len + 3,
+                        &normalize_whitespace(sm.get_line(line).unwrap()),
+                        ElementStyle::Removal,
+                    );
+                }
+                row_num += line_end.line - line_start.line;
+            }
+            let mut last_pos = 0;
+            let mut is_item_attribute = false;
+            let mut unhighlighted_lines = Vec::new();
+            for (line_pos, (line, highlight_parts)) in lines.by_ref().zip(highlights).enumerate() {
+                last_pos = line_pos;
+
+                // Remember lines that are not highlighted to hide them if needed
+                if highlight_parts.is_empty() {
+                    unhighlighted_lines.push((line_pos, line));
+                    continue;
+                }
+                if highlight_parts.len() == 1
+                    && line.trim().starts_with("#[")
+                    && line.trim().ends_with(']')
+                {
+                    is_item_attribute = true;
+                }
+
+                match unhighlighted_lines.len() {
+                    0 => (),
+                    // Since we show first line, "..." line and last line,
+                    // There is no reason to hide if there are 3 or less lines
+                    // (because then we just replace a line with ... which is
+                    // not helpful)
+                    n if n <= 3 => unhighlighted_lines.drain(..).for_each(|(p, l)| {
+                        self.draw_code_line(
+                            buffer,
+                            &mut row_num,
+                            &[],
+                            p + line_start.line,
+                            l,
+                            show_code_change,
+                            max_line_num_len,
+                            &file_lines,
+                            is_multiline,
+                        );
+                    }),
+                    // Print first unhighlighted line, "..." and last unhighlighted line, like so:
+                    //
+                    // LL | this line was highlighted
+                    // LL | this line is just for context
+                    // ...
+                    // LL | this line is just for context
+                    // LL | this line was highlighted
+                    _ => {
+                        let last_line = unhighlighted_lines.pop();
+                        let first_line = unhighlighted_lines.drain(..).next();
+
+                        if let Some((p, l)) = first_line {
+                            self.draw_code_line(
+                                buffer,
+                                &mut row_num,
+                                &[],
+                                p + line_start.line,
+                                l,
+                                show_code_change,
+                                max_line_num_len,
+                                &file_lines,
+                                is_multiline,
+                            );
+                        }
+
+                        let placeholder = "...";
+                        let padding = str_width(placeholder);
+                        buffer.puts(
+                            row_num,
+                            max_line_num_len.saturating_sub(padding),
+                            placeholder,
+                            ElementStyle::LineNumber,
+                        );
+                        row_num += 1;
+
+                        if let Some((p, l)) = last_line {
+                            self.draw_code_line(
+                                buffer,
+                                &mut row_num,
+                                &[],
+                                p + line_start.line,
+                                l,
+                                show_code_change,
+                                max_line_num_len,
+                                &file_lines,
+                                is_multiline,
+                            );
+                        }
+                    }
+                }
+                self.draw_code_line(
+                    buffer,
+                    &mut row_num,
+                    highlight_parts,
+                    line_pos + line_start.line,
+                    line,
+                    show_code_change,
+                    max_line_num_len,
+                    &file_lines,
+                    is_multiline,
+                );
+            }
+
+            if matches!(show_code_change, DisplaySuggestion::Add) && is_item_attribute {
+                // The suggestion adds an entire line of code, ending on a newline, so we'll also
+                // print the *following* line, to provide context of what we're advising people to
+                // do. Otherwise you would only see contextless code that can be confused for
+                // already existing code, despite the colors and UI elements.
+                // We special case `#[derive(_)]\n` and other attribute suggestions, because those
+                // are the ones where context is most useful.
+                let file_lines = sm.span_to_lines(parts[0].range.end..parts[0].range.end);
+                let (lo, _) = sm.span_to_locations(parts[0].range.clone());
+                let line_num = lo.line;
+                if let Some(line) = sm.get_line(line_num) {
+                    let line = normalize_whitespace(line);
+                    self.draw_code_line(
+                        buffer,
+                        &mut row_num,
+                        &[],
+                        line_num + last_pos + 1,
+                        &line,
+                        DisplaySuggestion::None,
+                        max_line_num_len,
+                        &file_lines,
+                        is_multiline,
+                    );
+                }
+            }
+            // This offset and the ones below need to be signed to account for replacement code
+            // that is shorter than the original code.
+            let mut offsets: Vec<(usize, isize)> = Vec::new();
+            // Only show an underline in the suggestions if the suggestion is not the
+            // entirety of the code being shown and the displayed code is not multiline.
+            if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
+                show_code_change
+            {
+                for part in parts {
+                    let (span_start, span_end) = sm.span_to_locations(part.range.clone());
+                    let span_start_pos = span_start.display;
+                    let span_end_pos = span_end.display;
+
+                    // If this addition is _only_ whitespace, then don't trim it,
+                    // or else we're just not rendering anything.
+                    let is_whitespace_addition = part.replacement.trim().is_empty();
+
+                    // Do not underline the leading...
+                    let start = if is_whitespace_addition {
+                        0
+                    } else {
+                        part.replacement
+                            .len()
+                            .saturating_sub(part.replacement.trim_start().len())
+                    };
+                    // ...or trailing spaces. Account for substitutions containing unicode
+                    // characters.
+                    let sub_len: usize = str_width(if is_whitespace_addition {
+                        part.replacement
+                    } else {
+                        part.replacement.trim()
+                    });
+
+                    let offset: isize = offsets
+                        .iter()
+                        .filter_map(|(start, v)| {
+                            if span_start_pos < *start {
+                                None
+                            } else {
+                                Some(v)
+                            }
+                        })
+                        .sum();
+                    let underline_start = (span_start_pos + start) as isize + offset;
+                    let underline_end = (span_start_pos + start + sub_len) as isize + offset;
+                    assert!(underline_start >= 0 && underline_end >= 0);
+                    let padding: usize = max_line_num_len + 3;
+                    for p in underline_start..underline_end {
+                        if matches!(show_code_change, DisplaySuggestion::Underline)
+                            && is_different(sm, part.replacement, part.range.clone())
+                        {
+                            // If this is a replacement, underline with `~`, if this is an addition
+                            // underline with `+`.
+                            buffer.putc(
+                                row_num,
+                                (padding as isize + p) as usize,
+                                if part.is_addition(sm) { '+' } else { '~' },
+                                ElementStyle::Addition,
+                            );
+                        }
+                    }
+                    if let DisplaySuggestion::Diff = show_code_change {
+                        // Colorize removal with red in diff format.
+                        buffer.set_style_range(
+                            row_num - 2,
+                            (padding as isize + span_start_pos as isize) as usize,
+                            (padding as isize + span_end_pos as isize) as usize,
+                            ElementStyle::Removal,
+                            true,
+                        );
+                    }
+
+                    // length of the code after substitution
+                    let full_sub_len = str_width(part.replacement) as isize;
+
+                    // length of the code to be substituted
+                    let snippet_len = span_end_pos as isize - span_start_pos as isize;
+                    // For multiple substitutions, use the position *after* the previous
+                    // substitutions have happened, only when further substitutions are
+                    // located strictly after.
+                    offsets.push((span_end_pos, full_sub_len - snippet_len));
+                }
+                row_num += 1;
+            }
+
+            // if we elided some lines, add an ellipsis
+            if lines.next().is_some() {
+                let placeholder = "...";
+                let padding = str_width(placeholder);
+                buffer.puts(
+                    row_num,
+                    max_line_num_len.saturating_sub(padding),
+                    placeholder,
+                    ElementStyle::LineNumber,
+                );
+            } else {
+                let row = match show_code_change {
+                    DisplaySuggestion::Diff
+                    | DisplaySuggestion::Add
+                    | DisplaySuggestion::Underline => row_num - 1,
+                    DisplaySuggestion::None => row_num,
+                };
+                self.draw_col_separator_no_space_with_style(
+                    buffer,
+                    '|',
+                    row,
+                    max_line_num_len + 1,
+                    ElementStyle::LineNumber,
+                );
+                row_num = row + 1;
+            }
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn draw_code_line(
+        &self,
+        buffer: &mut StyledBuffer,
+        row_num: &mut usize,
+        highlight_parts: &[SubstitutionHighlight],
+        line_num: usize,
+        line_to_add: &str,
+        show_code_change: DisplaySuggestion,
+        max_line_num_len: usize,
+        file_lines: &[&LineInfo<'_>],
+        is_multiline: bool,
+    ) {
+        if let DisplaySuggestion::Diff = show_code_change {
+            // We need to print more than one line if the span we need to remove is multiline.
+            // For more info: https://github.com/rust-lang/rust/issues/92741
+            let lines_to_remove = file_lines.iter().take(file_lines.len() - 1);
+            for (index, line_to_remove) in lines_to_remove.enumerate() {
+                buffer.puts(
+                    *row_num - 1,
+                    0,
+                    &self.maybe_anonymized(line_num + index),
+                    ElementStyle::LineNumber,
+                );
+                buffer.puts(
+                    *row_num - 1,
+                    max_line_num_len + 1,
+                    "- ",
+                    ElementStyle::Removal,
+                );
+                let line = normalize_whitespace(line_to_remove.line);
+                buffer.puts(
+                    *row_num - 1,
+                    max_line_num_len + 3,
+                    &line,
+                    ElementStyle::NoStyle,
+                );
+                *row_num += 1;
+            }
+            // If the last line is exactly equal to the line we need to add, we can skip both of
+            // them. This allows us to avoid output like the following:
+            // 2 - &
+            // 2 + if true { true } else { false }
+            // 3 - if true { true } else { false }
+            // If those lines aren't equal, we print their diff
+            let last_line = &file_lines.last().unwrap();
+            if last_line.line == line_to_add {
+                *row_num -= 2;
+            } else {
+                buffer.puts(
+                    *row_num - 1,
+                    0,
+                    &self.maybe_anonymized(line_num + file_lines.len() - 1),
+                    ElementStyle::LineNumber,
+                );
+                buffer.puts(
+                    *row_num - 1,
+                    max_line_num_len + 1,
+                    "- ",
+                    ElementStyle::Removal,
+                );
+                buffer.puts(
+                    *row_num - 1,
+                    max_line_num_len + 3,
+                    &normalize_whitespace(last_line.line),
+                    ElementStyle::NoStyle,
+                );
+                if line_to_add.trim().is_empty() {
+                    *row_num -= 1;
+                } else {
+                    // Check if after the removal, the line is left with only whitespace. If so, we
+                    // will not show an "addition" line, as removing the whole line is what the user
+                    // would really want.
+                    // For example, for the following:
+                    //   |
+                    // 2 -     .await
+                    // 2 +     (note the left over whitespace)
+                    //   |
+                    // We really want
+                    //   |
+                    // 2 -     .await
+                    //   |
+                    // *row_num -= 1;
+                    buffer.puts(
+                        *row_num,
+                        0,
+                        &self.maybe_anonymized(line_num),
+                        ElementStyle::LineNumber,
+                    );
+                    buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
+                    buffer.append(
+                        *row_num,
+                        &normalize_whitespace(line_to_add),
+                        ElementStyle::NoStyle,
+                    );
+                }
+            }
+        } else if is_multiline {
+            buffer.puts(
+                *row_num,
+                0,
+                &self.maybe_anonymized(line_num),
+                ElementStyle::LineNumber,
+            );
+            match &highlight_parts {
+                [SubstitutionHighlight { start: 0, end }] if *end == line_to_add.len() => {
+                    buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
+                }
+                [] => {
+                    // FIXME: needed? Doesn't get exercised in any test.
+                    self.draw_col_separator_no_space(buffer, *row_num, max_line_num_len + 1);
+                }
+                _ => {
+                    buffer.puts(*row_num, max_line_num_len + 1, "~", ElementStyle::Addition);
+                }
+            }
+            //   LL | line_to_add
+            //   ++^^^
+            //    |  |
+            //    |  magic `3`
+            //    `max_line_num_len`
+            buffer.puts(
+                *row_num,
+                max_line_num_len + 3,
+                &normalize_whitespace(line_to_add),
+                ElementStyle::NoStyle,
+            );
+        } else if let DisplaySuggestion::Add = show_code_change {
+            buffer.puts(
+                *row_num,
+                0,
+                &self.maybe_anonymized(line_num),
+                ElementStyle::LineNumber,
+            );
+            buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
+            buffer.append(
+                *row_num,
+                &normalize_whitespace(line_to_add),
+                ElementStyle::NoStyle,
+            );
+        } else {
+            buffer.puts(
+                *row_num,
+                0,
+                &self.maybe_anonymized(line_num),
+                ElementStyle::LineNumber,
+            );
+            buffer.puts(
+                *row_num,
+                max_line_num_len + 1,
+                "| ",
+                ElementStyle::LineNumber,
+            );
+            buffer.append(
+                *row_num,
+                &normalize_whitespace(line_to_add),
+                ElementStyle::NoStyle,
+            );
+        }
+
+        // Colorize addition/replacements with green.
+        for &SubstitutionHighlight { start, end } in highlight_parts {
+            // This is a no-op for empty ranges
+            if start != end {
+                // Account for tabs when highlighting (#87972).
+                let tabs: usize = line_to_add
+                    .chars()
+                    .take(start)
+                    .map(|ch| match ch {
+                        '\t' => 3,
+                        _ => 0,
+                    })
+                    .sum();
+                buffer.set_style_range(
+                    *row_num,
+                    max_line_num_len + 3 + start + tabs,
+                    max_line_num_len + 3 + end + tabs,
+                    ElementStyle::Addition,
+                    true,
+                );
+            }
+        }
+        *row_num += 1;
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn draw_line(
         &self,
@@ -1714,6 +2303,14 @@ impl LineAnnotation<'_> {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum DisplaySuggestion {
+    Underline,
+    Diff,
+    None,
+    Add,
+}
+
 // We replace some characters so the CLI output is always consistent and underlines aligned.
 // Keep the following list in sync with `rustc_span::char_width`.
 const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
@@ -1790,11 +2387,15 @@ pub(crate) enum ElementStyle {
     LabelSecondary,
     NoStyle,
     Level(Level),
+    Addition,
+    Removal,
 }
 
 impl ElementStyle {
     fn color_spec(&self, level: Level, stylesheet: &Stylesheet) -> Style {
         match self {
+            ElementStyle::Addition => stylesheet.addition,
+            ElementStyle::Removal => stylesheet.removal,
             ElementStyle::LineAndColumn => stylesheet.none,
             ElementStyle::LineNumber => stylesheet.line_no,
             ElementStyle::Quotation => stylesheet.none,
@@ -1824,6 +2425,14 @@ struct UnderlineParts {
     multiline_end_up: char,
     multiline_end_same_line: char,
     multiline_bottom_right_with_text: char,
+}
+
+/// Whether the original and suggested code are the same.
+pub(crate) fn is_different(sm: &SourceMap<'_>, suggested: &str, range: Range<usize>) -> bool {
+    match sm.span_to_snippet(range) {
+        Some(s) => s != suggested,
+        None => true,
+    }
 }
 
 #[cfg(test)]

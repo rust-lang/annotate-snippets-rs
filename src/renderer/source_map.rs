@@ -1,12 +1,12 @@
-use crate::renderer::{char_width, num_overlap, LineAnnotation, LineAnnotationType};
-use crate::{Annotation, AnnotationKind};
+use crate::renderer::{char_width, is_different, num_overlap, LineAnnotation, LineAnnotationType};
+use crate::{Annotation, AnnotationKind, Patch};
 use std::cmp::{max, min};
 use std::ops::Range;
 
 #[derive(Debug)]
 pub(crate) struct SourceMap<'a> {
     lines: Vec<LineInfo<'a>>,
-    source: &'a str,
+    pub(crate) source: &'a str,
 }
 
 impl<'a> SourceMap<'a> {
@@ -101,6 +101,26 @@ impl<'a> SourceMap<'a> {
         (start, end)
     }
 
+    pub(crate) fn span_to_snippet(&self, span: Range<usize>) -> Option<&str> {
+        self.source.get(span)
+    }
+
+    pub(crate) fn span_to_lines(&self, span: Range<usize>) -> Vec<&LineInfo<'a>> {
+        let mut lines = vec![];
+        let start = span.start;
+        let end = span.end;
+        for line_info in &self.lines {
+            if start >= line_info.end_byte {
+                continue;
+            }
+            if end <= line_info.start_byte {
+                break;
+            }
+            lines.push(line_info);
+        }
+        lines
+    }
+
     pub(crate) fn annotated_lines(
         &self,
         annotations: Vec<Annotation<'a>>,
@@ -130,7 +150,7 @@ impl<'a> SourceMap<'a> {
         let mut multiline_annotations = vec![];
 
         for Annotation { range, label, kind } in annotations {
-            let (lo, mut hi) = self.span_to_locations(range);
+            let (lo, mut hi) = self.span_to_locations(range.clone());
 
             // Watch out for "empty spans". If we get a span like 6..6, we
             // want to just display a `^` at 6, so convert that to
@@ -302,6 +322,176 @@ impl<'a> SourceMap<'a> {
             annotated_line_infos.sort_by_key(|l| l.line_index);
         }
     }
+
+    pub(crate) fn splice_lines<'b>(
+        &'b self,
+        mut patches: Vec<Patch<'b>>,
+    ) -> Vec<(String, Vec<Patch<'b>>, Vec<Vec<SubstitutionHighlight>>)> {
+        fn push_trailing(
+            buf: &mut String,
+            line_opt: Option<&str>,
+            lo: &Loc,
+            hi_opt: Option<&Loc>,
+        ) -> usize {
+            let mut line_count = 0;
+            // Convert CharPos to Usize, as CharPose is character offset
+            // Extract low index and high index
+            let (lo, hi_opt) = (lo.char, hi_opt.map(|hi| hi.char));
+            if let Some(line) = line_opt {
+                if let Some(lo) = line.char_indices().map(|(i, _)| i).nth(lo) {
+                    // Get high index while account for rare unicode and emoji with char_indices
+                    let hi_opt = hi_opt.and_then(|hi| line.char_indices().map(|(i, _)| i).nth(hi));
+                    match hi_opt {
+                        // If high index exist, take string from low to high index
+                        Some(hi) if hi > lo => {
+                            // count how many '\n' exist
+                            line_count = line[lo..hi].matches('\n').count();
+                            buf.push_str(&line[lo..hi]);
+                        }
+                        Some(_) => (),
+                        // If high index absence, take string from low index till end string.len
+                        None => {
+                            // count how many '\n' exist
+                            line_count = line[lo..].matches('\n').count();
+                            buf.push_str(&line[lo..]);
+                        }
+                    }
+                }
+                // If high index is None
+                if hi_opt.is_none() {
+                    buf.push('\n');
+                }
+            }
+            line_count
+        }
+        // Assumption: all spans are in the same file, and all spans
+        // are disjoint. Sort in ascending order.
+        patches.sort_by_key(|p| p.range.start);
+
+        // Find the bounding span.
+        let Some(lo) = patches.iter().map(|p| p.range.start).min() else {
+            return Vec::new();
+        };
+        let Some(hi) = patches.iter().map(|p| p.range.end).max() else {
+            return Vec::new();
+        };
+
+        let lines = self.span_to_lines(lo..hi);
+
+        let mut highlights = vec![];
+        // To build up the result, we do this for each span:
+        // - push the line segment trailing the previous span
+        //   (at the beginning a "phantom" span pointing at the start of the line)
+        // - push lines between the previous and current span (if any)
+        // - if the previous and current span are not on the same line
+        //   push the line segment leading up to the current span
+        // - splice in the span substitution
+        //
+        // Finally push the trailing line segment of the last span
+        let (mut prev_hi, _) = self.span_to_locations(lo..hi);
+        prev_hi.char = 0;
+        let mut prev_line = lines.first().map(|line| line.line);
+        let mut buf = String::new();
+
+        let mut line_highlight = vec![];
+        // We need to keep track of the difference between the existing code and the added
+        // or deleted code in order to point at the correct column *after* substitution.
+        let mut acc = 0;
+        for part in &mut patches {
+            // If this is a replacement of, e.g. `"a"` into `"ab"`, adjust the
+            // suggestion and snippet to look as if we just suggested to add
+            // `"b"`, which is typically much easier for the user to understand.
+            part.trim_trivial_replacements(self);
+            let (cur_lo, cur_hi) = self.span_to_locations(part.range.clone());
+            if prev_hi.line == cur_lo.line {
+                let mut count = push_trailing(&mut buf, prev_line, &prev_hi, Some(&cur_lo));
+                while count > 0 {
+                    highlights.push(std::mem::take(&mut line_highlight));
+                    acc = 0;
+                    count -= 1;
+                }
+            } else {
+                acc = 0;
+                highlights.push(std::mem::take(&mut line_highlight));
+                let mut count = push_trailing(&mut buf, prev_line, &prev_hi, None);
+                while count > 0 {
+                    highlights.push(std::mem::take(&mut line_highlight));
+                    count -= 1;
+                }
+                // push lines between the previous and current span (if any)
+                for idx in prev_hi.line + 1..(cur_lo.line) {
+                    if let Some(line) = self.get_line(idx) {
+                        buf.push_str(line.as_ref());
+                        buf.push('\n');
+                        highlights.push(std::mem::take(&mut line_highlight));
+                    }
+                }
+                if let Some(cur_line) = self.get_line(cur_lo.line) {
+                    let end = match cur_line.char_indices().nth(cur_lo.char) {
+                        Some((i, _)) => i,
+                        None => cur_line.len(),
+                    };
+                    buf.push_str(&cur_line[..end]);
+                }
+            }
+            // Add a whole line highlight per line in the snippet.
+            let len: isize = part
+                .replacement
+                .split('\n')
+                .next()
+                .unwrap_or(part.replacement)
+                .chars()
+                .map(|c| match c {
+                    '\t' => 4,
+                    _ => 1,
+                })
+                .sum();
+            if !is_different(self, part.replacement, part.range.clone()) {
+                // Account for cases where we are suggesting the same code that's already
+                // there. This shouldn't happen often, but in some cases for multipart
+                // suggestions it's much easier to handle it here than in the origin.
+            } else {
+                line_highlight.push(SubstitutionHighlight {
+                    start: (cur_lo.char as isize + acc) as usize,
+                    end: (cur_lo.char as isize + acc + len) as usize,
+                });
+            }
+            buf.push_str(part.replacement);
+            // Account for the difference between the width of the current code and the
+            // snippet being suggested, so that the *later* suggestions are correctly
+            // aligned on the screen. Note that cur_hi and cur_lo can be on different
+            // lines, so cur_hi.col can be smaller than cur_lo.col
+            acc += len - (cur_hi.char as isize - cur_lo.char as isize);
+            prev_hi = cur_hi;
+            prev_line = self.get_line(prev_hi.line);
+            for line in part.replacement.split('\n').skip(1) {
+                acc = 0;
+                highlights.push(std::mem::take(&mut line_highlight));
+                let end: usize = line
+                    .chars()
+                    .map(|c| match c {
+                        '\t' => 4,
+                        _ => 1,
+                    })
+                    .sum();
+                line_highlight.push(SubstitutionHighlight { start: 0, end });
+            }
+        }
+        highlights.push(std::mem::take(&mut line_highlight));
+        // if the replacement already ends with a newline, don't print the next line
+        if !buf.ends_with('\n') {
+            push_trailing(&mut buf, prev_line, &prev_hi, None);
+        }
+        // remove trailing newlines
+        while buf.ends_with('\n') {
+            buf.pop();
+        }
+        if highlights.iter().all(|parts| parts.is_empty()) {
+            Vec::new()
+        } else {
+            vec![(buf, patches, highlights)]
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
@@ -449,4 +639,12 @@ impl<'a> Iterator for CursorLines<'a> {
                 })
         }
     }
+}
+
+/// Used to translate between `Span`s and byte positions within a single output line in highlighted
+/// code of structured suggestions.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SubstitutionHighlight {
+    pub(crate) start: usize,
+    pub(crate) end: usize,
 }

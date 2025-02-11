@@ -1,4 +1,4 @@
-use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Patch, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, str};
 
@@ -1011,4 +1011,682 @@ error: title
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn two_suggestions_same_span() {
+    let source = r#"    A.foo();"#;
+    let input_new = Level::Error
+        .message("expected value, found enum `A`")
+        .id("E0423")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(4..5)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(
+                    Level::Help
+                        .title("you might have meant to use one of the following enum variants"),
+                )
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(4..5, "(A::Tuple())")),
+                )
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(4..5, "A::Unit")),
+                ),
+        );
+
+    let expected = str![[r#"
+error[E0423]: expected value, found enum `A`
+   |
+LL |     A.foo();
+   |     ^
+   |
+help: you might have meant to use one of the following enum variants
+   |
+LL -     A.foo();
+LL +     (A::Tuple()).foo();
+   |
+LL |     A::Unit.foo();
+   |      ++++++
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn two_suggestions_same_span2() {
+    let source = r#"
+mod banana {
+    pub struct Chaenomeles;
+
+    pub trait Apple {
+        fn pick(&self) {}
+    }
+    impl Apple for Chaenomeles {}
+
+    pub trait Peach {
+        fn pick(&self, a: &mut ()) {}
+    }
+    impl<Mango: Peach> Peach for Box<Mango> {}
+    impl Peach for Chaenomeles {}
+}
+
+fn main() {
+    banana::Chaenomeles.pick()
+}"#;
+    let input_new =
+        Level::Error
+            .message("no method named `pick` found for struct `Chaenomeles` in the current scope")
+            .id("E0599")
+            .group(
+                Group::new().element(
+                    Snippet::source(source)
+                        .line_start(1)
+                        .fold(true)
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(18..40)
+                                .label("method `pick` not found for this struct"),
+                        )
+                        .annotation(
+                            AnnotationKind::Primary
+                                .span(318..322)
+                                .label("method not found in `Chaenomeles`"),
+                        ),
+                ),
+            )
+            .group(
+                Group::new()
+                    .element(Level::Help.title(
+                        "the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them",
+                    ))
+                    .element(
+                        Snippet::source(source)
+                            .fold(true)
+                            .patch(Patch::new(1..1, "use banana::Apple;\n")),
+                    )
+                    .element(
+                        Snippet::source(source)
+                            .fold(true)
+                            .patch(Patch::new(1..1, "use banana::Peach;\n")),
+                    ),
+            );
+    let expected = str![[r#"
+error[E0599]: no method named `pick` found for struct `Chaenomeles` in the current scope
+   |
+LL |     pub struct Chaenomeles;
+   |     ---------------------- method `pick` not found for this struct
+...
+LL |     banana::Chaenomeles.pick()
+   |                         ^^^^ method not found in `Chaenomeles`
+   |
+help: the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them
+   |
+LL + use banana::Apple;
+   |
+LL + use banana::Peach;
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn single_line_non_overlapping_suggestions() {
+    let source = r#"    A.foo();"#;
+
+    let input_new = Level::Error
+        .message("expected value, found enum `A`")
+        .id("E0423")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .fold(true)
+                    .line_start(1)
+                    .annotation(AnnotationKind::Primary.span(4..5)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title("make these changes and things will work"))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .fold(true)
+                        .patch(Patch::new(4..5, "(A::Tuple())"))
+                        .patch(Patch::new(6..9, "bar")),
+                ),
+        );
+
+    let expected = str![[r#"
+error[E0423]: expected value, found enum `A`
+   |
+LL |     A.foo();
+   |     ^
+   |
+help: make these changes and things will work
+   |
+LL -     A.foo();
+LL +     (A::Tuple()).bar();
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn single_line_non_overlapping_suggestions2() {
+    let source = r#"    ThisIsVeryLong.foo();"#;
+    let input_new = Level::Error
+        .message("Found `ThisIsVeryLong`")
+        .id("E0423")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .fold(true)
+                    .line_start(1)
+                    .annotation(AnnotationKind::Primary.span(4..18)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title("make these changes and things will work"))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .fold(true)
+                        .patch(Patch::new(4..18, "(A::Tuple())"))
+                        .patch(Patch::new(19..22, "bar")),
+                ),
+        );
+
+    let expected = str![[r#"
+error[E0423]: Found `ThisIsVeryLong`
+   |
+LL |     ThisIsVeryLong.foo();
+   |     ^^^^^^^^^^^^^^
+   |
+help: make these changes and things will work
+   |
+LL -     ThisIsVeryLong.foo();
+LL +     (A::Tuple()).bar();
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn multiple_replacements() {
+    let source = r#"
+    let y = || {
+        self.bar();
+    };
+    self.qux();
+    y();
+"#;
+
+    let input_new = Level::Error
+        .message("cannot borrow `*self` as mutable because it is also borrowed as immutable")
+        .id("E0502")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .line_start(1)
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(49..59)
+                            .label("mutable borrow occurs here"),
+                    )
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(13..15)
+                            .label("immutable borrow occurs here"),
+                    )
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(26..30)
+                            .label("first borrow occurs due to use of `*self` in closure"),
+                    )
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(65..66)
+                            .label("immutable borrow later used here"),
+                    ),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(
+                    Level::Help
+                        .title("try explicitly pass `&Self` into the Closure as an argument"),
+                )
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(14..14, "this: &Self"))
+                        .patch(Patch::new(26..30, "this"))
+                        .patch(Patch::new(66..68, "(self)")),
+                ),
+        );
+    let expected = str![[r#"
+error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable
+   |
+LL |     let y = || {
+   |             ^^ immutable borrow occurs here
+LL |         self.bar();
+   |         ^^^^ first borrow occurs due to use of `*self` in closure
+LL |     };
+LL |     self.qux();
+   |     ^^^^^^^^^^ mutable borrow occurs here
+LL |     y();
+   |     ^ immutable borrow later used here
+   |
+help: try explicitly pass `&Self` into the Closure as an argument
+   |
+LL ~     let y = |this: &Self| {
+LL ~         this.bar();
+LL |     };
+LL |     self.qux();
+LL ~     y(self);
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn multiple_replacements2() {
+    let source = r#"
+fn test1() {
+    let mut chars = "Hello".chars();
+    for _c in chars.by_ref() {
+        chars.next();
+    }
+}
+
+fn main() {
+    test1();
+}"#;
+
+    let input_new = Level::Error
+        .message("cannot borrow `chars` as mutable more than once at a time")
+        .id("E0499")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .line_start(1)
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(65..70)
+                            .label("first mutable borrow occurs here"),
+                    )
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(90..95)
+                            .label("second mutable borrow occurs here"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(65..79)
+                            .label("first borrow later used here"),
+                    ),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(
+                    Level::Help
+                        .title("if you want to call `next` on a iterator within the loop, consider using `while let`")
+                )
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(
+                            55..59,
+                            "let iter = chars.by_ref();\n    while let Some(",
+                        ))
+                        .patch(Patch::new(61..79, ") = iter.next()"))
+                        .patch(Patch::new(90..95, "iter")),
+                ),
+        );
+
+    let expected = str![[r#"
+error[E0499]: cannot borrow `chars` as mutable more than once at a time
+   |
+LL |     for _c in chars.by_ref() {
+   |               --------------
+   |               |
+   |               first mutable borrow occurs here
+   |               first borrow later used here
+LL |         chars.next();
+   |         ^^^^^ second mutable borrow occurs here
+   |
+help: if you want to call `next` on a iterator within the loop, consider using `while let`
+   |
+LL ~     let iter = chars.by_ref();
+LL ~     while let Some(_c) = iter.next() {
+LL ~         iter.next();
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn diff_format() {
+    let source = r#"
+use st::cell::Cell;
+
+mod bar {
+    pub fn bar() { bar::baz(); }
+
+    fn baz() {}
+}
+
+use bas::bar;
+
+struct Foo {
+    bar: st::cell::Cell<bool>
+}
+
+fn main() {}"#;
+
+    let input_new = Level::Error
+        .message("failed to resolve: use of undeclared crate or module `st`")
+        .id("E0433")
+        .group(
+            Group::new().element(
+                Snippet::source(source).line_start(1).fold(true).annotation(
+                    AnnotationKind::Primary
+                        .span(122..124)
+                        .label("use of undeclared crate or module `st`"),
+                ),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title("there is a crate or module with a similar name"))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(122..124, "std")),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title("consider importing this module"))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(1..1, "use std::cell;\n")),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title("if you import `cell`, refer to it directly"))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(122..126, "")),
+                ),
+        );
+    let expected = str![[r#"
+error[E0433]: failed to resolve: use of undeclared crate or module `st`
+   |
+LL |     bar: st::cell::Cell<bool>
+   |          ^^ use of undeclared crate or module `st`
+   |
+help: there is a crate or module with a similar name
+   |
+LL |     bar: std::cell::Cell<bool>
+   |            +
+help: consider importing this module
+   |
+LL + use std::cell;
+   |
+help: if you import `cell`, refer to it directly
+   |
+LL -     bar: st::cell::Cell<bool>
+LL +     bar: cell::Cell<bool>
+   |
+"#]];
+
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn multiline_removal() {
+    let source = r#"
+struct Wrapper<T>(T);
+
+fn foo<T>(foo: Wrapper<T>)
+
+where
+    T
+    :
+    ?
+    Sized
+{
+    //
+}
+
+fn main() {}"#;
+
+    let input_new = Level::Error
+        .message("the size for values of type `T` cannot be known at compilation time")
+        .id("E0277")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .line_start(1)
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(39..49)
+                            .label("doesn't have a size known at compile-time"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(31..32)
+                            .label("this type parameter needs to be `Sized`"),
+                    ),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title(
+                    "consider removing the `?Sized` bound to make the type parameter `Sized`",
+                ))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .patch(Patch::new(52..86, "")),
+                ),
+        );
+    let expected = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   |
+LL | fn foo<T>(foo: Wrapper<T>)
+   |        -       ^^^^^^^^^^ doesn't have a size known at compile-time
+   |        |
+   |        this type parameter needs to be `Sized`
+   |
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+   |
+LL - where
+LL -     T
+LL -     :
+LL -     ?
+LL -     Sized
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn multiline_replacement() {
+    let source = r#"
+struct Wrapper<T>(T);
+
+fn foo<T>(foo: Wrapper<T>)
+
+and where
+    T
+    :
+    ?
+    Sized
+{
+    //
+}
+
+fn main() {}"#;
+    let input_new = Level::Error
+        .message("the size for values of type `T` cannot be known at compilation time")
+        .id("E0277")
+        .group(Group::new().element(Snippet::source(source)
+            .line_start(1)
+            .origin("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
+            .fold(true)
+            .annotation(
+                AnnotationKind::Primary
+                    .span(39..49)
+                    .label("doesn't have a size known at compile-time"),
+            )
+            .annotation(
+                AnnotationKind::Context
+                    .span(31..32)
+                    .label("this type parameter needs to be `Sized`"),
+            )))
+        .group(Group::new().element(
+            Level::Note
+                .title("required by an implicit `Sized` bound in `Wrapper`")
+        ).element(
+            Snippet::source(source)
+                .line_start(1)
+                .origin("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
+                .fold(true)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(16..17)
+                        .label("required by the implicit `Sized` requirement on this type parameter in `Wrapper`"),
+                )
+        ))
+        .group(Group::new().element(
+            Level::Help
+                .title("you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`")
+            )
+            .element(
+            Snippet::source(source)
+                .line_start(1)
+                .origin("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
+                .fold(true)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(16..17)
+                        .label("this could be changed to `T: ?Sized`..."),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(19..20)
+                        .label("...if indirection were used here: `Box<T>`"),
+                )
+
+        ))
+        .group(Group::new().element(
+            Level::Help
+                .title("consider removing the `?Sized` bound to make the type parameter `Sized`")
+        ).element(
+            Snippet::source(source)
+                .fold(true)
+                .patch(Patch::new(56..90, ""))
+                .patch(Patch::new(90..90, "+ Send"))
+                ,
+        ));
+    let expected = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+  --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:4:16
+   |
+LL | fn foo<T>(foo: Wrapper<T>)
+   |        -       ^^^^^^^^^^ doesn't have a size known at compile-time
+   |        |
+   |        this type parameter needs to be `Sized`
+   |
+note: required by an implicit `Sized` bound in `Wrapper`
+  --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
+   |
+LL | struct Wrapper<T>(T);
+   |                ^ required by the implicit `Sized` requirement on this type parameter in `Wrapper`
+help: you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`
+  --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
+   |
+LL | struct Wrapper<T>(T);
+   |                ^  - ...if indirection were used here: `Box<T>`
+   |                |
+   |                this could be changed to `T: ?Sized`...
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+   |
+LL ~ and 
+LL ~ + Send{
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input_new), expected);
+}
+
+#[test]
+fn multiline_removal2() {
+    let source = r#"
+cargo
+fuzzy
+pizza
+jumps
+crazy
+quack
+zappy
+"#;
+
+    let input_new = Level::Error
+        .message("the size for values of type `T` cannot be known at compilation time")
+        .id("E0277")
+        .group(
+            Group::new()
+                .element(Level::Help.title(
+                    "consider removing the `?Sized` bound to make the type parameter `Sized`",
+                ))
+                .element(
+                    Snippet::source(source)
+                        .line_start(7)
+                        .fold(true)
+                        .patch(Patch::new(3..21, ""))
+                        .patch(Patch::new(22..40, "")),
+                ),
+        );
+    let expected = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   |
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+   |
+8  - cargo
+9  - fuzzy
+10 - pizza
+11 - jumps
+8  + campy
+   |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input_new), expected);
 }
