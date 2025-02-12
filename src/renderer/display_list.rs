@@ -324,7 +324,7 @@ impl DisplaySet<'_> {
                     }
 
                     let text = normalize_whitespace(text);
-                    let line_len = text.as_bytes().len();
+                    let line_len = text.len();
                     let left = self.margin.left(line_len);
                     let right = self.margin.right(line_len);
 
