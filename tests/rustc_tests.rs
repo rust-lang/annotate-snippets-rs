@@ -28,7 +28,6 @@ error: foo
   |  __________^
 3 | | }
   | |_^ test
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -59,7 +58,6 @@ error: foo
 4 | |
 5 | |   }
   | |___^ test
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -98,7 +96,6 @@ error: foo
   | ||____^__- `Y` is a good letter too
   | |_____|
   |       `X` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -135,7 +132,6 @@ error: foo
   | ||____-__^ `X` is a good letter
   |  |____|
   |       `Y` is a good letter too
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -175,7 +171,6 @@ error: foo
   | ||____^ `X` is a good letter
 6 |  |   X3 Y3 Z3
   |  |____- `Y` is a good letter too
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -217,7 +212,6 @@ error: foo
   | ||_____|__|
   | |______|  `Y` is a good letter too
   |        `X` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -259,7 +253,6 @@ error: foo
   |      `X` is a good letter
   |      `Y` is a good letter too
   |      `Z` label
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -304,7 +297,6 @@ error: foo
   |  |
 6 |  |   X3 Y3 Z3
   |  |_______- `Z`
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -343,7 +335,6 @@ error: foo
   |  ______-
 6 | |   X3 Y3 Z3
   | |__________- `Y` is a good letter too
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -384,7 +375,6 @@ error: foo
 5 |  |   X2 Y2 Z2
 6 |  |   X3 Y3 Z3
   |  |__________- `Y` is a good letter too
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -412,7 +402,6 @@ error: foo
   |
 3 |   a { b { c } d }
   |   ----^^^^-^^-- `a` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -439,7 +428,6 @@ error: foo
   |
 3 |   a { b { c } d }
   |   ^^^^-------^^ `a` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -469,7 +457,6 @@ error: foo
   |   ----^^^^-^^--
   |       |
   |       `b` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -498,7 +485,6 @@ error: foo
   |   ^^^^-------^^
   |       |
   |       `b` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -527,7 +513,6 @@ error: foo
   |   ^^^^----
   |   |
   |   `a` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -554,7 +539,6 @@ error: foo
   |
 3 |   a { b { c } d }
   |   ^^^^-------^^
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -582,7 +566,6 @@ error: foo
   |
 3 |   a { b { c } d }
   |   ----^^^^-^^--
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -612,7 +595,6 @@ error: foo
   |   |   |
   |   |   `b` is a good letter
   |   `a` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -638,7 +620,6 @@ error: foo
   |
 3 |   a { b { c } d }
   |   ^^^^^^^^^^^^^ `a` is a good letter
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -664,7 +645,6 @@ error: foo
   |
 3 |   a { b { c } d }
   |   ^^^^^^^^^^^^^
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -717,7 +697,6 @@ error: foo
 15 |  |   X2 Y2 Z2
 16 |  |   X3 Y3 Z3
    |  |__________- `Y` is a good letter too
-   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -776,7 +755,6 @@ error: foo
 15 | |  10
 16 | |    X3 Y3 Z3
    | |________^ `Y` is a good letter
-   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);

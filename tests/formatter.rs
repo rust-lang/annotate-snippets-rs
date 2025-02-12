@@ -16,7 +16,6 @@ error: oops
   |
 2 | Second oops line
   |        ^^^^ oops
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -37,7 +36,6 @@ error
   |
 1 | こんにちは、世界
   |             ^^^^ world
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -60,7 +58,6 @@ error
   |  _____^
 2 | | ございます
   | |______^ Good morning
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -84,7 +81,6 @@ error
   | ^^^^^^ Sushi1
 2 | 食べたい🍣
   |     ---- note: Sushi2
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -105,7 +101,6 @@ error
   |
 1 | こんにちは、新しいWorld！
   |             ^^^^^^^^^^^ New world
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -133,7 +128,6 @@ error
      |
 5402 | This is line 1
 5403 | This is line 2
-     |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -152,11 +146,9 @@ error
     --> file1.rs
      |
 5402 | This is slice 1
-     |
     ::: file2.rs
      |
    2 | This is slice 2
-     |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -180,7 +172,6 @@ error
 5402 | This is line 1
 5403 | This is line 2
      |        -- info: Test annotation
-     |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -224,7 +215,6 @@ error
    |
 56 | This is an example
 57 | of content lines
-   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -243,7 +233,6 @@ error
   |
 1 | tests
   | ----- help: Example string
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -266,7 +255,6 @@ error
   | |
   | help: Example string
   | help: Second line
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -280,7 +268,6 @@ fn test_only_source() {
     let expected = str![[r#"
 error
 --> file.rs
- |
  |
 "#]];
     let renderer = Renderer::plain();
@@ -300,7 +287,6 @@ LL | This is an example
 LL | of content lines
 LL |
 LL | abc
-   |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -323,7 +309,6 @@ error: dummy
 4 | / bar
 5 | | baz
   | |___^
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -349,7 +334,6 @@ error
 3 | / a"
 4 | | // ...
   | |_______^
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -371,7 +355,7 @@ error
 3 | a
   | ^
 4 | b
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -392,7 +376,7 @@ error
 3 | a
   | ^
 4 | b
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -413,7 +397,6 @@ error
   |   ^^
 2 | にちは
 3 | 世界
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -436,7 +419,7 @@ error
 3 | a
   |  ^
 4 | b
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -457,7 +440,7 @@ error
 3 | a
   |  ^
 4 | b
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -478,7 +461,7 @@ error
 3 | a
   |  ^
 4 | b
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -499,7 +482,7 @@ error
 3 | a
   |  ^
 4 | b
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -520,7 +503,6 @@ error
   |     ^
 2 | にちは
 3 | 世界
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -544,7 +526,7 @@ error
   |  __^
 4 | | b
   | |_^
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -566,7 +548,7 @@ error
   |  __^
 4 | | b
   | |_^
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -588,7 +570,7 @@ error
   |  __^
 4 | | b
   | |_^
-  |"#]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
@@ -610,7 +592,6 @@ error
 2 | | にちは
   | |__^
 3 |   世界
-  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -635,7 +616,6 @@ error
 4 | | b
   | |__^
 5 |   c
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -659,7 +639,6 @@ error
 4 | | b
   | |__^
 5 |   c
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -683,7 +662,6 @@ error
 4 | | b
   | |__^
 5 |   c
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -706,7 +684,6 @@ error
   |  __^
 4 | | b
   | |__^
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -729,7 +706,6 @@ error
   |  ___^
 4 | | に
   | |___^
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -761,7 +737,6 @@ error: unused optional dependency
   | ^^^                        --------------- info: This should also be long but not too long
   | |
   | I need this to be really long so I can test overlaps
-  |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -799,7 +774,6 @@ error: unused optional dependency
 6 | | so is this
 7 | | bar = { version = "0.1.0", optional = true }
   | |__________________________________________^ I need this to be really long so I can test overlaps
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -845,7 +819,6 @@ error: unused optional dependency
   | ||_________________________^________________^ I need this to be really long so I can test overlaps
   | |__________________________|
   |                            I need this to be really long so I can test overlaps
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -900,7 +873,6 @@ error: unused optional dependency
   |   |                         I need this to be really long so I can test overlaps
 8 |   | this is another line
   |   |____^ I need this to be really long so I can test overlaps
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -925,7 +897,6 @@ error: title
 3 | ccc
   | ^^^ annotation
 4 | ddd
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
@@ -950,7 +921,6 @@ error: title
 3 | ccc
   |  ^^ annotation
 4 | ddd
-  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);

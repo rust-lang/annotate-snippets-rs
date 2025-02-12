@@ -1,4 +1,4 @@
-<svg width="740px" height="128px" xmlns="http://www.w3.org/2000/svg">
+<svg width="740px" height="110px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -29,8 +29,6 @@
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">3 |</tspan><tspan> invalid syntax</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-yellow bold">--------------</tspan><tspan> </tspan><tspan class="fg-yellow bold">error here</tspan>
-</tspan>
-    <tspan x="10px" y="118px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
   </text>
 

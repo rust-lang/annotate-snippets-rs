@@ -20,7 +20,6 @@
 //! 152 | |       return "test";
 //! 153 | |   }
 //!     | |___^ error: expected `String`, for `&str`.
-//!     |
 //! ```
 //!
 //! The first two lines of the example above are `Raw` lines, while the rest
@@ -325,7 +324,7 @@ impl DisplaySet<'_> {
                     }
 
                     let text = normalize_whitespace(text);
-                    let line_len = text.as_bytes().len();
+                    let line_len = text.len();
                     let left = self.margin.left(line_len);
                     let right = self.margin.right(line_len);
 
@@ -1013,7 +1012,6 @@ fn format_message(
         sets.push(format_snippet(
             snippet,
             idx == 0,
-            !footer.is_empty(),
             term_width,
             anonymized_line_numbers,
         ));
@@ -1092,7 +1090,6 @@ fn format_label(
 fn format_snippet(
     snippet: snippet::Snippet<'_>,
     is_first: bool,
-    has_footer: bool,
     term_width: usize,
     anonymized_line_numbers: bool,
 ) -> DisplaySet<'_> {
@@ -1102,7 +1099,6 @@ fn format_snippet(
     let mut body = format_body(
         snippet,
         need_empty_header,
-        has_footer,
         term_width,
         anonymized_line_numbers,
     );
@@ -1290,7 +1286,6 @@ fn fold_body(body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
 fn format_body(
     snippet: snippet::Snippet<'_>,
     need_empty_header: bool,
-    has_footer: bool,
     term_width: usize,
     anonymized_line_numbers: bool,
 ) -> DisplaySet<'_> {
@@ -1605,21 +1600,6 @@ fn format_body(
         );
     }
 
-    if has_footer {
-        body.push(DisplayLine::Source {
-            lineno: None,
-            inline_marks: vec![],
-            line: DisplaySourceLine::Empty,
-            annotations: vec![],
-        });
-    } else if let Some(DisplayLine::Source { .. }) = body.last() {
-        body.push(DisplayLine::Source {
-            lineno: None,
-            inline_marks: vec![],
-            line: DisplaySourceLine::Empty,
-            annotations: vec![],
-        });
-    }
     let max_line_num_len = if anonymized_line_numbers {
         ANONYMIZED_LINE_NUM.len()
     } else {
