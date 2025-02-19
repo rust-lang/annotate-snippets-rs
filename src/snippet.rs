@@ -229,10 +229,12 @@ impl Level {
 fn newline_count(body: &str) -> usize {
     #[cfg(feature = "simd")]
     {
-        memchr::memchr_iter(b'\n', body.as_bytes()).count()
+        memchr::memchr_iter(b'\n', body.as_bytes())
+            .count()
+            .saturating_sub(1)
     }
     #[cfg(not(feature = "simd"))]
     {
-        body.lines().count()
+        body.lines().count().saturating_sub(1)
     }
 }

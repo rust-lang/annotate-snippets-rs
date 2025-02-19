@@ -149,7 +149,7 @@ error:
      |
     ::: file2.rs
      |
-2    | This is slice 2
+   2 | This is slice 2
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected);
