@@ -157,6 +157,7 @@ impl<'a> SourceMap<'a> {
                 line: info.line,
                 line_index: info.line_index,
                 annotations: vec![],
+                keep: false,
             })
             .collect::<Vec<_>>();
         let mut multiline_annotations = vec![];
@@ -169,7 +170,12 @@ impl<'a> SourceMap<'a> {
         } in annotations
         {
             let (lo, mut hi) = self.span_to_locations(span.clone());
-
+            if kind == AnnotationKind::Visible {
+                for line_idx in lo.line..=hi.line {
+                    self.keep_line(&mut annotated_line_infos, line_idx);
+                }
+                continue;
+            }
             // Watch out for "empty spans". If we get a span like 6..6, we
             // want to just display a `^` at 6, so convert that to
             // 6..7. This is degenerate input, but it's best to degrade
@@ -306,7 +312,7 @@ impl<'a> SourceMap<'a> {
         }
 
         if fold {
-            annotated_line_infos.retain(|l| !l.annotations.is_empty());
+            annotated_line_infos.retain(|l| !l.annotations.is_empty() || l.keep);
         }
 
         (max_depth, annotated_line_infos)
@@ -333,6 +339,29 @@ impl<'a> SourceMap<'a> {
                 line: info.line,
                 line_index,
                 annotations: vec![line_ann],
+                keep: false,
+            });
+            annotated_line_infos.sort_by_key(|l| l.line_index);
+        }
+    }
+
+    fn keep_line(&self, annotated_line_infos: &mut Vec<AnnotatedLineInfo<'a>>, line_index: usize) {
+        if let Some(line_info) = annotated_line_infos
+            .iter_mut()
+            .find(|line_info| line_info.line_index == line_index)
+        {
+            line_info.keep = true;
+        } else {
+            let info = self
+                .lines
+                .iter()
+                .find(|l| l.line_index == line_index)
+                .unwrap();
+            annotated_line_infos.push(AnnotatedLineInfo {
+                line: info.line,
+                line_index,
+                annotations: vec![],
+                keep: true,
             });
             annotated_line_infos.sort_by_key(|l| l.line_index);
         }
@@ -595,6 +624,7 @@ pub(crate) struct AnnotatedLineInfo<'a> {
     pub(crate) line: &'a str,
     pub(crate) line_index: usize,
     pub(crate) annotations: Vec<LineAnnotation<'a>>,
+    pub(crate) keep: bool,
 }
 
 /// A source code location used for error reporting.

@@ -313,6 +313,24 @@ pub enum AnnotationKind {
     ///
     /// [`Renderer::context`]: crate::renderer::Renderer
     Context,
+    /// Prevents the annotated text from getting [folded][Snippet::fold]
+    ///
+    /// By default, [`Snippet`]s will [fold][`Snippet::fold`] (remove) lines
+    /// that do not contain any annotations. [`Visible`][Self::Visible] makes
+    /// it possible to selectively prevent this behavior for specific text,
+    /// allowing context to be preserved without adding any annotation
+    /// characters.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # #[allow(clippy::needless_doctest_main)]
+    #[doc = include_str!("../examples/struct_name_as_context.rs")]
+    /// ```
+    ///
+    #[doc = include_str!("../examples/struct_name_as_context.svg")]
+    ///
+    Visible,
 }
 
 impl AnnotationKind {

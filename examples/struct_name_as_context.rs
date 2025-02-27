@@ -17,7 +17,8 @@ fn main() {
             .element(
                 Snippet::source(source)
                     .path("$DIR/struct_name_as_context.rs")
-                    .annotation(AnnotationKind::Primary.span(91..102)),
+                    .annotation(AnnotationKind::Primary.span(91..102))
+                    .annotation(AnnotationKind::Visible.span(0..8)),
             )
             .element(
                 Level::HELP.message(

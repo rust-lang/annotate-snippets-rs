@@ -1,4 +1,4 @@
-<svg width="740px" height="164px" xmlns="http://www.w3.org/2000/svg">
+<svg width="740px" height="200px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -25,15 +25,19 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">6</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     fn foo() {},</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">1</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> struct S {</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     </tspan><tspan class="fg-bright-red bold">^^^^^^^^^^^</tspan>
+    <tspan x="10px" y="100px"><tspan class="fg-bright-blue bold">...</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
+    <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">6</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     fn foo() {},</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan>  </tspan><tspan class="fg-bright-blue bold">= </tspan><tspan class="bold">help</tspan><tspan>: unlike in C++, Java, and C#, functions are declared in `impl` blocks</tspan>
+    <tspan x="10px" y="136px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     </tspan><tspan class="fg-bright-red bold">^^^^^^^^^^^</tspan>
 </tspan>
-    <tspan x="10px" y="154px">
+    <tspan x="10px" y="154px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
+</tspan>
+    <tspan x="10px" y="172px"><tspan>  </tspan><tspan class="fg-bright-blue bold">= </tspan><tspan class="bold">help</tspan><tspan>: unlike in C++, Java, and C#, functions are declared in `impl` blocks</tspan>
+</tspan>
+    <tspan x="10px" y="190px">
 </tspan>
   </text>
 
