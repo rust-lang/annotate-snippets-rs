@@ -20,6 +20,13 @@ fn format() {
 }
 
 #[test]
+fn highlight_source() {
+    let target = "highlight_source";
+    let expected = snapbox::file!["../examples/highlight_source.svg": TermSvg];
+    assert_example(target, expected);
+}
+
+#[test]
 fn multislice() {
     let target = "multislice";
     let expected = snapbox::file!["../examples/multislice.svg": TermSvg];
