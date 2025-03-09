@@ -149,7 +149,13 @@ impl<'a> SourceMap<'a> {
             .collect::<Vec<_>>();
         let mut multiline_annotations = vec![];
 
-        for Annotation { range, label, kind } in annotations {
+        for Annotation {
+            range,
+            label,
+            kind,
+            highlight_source,
+        } in annotations
+        {
             let (lo, mut hi) = self.span_to_locations(range.clone());
 
             // Watch out for "empty spans". If we get a span like 6..6, we
@@ -169,6 +175,7 @@ impl<'a> SourceMap<'a> {
                     kind,
                     label,
                     annotation_type: LineAnnotationType::Singleline,
+                    highlight_source,
                 };
                 self.add_annotation_to_file(&mut annotated_line_infos, lo.line, line_ann);
             } else {
@@ -179,6 +186,7 @@ impl<'a> SourceMap<'a> {
                     kind,
                     label,
                     overlaps_exactly: false,
+                    highlight_source,
                 });
             }
         }
@@ -502,6 +510,7 @@ pub(crate) struct MultilineAnnotation<'a> {
     pub kind: AnnotationKind,
     pub label: Option<&'a str>,
     pub overlaps_exactly: bool,
+    pub highlight_source: bool,
 }
 
 impl<'a> MultilineAnnotation<'a> {
@@ -526,6 +535,7 @@ impl<'a> MultilineAnnotation<'a> {
             kind: self.kind,
             label: None,
             annotation_type: LineAnnotationType::MultilineStart(self.depth),
+            highlight_source: self.highlight_source,
         }
     }
 
@@ -541,6 +551,7 @@ impl<'a> MultilineAnnotation<'a> {
             kind: self.kind,
             label: self.label,
             annotation_type: LineAnnotationType::MultilineEnd(self.depth),
+            highlight_source: self.highlight_source,
         }
     }
 
@@ -551,6 +562,7 @@ impl<'a> MultilineAnnotation<'a> {
             kind: self.kind,
             label: None,
             annotation_type: LineAnnotationType::MultilineLine(self.depth),
+            highlight_source: self.highlight_source,
         }
     }
 }

@@ -273,11 +273,17 @@ pub struct Annotation<'a> {
     pub(crate) range: Range<usize>,
     pub(crate) label: Option<&'a str>,
     pub(crate) kind: AnnotationKind,
+    pub(crate) highlight_source: bool,
 }
 
 impl<'a> Annotation<'a> {
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
+        self
+    }
+
+    pub fn highlight_source(mut self, highlight_source: bool) -> Self {
+        self.highlight_source = highlight_source;
         self
     }
 }
@@ -296,6 +302,7 @@ impl AnnotationKind {
             range: span,
             label: None,
             kind: self,
+            highlight_source: false,
         }
     }
 

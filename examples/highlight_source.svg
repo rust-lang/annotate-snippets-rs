@@ -25,7 +25,7 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">LL</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> const CON: Vec&lt;i32&gt; = vec![1, 2, 3]; //~ ERROR E0010</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">LL</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> const CON: Vec&lt;i32&gt; = </tspan><tspan class="fg-bright-red bold">vec![1, 2, 3]</tspan><tspan>; //~ ERROR E0010</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                       </tspan><tspan class="fg-bright-red bold">^^^^^^^^^^^^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">allocation not allowed in constants</tspan>
 </tspan>

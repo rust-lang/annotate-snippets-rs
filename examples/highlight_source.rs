@@ -22,6 +22,7 @@ fn main() {}
                             AnnotationKind::Primary
                                 .span(72..85)
                                 .label("allocation not allowed in constants")
+                                .highlight_source(true),
                         ),
                 )
                 .element(
