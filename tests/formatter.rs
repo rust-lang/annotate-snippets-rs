@@ -925,3 +925,29 @@ error: title
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input).to_string(), expected);
 }
+
+// This tests that reasonable rendering is done in an odd case: when the source
+// is a single ASCII whitespace and there's annotation pointing to immediately
+// after it.
+//
+// Previously, this would end up with a `...` rendered instead of just the
+// space itself. The `...` seems incorrect here because I don't believe any
+// trimming occurs (or is needed).
+#[test]
+fn one_space_annotation() {
+    let source = " ";
+    let input = Level::Error.title("title").snippet(
+        Snippet::source(source)
+            .fold(false)
+            .annotation(Level::Error.span(1..1).label("annotation")),
+    );
+    let expected = "\
+error: title
+  |
+1 |\x20\x20
+  |  ^ annotation
+  |\
+";
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
