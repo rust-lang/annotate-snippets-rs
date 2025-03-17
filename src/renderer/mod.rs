@@ -10,14 +10,14 @@
 //!  let renderer = Renderer::styled();
 //!  println!("{}", renderer.render(snippet));
 
-mod display_list;
+mod display;
 mod margin;
 mod styled_buffer;
 pub(crate) mod stylesheet;
 
 use crate::snippet::Message;
 pub use anstyle::*;
-use display_list::DisplayList;
+use display::DisplayList;
 use margin::Margin;
 use std::fmt::Display;
 use stylesheet::Stylesheet;
