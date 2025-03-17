@@ -51,7 +51,7 @@ use std::ops::Range;
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::renderer::{stylesheet::Stylesheet, Margin, DEFAULT_TERM_WIDTH};
 
-use constants::*;
+use constants::ANONYMIZED_LINE_NUM;
 use cursor_line::CursorLines;
 use display_annotations::{
     get_annotation_style, Annotation, DisplayAnnotationPart, DisplayAnnotationType,

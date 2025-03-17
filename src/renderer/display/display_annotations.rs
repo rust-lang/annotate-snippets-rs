@@ -2,7 +2,10 @@ use anstyle::Style;
 
 use crate::{renderer::stylesheet::Stylesheet, snippet};
 
-use super::{constants::*, display_text::DisplayTextFragment};
+use super::{
+    constants::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT},
+    display_text::DisplayTextFragment,
+};
 
 /// A type of the `Annotation` which may impact the sigils, style or text displayed.
 ///
