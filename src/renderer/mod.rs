@@ -956,12 +956,19 @@ impl Renderer {
         let line_offset = buffer.num_lines();
 
         // Left trim
-        let left = margin.left(source_string.len());
+        let left = margin.left(str_width(&source_string));
 
         // FIXME: This looks fishy. See #132860.
         // Account for unicode characters of width !=0 that were removed.
-        let left = source_string.chars().take(left).map(char_width).sum();
+        let mut taken = 0;
+        source_string.chars().for_each(|ch| {
+            let next = char_width(ch);
+            if taken + next <= left {
+                taken += next;
+            }
+        });
 
+        let left = taken;
         self.draw_line(
             buffer,
             &source_string,
@@ -2020,48 +2027,81 @@ impl Renderer {
     ) {
         // Tabs are assumed to have been replaced by spaces in calling code.
         debug_assert!(!source_string.contains('\t'));
-        let line_len = source_string.len();
+        let line_len = str_width(source_string);
         // Create the source line we will highlight.
         let left = margin.left(line_len);
         let right = margin.right(line_len);
         // FIXME: The following code looks fishy. See #132860.
         // On long lines, we strip the source line, accounting for unicode.
         let mut taken = 0;
+        let mut skipped = 0;
         let code: String = source_string
             .chars()
-            .skip(left)
+            .skip_while(|ch| {
+                skipped += char_width(*ch);
+                skipped <= left
+            })
             .take_while(|ch| {
                 // Make sure that the trimming on the right will fall within the terminal width.
-                let next = char_width(*ch);
-                if taken + next > right - left {
-                    return false;
-                }
-                taken += next;
-                true
+                taken += char_width(*ch);
+                taken <= (right - left)
             })
             .collect();
 
         buffer.puts(line_offset, code_offset, &code, ElementStyle::Quotation);
         let placeholder = self.margin();
-        if margin.was_cut_left() {
+        let padding = str_width(placeholder);
+        let (width_taken, bytes_taken) = if margin.was_cut_left() {
             // We have stripped some code/whitespace from the beginning, make it clear.
+            let mut bytes_taken = 0;
+            let mut width_taken = 0;
+            for ch in code.chars() {
+                width_taken += char_width(ch);
+                bytes_taken += ch.len_utf8();
+
+                if width_taken >= padding {
+                    break;
+                }
+            }
             buffer.puts(
                 line_offset,
                 code_offset,
-                placeholder,
+                &format!("{placeholder:>width_taken$}"),
                 ElementStyle::LineNumber,
             );
-        }
+            (width_taken, bytes_taken)
+        } else {
+            (0, 0)
+        };
+
+        buffer.puts(
+            line_offset,
+            code_offset + width_taken,
+            &code[bytes_taken..],
+            ElementStyle::Quotation,
+        );
+
         if margin.was_cut_right(line_len) {
-            let padding = str_width(placeholder);
-            // We have stripped some code after the rightmost span end, make it clear we did so.
+            // We have stripped some code/whitespace from the beginning, make it clear.
+            let mut char_taken = 0;
+            let mut width_taken_inner = 0;
+            for ch in code.chars().rev() {
+                width_taken_inner += char_width(ch);
+                char_taken += 1;
+
+                if width_taken_inner >= padding {
+                    break;
+                }
+            }
+
             buffer.puts(
                 line_offset,
-                code_offset + taken - padding,
+                code_offset + width_taken + code[bytes_taken..].chars().count() - char_taken,
                 placeholder,
                 ElementStyle::LineNumber,
             );
         }
+
         buffer.puts(
             line_offset,
             0,

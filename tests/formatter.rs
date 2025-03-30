@@ -2136,7 +2136,7 @@ error: title
 2 |   # Ensure that the spans from toml handle utf-8 correctly
 3 |   authors = [
   |  ___________^
-4 | |     { name = "Z͑ͫ̓ͪ̂ͫ̽͏̴̙̤̞͉͚̯...A̴̵̜̰͔ͫ͗͢L̠ͨͧͩ͘G̴̻͈͍͔̹̑͗̎̅͛́Ǫ̵̹̻̝̳͂̌̌͘", email = 1 }
+4 | |     { name = "Z͑ͫ̓ͪ̂ͫ̽͏̴̙̤̞͉͚̯̞̠͍A̴̵̜̰͔ͫ͗͢L̠ͨͧͩ͘G̴̻͈͍͔̹̑͗̎̅͛́Ǫ̵̹̻̝̳͂̌̌͘", email = 1 }
 5 | | ]
   | |_^ annotation
 "#]];
@@ -2162,8 +2162,8 @@ fn unicode_cut_handling2() {
     let expected = str![[r#"
 error: expected item, found `?`
   |
-1.|....
-  |^ expected item
+1 |  ...的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  |                                                             ^ expected item
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2189,8 +2189,8 @@ fn unicode_cut_handling3() {
     let expected = str![[r#"
 error: expected item, found `?`
   |
-1 | ...的。这是宽的。*/?       ...
-^ | expected item
+1 |  ...。这是宽的。这是宽的。这是宽的...
+  |            ^^ expected item
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2256,10 +2256,10 @@ fn main() {
 error[E0308]: mismatched types
   --> $DIR/non-whitespace-trimming-unicode.rs:4:415
    |
-LL | ...♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂...
-   |                                         --   ^^ expected `()`, found integer
-   |                                         |
-   |                                         expected due to this
+LL | ...♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷...
+   |                                                  --   ^^ expected `()`, found integer
+   |                                                  |
+   |                                                  expected due to this
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
@@ -2315,11 +2315,11 @@ fn main() {
 error[E0369]: cannot add `&str` to `&str`
    ╭▸ $DIR/non-1-width-unicode-multiline-label.rs:7:260
    │
-LL │ …ཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋…࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
-   │                                                  ┬───────────── ┯ ────────────── &str
-   │                                                  │              │
-   │                                                  │              `+` cannot be used to concatenate two `&str` strings
-   │                                                  &str
+LL │ …࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
+   │                                  ┬───────────── ┯ ────────────── &str
+   │                                  │              │
+   │                                  │              `+` cannot be used to concatenate two `&str` strings
+   │                                  &str
    │
    ╰ note: string concatenation requires an owned `String` on the left
 help: create an owned `String` from a string reference
@@ -2377,7 +2377,7 @@ LL |     include!("not-utf8.bin");
 note: byte `193` is not valid utf-8
   --> $DIR/not-utf8.bin:1:1
    |
-LL | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�...
+LL | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�␜␇�
    | ^
    = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
