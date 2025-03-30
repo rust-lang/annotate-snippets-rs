@@ -2112,3 +2112,276 @@ LL │ ┃ )>>) {}
         .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input_new), expected);
 }
+
+// This tests that an ellipsis is not inserted into Unicode text when a line
+// wasn't actually trimmed.
+//
+// This is a regression test where `...` was inserted because the code wasn't
+// properly accounting for the *rendered* length versus the length in bytes in
+// all cases.
+#[test]
+fn unicode_cut_handling() {
+    let source = "version = \"0.1.0\"\n# Ensure that the spans from toml handle utf-8 correctly\nauthors = [\n    { name = \"Z\u{351}\u{36b}\u{343}\u{36a}\u{302}\u{36b}\u{33d}\u{34f}\u{334}\u{319}\u{324}\u{31e}\u{349}\u{35a}\u{32f}\u{31e}\u{320}\u{34d}A\u{36b}\u{357}\u{334}\u{362}\u{335}\u{31c}\u{330}\u{354}L\u{368}\u{367}\u{369}\u{358}\u{320}G\u{311}\u{357}\u{30e}\u{305}\u{35b}\u{341}\u{334}\u{33b}\u{348}\u{34d}\u{354}\u{339}O\u{342}\u{30c}\u{30c}\u{358}\u{328}\u{335}\u{339}\u{33b}\u{31d}\u{333}\", email = 1 }\n]\n";
+    let input = Level::Error.message("title").group(
+        Group::new().element(
+            Snippet::source(source)
+                .fold(false)
+                .annotation(AnnotationKind::Primary.span(85..228).label("annotation")),
+        ),
+    );
+    let expected = str![[r#"
+error: title
+  |
+1 |   version = "0.1.0"
+2 |   # Ensure that the spans from toml handle utf-8 correctly
+3 |   authors = [
+  |  ___________^
+4 | |     { name = "Z͑ͫ̓ͪ̂ͫ̽͏̴̙̤̞͉͚̯...A̴̵̜̰͔ͫ͗͢L̠ͨͧͩ͘G̴̻͈͍͔̹̑͗̎̅͛́Ǫ̵̹̻̝̳͂̌̌͘", email = 1 }
+5 | | ]
+  | |_^ annotation
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unicode_cut_handling2() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
+    let input = Level::Error
+        .message("expected item, found `?`")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .fold(false)
+                    .annotation(AnnotationKind::Primary.span(499..500).label("expected item"))
+            ).element(
+                Level::Note.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+            )
+        );
+
+    let expected = str![[r#"
+error: expected item, found `?`
+  |
+1.|....
+  |^ expected item
+  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unicode_cut_handling3() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
+    let input = Level::Error
+        .message("expected item, found `?`")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .fold(false)
+                    .annotation(AnnotationKind::Primary.span(251..254).label("expected item"))
+            ).element(
+                Level::Note.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+            )
+        );
+
+    let expected = str![[r#"
+error: expected item, found `?`
+  |
+1 | ...的。这是宽的。*/?       ...
+^ | expected item
+  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+"#]];
+
+    let renderer = Renderer::plain().term_width(43);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unicode_cut_handling4() {
+    let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
+    let input = Level::Error
+        .message("expected item, found `?`")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .fold(false)
+                    .annotation(AnnotationKind::Primary.span(334..335).label("expected item"))
+            ).element(
+                Level::Note.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+            )
+        );
+
+    let expected = str![[r#"
+error: expected item, found `?`
+  |
+1 | ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
+  |                                                             ^ expected item
+  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn diagnostic_width() {
+    let source = r##"// ignore-tidy-linelength
+
+fn main() {
+    let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂♃♄♅♆♇♏♔♕♖♗♘♙♚♛♜♝♞♟♠♡♢♣♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂♃♄♅♆♇♏♔♕♖♗♘♙♚♛♜♝♞♟♠♡♢♣♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4🦀🦀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂♃♄♅♆♇♏♔♕♖♗♘♙♚♛♜♝♞♟♠♡♢♣♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂♃♄♅♆♇♏♔♕♖♗♘♙♚♛♜♝♞♟♠♡♢♣♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂♃♄♅♆♇♏♔♕♖♗♘♙♚♛♜♝♞♟♠♡♢♣♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4🦀🦀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂♃♄♅♆♇♏♔♕♖♗♘♙♚♛♜♝♞♟♠♡♢♣♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4";
+//~^ ERROR mismatched types
+}
+"##;
+    let input = Level::Error.message("mismatched types").id("E0308").group(
+        Group::new().element(
+            Snippet::source(source)
+                .origin("$DIR/non-whitespace-trimming-unicode.rs")
+                .fold(true)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(1207..1209)
+                        .label("expected `()`, found integer"),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(1202..1204)
+                        .label("expected due to this"),
+                ),
+        ),
+    );
+
+    let expected = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/non-whitespace-trimming-unicode.rs:4:415
+   |
+LL | ...♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹☺☻☼☽☾☿♀♁♂...
+   |                                         --   ^^ expected `()`, found integer
+   |                                         |
+   |                                         expected due to this
+"#]];
+
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn diagnostic_width2() {
+    let source = r##"//@ revisions: ascii unicode
+//@[unicode] compile-flags: -Zunstable-options --error-format=human-unicode
+// ignore-tidy-linelength
+
+fn main() {
+    let unicode_is_fun = "؁‱ஹ௸௵꧄.ဪ꧅⸻𒈙𒐫﷽𒌄𒈟𒍼𒁎𒀱𒌧𒅃 𒈓𒍙𒊎𒄡𒅌𒁏𒀰𒐪𒐩𒈙𒐫𪚥";
+    let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
+    //[ascii]~^ ERROR cannot add `&str` to `&str`
+}
+"##;
+    let input = Level::Error
+        .message("cannot add `&str` to `&str`")
+        .id("E0369")
+        .group(
+            Group::new()
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/non-1-width-unicode-multiline-label.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Context.span(970..984).label("&str"))
+                        .annotation(AnnotationKind::Context.span(987..1001).label("&str"))
+                        .annotation(
+                            AnnotationKind::Primary
+                                .span(985..986)
+                                .label("`+` cannot be used to concatenate two `&str` strings"),
+                        ),
+                )
+                .element(
+                    Level::Note
+                        .title("string concatenation requires an owned `String` on the left"),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Help.title("create an owned `String` from a string reference"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/non-1-width-unicode-multiline-label.rs")
+                        .fold(true)
+                        .patch(Patch::new(984..984, ".to_owned()")),
+                ),
+        );
+
+    let expected = str![[r#"
+error[E0369]: cannot add `&str` to `&str`
+   ╭▸ $DIR/non-1-width-unicode-multiline-label.rs:7:260
+   │
+LL │ …ཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋…࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
+   │                                                  ┬───────────── ┯ ────────────── &str
+   │                                                  │              │
+   │                                                  │              `+` cannot be used to concatenate two `&str` strings
+   │                                                  &str
+   │
+   ╰ note: string concatenation requires an owned `String` on the left
+help: create an owned `String` from a string reference
+   ╭╴
+LL │     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun.to_owned() + " really fun!";
+   ╰╴                                                                                                                                                                                        +++++++++++
+"#]];
+
+    let renderer = Renderer::plain()
+        .anonymized_line_numbers(true)
+        .theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn macros_not_utf8() {
+    let source = r##"//@ error-pattern: did not contain valid UTF-8
+//@ reference: input.encoding.utf8
+//@ reference: input.encoding.invalid
+
+fn foo() {
+    include!("not-utf8.bin");
+}
+"##;
+    let bin_source = "�|�\u{0002}!5�cc\u{0015}\u{0002}�Ӻi��WWj�ȥ�'�}�\u{0012}�J�ȉ��W�\u{001e}O�@����\u{001c}w�V���LO����\u{0014}[ \u{0003}_�'���SQ�~ذ��ų&��-\t��lN~��!@␌ _#���kQ��h�\u{001d}�:�\u{001c}\u{0007}�";
+    let input = Level::Error
+        .message("couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/not-utf8.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(136..160)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::Note.title("byte `193` is not valid utf-8"))
+                .element(
+                    Snippet::source(bin_source)
+                        .origin("$DIR/not-utf8.bin")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(0..0)),
+                )
+                .element(Level::Note.title("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
+        );
+
+    let expected = str![[r#"
+error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
+  --> $DIR/not-utf8.rs:6:5
+   |
+LL |     include!("not-utf8.bin");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: byte `193` is not valid utf-8
+  --> $DIR/not-utf8.bin:1:1
+   |
+LL | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�...
+   | ^
+   = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
