@@ -26,19 +26,19 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">51 |</tspan><tspan>   ) -&gt; Option&lt;String&gt; {</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">51</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>   ) -&gt; Option&lt;String&gt; {</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>        </tspan><tspan class="fg-yellow bold">--------------</tspan><tspan> </tspan><tspan class="fg-yellow bold">expected `std::option::Option&lt;std::string::String&gt;` because of return type</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">52 |</tspan><tspan> </tspan><tspan class="fg-bright-red bold">/</tspan><tspan>     for ann in annotations {</tspan>
+    <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">52</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">/</tspan><tspan>     for ann in annotations {</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">53 |</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>         match (ann.range.0, ann.range.1) {</tspan>
+    <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">53</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>         match (ann.range.0, ann.range.1) {</tspan>
 </tspan>
     <tspan x="10px" y="154px"><tspan class="fg-bright-blue bold">...</tspan><tspan>  </tspan><tspan class="fg-bright-red bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan class="fg-bright-blue bold">71 |</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>         }</tspan>
+    <tspan x="10px" y="172px"><tspan class="fg-bright-blue bold">71</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>         }</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan class="fg-bright-blue bold">72 |</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>     }</tspan>
+    <tspan x="10px" y="190px"><tspan class="fg-bright-blue bold">72</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|</tspan><tspan>     }</tspan>
 </tspan>
     <tspan x="10px" y="208px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-bright-red bold">|_____^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected enum `std::option::Option`, found ()</tspan>
 </tspan>

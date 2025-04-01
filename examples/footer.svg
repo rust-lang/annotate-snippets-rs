@@ -26,7 +26,7 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">13 |</tspan><tspan>         slices: vec!["A",</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">13</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>         slices: vec!["A",</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                      </tspan><tspan class="fg-bright-red bold">^^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">expected struct `annotate_snippets::snippet::Slice`, found reference</tspan>
 </tspan>

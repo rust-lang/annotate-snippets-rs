@@ -26,7 +26,7 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">3 |</tspan><tspan> invalid syntax</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> invalid syntax</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> </tspan><tspan class="fg-yellow bold">--------------</tspan><tspan> </tspan><tspan class="fg-yellow bold">error here</tspan>
 </tspan>

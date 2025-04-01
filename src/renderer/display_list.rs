@@ -292,19 +292,15 @@ impl DisplaySet<'_> {
             } => {
                 let lineno_color = stylesheet.line_no();
                 if anonymized_line_numbers && lineno.is_some() {
-                    let num = format!("{ANONYMIZED_LINE_NUM:>lineno_width$} |");
+                    let num = format!("{ANONYMIZED_LINE_NUM:>lineno_width$}");
                     buffer.puts(line_offset, 0, &num, *lineno_color);
                 } else {
-                    match lineno {
-                        Some(n) => {
-                            let num = format!("{n:>lineno_width$} |");
-                            buffer.puts(line_offset, 0, &num, *lineno_color);
-                        }
-                        None => {
-                            buffer.putc(line_offset, lineno_width + 1, '|', *lineno_color);
-                        }
-                    };
+                    if let Some(n) = lineno {
+                        let num = format!("{n:>lineno_width$}");
+                        buffer.puts(line_offset, 0, &num, *lineno_color);
+                    }
                 }
+                buffer.putc(line_offset, lineno_width + 1, '|', *lineno_color);
                 if let DisplaySourceLine::Content { text, .. } = line {
                     // The width of the line number, a space, pipe, and a space
                     // `123 | ` is `lineno_width + 3`.
