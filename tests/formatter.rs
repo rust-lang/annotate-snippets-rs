@@ -146,6 +146,7 @@ error
     --> file1.rs
      |
 5402 | This is slice 1
+     |
     ::: file2.rs
      |
    2 | This is slice 2

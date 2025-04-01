@@ -1006,11 +1006,13 @@ fn format_message(
         format_footer(level, id, title)
     };
 
+    let num_snippets = snippets.len();
     for (idx, snippet) in snippets.into_iter().enumerate() {
         let snippet = fold_prefix_suffix(snippet);
         sets.push(format_snippet(
             snippet,
             idx == 0,
+            idx == 0 && num_snippets > 1,
             term_width,
             anonymized_line_numbers,
         ));
@@ -1089,6 +1091,7 @@ fn format_label(
 fn format_snippet(
     snippet: snippet::Snippet<'_>,
     is_first: bool,
+    needs_trailing_pipe: bool,
     term_width: usize,
     anonymized_line_numbers: bool,
 ) -> DisplaySet<'_> {
@@ -1098,6 +1101,7 @@ fn format_snippet(
     let mut body = format_body(
         snippet,
         need_empty_header,
+        needs_trailing_pipe,
         term_width,
         anonymized_line_numbers,
     );
@@ -1285,6 +1289,7 @@ fn fold_body(body: Vec<DisplayLine<'_>>) -> Vec<DisplayLine<'_>> {
 fn format_body(
     snippet: snippet::Snippet<'_>,
     need_empty_header: bool,
+    needs_trailing_pipe: bool,
     term_width: usize,
     anonymized_line_numbers: bool,
 ) -> DisplaySet<'_> {
@@ -1597,6 +1602,15 @@ fn format_body(
                 annotations: vec![],
             },
         );
+    }
+
+    if needs_trailing_pipe {
+        body.push(DisplayLine::Source {
+            lineno: None,
+            inline_marks: vec![],
+            line: DisplaySourceLine::Empty,
+            annotations: vec![],
+        });
     }
 
     let max_line_num_len = if anonymized_line_numbers {

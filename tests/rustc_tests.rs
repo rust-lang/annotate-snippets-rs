@@ -1323,6 +1323,7 @@ LL | |             ($bang_macro:ident, $attr_macro:ident) => {
 LL | |             }
 LL | |         }
    | |_________^
+   |
   ::: $DIR/nested-macro-rules.rs:23:5
    |
 LL |       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
@@ -1696,6 +1697,7 @@ LL |     let _: &dyn EqAlias = &123;
 note: for a trait to be dyn compatible it needs to allow building a vtable
 for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
   --> $SRC_DIR/core/src/cmp.rs
+   |
    |
   ::: $DIR/object-fail.rs:3:7
    |
