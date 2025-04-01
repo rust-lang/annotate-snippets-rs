@@ -160,14 +160,18 @@ impl DisplaySet<'_> {
         &self,
         line_offset: usize,
         label: &[DisplayTextFragment<'_>],
+        needs_colon: bool,
         stylesheet: &Stylesheet,
         buffer: &mut StyledBuffer,
     ) -> fmt::Result {
-        for fragment in label {
+        for (i, fragment) in label.iter().enumerate() {
             let style = match fragment.style {
                 DisplayTextStyle::Regular => stylesheet.none(),
                 DisplayTextStyle::Emphasis => stylesheet.emphasis(),
             };
+            if i == 0 && needs_colon {
+                buffer.append(line_offset, ": ", *style);
+            }
             buffer.append(line_offset, fragment.content, *style);
         }
         Ok(())
@@ -191,10 +195,10 @@ impl DisplaySet<'_> {
             for _ in 0..formatted_len + 2 {
                 buffer.append(line_offset, " ", Style::new());
             }
-            return self.format_label(line_offset, &annotation.label, stylesheet, buffer);
+            return self.format_label(line_offset, &annotation.label, false, stylesheet, buffer);
         }
         if formatted_len == 0 {
-            self.format_label(line_offset, &annotation.label, stylesheet, buffer)
+            self.format_label(line_offset, &annotation.label, false, stylesheet, buffer)
         } else {
             let id = match &annotation.id {
                 Some(id) => format!("[{id}]"),
@@ -207,8 +211,7 @@ impl DisplaySet<'_> {
             );
 
             if !is_annotation_empty(annotation) {
-                buffer.append(line_offset, ": ", stylesheet.none);
-                self.format_label(line_offset, &annotation.label, stylesheet, buffer)?;
+                self.format_label(line_offset, &annotation.label, true, stylesheet, buffer)?;
             }
             Ok(())
         }

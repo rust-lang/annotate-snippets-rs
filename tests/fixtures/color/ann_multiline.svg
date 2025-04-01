@@ -19,7 +19,7 @@
   <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
 
   <text xml:space="preserve" class="container fg">
-    <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error[E0027]</tspan><tspan>: </tspan><tspan class="bold">pattern does not mention fields `lineno`, `content`</tspan>
+    <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error[E0027]</tspan><tspan class="bold">: pattern does not mention fields `lineno`, `content`</tspan>
 </tspan>
     <tspan x="10px" y="46px"><tspan>   </tspan><tspan class="fg-bright-blue bold">--&gt;</tspan><tspan> src/display_list.rs:139:32</tspan>
 </tspan>
