@@ -292,11 +292,10 @@ impl DisplaySet<'_> {
             } => {
                 let lineno_color = stylesheet.line_no();
                 if anonymized_line_numbers && lineno.is_some() {
-                    let num = format!("{ANONYMIZED_LINE_NUM:>lineno_width$}");
-                    buffer.puts(line_offset, 0, &num, *lineno_color);
+                    buffer.puts(line_offset, 0, ANONYMIZED_LINE_NUM, *lineno_color);
                 } else {
                     if let Some(n) = lineno {
-                        let num = format!("{n:>lineno_width$}");
+                        let num = format!("{n}");
                         buffer.puts(line_offset, 0, &num, *lineno_color);
                     }
                 }
