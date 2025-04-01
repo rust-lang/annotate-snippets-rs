@@ -233,8 +233,8 @@ impl DisplaySet<'_> {
                 header_type,
             } => {
                 let header_sigil = match header_type {
-                    DisplayHeaderType::Initial => "-->",
-                    DisplayHeaderType::Continuation => ":::",
+                    DisplayHeaderType::Initial => "--> ",
+                    DisplayHeaderType::Continuation => "::: ",
                 };
                 let lineno_color = stylesheet.line_no();
                 buffer.puts(line_offset, lineno_width, header_sigil, *lineno_color);

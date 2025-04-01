@@ -22,7 +22,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan class="bold">: expected one of `.`, `;`, `?`, or an operator, found `for`</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> </tspan><tspan class="fg-bright-blue bold">--&gt;</tspan><tspan> /code/rust/src/test/ui/annotate-snippet/suggestion.rs:4:5</tspan>
+    <tspan x="10px" y="46px"><tspan> </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>/code/rust/src/test/ui/annotate-snippet/suggestion.rs:4:5</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
