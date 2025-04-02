@@ -3,7 +3,7 @@ use std::ops::Range;
 
 use annotate_snippets::renderer::DEFAULT_TERM_WIDTH;
 use annotate_snippets::{
-    Annotation, AnnotationKind, Element, Group, Level, Message, Patch, Renderer, Snippet,
+    level::Level, Annotation, AnnotationKind, Element, Group, Message, Patch, Renderer, Snippet,
 };
 
 #[derive(Deserialize)]
@@ -15,8 +15,7 @@ pub(crate) struct Fixture {
 
 #[derive(Deserialize)]
 pub struct MessageDef {
-    #[serde(with = "LevelDef")]
-    pub level: Level,
+    pub level: LevelDef,
     pub title: String,
     #[serde(default)]
     pub id: Option<String>,
@@ -32,13 +31,15 @@ impl<'a> From<&'a MessageDef> for Message<'a> {
             id,
             sections,
         } = val;
-        let mut message = level.message(title);
+        let mut message = Level::from(level).message(title);
         if let Some(id) = id {
             message = message.id(id);
         }
 
         message = message.group(Group::new().elements(sections.iter().map(|s| match s {
-            ElementDef::Title(title) => Element::Title(title.level.title(&title.title)),
+            ElementDef::Title(title) => {
+                Element::Title(Level::from(&title.level).title(&title.title))
+            }
             ElementDef::Cause(cause) => Element::Cause(Snippet::from(cause)),
             ElementDef::Suggestion(suggestion) => Element::Suggestion(Snippet::from(suggestion)),
         })));
@@ -57,7 +58,9 @@ pub enum ElementDef {
 impl<'a> From<&'a ElementDef> for Element<'a> {
     fn from(val: &'a ElementDef) -> Self {
         match val {
-            ElementDef::Title(title) => Element::Title(title.level.title(&title.title)),
+            ElementDef::Title(title) => {
+                Element::Title(Level::from(&title.level).title(&title.title))
+            }
             ElementDef::Cause(cause) => Element::Cause(Snippet::from(cause)),
             ElementDef::Suggestion(suggestion) => Element::Suggestion(Snippet::from(suggestion)),
         }
@@ -67,8 +70,7 @@ impl<'a> From<&'a ElementDef> for Element<'a> {
 #[derive(Deserialize)]
 pub struct TitleDef {
     pub title: String,
-    #[serde(with = "LevelDef")]
-    pub level: Level,
+    pub level: LevelDef,
 }
 
 #[derive(Deserialize)]
@@ -164,14 +166,25 @@ impl<'a> From<&'a PatchDef> for Patch<'a> {
 }
 
 #[allow(dead_code)]
-#[derive(Deserialize)]
-#[serde(remote = "Level")]
-enum LevelDef {
+#[derive(Clone, Copy, Deserialize)]
+pub enum LevelDef {
     Error,
     Warning,
     Info,
     Note,
     Help,
+}
+
+impl<'a> From<&'a LevelDef> for Level<'a> {
+    fn from(val: &'a LevelDef) -> Self {
+        match val {
+            LevelDef::Error => Level::ERROR,
+            LevelDef::Warning => Level::WARNING,
+            LevelDef::Info => Level::INFO,
+            LevelDef::Note => Level::NOTE,
+            LevelDef::Help => Level::HELP,
+        }
+    }
 }
 
 #[derive(Default, Deserialize)]

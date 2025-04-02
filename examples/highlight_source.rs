@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 
 fn main() {
     let source = r#"//@ compile-flags: -Z teach
@@ -9,7 +9,7 @@ const CON: Vec<i32> = vec![1, 2, 3]; //~ ERROR E0010
 //~| ERROR cannot call non-const method
 fn main() {}
 "#;
-    let message = Level::Error
+    let message = Level::ERROR
         .message("allocations are not allowed in constants")
         .id("E0010")
         .group(
@@ -26,7 +26,7 @@ fn main() {}
                         ),
                 )
                 .element(
-                    Level::Note.title("The runtime heap is not yet available at compile-time, so no runtime heap allocations can be created."),
+                    Level::NOTE.title("The runtime heap is not yet available at compile-time, so no runtime heap allocations can be created."),
                 ),
         );
 

@@ -1,5 +1,5 @@
 use annotate_snippets::renderer::OutputTheme;
-use annotate_snippets::{AnnotationKind, Group, Level, Patch, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Patch, Renderer, Snippet};
 
 fn main() {
     let source = r#"// Regression test for issue #114529
@@ -29,7 +29,7 @@ fn main() {
     }
 }
 "#;
-    let message = Level::Error
+    let message = Level::ERROR
         .message("`break` with value from a `while` loop")
         .id("E0571")
         .group(
@@ -52,9 +52,11 @@ fn main() {
         )
         .group(
             Group::new()
-                .element(Level::None.title(
-                    "suggestion: use `break` on its own without a value inside this `while` loop",
-                ))
+                .element(
+                    Level::HELP
+                        .text(Some("suggestion"))
+                        .title("use `break` on its own without a value inside this `while` loop"),
+                )
                 .element(
                     Snippet::source(source)
                         .line_start(1)

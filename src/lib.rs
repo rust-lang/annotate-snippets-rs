@@ -42,6 +42,7 @@
 #![warn(clippy::print_stdout)]
 #![warn(missing_debug_implementations)]
 
+pub mod level;
 pub mod renderer;
 mod snippet;
 

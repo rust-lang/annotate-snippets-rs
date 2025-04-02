@@ -1,5 +1,5 @@
 use annotate_snippets::renderer::OutputTheme;
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 
 fn main() {
     let source = r#"//@ compile-flags: -Ztreat-err-as-bug
@@ -15,8 +15,10 @@ fn main() {
 pub static C: u32 = 0 - 1;
 //~^ ERROR could not evaluate static initializer
 "#;
-    let message = Level::None
-        .message("error: internal compiler error[E0080]: could not evaluate static initializer")
+    let message = Level::ERROR
+        .text(Some("error: internal compiler error"))
+        .message("could not evaluate static initializer")
+        .id("E0080")
         .group(
             Group::new().element(
                 Snippet::source(source)

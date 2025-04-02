@@ -5,6 +5,7 @@
 //! # Example
 //! ```
 //! use annotate_snippets::*;
+//! use annotate_snippets::level::Level;
 //!
 //! let source = r#"
 //! use baz::zed::bar;
@@ -17,7 +18,7 @@
 //!     bar();
 //! }
 //! "#;
-//! Level::Error
+//! Level::ERROR
 //!     .message("unresolved import `baz::zed`")
 //!     .id("E0432")
 //!     .group(
@@ -40,13 +41,12 @@ pub(crate) mod source_map;
 mod styled_buffer;
 pub(crate) mod stylesheet;
 
+use crate::level::{Level, LevelInner};
 use crate::renderer::source_map::{
     AnnotatedLineInfo, LineInfo, Loc, SourceMap, SubstitutionHighlight,
 };
 use crate::renderer::styled_buffer::StyledBuffer;
-use crate::{
-    Annotation, AnnotationKind, Element, Group, Level, Message, Origin, Patch, Snippet, Title,
-};
+use crate::{Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Snippet, Title};
 pub use anstyle::*;
 use margin::Margin;
 use std::borrow::Cow;
@@ -207,7 +207,7 @@ impl Renderer {
         };
         let title = message.groups.remove(0).elements.remove(0);
         let level = if let Element::Title(title) = &title {
-            title.level
+            title.level.clone()
         } else {
             panic!("Expected a title as the first element of the message")
         };
@@ -345,7 +345,7 @@ impl Renderer {
                             );
 
                             if g == 0 && group_len > 1 {
-                                if matches!(peek, Some(Element::Title(level)) if level.level != Level::None)
+                                if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
                                 {
                                     self.draw_col_separator_no_space(
                                         buffer,
@@ -394,7 +394,7 @@ impl Renderer {
                 if g == 0
                     && (matches!(section, Element::Origin(_))
                         || (matches!(section, Element::Title(_)) && i == 0)
-                        || matches!(section, Element::Title(level) if level.level == Level::None))
+                        || matches!(section, Element::Title(level) if level.level.name == Some(None)))
                 {
                     if peek.is_none() && group_len > 1 {
                         self.draw_col_separator_end(
@@ -402,7 +402,7 @@ impl Renderer {
                             buffer.num_lines(),
                             max_line_num_len + 1,
                         );
-                    } else if matches!(peek, Some(Element::Title(level)) if level.level != Level::None)
+                    } else if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
                     {
                         self.draw_col_separator_no_space(
                             buffer,
@@ -445,7 +445,7 @@ impl Renderer {
                 buffer.prepend(line_offset, " ", ElementStyle::NoStyle);
             }
 
-            if title.level != Level::None {
+            if title.level.name != Some(None) {
                 self.draw_note_separator(buffer, line_offset, max_line_num_len + 1, is_cont);
                 buffer.append(
                     line_offset,
@@ -476,18 +476,18 @@ impl Renderer {
         } else {
             let mut label_width = 0;
 
-            if title.level != Level::None {
+            if title.level.name != Some(None) {
                 buffer.append(
                     line_offset,
                     title.level.as_str(),
-                    ElementStyle::Level(title.level),
+                    ElementStyle::Level(title.level.level),
                 );
             }
             label_width += title.level.as_str().len();
             if let Some(id) = id {
-                buffer.append(line_offset, "[", ElementStyle::Level(title.level));
-                buffer.append(line_offset, id, ElementStyle::Level(title.level));
-                buffer.append(line_offset, "]", ElementStyle::Level(title.level));
+                buffer.append(line_offset, "[", ElementStyle::Level(title.level.level));
+                buffer.append(line_offset, id, ElementStyle::Level(title.level.level));
+                buffer.append(line_offset, "]", ElementStyle::Level(title.level.level));
                 label_width += 2 + id.len();
             }
             let header_style = if is_secondary {
@@ -495,7 +495,7 @@ impl Renderer {
             } else {
                 ElementStyle::MainHeaderMsg
             };
-            if title.level != Level::None {
+            if title.level.name != Some(None) {
                 buffer.append(line_offset, ": ", header_style);
                 label_width += 2;
             }
@@ -647,7 +647,7 @@ impl Renderer {
                 buffer_msg_line_offset + 1,
                 max_line_num_len + 1,
             );
-            let title = Level::Note.title(label);
+            let title = Level::NOTE.title(label);
             self.render_title(buffer, &title, None, max_line_num_len, true, None, false);
         }
     }
@@ -2654,13 +2654,13 @@ pub(crate) enum ElementStyle {
     LabelPrimary,
     LabelSecondary,
     NoStyle,
-    Level(Level),
+    Level(LevelInner),
     Addition,
     Removal,
 }
 
 impl ElementStyle {
-    fn color_spec(&self, level: Level, stylesheet: &Stylesheet) -> Style {
+    fn color_spec(&self, level: &Level<'_>, stylesheet: &Stylesheet) -> Style {
         match self {
             ElementStyle::Addition => stylesheet.addition,
             ElementStyle::Removal => stylesheet.removal,

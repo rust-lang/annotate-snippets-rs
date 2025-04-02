@@ -2,9 +2,9 @@
 //!
 //! [styled_buffer]: https://github.com/rust-lang/rust/blob/894f7a4ba6554d3797404bbf550d9919df060b97/compiler/rustc_errors/src/styled_buffer.rs
 
+use crate::level::Level;
 use crate::renderer::stylesheet::Stylesheet;
 use crate::renderer::ElementStyle;
-use crate::Level;
 
 use std::fmt;
 use std::fmt::Write;
@@ -41,14 +41,14 @@ impl StyledBuffer {
 
     pub(crate) fn render(
         &self,
-        level: Level,
+        level: Level<'_>,
         stylesheet: &Stylesheet,
     ) -> Result<String, fmt::Error> {
         let mut str = String::new();
         for (i, line) in self.lines.iter().enumerate() {
             let mut current_style = stylesheet.none;
             for StyledChar { ch, style } in line {
-                let ch_style = style.color_spec(level, stylesheet);
+                let ch_style = style.color_spec(&level, stylesheet);
                 if ch_style != current_style {
                     if !line.is_empty() {
                         write!(str, "{}", current_style.render_reset())?;

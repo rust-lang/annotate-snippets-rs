@@ -2,7 +2,7 @@
 //!
 //! [parser-tests]: https://github.com/rust-lang/rust/blob/894f7a4ba6554d3797404bbf550d9919df060b97/compiler/rustc_parse/src/parser/tests.rs
 
-use annotate_snippets::{AnnotationKind, Group, Level, Origin, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Origin, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, str};
 
@@ -12,7 +12,7 @@ fn ends_on_col0() {
 fn foo() {
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -42,7 +42,7 @@ fn foo() {
 
   }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -74,7 +74,7 @@ fn foo() {
   X2 Y2
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -117,7 +117,7 @@ fn foo() {
   Y1 X1
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -161,7 +161,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -205,7 +205,7 @@ fn foo() {
   X2 Y2 Z2
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -252,7 +252,7 @@ fn foo() {
   X2 Y2 Z2
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -300,7 +300,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -350,7 +350,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -394,7 +394,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -437,7 +437,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -470,7 +470,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -502,7 +502,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -537,7 +537,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -571,7 +571,7 @@ fn foo() {
   a  bc  d
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -605,7 +605,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -633,7 +633,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -662,7 +662,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -701,7 +701,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -732,7 +732,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -772,7 +772,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -832,7 +832,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::Error.message("foo").group(
+    let input = Level::ERROR.message("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -886,7 +886,7 @@ fn issue_91334() {
 
 fn f(){||yield(((){),
 "#;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("this file contains an unclosed delimiter")
         .group(
             Group::new().element(
@@ -957,7 +957,7 @@ fn main() {
     }
 }
 "#;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("`break` with value from a `while` loop")
         .id("E0571")
         .group(
@@ -981,7 +981,7 @@ fn main() {
         .group(
             Group::new()
                 .element(
-                    Level::Help
+                    Level::HELP
                         .title("use `break` on its own without a value inside this `while` loop"),
                 )
                 .element(
@@ -1167,7 +1167,7 @@ fn nsize() {
 }
 "#;
     let input =
-        Level::Error
+        Level::ERROR
             .message("`V0usize` cannot be safely transmuted into `[usize; 2]`")
             .id("E0277")
             .group(
@@ -1183,7 +1183,7 @@ fn nsize() {
             )
             .group(
                 Group::new()
-                    .element(Level::Note.title("required by a bound in `is_transmutable`"))
+                    .element(Level::NOTE.title("required by a bound in `is_transmutable`"))
                     .element(
                         Snippet::source(source)
                             .line_start(1)
@@ -1253,7 +1253,7 @@ fn main() {
     assert::is_maybe_transmutable::<&'static [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
 }
 "#;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("`&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`")
         .id("E027s7")
         .group(
@@ -1322,7 +1322,7 @@ fn g() {
 }
 fn main() {}
 "#;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("expected function, found `{integer}`")
         .id("E0618")
         .group(
@@ -1413,7 +1413,7 @@ macro_rules! outer_macro {
 
 outer_macro!(FirstStruct, FirstAttrStruct);
 "#;
-    let input = Level::Warning
+    let input = Level::WARNING
         .message("non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module")
         .group(
             Group::new()
@@ -1441,17 +1441,17 @@ outer_macro!(FirstStruct, FirstAttrStruct);
                         ),
                 )
                 .element(
-                    Level::Help
+                    Level::HELP
                         .title("remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`")
                 )
                 .element(
-                    Level::Note
+                    Level::NOTE
                         .title("a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute")
                 ),
         )
         .group(
             Group::new()
-                .element(Level::Note.title("the lint level is defined here"))
+                .element(Level::NOTE.title("the lint level is defined here"))
                 .element(
                     Snippet::source(source)
                         .line_start(1)
@@ -1546,7 +1546,7 @@ macro_rules! inline {
     () => ()
 }
 "#;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("can't call method `pow` on ambiguous numeric type `{integer}`")
         .id("E0689")
         .group(
@@ -1560,7 +1560,7 @@ macro_rules! inline {
         )
         .group(
             Group::new()
-                .element(Level::Help.title("you must specify a type for this binding, like `i32`"))
+                .element(Level::HELP.title("you must specify a type for this binding, like `i32`"))
                 .element(
                     Snippet::source(aux_source)
                         .line_start(1)
@@ -1610,7 +1610,7 @@ fn courier_to_des_moines_and_points_west(data: &[u32]) -> String {
 fn main() {}
 "#;
 
-    let input = Level::Error
+    let input = Level::ERROR
         .message("type annotations needed")
         .id("E0282")
         .group(
@@ -1716,7 +1716,7 @@ fn nonempty<const N: usize>(arrayN_of_empty: [!; N]) {
 fn main() {}
 "##;
 
-    let input = Level::Error
+    let input = Level::ERROR
         .message(
             "non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered"
         )
@@ -1736,7 +1736,7 @@ fn main() {}
         )
         .group(
             Group::new()
-                .element(Level::Note.title("`NonEmptyEnum5` defined here"))
+                .element(Level::NOTE.title("`NonEmptyEnum5` defined here"))
                 .element(
                     Snippet::source(source)
                         .line_start(1)
@@ -1749,13 +1749,13 @@ fn main() {}
                         .annotation(AnnotationKind::Context.span(878..880).label("not covered"))
                         .annotation(AnnotationKind::Context.span(890..892).label("not covered"))
                 )
-                .element(Level::Note.title("the matched value is of type `NonEmptyEnum5`"))
-                .element(Level::Note.title("match arms with guards don't count towards exhaustivity"))
+                .element(Level::NOTE.title("the matched value is of type `NonEmptyEnum5`"))
+                .element(Level::NOTE.title("match arms with guards don't count towards exhaustivity"))
         )
         .group(
             Group::new()
                 .element(
-                    Level::Help
+                    Level::HELP
                         .title("ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms")
                 )
                 .element(
@@ -1818,7 +1818,7 @@ fn main() {
     //~^ ERROR must be specified
 }
 "#;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("the trait alias `EqAlias` is not dyn compatible")
         .id("E0038")
         .group(
@@ -1837,7 +1837,7 @@ fn main() {
         .group(
             Group::new()
                 .element(
-                    Level::Note
+                    Level::NOTE
                         .title("for a trait to be dyn compatible it needs to allow building a vtable\nfor more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>"))
                 .element(
                     Origin::new("$SRC_DIR/core/src/cmp.rs")

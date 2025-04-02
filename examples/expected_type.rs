@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 
 fn main() {
     let source = r#"                annotations: vec![SourceAnnotation {
@@ -6,7 +6,7 @@ fn main() {
                     ,
                 range: <22, 25>,"#;
     let message =
-        Level::Error.message("expected type, found `22`").group(
+        Level::ERROR.message("expected type, found `22`").group(
             Group::new().element(
                 Snippet::source(source)
                     .line_start(26)

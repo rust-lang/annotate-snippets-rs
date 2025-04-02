@@ -1,8 +1,7 @@
 //! Structures used as an input for the library.
 
+use crate::level::Level;
 use crate::renderer::source_map::SourceMap;
-use crate::renderer::stylesheet::Stylesheet;
-use anstyle::Style;
 use std::ops::Range;
 
 pub(crate) const ERROR_TXT: &str = "error";
@@ -143,7 +142,7 @@ pub struct ColumnSeparator;
 
 #[derive(Debug)]
 pub struct Title<'a> {
-    pub(crate) level: Level,
+    pub(crate) level: Level<'a>,
     pub(crate) title: &'a str,
     pub(crate) primary: bool,
 }
@@ -152,66 +151,6 @@ impl Title<'_> {
     pub fn primary(mut self, primary: bool) -> Self {
         self.primary = primary;
         self
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Level {
-    Error,
-    Warning,
-    Info,
-    Note,
-    Help,
-    None,
-}
-
-impl Level {
-    /// Text passed to this function is considered "untrusted input", as such
-    /// all text is passed through a normalization function. Pre-styled text is
-    /// not allowed to be passed to this function.
-    pub fn message(self, title: &str) -> Message<'_> {
-        Message {
-            id: None,
-            groups: vec![Group::new().element(Element::Title(Title {
-                level: self,
-                title,
-                primary: true,
-            }))],
-        }
-    }
-
-    /// Text passed to this function is allowed to be pre-styled, as such all
-    /// text is considered "trusted input" and has no normalizations applied to
-    /// it. [`normalize_untrusted_str`](crate::normalize_untrusted_str) can be
-    /// used to normalize untrusted text before it is passed to this function.
-    pub fn title(self, title: &str) -> Title<'_> {
-        Title {
-            level: self,
-            title,
-            primary: false,
-        }
-    }
-
-    pub(crate) fn as_str(self) -> &'static str {
-        match self {
-            Level::Error => ERROR_TXT,
-            Level::Warning => WARNING_TXT,
-            Level::Info => INFO_TXT,
-            Level::Note => NOTE_TXT,
-            Level::Help => HELP_TXT,
-            Level::None => "",
-        }
-    }
-
-    pub(crate) fn style(&self, stylesheet: &Stylesheet) -> Style {
-        match self {
-            Level::Error => stylesheet.error,
-            Level::Warning => stylesheet.warning,
-            Level::Info => stylesheet.info,
-            Level::Note => stylesheet.note,
-            Level::Help => stylesheet.help,
-            Level::None => stylesheet.none,
-        }
     }
 }
 

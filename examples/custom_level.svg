@@ -3,6 +3,7 @@
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
     .fg-bright-blue { fill: #5555FF }
+    .fg-bright-cyan { fill: #55FFFF }
     .fg-bright-green { fill: #55FF55 }
     .fg-bright-red { fill: #FF5555 }
     .container {
@@ -40,7 +41,7 @@
 </tspan>
     <tspan x="10px" y="190px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰╴</tspan>
 </tspan>
-    <tspan x="10px" y="208px"><tspan class="bold">suggestion: use `break` on its own without a value inside this `while` loop</tspan>
+    <tspan x="10px" y="208px"><tspan class="fg-bright-cyan bold">suggestion</tspan><tspan class="bold">: use `break` on its own without a value inside this `while` loop</tspan>
 </tspan>
     <tspan x="10px" y="226px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╭╴</tspan>
 </tspan>

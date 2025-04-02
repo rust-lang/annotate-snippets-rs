@@ -1,7 +1,7 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 
 fn main() {
-    let message = Level::Error
+    let message = Level::ERROR
         .message("mismatched types")
         .id("E0308")
         .group(
@@ -14,7 +14,7 @@ fn main() {
                     )),
             ),
         )
-        .group(Group::new().element(Level::Note.title(
+        .group(Group::new().element(Level::NOTE.title(
             "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
         )));
 

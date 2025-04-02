@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 
 fn main() {
     let source = r#") -> Option<String> {
@@ -23,7 +23,7 @@ fn main() {
             _ => continue,
         }
     }"#;
-    let message = Level::Error.message("mismatched types").id("E0308").group(
+    let message = Level::ERROR.message("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(51)

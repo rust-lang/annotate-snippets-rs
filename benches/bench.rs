@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 
 #[divan::bench]
 fn simple() -> String {
@@ -24,7 +24,7 @@ fn simple() -> String {
             _ => continue,
         }
     }"#;
-    let message = Level::Error.message("mismatched types").id("E0308").group(
+    let message = Level::ERROR.message("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(51)
@@ -69,7 +69,7 @@ fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
             (input, span)
         })
         .bench_values(|(input, span)| {
-            let message = Level::Error.message("mismatched types").id("E0308").group(
+            let message = Level::ERROR.message("mismatched types").id("E0308").group(
                 Group::new().element(
                     Snippet::source(&input)
                         .fold(true)

@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
 use anstyle::Effects;
 
 fn main() {
@@ -43,7 +43,7 @@ fn main() {
         magenta.render_reset()
     );
 
-    let message = Level::Error.message("mismatched types").id("E0308").group(
+    let message = Level::ERROR.message("mismatched types").id("E0308").group(
         Group::new()
             .element(
                 Snippet::source(source)
@@ -60,7 +60,7 @@ fn main() {
                             .label("arguments to this function are incorrect"),
                     ),
             )
-            .element(Level::Note.title(&title)),
+            .element(Level::NOTE.title(&title)),
     );
 
     let renderer = Renderer::styled().anonymized_line_numbers(true);

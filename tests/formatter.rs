@@ -1,11 +1,13 @@
-use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Patch, Renderer, Snippet};
+use annotate_snippets::{
+    level::Level, Annotation, AnnotationKind, Group, Patch, Renderer, Snippet,
+};
 
 use annotate_snippets::renderer::OutputTheme;
 use snapbox::{assert_data_eq, str};
 
 #[test]
 fn test_i_29() {
-    let snippets = Level::Error.message("oops").group(
+    let snippets = Level::ERROR.message("oops").group(
         Group::new().element(
             Snippet::source("First line\r\nSecond oops line")
                 .origin("<current file>")
@@ -27,7 +29,7 @@ error: oops
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("こんにちは、世界")
                 .origin("<current file>")
@@ -49,7 +51,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("おはよう\nございます")
                 .origin("<current file>")
@@ -73,7 +75,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("お寿司\n食べたい🍣")
                 .origin("<current file>")
@@ -98,7 +100,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("こんにちは、新しいWorld！")
                 .origin("<current file>")
@@ -120,7 +122,7 @@ error:
 
 #[test]
 fn test_format_title() {
-    let input = Level::Error.message("This is a title").id("E0001");
+    let input = Level::ERROR.message("This is a title").id("E0001");
 
     let expected = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
@@ -130,7 +132,7 @@ fn test_format_title() {
 #[test]
 fn test_format_snippet_only() {
     let source = "This is line 1\nThis is line 2";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source(source).line_start(5402)));
 
@@ -148,7 +150,7 @@ error:
 fn test_format_snippets_continuation() {
     let src_0 = "This is slice 1";
     let src_1 = "This is slice 2";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new()
             .element(
                 Snippet::<Annotation<'_>>::source(src_0)
@@ -182,7 +184,7 @@ fn test_format_snippet_annotation_standalone() {
     let source = [line_1, line_2].join("\n");
     // In line 2
     let range = 22..24;
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(&source).line_start(5402).annotation(
                 AnnotationKind::Context
@@ -204,9 +206,9 @@ error:
 
 #[test]
 fn test_format_footer_title() {
-    let input = Level::Error
+    let input = Level::ERROR
         .message("")
-        .group(Group::new().element(Level::Error.title("This __is__ a title")));
+        .group(Group::new().element(Level::ERROR.title("This __is__ a title")));
     let expected = str![[r#"
 error: 
   |
@@ -221,7 +223,7 @@ error:
 fn test_i26() {
     let source = "short";
     let label = "label";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source).line_start(0).annotation(
                 AnnotationKind::Primary
@@ -237,7 +239,7 @@ fn test_i26() {
 #[test]
 fn test_source_content() {
     let source = "This is an example\nof content lines";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source(source).line_start(56)));
     let expected = str![[r#"
@@ -253,7 +255,7 @@ error:
 #[test]
 fn test_source_annotation_standalone_singleline() {
     let source = "tests";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -273,7 +275,7 @@ error:
 #[test]
 fn test_source_annotation_standalone_multiline() {
     let source = "tests";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -296,7 +298,7 @@ error:
 
 #[test]
 fn test_only_source() {
-    let input = Level::Error
+    let input = Level::ERROR
         .message("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source("").origin("file.rs")));
     let expected = str![[r#"
@@ -311,7 +313,7 @@ error:
 #[test]
 fn test_anon_lines() {
     let source = "This is an example\nof content lines\n\nabc";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source(source).line_start(56)));
     let expected = str![[r#"
@@ -328,7 +330,7 @@ LL | abc
 
 #[test]
 fn issue_130() {
-    let input = Level::Error.message("dummy").group(
+    let input = Level::ERROR.message("dummy").group(
         Group::new().element(
             Snippet::source("foo\nbar\nbaz")
                 .origin("file/path")
@@ -356,7 +358,7 @@ fn unterminated_string_multiline() {
 a\"
 // ...
 ";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -380,7 +382,7 @@ error:
 #[test]
 fn char_and_nl_annotate_char() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -403,7 +405,7 @@ error:
 #[test]
 fn char_eol_annotate_char() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -425,7 +427,7 @@ error:
 
 #[test]
 fn char_eol_annotate_char_double_width() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
                 .origin("<current file>")
@@ -450,7 +452,7 @@ error:
 #[test]
 fn annotate_eol() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -473,7 +475,7 @@ error:
 #[test]
 fn annotate_eol2() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -496,7 +498,7 @@ error:
 #[test]
 fn annotate_eol3() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -519,7 +521,7 @@ error:
 #[test]
 fn annotate_eol4() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -541,7 +543,7 @@ error:
 
 #[test]
 fn annotate_eol_double_width() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
                 .origin("<current file>")
@@ -566,7 +568,7 @@ error:
 #[test]
 fn multiline_eol_start() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -590,7 +592,7 @@ error:
 #[test]
 fn multiline_eol_start2() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -614,7 +616,7 @@ error:
 #[test]
 fn multiline_eol_start3() {
     let source = "a\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -637,7 +639,7 @@ error:
 
 #[test]
 fn multiline_eol_start_double_width() {
-    let snippets = Level::Error.message("").group(
+    let snippets = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
                 .origin("<current file>")
@@ -663,7 +665,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end() {
     let source = "a\nb\nc";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -688,7 +690,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end2() {
     let source = "a\r\nb\r\nc";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -713,7 +715,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end3() {
     let source = "a\r\nb\r\nc";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -738,7 +740,7 @@ error:
 #[test]
 fn multiline_eol_start_eof_end() {
     let source = "a\r\nb";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -762,7 +764,7 @@ error:
 #[test]
 fn multiline_eol_start_eof_end_double_width() {
     let source = "ん\r\nに";
-    let input = Level::Error.message("").group(
+    let input = Level::ERROR.message("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -786,7 +788,7 @@ error:
 #[test]
 fn two_single_line_same_line() {
     let source = r#"bar = { version = "0.1.0", optional = true }"#;
-    let input = Level::Error.message("unused optional dependency").group(
+    let input = Level::ERROR.message("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("Cargo.toml")
@@ -823,7 +825,7 @@ this is another line
 so is this
 bar = { version = "0.1.0", optional = true }
 "#;
-    let input = Level::Error.message("unused optional dependency").group(
+    let input = Level::ERROR.message("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(4)
@@ -862,7 +864,7 @@ this is another line
 so is this
 bar = { version = "0.1.0", optional = true }
 "#;
-    let input = Level::Error.message("unused optional dependency").group(
+    let input = Level::ERROR.message("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(4)
@@ -910,7 +912,7 @@ so is this
 bar = { version = "0.1.0", optional = true }
 this is another line
 "#;
-    let input = Level::Error.message("unused optional dependency").group(
+    let input = Level::ERROR.message("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(4)
@@ -961,7 +963,7 @@ error: unused optional dependency
 #[test]
 fn origin_correct_start_line() {
     let source = "aaa\nbbb\nccc\nddd\n";
-    let input = Level::Error.message("title").group(
+    let input = Level::ERROR.message("title").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("origin.txt")
@@ -987,7 +989,7 @@ error: title
 #[test]
 fn origin_correct_mid_line() {
     let source = "aaa\nbbb\nccc\nddd\n";
-    let input = Level::Error.message("title").group(
+    let input = Level::ERROR.message("title").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("origin.txt")
@@ -1017,7 +1019,7 @@ error: title
 #[test]
 fn two_suggestions_same_span() {
     let source = r#"    A.foo();"#;
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("expected value, found enum `A`")
         .id("E0423")
         .group(
@@ -1030,7 +1032,7 @@ fn two_suggestions_same_span() {
         .group(
             Group::new()
                 .element(
-                    Level::Help
+                    Level::HELP
                         .title("you might have meant to use one of the following enum variants"),
                 )
                 .element(
@@ -1085,7 +1087,7 @@ fn main() {
     banana::Chaenomeles.pick()
 }"#;
     let input_new =
-        Level::Error
+        Level::ERROR
             .message("no method named `pick` found for struct `Chaenomeles` in the current scope")
             .id("E0599")
             .group(
@@ -1107,7 +1109,7 @@ fn main() {
             )
             .group(
                 Group::new()
-                    .element(Level::Help.title(
+                    .element(Level::HELP.title(
                         "the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them",
                     ))
                     .element(
@@ -1145,7 +1147,7 @@ LL + use banana::Peach;
 fn single_line_non_overlapping_suggestions() {
     let source = r#"    A.foo();"#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("expected value, found enum `A`")
         .id("E0423")
         .group(
@@ -1158,7 +1160,7 @@ fn single_line_non_overlapping_suggestions() {
         )
         .group(
             Group::new()
-                .element(Level::Help.title("make these changes and things will work"))
+                .element(Level::HELP.title("make these changes and things will work"))
                 .element(
                     Snippet::source(source)
                         .fold(true)
@@ -1187,7 +1189,7 @@ LL +     (A::Tuple()).bar();
 #[test]
 fn single_line_non_overlapping_suggestions2() {
     let source = r#"    ThisIsVeryLong.foo();"#;
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("Found `ThisIsVeryLong`")
         .id("E0423")
         .group(
@@ -1200,7 +1202,7 @@ fn single_line_non_overlapping_suggestions2() {
         )
         .group(
             Group::new()
-                .element(Level::Help.title("make these changes and things will work"))
+                .element(Level::HELP.title("make these changes and things will work"))
                 .element(
                     Snippet::source(source)
                         .fold(true)
@@ -1236,7 +1238,7 @@ fn multiple_replacements() {
     y();
 "#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("cannot borrow `*self` as mutable because it is also borrowed as immutable")
         .id("E0502")
         .group(
@@ -1269,7 +1271,7 @@ fn multiple_replacements() {
         .group(
             Group::new()
                 .element(
-                    Level::Help
+                    Level::HELP
                         .title("try explicitly pass `&Self` into the Closure as an argument"),
                 )
                 .element(
@@ -1320,7 +1322,7 @@ fn main() {
     test1();
 }"#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("cannot borrow `chars` as mutable more than once at a time")
         .id("E0499")
         .group(
@@ -1348,7 +1350,7 @@ fn main() {
         .group(
             Group::new()
                 .element(
-                    Level::Help
+                    Level::HELP
                         .title("if you want to call `next` on a iterator within the loop, consider using `while let`")
                 )
                 .element(
@@ -1404,7 +1406,7 @@ struct Foo {
 
 fn main() {}"#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("failed to resolve: use of undeclared crate or module `st`")
         .id("E0433")
         .group(
@@ -1418,7 +1420,7 @@ fn main() {}"#;
         )
         .group(
             Group::new()
-                .element(Level::Help.title("there is a crate or module with a similar name"))
+                .element(Level::HELP.title("there is a crate or module with a similar name"))
                 .element(
                     Snippet::source(source)
                         .fold(true)
@@ -1427,7 +1429,7 @@ fn main() {}"#;
         )
         .group(
             Group::new()
-                .element(Level::Help.title("consider importing this module"))
+                .element(Level::HELP.title("consider importing this module"))
                 .element(
                     Snippet::source(source)
                         .fold(true)
@@ -1436,7 +1438,7 @@ fn main() {}"#;
         )
         .group(
             Group::new()
-                .element(Level::Help.title("if you import `cell`, refer to it directly"))
+                .element(Level::HELP.title("if you import `cell`, refer to it directly"))
                 .element(
                     Snippet::source(source)
                         .fold(true)
@@ -1486,7 +1488,7 @@ where
 
 fn main() {}"#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
         .group(
@@ -1508,7 +1510,7 @@ fn main() {}"#;
         )
         .group(
             Group::new()
-                .element(Level::Help.title(
+                .element(Level::HELP.title(
                     "consider removing the `?Sized` bound to make the type parameter `Sized`",
                 ))
                 .element(
@@ -1555,7 +1557,7 @@ and where
 }
 
 fn main() {}"#;
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
         .group(Group::new().element(Snippet::source(source)
@@ -1573,7 +1575,7 @@ fn main() {}"#;
                     .label("this type parameter needs to be `Sized`"),
             )))
         .group(Group::new().element(
-            Level::Note
+            Level::NOTE
                 .title("required by an implicit `Sized` bound in `Wrapper`")
         ).element(
             Snippet::source(source)
@@ -1587,7 +1589,7 @@ fn main() {}"#;
                 )
         ))
         .group(Group::new().element(
-            Level::Help
+            Level::HELP
                 .title("you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`")
             )
             .element(
@@ -1608,7 +1610,7 @@ fn main() {}"#;
 
         ))
         .group(Group::new().element(
-            Level::Help
+            Level::HELP
                 .title("consider removing the `?Sized` bound to make the type parameter `Sized`")
         ).element(
             Snippet::source(source)
@@ -1660,12 +1662,12 @@ quack
 zappy
 "#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
         .group(
             Group::new()
-                .element(Level::Help.title(
+                .element(Level::HELP.title(
                     "consider removing the `?Sized` bound to make the type parameter `Sized`",
                 ))
                 .element(
@@ -1728,7 +1730,7 @@ fn main() {
 }
 "#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")
         .group(Group::new().element(Snippet::source(source)
@@ -1741,7 +1743,7 @@ fn main() {
                     .label("type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`"),
             )))
         .group(Group::new().element(
-            Level::Note.title("expected this to be `Foo`")
+            Level::NOTE.title("expected this to be `Foo`")
         ).element(
             Snippet::source(source)
                 .line_start(4)
@@ -1749,7 +1751,7 @@ fn main() {
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(89..90))
         ).element(
-            Level::Note
+            Level::NOTE
                 .title("required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`")
                 ,
         ));
@@ -1816,7 +1818,7 @@ fn main() {
 }
 "#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")
         .group(Group::new().element(Snippet::source(source)
@@ -1829,7 +1831,7 @@ fn main() {
                     .label("type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`"),
             )))
         .group(Group::new().element(
-            Level::Note.title("expected this to be `Foo`")
+            Level::NOTE.title("expected this to be `Foo`")
         ).element(
             Snippet::source(source)
                 .line_start(4)
@@ -1837,10 +1839,10 @@ fn main() {
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(89..90))
         ).element(
-            Level::Note
+            Level::NOTE
                 .title("required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`")
         ).element(
-            Level::Note.title("a second note"),
+            Level::NOTE.title("a second note"),
         ));
 
     let expected = str![[r#"
@@ -1969,7 +1971,7 @@ fn main() {
 }
 "#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("mismatched types")
         .id("E0308")
         .group(Group::new().element(
@@ -1988,13 +1990,13 @@ fn main() {
                         .label("expected due to this"),
                 )
         ).element(
-            Level::Note
+            Level::NOTE
                 .title("expected struct `Atype<Btype<..., i32>, i32>`\n     found enum `Result<Result<..., _>, _>`")
         ).element(
-            Level::Note
+            Level::NOTE
                 .title("the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'")
         ).element(
-            Level::Note
+            Level::NOTE
                 .title("consider using `--verbose` to print the full type name to the console")
                 ,
         ));
@@ -2053,7 +2055,7 @@ fn main() {
 }
 "#;
 
-    let input_new = Level::Error
+    let input_new = Level::ERROR
         .message("mismatched types")
         .id("E0308")
         .group(Group::new().element(
@@ -2072,12 +2074,12 @@ fn main() {
                         .label("arguments to this function are incorrect"),
                 ),
         ).element(
-            Level::Note
+            Level::NOTE
                 .title("expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`\n      found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`")
                 ,
         ))
         .group(Group::new().element(
-            Level::Note.title("function defined here"),
+            Level::NOTE.title("function defined here"),
         ).element(
             Snippet::source(source)
                 .line_start(7)
@@ -2122,7 +2124,7 @@ LL │ ┃ )>>) {}
 #[test]
 fn unicode_cut_handling() {
     let source = "version = \"0.1.0\"\n# Ensure that the spans from toml handle utf-8 correctly\nauthors = [\n    { name = \"Z\u{351}\u{36b}\u{343}\u{36a}\u{302}\u{36b}\u{33d}\u{34f}\u{334}\u{319}\u{324}\u{31e}\u{349}\u{35a}\u{32f}\u{31e}\u{320}\u{34d}A\u{36b}\u{357}\u{334}\u{362}\u{335}\u{31c}\u{330}\u{354}L\u{368}\u{367}\u{369}\u{358}\u{320}G\u{311}\u{357}\u{30e}\u{305}\u{35b}\u{341}\u{334}\u{33b}\u{348}\u{34d}\u{354}\u{339}O\u{342}\u{30c}\u{30c}\u{358}\u{328}\u{335}\u{339}\u{33b}\u{31d}\u{333}\", email = 1 }\n]\n";
-    let input = Level::Error.message("title").group(
+    let input = Level::ERROR.message("title").group(
         Group::new().element(
             Snippet::source(source)
                 .fold(false)
@@ -2147,7 +2149,7 @@ error: title
 #[test]
 fn unicode_cut_handling2() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("expected item, found `?`")
         .group(
             Group::new().element(
@@ -2155,7 +2157,7 @@ fn unicode_cut_handling2() {
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(499..500).label("expected item"))
             ).element(
-                Level::Note.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+                Level::NOTE.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
             )
         );
 
@@ -2174,7 +2176,7 @@ error: expected item, found `?`
 #[test]
 fn unicode_cut_handling3() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("expected item, found `?`")
         .group(
             Group::new().element(
@@ -2182,7 +2184,7 @@ fn unicode_cut_handling3() {
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(251..254).label("expected item"))
             ).element(
-                Level::Note.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+                Level::NOTE.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
             )
         );
 
@@ -2201,7 +2203,7 @@ error: expected item, found `?`
 #[test]
 fn unicode_cut_handling4() {
     let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("expected item, found `?`")
         .group(
             Group::new().element(
@@ -2209,7 +2211,7 @@ fn unicode_cut_handling4() {
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(334..335).label("expected item"))
             ).element(
-                Level::Note.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+                Level::NOTE.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
             )
         );
 
@@ -2234,7 +2236,7 @@ fn main() {
 //~^ ERROR mismatched types
 }
 "##;
-    let input = Level::Error.message("mismatched types").id("E0308").group(
+    let input = Level::ERROR.message("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("$DIR/non-whitespace-trimming-unicode.rs")
@@ -2278,7 +2280,7 @@ fn main() {
     //[ascii]~^ ERROR cannot add `&str` to `&str`
 }
 "##;
-    let input = Level::Error
+    let input = Level::ERROR
         .message("cannot add `&str` to `&str`")
         .id("E0369")
         .group(
@@ -2296,13 +2298,13 @@ fn main() {
                         ),
                 )
                 .element(
-                    Level::Note
+                    Level::NOTE
                         .title("string concatenation requires an owned `String` on the left"),
                 ),
         )
         .group(
             Group::new()
-                .element(Level::Help.title("create an owned `String` from a string reference"))
+                .element(Level::HELP.title("create an owned `String` from a string reference"))
                 .element(
                     Snippet::source(source)
                         .origin("$DIR/non-1-width-unicode-multiline-label.rs")
@@ -2345,7 +2347,7 @@ fn foo() {
 }
 "##;
     let bin_source = "�|�\u{0002}!5�cc\u{0015}\u{0002}�Ӻi��WWj�ȥ�'�}�\u{0012}�J�ȉ��W�\u{001e}O�@����\u{001c}w�V���LO����\u{0014}[ \u{0003}_�'���SQ�~ذ��ų&��-\t��lN~��!@␌ _#���kQ��h�\u{001d}�:�\u{001c}\u{0007}�";
-    let input = Level::Error
+    let input = Level::ERROR
         .message("couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8")
         .group(
             Group::new().element(
@@ -2357,14 +2359,14 @@ fn foo() {
         )
         .group(
             Group::new()
-                .element(Level::Note.title("byte `193` is not valid utf-8"))
+                .element(Level::NOTE.title("byte `193` is not valid utf-8"))
                 .element(
                     Snippet::source(bin_source)
                         .origin("$DIR/not-utf8.bin")
                         .fold(true)
                         .annotation(AnnotationKind::Primary.span(0..0)),
                 )
-                .element(Level::Note.title("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
+                .element(Level::NOTE.title("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
         );
 
     let expected = str![[r#"
