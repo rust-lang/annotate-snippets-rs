@@ -2,6 +2,36 @@ use annotate_snippets::{Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, str};
 
+// This tests that an ellipsis is not inserted into Unicode text when a line
+// wasn't actually trimmed.
+//
+// This is a regression test where `...` was inserted because the code wasn't
+// properly accounting for the *rendered* length versus the length in bytes in
+// all cases.
+#[test]
+fn unicode_cut_handling() {
+    let source = "version = \"0.1.0\"\n# Ensure that the spans from toml handle utf-8 correctly\nauthors = [\n    { name = \"Z\u{351}\u{36b}\u{343}\u{36a}\u{302}\u{36b}\u{33d}\u{34f}\u{334}\u{319}\u{324}\u{31e}\u{349}\u{35a}\u{32f}\u{31e}\u{320}\u{34d}A\u{36b}\u{357}\u{334}\u{362}\u{335}\u{31c}\u{330}\u{354}L\u{368}\u{367}\u{369}\u{358}\u{320}G\u{311}\u{357}\u{30e}\u{305}\u{35b}\u{341}\u{334}\u{33b}\u{348}\u{34d}\u{354}\u{339}O\u{342}\u{30c}\u{30c}\u{358}\u{328}\u{335}\u{339}\u{33b}\u{31d}\u{333}\", email = 1 }\n]\n";
+    let input = Level::Error.title("title").snippet(
+        Snippet::source(source)
+            .fold(false)
+            .annotation(Level::Error.span(85..228).label("annotation")),
+    );
+    let expected = "\
+error: title
+  |
+1 |   version = \"0.1.0\"
+2 |   # Ensure that the spans from toml handle utf-8 correctly
+3 |   authors = [
+  |  ___________^
+4 | |     { name = \"Z\u{351}\u{36b}\u{343}\u{36a}\u{302}\u{36b}\u{33d}\u{34f}\u{334}\u{319}\u{324}\u{31e}\u{349}\u{35a}\u{32f}\u{31e}\u{320}\u{34d}A\u{36b}\u{357}\u{334}\u{362}\u{335}\u{31c}\u{330}\u{354}L\u{368}\u{367}\u{369}\u{358}\u{320}G\u{311}\u{357}\u{30e}\u{305}\u{35b}\u{341}\u{334}\u{33b}\u{348}\u{34d}\u{354}\u{339}O\u{342}\u{30c}\u{30c}\u{358}\u{328}\u{335}\u{339}\u{33b}\u{31d}\u{333}\", email = 1 }
+5 | | ]
+  | |_^ annotation
+  |\
+";
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input).to_string(), expected);
+}
+
 #[test]
 fn test_i_29() {
     let snippets = Level::Error.title("oops").snippet(
