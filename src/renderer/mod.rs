@@ -44,7 +44,6 @@ use crate::renderer::source_map::{AnnotatedLineInfo, Loc, SourceMap};
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::{Annotation, AnnotationKind, Element, Group, Level, Message, Origin, Snippet, Title};
 pub use anstyle::*;
-use indexmap::IndexMap;
 use margin::Margin;
 use std::borrow::Cow;
 use std::cmp::{max, min, Ordering, Reverse};
@@ -638,7 +637,7 @@ impl Renderer {
         self.draw_col_separator_no_space(buffer, buffer_msg_line_offset, max_line_num_len + 1);
 
         // Contains the vertical lines' positions for active multiline annotations
-        let mut multilines = IndexMap::new();
+        let mut multilines = Vec::new();
 
         // Get the left-side margin to remove it
         let mut whitespace_margin = usize::MAX;
@@ -728,8 +727,9 @@ impl Renderer {
             let mut to_add = HashMap::new();
 
             for (depth, style) in depths {
-                // FIXME(#120456) - is `swap_remove` correct?
-                if multilines.swap_remove(&depth).is_none() {
+                if let Some(index) = multilines.iter().position(|(d, _)| d == &depth) {
+                    multilines.swap_remove(index);
+                } else {
                     to_add.insert(depth, style);
                 }
             }
@@ -834,7 +834,7 @@ impl Renderer {
                 }
             }
 
-            multilines.extend(&to_add);
+            multilines.extend(to_add);
         }
     }
 

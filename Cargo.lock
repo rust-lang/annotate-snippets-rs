@@ -21,7 +21,6 @@ dependencies = [
  "difference",
  "divan",
  "glob",
- "indexmap",
  "memchr",
  "serde",
  "snapbox",

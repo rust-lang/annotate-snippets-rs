@@ -117,7 +117,6 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 anstyle = "1.0.4"
-indexmap = "2.7.0"
 memchr = { version = "2.7.4", optional = true }
 unicode-width = "0.2.0"
 
