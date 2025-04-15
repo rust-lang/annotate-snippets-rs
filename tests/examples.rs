@@ -1,4 +1,18 @@
 #[test]
+fn custom_error() {
+    let target = "custom_error";
+    let expected = snapbox::file!["../examples/custom_error.svg": TermSvg];
+    assert_example(target, expected);
+}
+
+#[test]
+fn custom_level() {
+    let target = "custom_level";
+    let expected = snapbox::file!["../examples/custom_level.svg": TermSvg];
+    assert_example(target, expected);
+}
+
+#[test]
 fn expected_type() {
     let target = "expected_type";
     let expected = snapbox::file!["../examples/expected_type.svg": TermSvg];
