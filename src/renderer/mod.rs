@@ -46,17 +46,13 @@ use crate::{Annotation, AnnotationKind, Element, Group, Level, Message, Origin, 
 pub use anstyle::*;
 use indexmap::IndexMap;
 use margin::Margin;
-use rustc_hash::{FxHashMap, FxHasher};
 use std::borrow::Cow;
 use std::cmp::{max, min, Ordering, Reverse};
-use std::collections::VecDeque;
-use std::hash::BuildHasherDefault;
+use std::collections::{HashMap, VecDeque};
 use stylesheet::Stylesheet;
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
 pub const DEFAULT_TERM_WIDTH: usize = 140;
-
-type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 /// A renderer for [`Message`]s
 #[derive(Clone, Debug)]
@@ -642,7 +638,7 @@ impl Renderer {
         self.draw_col_separator_no_space(buffer, buffer_msg_line_offset, max_line_num_len + 1);
 
         // Contains the vertical lines' positions for active multiline annotations
-        let mut multilines = FxIndexMap::default();
+        let mut multilines = IndexMap::new();
 
         // Get the left-side margin to remove it
         let mut whitespace_margin = usize::MAX;
@@ -729,7 +725,7 @@ impl Renderer {
                 margin,
             );
 
-            let mut to_add = FxHashMap::default();
+            let mut to_add = HashMap::new();
 
             for (depth, style) in depths {
                 // FIXME(#120456) - is `swap_remove` correct?

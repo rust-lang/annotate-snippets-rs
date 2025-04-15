@@ -119,7 +119,6 @@ maintenance = { status = "actively-developed" }
 anstyle = "1.0.4"
 indexmap = "2.7.0"
 memchr = { version = "2.7.4", optional = true }
-rustc-hash = "2.1.0"
 unicode-width = "0.2.0"
 
 [dev-dependencies]
