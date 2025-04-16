@@ -34,16 +34,6 @@ pub struct Level<'a> {
     pub(crate) level: LevelInner,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Level2<'a> {
-    Builtin(LevelInner),
-    Custom {
-        name: Option<&'a str>,
-        level: LevelInner,
-    },
-    None,
-}
-
 impl<'a> Level<'a> {
     pub const ERROR: Level<'a> = ERROR;
     pub const WARNING: Level<'a> = WARNING;
