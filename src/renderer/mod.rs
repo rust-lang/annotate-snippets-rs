@@ -101,7 +101,7 @@ impl Renderer {
                 info: BRIGHT_BLUE.effects(Effects::BOLD),
                 note: AnsiColor::BrightGreen.on_default().effects(Effects::BOLD),
                 help: AnsiColor::BrightCyan.on_default().effects(Effects::BOLD),
-                line_no: BRIGHT_BLUE.effects(Effects::BOLD),
+                line_num: BRIGHT_BLUE.effects(Effects::BOLD),
                 emphasis: if USE_WINDOWS_COLORS {
                     AnsiColor::BrightWhite.on_default()
                 } else {
@@ -178,8 +178,8 @@ impl Renderer {
     }
 
     /// Set the output style for line numbers
-    pub const fn line_no(mut self, style: Style) -> Self {
-        self.stylesheet.line_no = style;
+    pub const fn line_num(mut self, style: Style) -> Self {
+        self.stylesheet.line_num = style;
         self
     }
 
@@ -2665,7 +2665,7 @@ impl ElementStyle {
             ElementStyle::Addition => stylesheet.addition,
             ElementStyle::Removal => stylesheet.removal,
             ElementStyle::LineAndColumn => stylesheet.none,
-            ElementStyle::LineNumber => stylesheet.line_no,
+            ElementStyle::LineNumber => stylesheet.line_num,
             ElementStyle::Quotation => stylesheet.none,
             ElementStyle::MainHeaderMsg => stylesheet.emphasis,
             ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary => level.style(stylesheet),
