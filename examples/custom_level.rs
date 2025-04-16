@@ -30,7 +30,7 @@ fn main() {
 }
 "#;
     let message = Level::ERROR
-        .message("`break` with value from a `while` loop")
+        .header("`break` with value from a `while` loop")
         .id("E0571")
         .group(
             Group::new().element(

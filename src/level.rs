@@ -56,12 +56,12 @@ impl<'a> Level<'a> {
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
-    pub fn message(self, title: &'a str) -> Message<'a> {
+    pub fn header(self, header: &'a str) -> Message<'a> {
         Message {
             id: None,
             groups: vec![Group::new().element(Element::Title(Title {
                 level: self,
-                title,
+                title: header,
                 primary: true,
             }))],
         }

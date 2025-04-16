@@ -19,7 +19,7 @@
 //! }
 //! "#;
 //! Level::ERROR
-//!     .message("unresolved import `baz::zed`")
+//!     .header("unresolved import `baz::zed`")
 //!     .id("E0432")
 //!     .group(
 //!         Group::new().element(

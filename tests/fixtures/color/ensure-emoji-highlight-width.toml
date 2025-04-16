@@ -1,5 +1,5 @@
 [message]
-title = "invalid character ` ` in package name: `haha this isn't a valid name 🐛`, characters must be Unicode XID characters (numbers, `-`, `_`, or most letters)"
+header = "invalid character ` ` in package name: `haha this isn't a valid name 🐛`, characters must be Unicode XID characters (numbers, `-`, `_`, or most letters)"
 level = "Error"
 
 

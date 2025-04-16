@@ -2,7 +2,7 @@ use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
 
 fn main() {
     let message = Level::ERROR
-        .message("mismatched types")
+        .header("mismatched types")
         .id("E0308")
         .group(
             Group::new().element(

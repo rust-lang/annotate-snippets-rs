@@ -1,7 +1,7 @@
 [message]
 level = "Error"
 id = "E0308"
-title = "mismatched types"
+header = "mismatched types"
 
 [[message.sections]]
 type = "Cause"

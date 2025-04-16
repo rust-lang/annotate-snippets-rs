@@ -12,7 +12,7 @@ fn ends_on_col0() {
 fn foo() {
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -42,7 +42,7 @@ fn foo() {
 
   }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -74,7 +74,7 @@ fn foo() {
   X2 Y2
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -117,7 +117,7 @@ fn foo() {
   Y1 X1
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -161,7 +161,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -205,7 +205,7 @@ fn foo() {
   X2 Y2 Z2
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -252,7 +252,7 @@ fn foo() {
   X2 Y2 Z2
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -300,7 +300,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -350,7 +350,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -394,7 +394,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -437,7 +437,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -470,7 +470,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -502,7 +502,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -537,7 +537,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -571,7 +571,7 @@ fn foo() {
   a  bc  d
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -605,7 +605,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -633,7 +633,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -662,7 +662,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -701,7 +701,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -732,7 +732,7 @@ fn foo() {
   a { b { c } d }
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -772,7 +772,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -832,7 +832,7 @@ fn foo() {
   X3 Y3 Z3
 }
 "#;
-    let input = Level::ERROR.message("foo").group(
+    let input = Level::ERROR.header("foo").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -887,7 +887,7 @@ fn issue_91334() {
 fn f(){||yield(((){),
 "#;
     let input = Level::ERROR
-        .message("this file contains an unclosed delimiter")
+        .header("this file contains an unclosed delimiter")
         .group(
             Group::new().element(
                 Snippet::source(source)
@@ -958,7 +958,7 @@ fn main() {
 }
 "#;
     let input = Level::ERROR
-        .message("`break` with value from a `while` loop")
+        .header("`break` with value from a `while` loop")
         .id("E0571")
         .group(
             Group::new().element(
@@ -1168,7 +1168,7 @@ fn nsize() {
 "#;
     let input =
         Level::ERROR
-            .message("`V0usize` cannot be safely transmuted into `[usize; 2]`")
+            .header("`V0usize` cannot be safely transmuted into `[usize; 2]`")
             .id("E0277")
             .group(
                 Group::new().element(
@@ -1254,7 +1254,7 @@ fn main() {
 }
 "#;
     let input = Level::ERROR
-        .message("`&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`")
+        .header("`&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`")
         .id("E027s7")
         .group(
             Group::new().element(
@@ -1323,7 +1323,7 @@ fn g() {
 fn main() {}
 "#;
     let input = Level::ERROR
-        .message("expected function, found `{integer}`")
+        .header("expected function, found `{integer}`")
         .id("E0618")
         .group(
             Group::new().element(
@@ -1414,7 +1414,7 @@ macro_rules! outer_macro {
 outer_macro!(FirstStruct, FirstAttrStruct);
 "#;
     let input = Level::WARNING
-        .message("non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module")
+        .header("non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module")
         .group(
             Group::new()
                 .element(
@@ -1547,7 +1547,7 @@ macro_rules! inline {
 }
 "#;
     let input = Level::ERROR
-        .message("can't call method `pow` on ambiguous numeric type `{integer}`")
+        .header("can't call method `pow` on ambiguous numeric type `{integer}`")
         .id("E0689")
         .group(
             Group::new().element(
@@ -1611,7 +1611,7 @@ fn main() {}
 "#;
 
     let input = Level::ERROR
-        .message("type annotations needed")
+        .header("type annotations needed")
         .id("E0282")
         .group(
             Group::new().element(
@@ -1717,7 +1717,7 @@ fn main() {}
 "##;
 
     let input = Level::ERROR
-        .message(
+        .header(
             "non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered"
         )
         .id("E0004")
@@ -1819,7 +1819,7 @@ fn main() {
 }
 "#;
     let input = Level::ERROR
-        .message("the trait alias `EqAlias` is not dyn compatible")
+        .header("the trait alias `EqAlias` is not dyn compatible")
         .id("E0038")
         .group(
             Group::new().element(

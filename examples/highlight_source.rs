@@ -10,7 +10,7 @@ const CON: Vec<i32> = vec![1, 2, 3]; //~ ERROR E0010
 fn main() {}
 "#;
     let message = Level::ERROR
-        .message("allocations are not allowed in constants")
+        .header("allocations are not allowed in constants")
         .id("E0010")
         .group(
             Group::new()

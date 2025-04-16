@@ -23,7 +23,7 @@ fn main() {
             _ => continue,
         }
     }"#;
-    let message = Level::ERROR.message("mismatched types").id("E0308").group(
+    let message = Level::ERROR.header("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(51)

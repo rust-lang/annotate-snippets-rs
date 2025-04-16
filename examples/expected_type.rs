@@ -6,7 +6,7 @@ fn main() {
                     ,
                 range: <22, 25>,"#;
     let message =
-        Level::ERROR.message("expected type, found `22`").group(
+        Level::ERROR.header("expected type, found `22`").group(
             Group::new().element(
                 Snippet::source(source)
                     .line_start(26)

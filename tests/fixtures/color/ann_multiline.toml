@@ -1,7 +1,7 @@
 [message]
 level = "Error"
 id = "E0027"
-title = "pattern does not mention fields `lineno`, `content`"
+header = "pattern does not mention fields `lineno`, `content`"
 
 [[message.sections]]
 type = "Cause"
