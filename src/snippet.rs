@@ -34,7 +34,7 @@ impl<'a> Message<'a> {
                 v.elements
                     .iter()
                     .map(|s| match s {
-                        Element::Title(_) | Element::Origin(_) | Element::ColumnSeparator(_) => 0,
+                        Element::Title(_) | Element::Origin(_) | Element::Padding(_) => 0,
                         Element::Cause(cause) => {
                             let end = cause
                                 .markers
@@ -104,7 +104,7 @@ pub enum Element<'a> {
     Cause(Snippet<'a, Annotation<'a>>),
     Suggestion(Snippet<'a, Patch<'a>>),
     Origin(Origin<'a>),
-    ColumnSeparator(ColumnSeparator),
+    Padding(Padding),
 }
 
 impl<'a> From<Title<'a>> for Element<'a> {
@@ -131,14 +131,14 @@ impl<'a> From<Origin<'a>> for Element<'a> {
     }
 }
 
-impl From<ColumnSeparator> for Element<'_> {
-    fn from(value: ColumnSeparator) -> Self {
-        Self::ColumnSeparator(value)
+impl From<Padding> for Element<'_> {
+    fn from(value: Padding) -> Self {
+        Self::Padding(value)
     }
 }
 
 #[derive(Debug)]
-pub struct ColumnSeparator;
+pub struct Padding;
 
 #[derive(Debug)]
 pub struct Title<'a> {

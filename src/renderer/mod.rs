@@ -383,7 +383,7 @@ impl Renderer {
                         self.render_origin(buffer, max_line_num_len, origin);
                         last_was_suggestion = false;
                     }
-                    Element::ColumnSeparator(_) => {
+                    Element::Padding(_) => {
                         self.draw_col_separator_no_space(
                             buffer,
                             buffer.num_lines(),
@@ -430,7 +430,7 @@ impl Renderer {
 
         let (has_primary_spans, has_span_labels) =
             next_section.map_or((false, false), |s| match s {
-                Element::Title(_) | Element::ColumnSeparator(_) => (false, false),
+                Element::Title(_) | Element::Padding(_) => (false, false),
                 Element::Cause(cause) => (
                     cause.markers.iter().any(|m| m.kind.is_primary()),
                     cause.markers.iter().any(|m| m.label.is_some()),
