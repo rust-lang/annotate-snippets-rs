@@ -3,7 +3,8 @@ level = "Error"
 id = "E0308"
 title = "mismatched types"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = """
 ) -> Option<String> {
     for ann in annotations {
@@ -31,14 +32,10 @@ source = """
 line_start = 51
 origin = "src/format.rs"
 fold = true
-[[message.snippets.annotations]]
-label = "expected `std::option::Option<std::string::String>` because of return type"
-level = "Warning"
-range = [5, 19]
-[[message.snippets.annotations]]
-label = "expected enum `std::option::Option`, found ()"
-level = "Error"
-range = [22, 766]
+annotations = [
+    { label = "expected `std::option::Option<std::string::String>` because of return type", kind = "Context", range = [5, 19] },
+    { label = "expected enum `std::option::Option`, found ()", kind = "Primary", range = [22, 766] },
+]
 
 [renderer]
 color = true

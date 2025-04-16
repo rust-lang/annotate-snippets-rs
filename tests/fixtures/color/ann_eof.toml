@@ -2,14 +2,14 @@
 level = "Error"
 title = "expected `.`, `=`"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = "asdf"
 line_start = 1
 origin = "Cargo.toml"
-[[message.snippets.annotations]]
-label = ""
-level = "Error"
-range = [4, 4]
+annotations = [
+  { label = "", kind = "Primary", range = [4, 4] },
+]
 
 [renderer]
 color = true

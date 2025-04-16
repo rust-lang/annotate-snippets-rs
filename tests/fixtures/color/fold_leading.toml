@@ -3,7 +3,8 @@ level = "Error"
 id = "E0308"
 title = "invalid type: integer `20`, expected a bool"
 
-[[message.snippets]]
+[[message.sections]]
+type = "Cause"
 source = """
 [workspace]
 
@@ -20,10 +21,9 @@ workspace = 20
 line_start = 1
 origin = "Cargo.toml"
 fold = true
-[[message.snippets.annotations]]
-label = ""
-level = "Error"
-range = [132, 134]
+annotations = [
+    { label = "", kind = "Primary", range = [132, 134] },
+]
 
 [renderer]
 color = true
