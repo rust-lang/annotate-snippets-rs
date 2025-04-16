@@ -1,4 +1,4 @@
-use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
 
 fn main() {
     let message = Level::ERROR

@@ -1,7 +1,7 @@
 //! Structures used as an input for the library.
 
-use crate::level::Level;
 use crate::renderer::source_map::SourceMap;
+use crate::Level;
 use std::ops::Range;
 
 pub(crate) const ERROR_TXT: &str = "error";

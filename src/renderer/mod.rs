@@ -5,7 +5,7 @@
 //! # Example
 //! ```
 //! use annotate_snippets::*;
-//! use annotate_snippets::level::Level;
+//! use annotate_snippets::Level;
 //!
 //! let source = r#"
 //! use baz::zed::bar;

@@ -3,7 +3,7 @@ use std::ops::Range;
 
 use annotate_snippets::renderer::DEFAULT_TERM_WIDTH;
 use annotate_snippets::{
-    level::Level, Annotation, AnnotationKind, Element, Group, Message, Patch, Renderer, Snippet,
+    Annotation, AnnotationKind, Element, Group, Level, Message, Patch, Renderer, Snippet,
 };
 
 #[derive(Deserialize)]

@@ -1,4 +1,4 @@
-use annotate_snippets::{level::Level, Annotation, Group, Renderer, Snippet};
+use annotate_snippets::{Annotation, Group, Level, Renderer, Snippet};
 
 fn main() {
     let message = Level::ERROR.message("mismatched types").group(

@@ -1,5 +1,5 @@
 use annotate_snippets::renderer::OutputTheme;
-use annotate_snippets::{level::Level, AnnotationKind, Group, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
 
 fn main() {
     let source = r#"//@ compile-flags: -Ztreat-err-as-bug

@@ -1,5 +1,5 @@
 use annotate_snippets::renderer::OutputTheme;
-use annotate_snippets::{level::Level, AnnotationKind, Group, Patch, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Group, Level, Patch, Renderer, Snippet};
 
 fn main() {
     let source = r#"// Regression test for issue #114529

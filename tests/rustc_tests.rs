@@ -2,7 +2,7 @@
 //!
 //! [parser-tests]: https://github.com/rust-lang/rust/blob/894f7a4ba6554d3797404bbf550d9919df060b97/compiler/rustc_parse/src/parser/tests.rs
 
-use annotate_snippets::{level::Level, AnnotationKind, Group, Origin, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Group, Level, Origin, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, str};
 

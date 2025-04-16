@@ -1,6 +1,4 @@
-use annotate_snippets::{
-    level::Level, Annotation, AnnotationKind, Group, Patch, Renderer, Snippet,
-};
+use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Patch, Renderer, Snippet};
 
 use annotate_snippets::renderer::OutputTheme;
 use snapbox::{assert_data_eq, str};
