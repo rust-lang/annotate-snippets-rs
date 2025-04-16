@@ -166,6 +166,9 @@ pub enum Level {
 }
 
 impl Level {
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn message(self, title: &str) -> Message<'_> {
         Message {
             id: None,
@@ -222,6 +225,9 @@ pub struct Snippet<'a, T> {
 }
 
 impl<'a, T: Clone> Snippet<'a, T> {
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn source(source: &'a str) -> Self {
         Self {
             origin: None,
@@ -237,6 +243,9 @@ impl<'a, T: Clone> Snippet<'a, T> {
         self
     }
 
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn origin(mut self, origin: &'a str) -> Self {
         self.origin = Some(origin);
         self
@@ -281,6 +290,9 @@ pub struct Annotation<'a> {
 }
 
 impl<'a> Annotation<'a> {
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
         self
@@ -322,6 +334,9 @@ pub struct Patch<'a> {
 }
 
 impl<'a> Patch<'a> {
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn new(range: Range<usize>, replacement: &'a str) -> Self {
         Self { range, replacement }
     }
@@ -384,6 +399,9 @@ pub struct Origin<'a> {
 }
 
 impl<'a> Origin<'a> {
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn new(origin: &'a str) -> Self {
         Self {
             origin,
@@ -409,6 +427,9 @@ impl<'a> Origin<'a> {
         self
     }
 
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
         self
