@@ -129,8 +129,8 @@ impl<'a> SourceMap<'a> {
         let source_len = self.source.len();
         if let Some(bigger) = annotations.iter().find_map(|x| {
             // Allow highlighting one past the last character in the source.
-            if source_len + 1 < x.range.end {
-                Some(&x.range)
+            if source_len + 1 < x.span.end {
+                Some(&x.span)
             } else {
                 None
             }
@@ -150,13 +150,13 @@ impl<'a> SourceMap<'a> {
         let mut multiline_annotations = vec![];
 
         for Annotation {
-            range,
+            span,
             label,
             kind,
             highlight_source,
         } in annotations
         {
-            let (lo, mut hi) = self.span_to_locations(range.clone());
+            let (lo, mut hi) = self.span_to_locations(span.clone());
 
             // Watch out for "empty spans". If we get a span like 6..6, we
             // want to just display a `^` at 6, so convert that to
@@ -374,13 +374,13 @@ impl<'a> SourceMap<'a> {
         }
         // Assumption: all spans are in the same file, and all spans
         // are disjoint. Sort in ascending order.
-        patches.sort_by_key(|p| p.range.start);
+        patches.sort_by_key(|p| p.span.start);
 
         // Find the bounding span.
-        let Some(lo) = patches.iter().map(|p| p.range.start).min() else {
+        let Some(lo) = patches.iter().map(|p| p.span.start).min() else {
             return Vec::new();
         };
-        let Some(hi) = patches.iter().map(|p| p.range.end).max() else {
+        let Some(hi) = patches.iter().map(|p| p.span.end).max() else {
             return Vec::new();
         };
 
@@ -410,7 +410,7 @@ impl<'a> SourceMap<'a> {
             // suggestion and snippet to look as if we just suggested to add
             // `"b"`, which is typically much easier for the user to understand.
             part.trim_trivial_replacements(self);
-            let (cur_lo, cur_hi) = self.span_to_locations(part.range.clone());
+            let (cur_lo, cur_hi) = self.span_to_locations(part.span.clone());
             if prev_hi.line == cur_lo.line {
                 let mut count = push_trailing(&mut buf, prev_line, &prev_hi, Some(&cur_lo));
                 while count > 0 {
@@ -454,7 +454,7 @@ impl<'a> SourceMap<'a> {
                     _ => 1,
                 })
                 .sum();
-            if !is_different(self, part.replacement, part.range.clone()) {
+            if !is_different(self, part.replacement, part.span.clone()) {
                 // Account for cases where we are suggesting the same code that's already
                 // there. This shouldn't happen often, but in some cases for multipart
                 // suggestions it's much easier to handle it here than in the origin.

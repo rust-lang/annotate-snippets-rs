@@ -39,7 +39,7 @@ impl<'a> Message<'a> {
                             let end = cause
                                 .markers
                                 .iter()
-                                .map(|a| a.range.end)
+                                .map(|a| a.span.end)
                                 .max()
                                 .unwrap_or(cause.source.len())
                                 .min(cause.source.len());
@@ -50,7 +50,7 @@ impl<'a> Message<'a> {
                             let end = suggestion
                                 .markers
                                 .iter()
-                                .map(|a| a.range.end)
+                                .map(|a| a.span.end)
                                 .max()
                                 .unwrap_or(suggestion.source.len())
                                 .min(suggestion.source.len());
@@ -222,7 +222,7 @@ impl<'a> Snippet<'a, Patch<'a>> {
 
 #[derive(Clone, Debug)]
 pub struct Annotation<'a> {
-    pub(crate) range: Range<usize>,
+    pub(crate) span: Range<usize>,
     pub(crate) label: Option<&'a str>,
     pub(crate) kind: AnnotationKind,
     pub(crate) highlight_source: bool,
@@ -254,7 +254,7 @@ pub enum AnnotationKind {
 impl AnnotationKind {
     pub fn span<'a>(self, span: Range<usize>) -> Annotation<'a> {
         Annotation {
-            range: span,
+            span,
             label: None,
             kind: self,
             highlight_source: false,
@@ -268,7 +268,7 @@ impl AnnotationKind {
 
 #[derive(Clone, Debug)]
 pub struct Patch<'a> {
-    pub(crate) range: Range<usize>,
+    pub(crate) span: Range<usize>,
     pub(crate) replacement: &'a str,
 }
 
@@ -276,8 +276,8 @@ impl<'a> Patch<'a> {
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
-    pub fn new(range: Range<usize>, replacement: &'a str) -> Self {
-        Self { range, replacement }
+    pub fn new(span: Range<usize>, replacement: &'a str) -> Self {
+        Self { span, replacement }
     }
 
     pub(crate) fn is_addition(&self, sm: &SourceMap<'_>) -> bool {
@@ -299,7 +299,7 @@ impl<'a> Patch<'a> {
     pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
         self.is_replacement(sm)
             && !sm
-                .span_to_snippet(self.range.clone())
+                .span_to_snippet(self.span.clone())
                 // This should use `is_some_and` when our MSRV is >= 1.70
                 .map_or(false, |s| {
                     as_substr(s.trim(), self.replacement.trim()).is_some()
@@ -307,8 +307,8 @@ impl<'a> Patch<'a> {
     }
 
     fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
-        sm.span_to_snippet(self.range.clone())
-            .map_or(!self.range.is_empty(), |snippet| !snippet.trim().is_empty())
+        sm.span_to_snippet(self.span.clone())
+            .map_or(!self.span.is_empty(), |snippet| !snippet.trim().is_empty())
     }
 
     /// Try to turn a replacement into an addition when the span that is being
@@ -317,12 +317,12 @@ impl<'a> Patch<'a> {
         if self.replacement.is_empty() {
             return;
         }
-        let Some(snippet) = sm.span_to_snippet(self.range.clone()) else {
+        let Some(snippet) = sm.span_to_snippet(self.span.clone()) else {
             return;
         };
 
         if let Some((prefix, substr, suffix)) = as_substr(snippet, self.replacement) {
-            self.range = self.range.start + prefix..self.range.end.saturating_sub(suffix);
+            self.span = self.span.start + prefix..self.span.end.saturating_sub(suffix);
             self.replacement = substr;
         }
     }
