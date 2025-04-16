@@ -1,6 +1,6 @@
 [message]
 level = "Error"
-title = "expected one of `.`, `;`, `?`, or an operator, found `for`"
+header = "expected one of `.`, `;`, `?`, or an operator, found `for`"
 
 [[message.sections]]
 type = "Cause"

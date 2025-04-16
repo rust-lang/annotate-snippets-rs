@@ -1,7 +1,7 @@
 //! Structures used as an input for the library.
 
-use crate::level::Level;
 use crate::renderer::source_map::SourceMap;
+use crate::Level;
 use std::ops::Range;
 
 pub(crate) const ERROR_TXT: &str = "error";
@@ -10,6 +10,7 @@ pub(crate) const INFO_TXT: &str = "info";
 pub(crate) const NOTE_TXT: &str = "note";
 pub(crate) const WARNING_TXT: &str = "warning";
 
+/// Top-level user message
 #[derive(Debug)]
 pub struct Message<'a> {
     pub(crate) id: Option<&'a str>, // for "correctness", could be sloppy and be on Title
@@ -17,11 +18,19 @@ pub struct Message<'a> {
 }
 
 impl<'a> Message<'a> {
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn id(mut self, id: &'a str) -> Self {
         self.id = Some(id);
         self
     }
 
+    /// Add an [`Element`] container
     pub fn group(mut self, group: Group<'a>) -> Self {
         self.groups.push(group);
         self
@@ -34,12 +43,12 @@ impl<'a> Message<'a> {
                 v.elements
                     .iter()
                     .map(|s| match s {
-                        Element::Title(_) | Element::Origin(_) | Element::ColumnSeparator(_) => 0,
+                        Element::Title(_) | Element::Origin(_) | Element::Padding(_) => 0,
                         Element::Cause(cause) => {
                             let end = cause
                                 .markers
                                 .iter()
-                                .map(|a| a.range.end)
+                                .map(|a| a.span.end)
                                 .max()
                                 .unwrap_or(cause.source.len())
                                 .min(cause.source.len());
@@ -50,7 +59,7 @@ impl<'a> Message<'a> {
                             let end = suggestion
                                 .markers
                                 .iter()
-                                .map(|a| a.range.end)
+                                .map(|a| a.span.end)
                                 .max()
                                 .unwrap_or(suggestion.source.len())
                                 .min(suggestion.source.len());
@@ -66,6 +75,7 @@ impl<'a> Message<'a> {
     }
 }
 
+/// An [`Element`] container
 #[derive(Debug)]
 pub struct Group<'a> {
     pub(crate) elements: Vec<Element<'a>>,
@@ -97,6 +107,7 @@ impl<'a> Group<'a> {
     }
 }
 
+/// A section of content within a [`Group`]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Element<'a> {
@@ -104,7 +115,7 @@ pub enum Element<'a> {
     Cause(Snippet<'a, Annotation<'a>>),
     Suggestion(Snippet<'a, Patch<'a>>),
     Origin(Origin<'a>),
-    ColumnSeparator(ColumnSeparator),
+    Padding(Padding),
 }
 
 impl<'a> From<Title<'a>> for Element<'a> {
@@ -131,15 +142,19 @@ impl<'a> From<Origin<'a>> for Element<'a> {
     }
 }
 
-impl From<ColumnSeparator> for Element<'_> {
-    fn from(value: ColumnSeparator) -> Self {
-        Self::ColumnSeparator(value)
+impl From<Padding> for Element<'_> {
+    fn from(value: Padding) -> Self {
+        Self::Padding(value)
     }
 }
 
+/// A whitespace [`Element`] in a [`Group`]
 #[derive(Debug)]
-pub struct ColumnSeparator;
+pub struct Padding;
 
+/// A text [`Element`] in a [`Group`]
+///
+/// See [`Level::title`] to create this.
 #[derive(Debug)]
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
@@ -154,6 +169,7 @@ impl Title<'_> {
     }
 }
 
+/// A source view [`Element`] in a [`Group`]
 #[derive(Debug)]
 pub struct Snippet<'a, T> {
     pub(crate) origin: Option<&'a str>,
@@ -164,9 +180,15 @@ pub struct Snippet<'a, T> {
 }
 
 impl<'a, T: Clone> Snippet<'a, T> {
+    /// The source code to be rendered
+    ///
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn source(source: &'a str) -> Self {
         Self {
             origin: None,
@@ -177,19 +199,28 @@ impl<'a, T: Clone> Snippet<'a, T> {
         }
     }
 
+    /// When manually [`fold`][Self::fold]ing,
+    /// the [`source`][Self::source]s line offset from the original start
     pub fn line_start(mut self, line_start: usize) -> Self {
         self.line_start = line_start;
         self
     }
 
+    /// The location of the [`source`][Self::source] (e.g. a path)
+    ///
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn origin(mut self, origin: &'a str) -> Self {
         self.origin = Some(origin);
         self
     }
 
+    /// Hide lines without [`Annotation`]s
     pub fn fold(mut self, fold: bool) -> Self {
         self.fold = fold;
         self
@@ -197,11 +228,13 @@ impl<'a, T: Clone> Snippet<'a, T> {
 }
 
 impl<'a> Snippet<'a, Annotation<'a>> {
+    /// Highlight and describe a span of text within the [`source`][Self::source]
     pub fn annotation(mut self, annotation: Annotation<'a>) -> Snippet<'a, Annotation<'a>> {
         self.markers.push(annotation);
         self
     }
 
+    /// Highlight and describe spans of text within the [`source`][Self::source]
     pub fn annotations(mut self, annotation: impl IntoIterator<Item = Annotation<'a>>) -> Self {
         self.markers.extend(annotation);
         self
@@ -209,40 +242,55 @@ impl<'a> Snippet<'a, Annotation<'a>> {
 }
 
 impl<'a> Snippet<'a, Patch<'a>> {
+    /// Suggest to the user an edit to the [`source`][Self::source]
     pub fn patch(mut self, patch: Patch<'a>) -> Snippet<'a, Patch<'a>> {
         self.markers.push(patch);
         self
     }
 
+    /// Suggest to the user edits to the [`source`][Self::source]
     pub fn patches(mut self, patches: impl IntoIterator<Item = Patch<'a>>) -> Self {
         self.markers.extend(patches);
         self
     }
 }
 
+/// Highlighted and describe a span of text within a [`Snippet`]
+///
+/// See [`AnnotationKind`] to create an annotation.
 #[derive(Clone, Debug)]
 pub struct Annotation<'a> {
-    pub(crate) range: Range<usize>,
+    pub(crate) span: Range<usize>,
     pub(crate) label: Option<&'a str>,
     pub(crate) kind: AnnotationKind,
     pub(crate) highlight_source: bool,
 }
 
 impl<'a> Annotation<'a> {
+    /// Describe the reason the span is highlighted
+    ///
+    /// This will be styled according to the [`AnnotationKind`]
+    ///
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
         self
     }
 
+    /// Style the source according to the [`AnnotationKind`]
     pub fn highlight_source(mut self, highlight_source: bool) -> Self {
         self.highlight_source = highlight_source;
         self
     }
 }
 
+/// The category of the [`Annotation`]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AnnotationKind {
     /// Color to [`Message`]'s [`Level`]
@@ -254,7 +302,7 @@ pub enum AnnotationKind {
 impl AnnotationKind {
     pub fn span<'a>(self, span: Range<usize>) -> Annotation<'a> {
         Annotation {
-            range: span,
+            span,
             label: None,
             kind: self,
             highlight_source: false,
@@ -266,18 +314,25 @@ impl AnnotationKind {
     }
 }
 
+/// Suggested edit to the [`Snippet`]
 #[derive(Clone, Debug)]
 pub struct Patch<'a> {
-    pub(crate) range: Range<usize>,
+    pub(crate) span: Range<usize>,
     pub(crate) replacement: &'a str,
 }
 
 impl<'a> Patch<'a> {
+    /// Splice `replacement` into the [`Snippet`] at the `span`
+    ///
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
-    pub fn new(range: Range<usize>, replacement: &'a str) -> Self {
-        Self { range, replacement }
+    ///
+    /// </div>
+    pub fn new(span: Range<usize>, replacement: &'a str) -> Self {
+        Self { span, replacement }
     }
 
     pub(crate) fn is_addition(&self, sm: &SourceMap<'_>) -> bool {
@@ -299,7 +354,7 @@ impl<'a> Patch<'a> {
     pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
         self.is_replacement(sm)
             && !sm
-                .span_to_snippet(self.range.clone())
+                .span_to_snippet(self.span.clone())
                 // This should use `is_some_and` when our MSRV is >= 1.70
                 .map_or(false, |s| {
                     as_substr(s.trim(), self.replacement.trim()).is_some()
@@ -307,8 +362,8 @@ impl<'a> Patch<'a> {
     }
 
     fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
-        sm.span_to_snippet(self.range.clone())
-            .map_or(!self.range.is_empty(), |snippet| !snippet.trim().is_empty())
+        sm.span_to_snippet(self.span.clone())
+            .map_or(!self.span.is_empty(), |snippet| !snippet.trim().is_empty())
     }
 
     /// Try to turn a replacement into an addition when the span that is being
@@ -317,17 +372,18 @@ impl<'a> Patch<'a> {
         if self.replacement.is_empty() {
             return;
         }
-        let Some(snippet) = sm.span_to_snippet(self.range.clone()) else {
+        let Some(snippet) = sm.span_to_snippet(self.span.clone()) else {
             return;
         };
 
         if let Some((prefix, substr, suffix)) = as_substr(snippet, self.replacement) {
-            self.range = self.range.start + prefix..self.range.end.saturating_sub(suffix);
+            self.span = self.span.start + prefix..self.span.end.saturating_sub(suffix);
             self.replacement = substr;
         }
     }
 }
 
+/// The location of the [`Snippet`] (e.g. a path)
 #[derive(Clone, Debug)]
 pub struct Origin<'a> {
     pub(crate) origin: &'a str,
@@ -338,9 +394,13 @@ pub struct Origin<'a> {
 }
 
 impl<'a> Origin<'a> {
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn new(origin: &'a str) -> Self {
         Self {
             origin,
@@ -351,11 +411,17 @@ impl<'a> Origin<'a> {
         }
     }
 
+    /// Set the default line number to display
+    ///
+    /// Otherwise this will be inferred from the primary [`Annotation`]
     pub fn line(mut self, line: usize) -> Self {
         self.line = Some(line);
         self
     }
 
+    /// Set the default column to display
+    ///
+    /// Otherwise this will be inferred from the primary [`Annotation`]
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
         self
@@ -366,9 +432,15 @@ impl<'a> Origin<'a> {
         self
     }
 
+    /// Like [`Annotation::label`], but when there is no source
+    ///
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
         self

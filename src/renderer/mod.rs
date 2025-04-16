@@ -5,7 +5,7 @@
 //! # Example
 //! ```
 //! use annotate_snippets::*;
-//! use annotate_snippets::level::Level;
+//! use annotate_snippets::Level;
 //!
 //! let source = r#"
 //! use baz::zed::bar;
@@ -19,7 +19,7 @@
 //! }
 //! "#;
 //! Level::ERROR
-//!     .message("unresolved import `baz::zed`")
+//!     .header("unresolved import `baz::zed`")
 //!     .id("E0432")
 //!     .group(
 //!         Group::new().element(
@@ -101,7 +101,7 @@ impl Renderer {
                 info: BRIGHT_BLUE.effects(Effects::BOLD),
                 note: AnsiColor::BrightGreen.on_default().effects(Effects::BOLD),
                 help: AnsiColor::BrightCyan.on_default().effects(Effects::BOLD),
-                line_no: BRIGHT_BLUE.effects(Effects::BOLD),
+                line_num: BRIGHT_BLUE.effects(Effects::BOLD),
                 emphasis: if USE_WINDOWS_COLORS {
                     AnsiColor::BrightWhite.on_default()
                 } else {
@@ -178,8 +178,8 @@ impl Renderer {
     }
 
     /// Set the output style for line numbers
-    pub const fn line_no(mut self, style: Style) -> Self {
-        self.stylesheet.line_no = style;
+    pub const fn line_num(mut self, style: Style) -> Self {
+        self.stylesheet.line_num = style;
         self
     }
 
@@ -383,7 +383,7 @@ impl Renderer {
                         self.render_origin(buffer, max_line_num_len, origin);
                         last_was_suggestion = false;
                     }
-                    Element::ColumnSeparator(_) => {
+                    Element::Padding(_) => {
                         self.draw_col_separator_no_space(
                             buffer,
                             buffer.num_lines(),
@@ -430,7 +430,7 @@ impl Renderer {
 
         let (has_primary_spans, has_span_labels) =
             next_section.map_or((false, false), |s| match s {
-                Element::Title(_) | Element::ColumnSeparator(_) => (false, false),
+                Element::Title(_) | Element::Padding(_) => (false, false),
                 Element::Cause(cause) => (
                     cause.markers.iter().any(|m| m.kind.is_primary()),
                     cause.markers.iter().any(|m| m.label.is_some()),
@@ -1523,7 +1523,7 @@ impl Renderer {
             }
             if suggestion.origin != primary_origin {
                 if let Some(origin) = suggestion.origin {
-                    let (loc, _) = sm.span_to_locations(parts[0].range.clone());
+                    let (loc, _) = sm.span_to_locations(parts[0].span.clone());
                     // --> file.rs:line:col
                     //  |
                     let arrow = self.file_start();
@@ -1563,8 +1563,8 @@ impl Renderer {
                 row_num += 1;
             }
 
-            let file_lines = sm.span_to_lines(parts[0].range.clone());
-            let (line_start, line_end) = sm.span_to_locations(parts[0].range.clone());
+            let file_lines = sm.span_to_lines(parts[0].span.clone());
+            let (line_start, line_end) = sm.span_to_locations(parts[0].span.clone());
             let mut lines = complete.lines();
             if lines.clone().next().is_none() {
                 // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
@@ -1697,8 +1697,8 @@ impl Renderer {
                 // already existing code, despite the colors and UI elements.
                 // We special case `#[derive(_)]\n` and other attribute suggestions, because those
                 // are the ones where context is most useful.
-                let file_lines = sm.span_to_lines(parts[0].range.end..parts[0].range.end);
-                let (lo, _) = sm.span_to_locations(parts[0].range.clone());
+                let file_lines = sm.span_to_lines(parts[0].span.end..parts[0].span.end);
+                let (lo, _) = sm.span_to_locations(parts[0].span.clone());
                 let line_num = lo.line;
                 if let Some(line) = sm.get_line(line_num) {
                     let line = normalize_whitespace(line);
@@ -1724,7 +1724,7 @@ impl Renderer {
                 show_code_change
             {
                 for part in parts {
-                    let (span_start, span_end) = sm.span_to_locations(part.range.clone());
+                    let (span_start, span_end) = sm.span_to_locations(part.span.clone());
                     let span_start_pos = span_start.display;
                     let span_end_pos = span_end.display;
 
@@ -1764,7 +1764,7 @@ impl Renderer {
                     let padding: usize = max_line_num_len + 3;
                     for p in underline_start..underline_end {
                         if matches!(show_code_change, DisplaySuggestion::Underline)
-                            && is_different(sm, part.replacement, part.range.clone())
+                            && is_different(sm, part.replacement, part.span.clone())
                         {
                             // If this is a replacement, underline with `~`, if this is an addition
                             // underline with `+`.
@@ -2665,7 +2665,7 @@ impl ElementStyle {
             ElementStyle::Addition => stylesheet.addition,
             ElementStyle::Removal => stylesheet.removal,
             ElementStyle::LineAndColumn => stylesheet.none,
-            ElementStyle::LineNumber => stylesheet.line_no,
+            ElementStyle::LineNumber => stylesheet.line_num,
             ElementStyle::Quotation => stylesheet.none,
             ElementStyle::MainHeaderMsg => stylesheet.emphasis,
             ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary => level.style(stylesheet),

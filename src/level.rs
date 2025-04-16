@@ -1,47 +1,45 @@
+//! [`Level`] constants for easy importing
+
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
 use crate::{Element, Group, Message, Title};
 use anstyle::Style;
 
+/// Default `error:` [`Level`]
 pub const ERROR: Level<'_> = Level {
     name: None,
     level: LevelInner::Error,
 };
 
+/// Default `warning:` [`Level`]
 pub const WARNING: Level<'_> = Level {
     name: None,
     level: LevelInner::Warning,
 };
 
+/// Default `info:` [`Level`]
 pub const INFO: Level<'_> = Level {
     name: None,
     level: LevelInner::Info,
 };
 
+/// Default `note:` [`Level`]
 pub const NOTE: Level<'_> = Level {
     name: None,
     level: LevelInner::Note,
 };
 
+/// Default `help:` [`Level`]
 pub const HELP: Level<'_> = Level {
     name: None,
     level: LevelInner::Help,
 };
 
+/// [`Message`] or [`Title`] severity level
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Level<'a> {
     pub(crate) name: Option<Option<&'a str>>,
     pub(crate) level: LevelInner,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Level2<'a> {
-    Builtin(LevelInner),
-    Custom {
-        name: Option<&'a str>,
-        level: LevelInner,
-    },
-    None,
 }
 
 impl<'a> Level<'a> {
@@ -51,9 +49,13 @@ impl<'a> Level<'a> {
     pub const NOTE: Level<'a> = NOTE;
     pub const HELP: Level<'a> = HELP;
 
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
+    ///
+    /// </div>
     pub fn text(self, text: Option<&'a str>) -> Level<'a> {
         Level {
             name: Some(text),
@@ -63,24 +65,32 @@ impl<'a> Level<'a> {
 }
 
 impl<'a> Level<'a> {
+    /// <div class="warning">
+    ///
     /// Text passed to this function is considered "untrusted input", as such
     /// all text is passed through a normalization function. Pre-styled text is
     /// not allowed to be passed to this function.
-    pub fn message(self, title: &'a str) -> Message<'a> {
+    ///
+    /// </div>
+    pub fn header(self, header: &'a str) -> Message<'a> {
         Message {
             id: None,
             groups: vec![Group::new().element(Element::Title(Title {
                 level: self,
-                title,
+                title: header,
                 primary: true,
             }))],
         }
     }
 
+    /// <div class="warning">
+    ///
     /// Text passed to this function is allowed to be pre-styled, as such all
     /// text is considered "trusted input" and has no normalizations applied to
     /// it. [`normalize_untrusted_str`](crate::normalize_untrusted_str) can be
     /// used to normalize untrusted text before it is passed to this function.
+    ///
+    /// </div>
     pub fn title(self, title: &'a str) -> Title<'a> {
         Title {
             level: self,
@@ -107,7 +117,7 @@ impl<'a> Level<'a> {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum LevelInner {
+pub(crate) enum LevelInner {
     Error,
     Warning,
     Info,

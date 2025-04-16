@@ -1,6 +1,6 @@
 [message]
 level = "Error"
-title = ""
+header = ""
 
 [[message.sections]]
 type = "Cause"

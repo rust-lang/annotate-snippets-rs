@@ -1,13 +1,11 @@
-use annotate_snippets::{
-    level::Level, Annotation, AnnotationKind, Group, Patch, Renderer, Snippet,
-};
+use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Patch, Renderer, Snippet};
 
 use annotate_snippets::renderer::OutputTheme;
 use snapbox::{assert_data_eq, str};
 
 #[test]
 fn test_i_29() {
-    let snippets = Level::ERROR.message("oops").group(
+    let snippets = Level::ERROR.header("oops").group(
         Group::new().element(
             Snippet::source("First line\r\nSecond oops line")
                 .origin("<current file>")
@@ -29,7 +27,7 @@ error: oops
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こんにちは、世界")
                 .origin("<current file>")
@@ -51,7 +49,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("おはよう\nございます")
                 .origin("<current file>")
@@ -75,7 +73,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("お寿司\n食べたい🍣")
                 .origin("<current file>")
@@ -100,7 +98,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こんにちは、新しいWorld！")
                 .origin("<current file>")
@@ -122,7 +120,7 @@ error:
 
 #[test]
 fn test_format_title() {
-    let input = Level::ERROR.message("This is a title").id("E0001");
+    let input = Level::ERROR.header("This is a title").id("E0001");
 
     let expected = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
@@ -133,7 +131,7 @@ fn test_format_title() {
 fn test_format_snippet_only() {
     let source = "This is line 1\nThis is line 2";
     let input = Level::ERROR
-        .message("")
+        .header("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source(source).line_start(5402)));
 
     let expected = str![[r#"
@@ -150,7 +148,7 @@ error:
 fn test_format_snippets_continuation() {
     let src_0 = "This is slice 1";
     let src_1 = "This is slice 2";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new()
             .element(
                 Snippet::<Annotation<'_>>::source(src_0)
@@ -184,7 +182,7 @@ fn test_format_snippet_annotation_standalone() {
     let source = [line_1, line_2].join("\n");
     // In line 2
     let range = 22..24;
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(&source).line_start(5402).annotation(
                 AnnotationKind::Context
@@ -207,7 +205,7 @@ error:
 #[test]
 fn test_format_footer_title() {
     let input = Level::ERROR
-        .message("")
+        .header("")
         .group(Group::new().element(Level::ERROR.title("This __is__ a title")));
     let expected = str![[r#"
 error: 
@@ -223,7 +221,7 @@ error:
 fn test_i26() {
     let source = "short";
     let label = "label";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source).line_start(0).annotation(
                 AnnotationKind::Primary
@@ -240,7 +238,7 @@ fn test_i26() {
 fn test_source_content() {
     let source = "This is an example\nof content lines";
     let input = Level::ERROR
-        .message("")
+        .header("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source(source).line_start(56)));
     let expected = str![[r#"
 error: 
@@ -255,7 +253,7 @@ error:
 #[test]
 fn test_source_annotation_standalone_singleline() {
     let source = "tests";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -275,7 +273,7 @@ error:
 #[test]
 fn test_source_annotation_standalone_multiline() {
     let source = "tests";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(1)
@@ -299,7 +297,7 @@ error:
 #[test]
 fn test_only_source() {
     let input = Level::ERROR
-        .message("")
+        .header("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source("").origin("file.rs")));
     let expected = str![[r#"
 error: 
@@ -314,7 +312,7 @@ error:
 fn test_anon_lines() {
     let source = "This is an example\nof content lines\n\nabc";
     let input = Level::ERROR
-        .message("")
+        .header("")
         .group(Group::new().element(Snippet::<Annotation<'_>>::source(source).line_start(56)));
     let expected = str![[r#"
 error: 
@@ -330,7 +328,7 @@ LL | abc
 
 #[test]
 fn issue_130() {
-    let input = Level::ERROR.message("dummy").group(
+    let input = Level::ERROR.header("dummy").group(
         Group::new().element(
             Snippet::source("foo\nbar\nbaz")
                 .origin("file/path")
@@ -358,7 +356,7 @@ fn unterminated_string_multiline() {
 a\"
 // ...
 ";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -382,7 +380,7 @@ error:
 #[test]
 fn char_and_nl_annotate_char() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -405,7 +403,7 @@ error:
 #[test]
 fn char_eol_annotate_char() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -427,7 +425,7 @@ error:
 
 #[test]
 fn char_eol_annotate_char_double_width() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
                 .origin("<current file>")
@@ -452,7 +450,7 @@ error:
 #[test]
 fn annotate_eol() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -475,7 +473,7 @@ error:
 #[test]
 fn annotate_eol2() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -498,7 +496,7 @@ error:
 #[test]
 fn annotate_eol3() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -521,7 +519,7 @@ error:
 #[test]
 fn annotate_eol4() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -543,7 +541,7 @@ error:
 
 #[test]
 fn annotate_eol_double_width() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
                 .origin("<current file>")
@@ -568,7 +566,7 @@ error:
 #[test]
 fn multiline_eol_start() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -592,7 +590,7 @@ error:
 #[test]
 fn multiline_eol_start2() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -616,7 +614,7 @@ error:
 #[test]
 fn multiline_eol_start3() {
     let source = "a\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -639,7 +637,7 @@ error:
 
 #[test]
 fn multiline_eol_start_double_width() {
-    let snippets = Level::ERROR.message("").group(
+    let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
                 .origin("<current file>")
@@ -665,7 +663,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end() {
     let source = "a\nb\nc";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -690,7 +688,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end2() {
     let source = "a\r\nb\r\nc";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -715,7 +713,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end3() {
     let source = "a\r\nb\r\nc";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -740,7 +738,7 @@ error:
 #[test]
 fn multiline_eol_start_eof_end() {
     let source = "a\r\nb";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -764,7 +762,7 @@ error:
 #[test]
 fn multiline_eol_start_eof_end_double_width() {
     let source = "ん\r\nに";
-    let input = Level::ERROR.message("").group(
+    let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("file/path")
@@ -788,7 +786,7 @@ error:
 #[test]
 fn two_single_line_same_line() {
     let source = r#"bar = { version = "0.1.0", optional = true }"#;
-    let input = Level::ERROR.message("unused optional dependency").group(
+    let input = Level::ERROR.header("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("Cargo.toml")
@@ -825,7 +823,7 @@ this is another line
 so is this
 bar = { version = "0.1.0", optional = true }
 "#;
-    let input = Level::ERROR.message("unused optional dependency").group(
+    let input = Level::ERROR.header("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(4)
@@ -864,7 +862,7 @@ this is another line
 so is this
 bar = { version = "0.1.0", optional = true }
 "#;
-    let input = Level::ERROR.message("unused optional dependency").group(
+    let input = Level::ERROR.header("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(4)
@@ -912,7 +910,7 @@ so is this
 bar = { version = "0.1.0", optional = true }
 this is another line
 "#;
-    let input = Level::ERROR.message("unused optional dependency").group(
+    let input = Level::ERROR.header("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
                 .line_start(4)
@@ -963,7 +961,7 @@ error: unused optional dependency
 #[test]
 fn origin_correct_start_line() {
     let source = "aaa\nbbb\nccc\nddd\n";
-    let input = Level::ERROR.message("title").group(
+    let input = Level::ERROR.header("title").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("origin.txt")
@@ -989,7 +987,7 @@ error: title
 #[test]
 fn origin_correct_mid_line() {
     let source = "aaa\nbbb\nccc\nddd\n";
-    let input = Level::ERROR.message("title").group(
+    let input = Level::ERROR.header("title").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("origin.txt")
@@ -1020,7 +1018,7 @@ error: title
 fn two_suggestions_same_span() {
     let source = r#"    A.foo();"#;
     let input_new = Level::ERROR
-        .message("expected value, found enum `A`")
+        .header("expected value, found enum `A`")
         .id("E0423")
         .group(
             Group::new().element(
@@ -1088,7 +1086,7 @@ fn main() {
 }"#;
     let input_new =
         Level::ERROR
-            .message("no method named `pick` found for struct `Chaenomeles` in the current scope")
+            .header("no method named `pick` found for struct `Chaenomeles` in the current scope")
             .id("E0599")
             .group(
                 Group::new().element(
@@ -1148,7 +1146,7 @@ fn single_line_non_overlapping_suggestions() {
     let source = r#"    A.foo();"#;
 
     let input_new = Level::ERROR
-        .message("expected value, found enum `A`")
+        .header("expected value, found enum `A`")
         .id("E0423")
         .group(
             Group::new().element(
@@ -1190,7 +1188,7 @@ LL +     (A::Tuple()).bar();
 fn single_line_non_overlapping_suggestions2() {
     let source = r#"    ThisIsVeryLong.foo();"#;
     let input_new = Level::ERROR
-        .message("Found `ThisIsVeryLong`")
+        .header("Found `ThisIsVeryLong`")
         .id("E0423")
         .group(
             Group::new().element(
@@ -1239,7 +1237,7 @@ fn multiple_replacements() {
 "#;
 
     let input_new = Level::ERROR
-        .message("cannot borrow `*self` as mutable because it is also borrowed as immutable")
+        .header("cannot borrow `*self` as mutable because it is also borrowed as immutable")
         .id("E0502")
         .group(
             Group::new().element(
@@ -1323,7 +1321,7 @@ fn main() {
 }"#;
 
     let input_new = Level::ERROR
-        .message("cannot borrow `chars` as mutable more than once at a time")
+        .header("cannot borrow `chars` as mutable more than once at a time")
         .id("E0499")
         .group(
             Group::new().element(
@@ -1407,7 +1405,7 @@ struct Foo {
 fn main() {}"#;
 
     let input_new = Level::ERROR
-        .message("failed to resolve: use of undeclared crate or module `st`")
+        .header("failed to resolve: use of undeclared crate or module `st`")
         .id("E0433")
         .group(
             Group::new().element(
@@ -1489,7 +1487,7 @@ where
 fn main() {}"#;
 
     let input_new = Level::ERROR
-        .message("the size for values of type `T` cannot be known at compilation time")
+        .header("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
         .group(
             Group::new().element(
@@ -1558,7 +1556,7 @@ and where
 
 fn main() {}"#;
     let input_new = Level::ERROR
-        .message("the size for values of type `T` cannot be known at compilation time")
+        .header("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
         .group(Group::new().element(Snippet::source(source)
             .line_start(1)
@@ -1663,7 +1661,7 @@ zappy
 "#;
 
     let input_new = Level::ERROR
-        .message("the size for values of type `T` cannot be known at compilation time")
+        .header("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
         .group(
             Group::new()
@@ -1731,7 +1729,7 @@ fn main() {
 "#;
 
     let input_new = Level::ERROR
-        .message("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
+        .header("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")
         .group(Group::new().element(Snippet::source(source)
             .line_start(4)
@@ -1819,7 +1817,7 @@ fn main() {
 "#;
 
     let input_new = Level::ERROR
-        .message("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
+        .header("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")
         .group(Group::new().element(Snippet::source(source)
             .line_start(4)
@@ -1972,7 +1970,7 @@ fn main() {
 "#;
 
     let input_new = Level::ERROR
-        .message("mismatched types")
+        .header("mismatched types")
         .id("E0308")
         .group(Group::new().element(
             Snippet::source(source)
@@ -2056,7 +2054,7 @@ fn main() {
 "#;
 
     let input_new = Level::ERROR
-        .message("mismatched types")
+        .header("mismatched types")
         .id("E0308")
         .group(Group::new().element(
             Snippet::source(source)
@@ -2124,7 +2122,7 @@ LL │ ┃ )>>) {}
 #[test]
 fn unicode_cut_handling() {
     let source = "version = \"0.1.0\"\n# Ensure that the spans from toml handle utf-8 correctly\nauthors = [\n    { name = \"Z\u{351}\u{36b}\u{343}\u{36a}\u{302}\u{36b}\u{33d}\u{34f}\u{334}\u{319}\u{324}\u{31e}\u{349}\u{35a}\u{32f}\u{31e}\u{320}\u{34d}A\u{36b}\u{357}\u{334}\u{362}\u{335}\u{31c}\u{330}\u{354}L\u{368}\u{367}\u{369}\u{358}\u{320}G\u{311}\u{357}\u{30e}\u{305}\u{35b}\u{341}\u{334}\u{33b}\u{348}\u{34d}\u{354}\u{339}O\u{342}\u{30c}\u{30c}\u{358}\u{328}\u{335}\u{339}\u{33b}\u{31d}\u{333}\", email = 1 }\n]\n";
-    let input = Level::ERROR.message("title").group(
+    let input = Level::ERROR.header("title").group(
         Group::new().element(
             Snippet::source(source)
                 .fold(false)
@@ -2150,7 +2148,7 @@ error: title
 fn unicode_cut_handling2() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
     let input = Level::ERROR
-        .message("expected item, found `?`")
+        .header("expected item, found `?`")
         .group(
             Group::new().element(
                 Snippet::source(source)
@@ -2177,7 +2175,7 @@ error: expected item, found `?`
 fn unicode_cut_handling3() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
     let input = Level::ERROR
-        .message("expected item, found `?`")
+        .header("expected item, found `?`")
         .group(
             Group::new().element(
                 Snippet::source(source)
@@ -2204,7 +2202,7 @@ error: expected item, found `?`
 fn unicode_cut_handling4() {
     let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
     let input = Level::ERROR
-        .message("expected item, found `?`")
+        .header("expected item, found `?`")
         .group(
             Group::new().element(
                 Snippet::source(source)
@@ -2236,7 +2234,7 @@ fn main() {
 //~^ ERROR mismatched types
 }
 "##;
-    let input = Level::ERROR.message("mismatched types").id("E0308").group(
+    let input = Level::ERROR.header("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
                 .origin("$DIR/non-whitespace-trimming-unicode.rs")
@@ -2281,7 +2279,7 @@ fn main() {
 }
 "##;
     let input = Level::ERROR
-        .message("cannot add `&str` to `&str`")
+        .header("cannot add `&str` to `&str`")
         .id("E0369")
         .group(
             Group::new()
@@ -2348,7 +2346,7 @@ fn foo() {
 "##;
     let bin_source = "�|�\u{0002}!5�cc\u{0015}\u{0002}�Ӻi��WWj�ȥ�'�}�\u{0012}�J�ȉ��W�\u{001e}O�@����\u{001c}w�V���LO����\u{0014}[ \u{0003}_�'���SQ�~ذ��ų&��-\t��lN~��!@␌ _#���kQ��h�\u{001d}�:�\u{001c}\u{0007}�";
     let input = Level::ERROR
-        .message("couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8")
+        .header("couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8")
         .group(
             Group::new().element(
                 Snippet::source(source)

@@ -1,7 +1,7 @@
 [message]
 level = "Error"
 id = "E####"
-title = "spacing error found"
+header = "spacing error found"
 
 [[message.sections]]
 type = "Cause"

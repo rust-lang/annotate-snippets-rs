@@ -54,6 +54,7 @@ pub fn normalize_untrusted_str(s: &str) -> String {
 }
 
 #[doc(inline)]
+pub use level::Level;
+#[doc(inline)]
 pub use renderer::Renderer;
-pub use snippet::ColumnSeparator;
 pub use snippet::*;

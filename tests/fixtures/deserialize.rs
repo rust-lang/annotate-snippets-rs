@@ -3,7 +3,7 @@ use std::ops::Range;
 
 use annotate_snippets::renderer::DEFAULT_TERM_WIDTH;
 use annotate_snippets::{
-    level::Level, Annotation, AnnotationKind, Element, Group, Message, Patch, Renderer, Snippet,
+    Annotation, AnnotationKind, Element, Group, Level, Message, Patch, Renderer, Snippet,
 };
 
 #[derive(Deserialize)]
@@ -16,7 +16,7 @@ pub(crate) struct Fixture {
 #[derive(Deserialize)]
 pub struct MessageDef {
     pub level: LevelDef,
-    pub title: String,
+    pub header: String,
     #[serde(default)]
     pub id: Option<String>,
     #[serde(default)]
@@ -27,11 +27,11 @@ impl<'a> From<&'a MessageDef> for Message<'a> {
     fn from(val: &'a MessageDef) -> Self {
         let MessageDef {
             level,
-            title,
+            header,
             id,
             sections,
         } = val;
-        let mut message = Level::from(level).message(title);
+        let mut message = Level::from(level).header(header);
         if let Some(id) = id {
             message = message.id(id);
         }

@@ -1,7 +1,7 @@
 [message]
 level = "Error"
 id = "E0308"
-title = "invalid type: integer `20`, expected a lints table"
+header = "invalid type: integer `20`, expected a lints table"
 
 [[message.sections]]
 type = "Cause"
