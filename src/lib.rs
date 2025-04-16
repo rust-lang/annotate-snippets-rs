@@ -57,5 +57,4 @@ pub fn normalize_untrusted_str(s: &str) -> String {
 pub use level::Level;
 #[doc(inline)]
 pub use renderer::Renderer;
-pub use snippet::Padding;
 pub use snippet::*;
