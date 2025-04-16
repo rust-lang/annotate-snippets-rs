@@ -177,6 +177,10 @@ impl Level {
         }
     }
 
+    /// Text passed to this function is allowed to be pre-styled, as such all
+    /// text is considered "trusted input" and has no normalizations applied to
+    /// it. [`normalize_untrusted_str`](crate::normalize_untrusted_str) can be
+    /// used to normalize untrusted text before it is passed to this function.
     pub fn title(self, title: &str) -> Title<'_> {
         Title {
             level: self,

@@ -573,8 +573,7 @@ impl Renderer {
         } else {
             ElementStyle::NoStyle
         };
-        let text = &normalize_whitespace(title);
-        let lines = text.split('\n').collect::<Vec<_>>();
+        let lines = title.split('\n').collect::<Vec<_>>();
         if lines.len() > 1 {
             for (i, line) in lines.iter().enumerate() {
                 if i != 0 {
@@ -584,7 +583,7 @@ impl Renderer {
                 buffer.append(line_number, line, style);
             }
         } else {
-            buffer.append(line_number, text, style);
+            buffer.append(line_number, title, style);
         }
         line_number
     }
@@ -2590,7 +2589,7 @@ const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
     ('\u{2069}', "�"),
 ];
 
-fn normalize_whitespace(s: &str) -> String {
+pub(crate) fn normalize_whitespace(s: &str) -> String {
     // Scan the input string for a character in the ordered table above.
     // If it's present, replace it with its alternative string (it can be more than 1 char!).
     // Otherwise, retain the input char.

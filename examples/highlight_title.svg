@@ -1,9 +1,10 @@
-<svg width="1003px" height="200px" xmlns="http://www.w3.org/2000/svg">
+<svg width="785px" height="200px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
     .fg-bright-blue { fill: #5555FF }
     .fg-bright-red { fill: #FF5555 }
+    .fg-magenta { fill: #AA00AA }
     .container {
       padding: 0 10px;
       line-height: 18px;
@@ -33,9 +34,9 @@
 </tspan>
     <tspan x="10px" y="136px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     </tspan><tspan class="fg-bright-blue bold">arguments to this function are incorrect</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan>   </tspan><tspan class="fg-bright-blue bold">= </tspan><tspan class="bold">note</tspan><tspan>: expected fn pointer `␛[1m␛[35mfor&lt;'a&gt;␛[0m fn(Box&lt;␛[1m␛[35m(dyn Any + Send + 'a)␛[0m&gt;) -&gt; Pin&lt;_&gt;`</tspan>
+    <tspan x="10px" y="154px"><tspan>   </tspan><tspan class="fg-bright-blue bold">= </tspan><tspan class="bold">note</tspan><tspan>: expected fn pointer `</tspan><tspan class="fg-magenta bold">for&lt;'a&gt;</tspan><tspan> fn(Box&lt;</tspan><tspan class="fg-magenta bold">(dyn Any + Send + 'a)</tspan><tspan>&gt;) -&gt; Pin&lt;_&gt;`</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan>                 found fn item `fn(Box&lt;␛[1m␛[35m(dyn Any + Send + 'static)␛[0m&gt;) -&gt; Pin&lt;_&gt; ␛[1m␛[35m{wrapped_fn}␛[0m`</tspan>
+    <tspan x="10px" y="172px"><tspan>                 found fn item `fn(Box&lt;</tspan><tspan class="fg-magenta bold">(dyn Any + Send + 'static)</tspan><tspan>&gt;) -&gt; Pin&lt;_&gt; </tspan><tspan class="fg-magenta bold">{wrapped_fn}</tspan><tspan>`</tspan>
 </tspan>
     <tspan x="10px" y="190px">
 </tspan>
