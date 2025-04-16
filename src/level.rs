@@ -97,7 +97,7 @@ impl<'a> Level<'a> {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum LevelInner {
+pub(crate) enum LevelInner {
     Error,
     Warning,
     Info,
