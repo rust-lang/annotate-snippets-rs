@@ -9,11 +9,8 @@ dependencies = [
  "annotate-snippets",
  "anstream",
  "anstyle",
- "difference",
  "divan",
- "glob",
  "memchr",
- "serde",
  "snapbox",
  "unicode-width 0.2.0",
 ]
@@ -140,12 +137,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf0a07a401f374238ab8e2f11a104d2851bf9ce711ec69804834de8af45c7af"
 
 [[package]]
-name = "difference"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "524cbf6897b527295dff137cec09ecf3a05f4fddffd7dfcd1585403449e74198"
-
-[[package]]
 name = "divan"
 version = "0.1.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -191,12 +182,6 @@ dependencies = [
  "serde",
  "serde_json",
 ]
-
-[[package]]
-name = "glob"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
 name = "hermit-abi"
