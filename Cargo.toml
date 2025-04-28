@@ -123,20 +123,11 @@ unicode-width = "0.2.0"
 [dev-dependencies]
 annotate-snippets = { path = ".", features = ["testing-colors"] }
 anstream = "0.6.13"
-difference = "2.0.0"
 divan = "0.1.14"
-glob = "0.3.1"
-serde = { version = "1.0.199", features = ["derive"] }
 snapbox = { version = "0.6.0", features = ["diff", "term-svg", "cmd", "examples"] }
-toml = "0.8.0"
-tryfn = "0.2.1"
 
 [[bench]]
 name = "bench"
-harness = false
-
-[[test]]
-name = "fixtures"
 harness = false
 
 [features]

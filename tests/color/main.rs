@@ -1,0 +1,16 @@
+mod ann_eof;
+mod ann_insertion;
+mod ann_multiline;
+mod ann_multiline2;
+mod ann_removed_nl;
+mod ensure_emoji_highlight_width;
+mod fold_ann_multiline;
+mod fold_bad_origin_line;
+mod fold_leading;
+mod fold_trailing;
+mod issue_9;
+mod multiple_annotations;
+mod simple;
+mod strip_line;
+mod strip_line_char;
+mod strip_line_non_ws;
