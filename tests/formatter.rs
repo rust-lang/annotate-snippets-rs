@@ -2129,7 +2129,7 @@ fn unicode_cut_handling() {
                 .annotation(AnnotationKind::Primary.span(85..228).label("annotation")),
         ),
     );
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: title
   |
 1 |   version = "0.1.0"
@@ -2140,8 +2140,22 @@ error: title
 5 | | ]
   | |_^ annotation
 "#]];
-    let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: title
+  │
+1 │   version = "0.1.0"
+2 │   # Ensure that the spans from toml handle utf-8 correctly
+3 │   authors = [
+  │ ┏━━━━━━━━━━━┛
+4 │ ┃     { name = "Z͑ͫ̓ͪ̂ͫ̽͏̴̙̤̞͉͚̯̞̠͍A̴̵̜̰͔ͫ͗͢L̠ͨͧͩ͘G̴̻͈͍͔̹̑͗̎̅͛́Ǫ̵̹̻̝̳͂̌̌͘", email = 1 }
+5 │ ┃ ]
+  ╰╴┗━┛ annotation
+"#]];
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
 #[test]
@@ -2159,7 +2173,7 @@ fn unicode_cut_handling2() {
             )
         );
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: expected item, found `?`
   |
 1 |  ...的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
@@ -2167,8 +2181,18 @@ error: expected item, found `?`
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
-    let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: expected item, found `?`
+  │
+1 │  …宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  │                                                             ━ expected item
+  ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+"#]];
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
 #[test]
@@ -2186,7 +2210,7 @@ fn unicode_cut_handling3() {
             )
         );
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: expected item, found `?`
   |
 1 |  ...。这是宽的。这是宽的。这是宽的...
@@ -2194,8 +2218,18 @@ error: expected item, found `?`
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
-    let renderer = Renderer::plain().term_width(43);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_ascii = Renderer::plain().term_width(43);
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: expected item, found `?`
+  │
+1 │  …的。这是宽的。这是宽的。这是宽的。…
+  │            ━━ expected item
+  ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+"#]];
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
 #[test]
@@ -2213,7 +2247,7 @@ fn unicode_cut_handling4() {
             )
         );
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: expected item, found `?`
   |
 1 | ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
@@ -2221,8 +2255,18 @@ error: expected item, found `?`
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
-    let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: expected item, found `?`
+  │
+1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
+  │                                                             ━ expected item
+  ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+"#]];
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
 #[test]
@@ -2252,7 +2296,7 @@ fn main() {
         ),
     );
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0308]: mismatched types
   --> $DIR/non-whitespace-trimming-unicode.rs:4:415
    |
@@ -2262,8 +2306,20 @@ LL | ...♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾
    |                                                  expected due to this
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+   ╭▸ $DIR/non-whitespace-trimming-unicode.rs:4:415
+   │
+LL │ …♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳☴☵☶☷☸☹…
+   │                                                  ┬─   ━━ expected `()`, found integer
+   │                                                  │
+   ╰╴                                                 expected due to this
+"#]];
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
 #[test]
@@ -2311,7 +2367,27 @@ fn main() {
                 ),
         );
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
+error[E0369]: cannot add `&str` to `&str`
+  --> $DIR/non-1-width-unicode-multiline-label.rs:7:260
+   |
+LL | ...࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";;
+   |                                  -------------- ^ -------------- &str
+   |                                  |              |
+   |                                  |              `+` cannot be used to concatenate two `&str` strings
+   |                                  &str
+   |
+   = note: string concatenation requires an owned `String` on the left
+help: create an owned `String` from a string reference
+   |
+LL |     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun.to_owned() + " really fun!";
+   |                                                                                                                                                                                         +++++++++++
+"#]];
+
+    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
 error[E0369]: cannot add `&str` to `&str`
    ╭▸ $DIR/non-1-width-unicode-multiline-label.rs:7:260
    │
@@ -2328,10 +2404,8 @@ LL │     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓
    ╰╴                                                                                                                                                                                        +++++++++++
 "#]];
 
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .theme(OutputTheme::Unicode);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
 #[test]
@@ -2367,7 +2441,7 @@ fn foo() {
                 .element(Level::NOTE.title("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
         );
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
   --> $DIR/not-utf8.rs:6:5
    |
@@ -2382,6 +2456,23 @@ LL | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�
    = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer_ascii.render(input.clone()), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
+   ╭▸ $DIR/not-utf8.rs:6:5
+   │
+LL │     include!("not-utf8.bin");
+   │     ━━━━━━━━━━━━━━━━━━━━━━━━
+   ╰╴
+note: byte `193` is not valid utf-8
+   ╭▸ $DIR/not-utf8.bin:1:1
+   │
+LL │ �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�␜␇�
+   │ ━
+   ╰ note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
