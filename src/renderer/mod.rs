@@ -2048,7 +2048,6 @@ impl Renderer {
             })
             .collect();
 
-        buffer.puts(line_offset, code_offset, &code, ElementStyle::Quotation);
         let placeholder = self.margin();
         let padding = str_width(placeholder);
         let (width_taken, bytes_taken) = if margin.was_cut_left() {
