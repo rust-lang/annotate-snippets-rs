@@ -11,7 +11,7 @@ pub(crate) const NOTE_TXT: &str = "note";
 pub(crate) const WARNING_TXT: &str = "warning";
 
 /// Top-level user message
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Message<'a> {
     pub(crate) id: Option<&'a str>, // for "correctness", could be sloppy and be on Title
     pub(crate) groups: Vec<Group<'a>>,
@@ -76,7 +76,7 @@ impl<'a> Message<'a> {
 }
 
 /// An [`Element`] container
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Group<'a> {
     pub(crate) elements: Vec<Element<'a>>,
 }
@@ -108,7 +108,7 @@ impl<'a> Group<'a> {
 }
 
 /// A section of content within a [`Group`]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Element<'a> {
     Title(Title<'a>),
@@ -149,13 +149,13 @@ impl From<Padding> for Element<'_> {
 }
 
 /// A whitespace [`Element`] in a [`Group`]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Padding;
 
 /// A text [`Element`] in a [`Group`]
 ///
 /// See [`Level::title`] to create this.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) title: &'a str,
@@ -170,7 +170,7 @@ impl Title<'_> {
 }
 
 /// A source view [`Element`] in a [`Group`]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Snippet<'a, T> {
     pub(crate) origin: Option<&'a str>,
     pub(crate) line_start: usize,
