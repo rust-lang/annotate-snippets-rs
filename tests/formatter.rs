@@ -2371,7 +2371,7 @@ fn main() {
 error[E0369]: cannot add `&str` to `&str`
   --> $DIR/non-1-width-unicode-multiline-label.rs:7:260
    |
-LL | ...࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";;
+LL | ...࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
    |                                  -------------- ^ -------------- &str
    |                                  |              |
    |                                  |              `+` cannot be used to concatenate two `&str` strings
