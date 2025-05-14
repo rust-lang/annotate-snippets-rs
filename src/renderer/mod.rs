@@ -2537,11 +2537,7 @@ impl LineAnnotation<'_> {
     /// Length of this annotation as displayed in the stderr output
     pub(crate) fn len(&self) -> usize {
         // Account for usize underflows
-        if self.end.display > self.start.display {
-            self.end.display - self.start.display
-        } else {
-            self.start.display - self.end.display
-        }
+        self.end.display.abs_diff(self.start.display)
     }
 
     pub(crate) fn has_label(&self) -> bool {
