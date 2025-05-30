@@ -2083,7 +2083,7 @@ impl Renderer {
             ElementStyle::Quotation,
         );
 
-        if margin.was_cut_right(line_len) {
+        if line_len > right {
             // We have stripped some code/whitespace from the beginning, make it clear.
             let mut char_taken = 0;
             let mut width_taken_inner = 0;
