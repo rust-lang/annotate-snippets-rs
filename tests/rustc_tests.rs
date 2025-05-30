@@ -2966,7 +2966,6 @@ LL | /// This is a long line that contains a <http://link.com>
 }
 
 #[test]
-#[should_panic = "attempt to subtract with overflow"]
 fn array_into_iter() {
     let source1 = r#"#![allow(unused)]
 fn main() {
