@@ -17,7 +17,7 @@ pub(crate) struct Margin {
     /// The end of the line to be displayed.
     computed_right: usize,
     /// The current width of the terminal. 140 by default and in tests.
-    term_width: usize,
+    pub(crate) term_width: usize,
     /// The end column of a span label, including the span. Doesn't account for labels not in the
     /// same line as the span.
     label_right: usize,

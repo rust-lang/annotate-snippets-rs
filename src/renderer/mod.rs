@@ -1122,11 +1122,16 @@ impl Renderer {
         //      |      x_span
         //      <EMPTY LINE>
         //
+        let mut overlap = vec![false; annotations.len()];
         let mut annotations_position = vec![];
         let mut line_len: usize = 0;
         let mut p = 0;
         for (i, annotation) in annotations.iter().enumerate() {
             for (j, next) in annotations.iter().enumerate() {
+                if overlaps(next, annotation, 0) && j > 1 {
+                    overlap[i] = true;
+                    overlap[j] = true;
+                }
                 if overlaps(next, annotation, 0)  // This label overlaps with another one and both
                     && annotation.has_label()     // take space (they have text and are not
                     && j > i                      // multiline lines).
@@ -1471,6 +1476,39 @@ impl Renderer {
                     (code_offset + annotation.start.display).saturating_sub(left),
                     uline.label_start,
                     uline.style,
+                );
+            }
+        }
+
+        // We look for individual *long* spans, and we trim the *middle*, so that we render
+        // LL | ...= [0, 0, 0, ..., 0, 0];
+        //    |      ^^^^^^^^^^...^^^^^^^ expected `&[u8]`, found `[{integer}; 1680]`
+        for (i, (_pos, annotation)) in annotations_position.iter().enumerate() {
+            // Skip cases where multiple spans overlap eachother.
+            if overlap[i] {
+                continue;
+            };
+            let LineAnnotationType::Singleline = annotation.annotation_type else {
+                continue;
+            };
+            let width = annotation.end.display - annotation.start.display;
+            if width > margin.term_width * 2 && width > 10 {
+                // If the terminal is *too* small, we keep at least a tiny bit of the span for
+                // display.
+                let pad = max(margin.term_width / 3, 5);
+                // Code line
+                buffer.replace(
+                    line_offset,
+                    annotation.start.display + pad,
+                    annotation.end.display - pad,
+                    self.margin(),
+                );
+                // Underline line
+                buffer.replace(
+                    line_offset + 1,
+                    annotation.start.display + pad,
+                    annotation.end.display - pad,
+                    self.margin(),
                 );
             }
         }
