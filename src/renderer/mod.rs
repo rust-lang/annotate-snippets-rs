@@ -967,21 +967,7 @@ impl Renderer {
 
         let line_offset = buffer.num_lines();
 
-        // Left trim
-        let left = margin.left(str_width(&source_string));
-
-        // FIXME: This looks fishy. See #132860.
-        // Account for unicode characters of width !=0 that were removed.
-        let mut taken = 0;
-        source_string.chars().for_each(|ch| {
-            let next = char_width(ch);
-            if taken + next <= left {
-                taken += next;
-            }
-        });
-
-        let left = taken;
-        self.draw_line(
+        let left = self.draw_line(
             buffer,
             &source_string,
             line_info.line_index,
@@ -2036,12 +2022,12 @@ impl Renderer {
         code_offset: usize,
         max_line_num_len: usize,
         margin: Margin,
-    ) {
+    ) -> usize {
         // Tabs are assumed to have been replaced by spaces in calling code.
         debug_assert!(!source_string.contains('\t'));
         let line_len = str_width(source_string);
         // Create the source line we will highlight.
-        let left = margin.left(line_len);
+        let mut left = margin.left(line_len);
         let right = margin.right(line_len);
         // FIXME: The following code looks fishy. See #132860.
         // On long lines, we strip the source line, accounting for unicode.
@@ -2074,10 +2060,15 @@ impl Renderer {
                     break;
                 }
             }
+
+            if width_taken > padding {
+                left -= width_taken - padding;
+            }
+
             buffer.puts(
                 line_offset,
                 code_offset,
-                &format!("{placeholder:>width_taken$}"),
+                placeholder,
                 ElementStyle::LineNumber,
             );
             (width_taken, bytes_taken)
@@ -2121,6 +2112,8 @@ impl Renderer {
         );
 
         self.draw_col_separator_no_space(buffer, line_offset, width_offset - 2);
+
+        left
     }
 
     fn draw_range(

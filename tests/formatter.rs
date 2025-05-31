@@ -2178,8 +2178,8 @@ fn unicode_cut_handling2() {
     let expected_ascii = str![[r#"
 error: expected item, found `?`
   |
-1 |  ...的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
-  |                                                             ^ expected item
+1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  |                                                              ^ expected item
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2189,8 +2189,8 @@ error: expected item, found `?`
     let expected_unicode = str![[r#"
 error: expected item, found `?`
   │
-1 │  …宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
-  │                                                             ━ expected item
+1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  │                                                              ━ expected item
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
@@ -2215,8 +2215,8 @@ fn unicode_cut_handling3() {
     let expected_ascii = str![[r#"
 error: expected item, found `?`
   |
-1 |  ...。这是宽的。这是宽的。这是宽的...
-  |            ^^ expected item
+1 | ... 。这是宽的。这是宽的。这是宽的...
+  |             ^^ expected item
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2226,8 +2226,8 @@ error: expected item, found `?`
     let expected_unicode = str![[r#"
 error: expected item, found `?`
   │
-1 │  …的。这是宽的。这是宽的。这是宽的。…
-  │            ━━ expected item
+1 │ … 的。这是宽的。这是宽的。这是宽的。…
+  │             ━━ expected item
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
