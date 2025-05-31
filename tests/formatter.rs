@@ -2021,6 +2021,7 @@ LL │  ┃             Ok("")
 LL │  ┃         ))))))))))))))))))))))))))))))
 LL │  ┃     ))))))))))))))))))))))))))))));
    │  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
+   │
    ├ note: expected struct `Atype<Btype<..., i32>, i32>`
    │            found enum `Result<Result<..., _>, _>`
    ├ note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
@@ -2180,6 +2181,7 @@ error: expected item, found `?`
   |
 1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
   |                                                              ^ expected item
+  |
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2191,6 +2193,7 @@ error: expected item, found `?`
   │
 1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
   │                                                              ━ expected item
+  │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
@@ -2217,6 +2220,7 @@ error: expected item, found `?`
   |
 1 | ... 。这是宽的。这是宽的。这是宽的...
   |             ^^ expected item
+  |
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2228,6 +2232,7 @@ error: expected item, found `?`
   │
 1 │ … 的。这是宽的。这是宽的。这是宽的。…
   │             ━━ expected item
+  │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
@@ -2254,6 +2259,7 @@ error: expected item, found `?`
   |
 1 | ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
   |                                                             ^ expected item
+  |
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
@@ -2265,6 +2271,7 @@ error: expected item, found `?`
   │
 1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
   │                                                             ━ expected item
+  │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
