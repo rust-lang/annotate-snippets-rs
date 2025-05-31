@@ -52,6 +52,7 @@ use margin::Margin;
 use std::borrow::Cow;
 use std::cmp::{max, min, Ordering, Reverse};
 use std::collections::{HashMap, VecDeque};
+use std::fmt;
 use std::ops::Range;
 use stylesheet::Stylesheet;
 
@@ -198,7 +199,6 @@ impl Renderer {
 
 impl Renderer {
     pub fn render(&self, mut message: Message<'_>) -> String {
-        let mut buffer = StyledBuffer::new();
         let max_line_num_len = if self.anonymized_line_numbers {
             ANONYMIZED_LINE_NUM.len()
         } else {
@@ -206,27 +206,21 @@ impl Renderer {
             num_decimal_digits(n)
         };
         let title = message.groups.remove(0).elements.remove(0);
-        let level = if let Element::Title(title) = &title {
-            title.level.clone()
-        } else {
-            panic!("Expected a title as the first element of the message")
-        };
         if let Some(first) = message.groups.first_mut() {
             first.elements.insert(0, title);
         } else {
             message.groups.push(Group::new().element(title));
         }
-        self.render_message(&mut buffer, message, max_line_num_len);
-
-        buffer.render(level, &self.stylesheet).unwrap()
+        self.render_message(message, max_line_num_len).unwrap()
     }
 
     fn render_message(
         &self,
-        buffer: &mut StyledBuffer,
         message: Message<'_>,
         max_line_num_len: usize,
-    ) {
+    ) -> Result<String, fmt::Error> {
+        let mut out_string = String::new();
+
         let og_primary_origin = message
             .groups
             .iter()
@@ -264,6 +258,7 @@ impl Renderer {
             );
         let group_len = message.groups.len();
         for (g, group) in message.groups.into_iter().enumerate() {
+            let mut buffer = StyledBuffer::new();
             let primary_origin = group
                 .elements
                 .iter()
@@ -295,6 +290,14 @@ impl Renderer {
                         })
                         .unwrap_or_default(),
                 );
+            let level = group
+                .elements
+                .iter()
+                .find_map(|s| match &s {
+                    Element::Title(title) => Some(title.level.clone()),
+                    _ => None,
+                })
+                .unwrap_or(Level::ERROR);
             let mut source_map_annotated_lines = VecDeque::new();
             let mut max_depth = 0;
             for e in &group.elements {
@@ -313,7 +316,7 @@ impl Renderer {
                 match &section {
                     Element::Title(title) => {
                         self.render_title(
-                            buffer,
+                            &mut buffer,
                             title,
                             peek,
                             max_line_num_len,
@@ -334,7 +337,7 @@ impl Renderer {
                             source_map_annotated_lines.pop_front()
                         {
                             self.render_snippet_annotations(
-                                buffer,
+                                &mut buffer,
                                 max_line_num_len,
                                 cause,
                                 primary_origin,
@@ -345,19 +348,20 @@ impl Renderer {
                             );
 
                             if g == 0 && group_len > 1 {
+                                let current_line = buffer.num_lines();
                                 if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
                                 {
                                     self.draw_col_separator_no_space(
-                                        buffer,
-                                        buffer.num_lines(),
+                                        &mut buffer,
+                                        current_line,
                                         max_line_num_len + 1,
                                     );
                                 // We want to draw the separator when it is
                                 // requested, or when it is the last element
                                 } else if peek.is_none() {
                                     self.draw_col_separator_end(
-                                        buffer,
-                                        buffer.num_lines(),
+                                        &mut buffer,
+                                        current_line,
                                         max_line_num_len + 1,
                                     );
                                 }
@@ -369,7 +373,7 @@ impl Renderer {
                     Element::Suggestion(suggestion) => {
                         let source_map = SourceMap::new(suggestion.source, suggestion.line_start);
                         self.emit_suggestion_default(
-                            buffer,
+                            &mut buffer,
                             suggestion,
                             max_line_num_len,
                             &source_map,
@@ -380,13 +384,14 @@ impl Renderer {
                     }
 
                     Element::Origin(origin) => {
-                        self.render_origin(buffer, max_line_num_len, origin);
+                        self.render_origin(&mut buffer, max_line_num_len, origin);
                         last_was_suggestion = false;
                     }
                     Element::Padding(_) => {
+                        let current_line = buffer.num_lines();
                         self.draw_col_separator_no_space(
-                            buffer,
-                            buffer.num_lines(),
+                            &mut buffer,
+                            current_line,
                             max_line_num_len + 1,
                         );
                     }
@@ -396,23 +401,31 @@ impl Renderer {
                         || (matches!(section, Element::Title(_)) && i == 0)
                         || matches!(section, Element::Title(level) if level.level.name == Some(None)))
                 {
+                    let current_line = buffer.num_lines();
                     if peek.is_none() && group_len > 1 {
                         self.draw_col_separator_end(
-                            buffer,
-                            buffer.num_lines(),
+                            &mut buffer,
+                            current_line,
                             max_line_num_len + 1,
                         );
                     } else if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
                     {
                         self.draw_col_separator_no_space(
-                            buffer,
-                            buffer.num_lines(),
+                            &mut buffer,
+                            current_line,
                             max_line_num_len + 1,
                         );
                     }
                 }
             }
+            buffer.render(level, &self.stylesheet, &mut out_string)?;
+            if g != group_len - 1 {
+                use std::fmt::Write;
+
+                writeln!(out_string)?;
+            }
         }
+        Ok(out_string)
     }
 
     #[allow(clippy::too_many_arguments)]

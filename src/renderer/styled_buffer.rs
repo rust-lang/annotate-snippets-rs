@@ -43,8 +43,8 @@ impl StyledBuffer {
         &self,
         level: Level<'_>,
         stylesheet: &Stylesheet,
-    ) -> Result<String, fmt::Error> {
-        let mut str = String::new();
+        str: &mut String,
+    ) -> Result<(), fmt::Error> {
         for (i, line) in self.lines.iter().enumerate() {
             let mut current_style = stylesheet.none;
             for StyledChar { ch, style } in line {
@@ -63,7 +63,7 @@ impl StyledBuffer {
                 writeln!(str)?;
             }
         }
-        Ok(str)
+        Ok(())
     }
 
     /// Sets `chr` with `style` for given `line`, `col`.
