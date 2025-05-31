@@ -887,15 +887,15 @@ bar = { version = "0.1.0", optional = true }
 error: unused optional dependency
   |
 4 |    bar = { version = "0.1.0", optional = true }
-  |   _________^__________________--------------^
-  |  |         |                  |
-  |  |_________|                  This should also be long but not too long
+  |  __________^__________________--------------^
+  | |          |                  |
+  | | _________|                  This should also be long but not too long
   | ||
 5 | || this is another line
 6 | || so is this
 7 | || bar = { version = "0.1.0", optional = true }
   | ||_________________________^________________^ I need this to be really long so I can test overlaps
-  | |__________________________|
+  |  |_________________________|
   |                            I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
@@ -940,16 +940,16 @@ this is another line
 error: unused optional dependency
   |
 4 |     bar = { version = "0.1.0", optional = true }
-  |   __________^__________________--------------^
-  |  |          |                  |
-  |  |__________|                  This should also be long but not too long
+  |  ___________^__________________--------------^
+  | |           |                  |
+  | | __________|                  This should also be long but not too long
   | ||
 5 | ||  this is another line
   | || ____^
 6 | ||| so is this
 7 | ||| bar = { version = "0.1.0", optional = true }
   | |||_________________________^________________^ I need this to be really long so I can test overlaps
-  | |_|_________________________|
+  |  ||_________________________|
   |   |                         I need this to be really long so I can test overlaps
 8 |   | this is another line
   |   |____^ I need this to be really long so I can test overlaps

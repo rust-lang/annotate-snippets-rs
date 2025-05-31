@@ -2087,19 +2087,19 @@ fn main() {
 error: `Iterator::map` call that discard the iterator's values
   --> $DIR/lint_map_unit_fn.rs:11:18
    |
-LL |        x.iter_mut().map(|items| {
-   |                     ^   -------
-   |                     |   |
-   |   __________________|___this function returns `()`, which is likely not what you wanted
-   |  |__________________|
-   | ||
-LL | ||     //~^ ERROR `Iterator::map` call that discard the iterator's values
-LL | ||         items.sort();
-LL | ||     });
-   | ||     -^ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
-   | ||_____||
-   |  |_____|
-   |        called `Iterator::map` with callable that returns `()`
+LL |         x.iter_mut().map(|items| {
+   |                      ^   -------
+   |                      |   |
+   |  ____________________|___this function returns `()`, which is likely not what you wanted
+   | |  __________________|
+   | | |
+LL | | |     //~^ ERROR `Iterator::map` call that discard the iterator's values
+LL | | |         items.sort();
+LL | | |     });
+   | | |     -^ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+   | | |_____||
+   | |_______|
+   |         called `Iterator::map` with callable that returns `()`
    |
    = note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
 help: you might have meant to use `Iterator::for_each`

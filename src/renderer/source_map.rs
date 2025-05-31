@@ -194,8 +194,7 @@ impl<'a> SourceMap<'a> {
         let mut primary_spans = vec![];
 
         // Find overlapping multiline annotations, put them at different depths
-        multiline_annotations
-            .sort_by_key(|ml| (ml.start.line, usize::MAX - ml.end.line, ml.start.byte));
+        multiline_annotations.sort_by_key(|ml| (ml.start.line, usize::MAX - ml.end.line));
         for ann in multiline_annotations.clone() {
             if ann.kind.is_primary() {
                 primary_spans.push((ann.start, ann.end));
