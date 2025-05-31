@@ -41,7 +41,7 @@
 </tspan>
     <tspan x="10px" y="190px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰╴</tspan>
 </tspan>
-    <tspan x="10px" y="208px"><tspan class="fg-bright-cyan bold">suggestion</tspan><tspan class="bold">: use `break` on its own without a value inside this `while` loop</tspan>
+    <tspan x="10px" y="208px"><tspan class="fg-bright-cyan bold">suggestion</tspan><tspan>: use `break` on its own without a value inside this `while` loop</tspan>
 </tspan>
     <tspan x="10px" y="226px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╭╴</tspan>
 </tspan>

@@ -159,14 +159,6 @@ pub struct Padding;
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) title: &'a str,
-    pub(crate) primary: bool,
-}
-
-impl Title<'_> {
-    pub fn primary(mut self, primary: bool) -> Self {
-        self.primary = primary;
-        self
-    }
 }
 
 /// A source view [`Element`] in a [`Group`]

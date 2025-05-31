@@ -1663,6 +1663,8 @@ zappy
     let input_new = Level::ERROR
         .header("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")
+        // We need an empty group here to ensure the HELP line is rendered correctly
+        .group(Group::new())
         .group(
             Group::new()
                 .element(Level::HELP.title(
