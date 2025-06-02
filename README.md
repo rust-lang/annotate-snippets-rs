@@ -15,8 +15,10 @@ which may look like this:
 Local Development
 -----------------
 
-    cargo build
-    cargo test
+```console
+$ cargo build
+$ cargo test
+```
 
 When submitting a PR please use  [`cargo fmt`][] (nightly).
 

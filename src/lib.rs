@@ -58,3 +58,7 @@ pub use level::Level;
 #[doc(inline)]
 pub use renderer::Renderer;
 pub use snippet::*;
+
+#[doc = include_str!("../README.md")]
+#[cfg(doctest)]
+pub struct ReadmeDoctests;
