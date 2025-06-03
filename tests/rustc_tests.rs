@@ -2605,7 +2605,7 @@ error[E0532]: expected unit struct, unit variant or constant, found tuple varian
 LL |         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    |         ^^^^^^
    |
-  ::: $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:15
+  ::: $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:19
    |
 LL | pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
    |               --  -- `E1::Z1` defined here
@@ -2669,7 +2669,9 @@ LL |   /* //~ ERROR E0758
    | |
 LL | | /* */
 LL | | /*
-   | | -- ...as last nested comment starts here, maybe you want to close this instead?
+   | | --
+   | | |
+   | | ...as last nested comment starts here, maybe you want to close this instead?
 LL | | */
    | |_--^
    |   |
