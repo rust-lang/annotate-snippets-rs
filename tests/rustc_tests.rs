@@ -2166,12 +2166,14 @@ fn main() {
 error: character constant must be escaped: `/n`
   --> $DIR/bad-char-literals.rs:10:6
    |
-LL |     '
-   |      ^
+LL |       '
+   |  ______^
+LL | | ';
+   | |_^
    |
 help: escape the character
    |
-LL |     '/n
+LL |     '/n';
    |      ++
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
@@ -2220,8 +2222,8 @@ error: unclosed frontmatter
    |
 LL | / ----cargo
 ...  |
-LL | | // are properly parsed.
-   | |________________________^
+LL | |
+   | |_^
    |
 note: frontmatter opening here was not closed
   --> $DIR/unclosed-1.rs:1:1
@@ -2396,7 +2398,8 @@ error: unclosed frontmatter
    |
 LL | / ----cargo
 LL | | //~^ ERROR: unclosed frontmatter
-   | |_________________________________^
+LL | |
+   | |_^
    |
 note: frontmatter opening here was not closed
   --> $DIR/unclosed-4.rs:1:1
@@ -2451,8 +2454,8 @@ error: unclosed frontmatter
    |
 LL | / ----cargo
 ...  |
-LL | | // per unclosed-1.rs)
-   | |______________________^
+LL | |
+   | |_^
    |
 note: frontmatter opening here was not closed
   --> $DIR/unclosed-5.rs:1:1
