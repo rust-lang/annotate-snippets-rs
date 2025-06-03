@@ -2891,7 +2891,6 @@ $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for 
 }
 
 #[test]
-#[should_panic(expected = "range end index 47 out of range for slice of length 26")]
 fn rustdoc_ui_diagnostic_width() {
     // tests/rustdoc-ui/diagnostic-width.rs
 
