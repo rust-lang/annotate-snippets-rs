@@ -2466,3 +2466,215 @@ LL | ----cargo
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+fn pat_tuple_field_count_cross() {
+    // tests/ui/pattern/pat-tuple-field-count-cross.stderr
+
+    let source = r#"//@ aux-build:declarations-for-tuple-field-count-errors.rs
+
+extern crate declarations_for_tuple_field_count_errors;
+
+use declarations_for_tuple_field_count_errors::*;
+
+fn main() {
+    match Z0 {
+        Z0() => {} //~ ERROR expected tuple struct or tuple variant, found unit struct `Z0`
+        Z0(x) => {} //~ ERROR expected tuple struct or tuple variant, found unit struct `Z0`
+    }
+    match Z1() {
+        Z1 => {} //~ ERROR match bindings cannot shadow tuple structs
+        Z1(x) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple struct has 0 fields
+    }
+
+    match S(1, 2, 3) {
+        S() => {} //~ ERROR this pattern has 0 fields, but the corresponding tuple struct has 3 fields
+        S(1) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple struct has 3 fields
+        S(xyz, abc) => {} //~ ERROR this pattern has 2 fields, but the corresponding tuple struct has 3 fields
+        S(1, 2, 3, 4) => {} //~ ERROR this pattern has 4 fields, but the corresponding tuple struct has 3 fields
+    }
+    match M(1, 2, 3) {
+        M() => {} //~ ERROR this pattern has 0 fields, but the corresponding tuple struct has 3 fields
+        M(1) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple struct has 3 fields
+        M(xyz, abc) => {} //~ ERROR this pattern has 2 fields, but the corresponding tuple struct has 3 fields
+        M(1, 2, 3, 4) => {} //~ ERROR this pattern has 4 fields, but the corresponding tuple struct has 3 fields
+    }
+
+    match E1::Z0 {
+        E1::Z0() => {} //~ ERROR expected tuple struct or tuple variant, found unit variant `E1::Z0`
+        E1::Z0(x) => {} //~ ERROR expected tuple struct or tuple variant, found unit variant `E1::Z0`
+    }
+    match E1::Z1() {
+        E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+        E1::Z1(x) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple variant has 0 fields
+    }
+    match E1::S(1, 2, 3) {
+        E1::S() => {} //~ ERROR this pattern has 0 fields, but the corresponding tuple variant has 3 fields
+        E1::S(1) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple variant has 3 fields
+        E1::S(xyz, abc) => {} //~ ERROR this pattern has 2 fields, but the corresponding tuple variant has 3 fields
+        E1::S(1, 2, 3, 4) => {} //~ ERROR this pattern has 4 fields, but the corresponding tuple variant has 3 fields
+    }
+
+    match E2::S(1, 2, 3) {
+        E2::S() => {} //~ ERROR this pattern has 0 fields, but the corresponding tuple variant has 3 fields
+        E2::S(1) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple variant has 3 fields
+        E2::S(xyz, abc) => {} //~ ERROR this pattern has 2 fields, but the corresponding tuple variant has 3 fields
+        E2::S(1, 2, 3, 4) => {} //~ ERROR this pattern has 4 fields, but the corresponding tuple variant has 3 fields
+    }
+    match E2::M(1, 2, 3) {
+        E2::M() => {} //~ ERROR this pattern has 0 fields, but the corresponding tuple variant has 3 fields
+        E2::M(1) => {} //~ ERROR this pattern has 1 field, but the corresponding tuple variant has 3 fields
+        E2::M(xyz, abc) => {} //~ ERROR this pattern has 2 fields, but the corresponding tuple variant has 3 fields
+        E2::M(1, 2, 3, 4) => {} //~ ERROR this pattern has 4 fields, but the corresponding tuple variant has 3 fields
+    }
+}
+"#;
+    let source1 = r#"pub struct Z0;
+pub struct Z1();
+
+pub struct S(pub u8, pub u8, pub u8);
+pub struct M(
+    pub u8,
+    pub u8,
+    pub u8,
+);
+
+pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
+
+pub enum E2 {
+    S(u8, u8, u8),
+    M(
+        u8,
+        u8,
+        u8,
+    ),
+}
+"#;
+
+    let input = Level::ERROR
+        .header("expected unit struct, unit variant or constant, found tuple variant `E1::Z1`")
+        .id(r#"E0532"#)
+        .group(
+            Group::new()
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/pat-tuple-field-count-cross.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(1760..1766)),
+                )
+                .element(
+                    Snippet::source(source1)
+                        .origin("$DIR/auxiliary/declarations-for-tuple-field-count-errors.rs")
+                        .fold(true)
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(143..145)
+                                .label("`E1::Z1` defined here"),
+                        )
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(139..141)
+                                .label("similarly named unit variant `Z0` defined here"),
+                        ),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::HELP.title("use the tuple variant pattern syntax instead"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/pat-tuple-field-count-cross.rs")
+                        .fold(true)
+                        .patch(Patch::new(1760..1766, r#"E1::Z1()"#)),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::HELP.title("a unit variant with a similar name exists"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/pat-tuple-field-count-cross.rs")
+                        .fold(true)
+                        .patch(Patch::new(1764..1766, r#"Z0"#)),
+                ),
+        );
+    let expected = str![[r#"
+error[E0532]: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+  --> $DIR/pat-tuple-field-count-cross.rs:35:9
+   |
+LL |         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   |         ^^^^^^
+   |
+  ::: $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:15
+   |
+LL | pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
+   |               --  -- `E1::Z1` defined here
+   |               |
+   |               similarly named unit variant `Z0` defined here
+   |
+help: use the tuple variant pattern syntax instead
+   |
+LL |         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   |               ++
+help: a unit variant with a similar name exists
+   |
+LL -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+LL +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unterminated_nested_comment() {
+    // tests/ui/lexer/unterminated-nested-comment.rs
+
+    let source = r#"/* //~ ERROR E0758
+/* */
+/*
+*/
+"#;
+
+    let input = Level::ERROR.header("unterminated block comment").id("E0758").group(
+        Group::new().element(
+            Snippet::source(source)
+                .origin("$DIR/unterminated-nested-comment.rs")
+                .fold(true)
+                .annotation(
+                    AnnotationKind::Context
+                        .span(0..2)
+                        .label("unterminated block comment"),
+                )
+                .annotation(AnnotationKind::Context.span(25..27).label(
+                    "...as last nested comment starts here, maybe you want to close this instead?",
+                ))
+                .annotation(
+                    AnnotationKind::Context
+                        .span(28..30)
+                        .label("...and last nested comment terminates here."),
+                )
+                .annotation(AnnotationKind::Primary.span(0..31)),
+        ),
+    );
+
+    let expected = str![[r#"
+error[E0758]: unterminated block comment
+  --> $DIR/unterminated-nested-comment.rs:1:1
+   |
+LL |   /* //~ ERROR E0758
+   |   ^-
+   |   |
+   |  _unterminated block comment
+   | |
+LL | | /* */
+LL | | /*
+   | | -- ...as last nested comment starts here, maybe you want to close this instead?
+LL | | */
+   | |_--^
+   |   |
+   |   ...and last nested comment terminates here.
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
