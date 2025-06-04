@@ -11,6 +11,21 @@ pub(crate) struct SourceMap<'a> {
 
 impl<'a> SourceMap<'a> {
     pub(crate) fn new(source: &'a str, line_start: usize) -> Self {
+        // Empty sources do have a "line", but it is empty, so we need to add
+        // a line with an empty string to the source map.
+        if source.is_empty() {
+            return Self {
+                lines: vec![LineInfo {
+                    line: "",
+                    line_index: line_start,
+                    start_byte: 0,
+                    end_byte: 0,
+                    end_line_size: 0,
+                }],
+                source,
+            };
+        }
+
         let mut current_index = 0;
 
         let mut mapping = vec![];

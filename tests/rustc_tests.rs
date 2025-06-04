@@ -2682,7 +2682,6 @@ LL | | */
 }
 
 #[test]
-#[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
 fn mismatched_types1() {
     // tests/ui/include-macros/mismatched-types.rs
 

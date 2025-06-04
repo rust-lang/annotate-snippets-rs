@@ -303,6 +303,7 @@ fn test_only_source() {
 error: 
  --> file.rs
   |
+1 |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected);
