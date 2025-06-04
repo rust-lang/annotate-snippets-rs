@@ -2842,21 +2842,11 @@ fn main() {
         );
 
     let expected = str![[r#"
-error[E0308]: mismatched types
-  --> $DIR/short-error-format.rs:6:9
-   |
-LL |     foo("Bonjour".to_owned());
-   |     --- ^^^^^^^^^^^^^^^^^^^^ expected `u32`, found `String`
-   |     |
-   |     arguments to this function are incorrect
-   |
-note: function defined here
-  --> $DIR/short-error-format.rs:3:4
-   |
-LL | fn foo(_: u32) {}
-   |    ^^^ ------
+$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain()
+        .short_message(true)
+        .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
 
@@ -2892,12 +2882,10 @@ fn main() {
         );
 
     let expected = str![[r#"
-error[E0599]: no method named `salut` found for type `u32` in the current scope
-  --> $DIR/short-error-format.rs:8:7
-   |
-LL |     x.salut();
-   |       ^^^^^ method not found in `u32`
+$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain()
+        .short_message(true)
+        .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }

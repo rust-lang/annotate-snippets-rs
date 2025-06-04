@@ -66,6 +66,7 @@ pub struct Renderer {
     term_width: usize,
     theme: OutputTheme,
     stylesheet: Stylesheet,
+    short_message: bool,
 }
 
 impl Renderer {
@@ -76,6 +77,7 @@ impl Renderer {
             term_width: DEFAULT_TERM_WIDTH,
             theme: OutputTheme::Ascii,
             stylesheet: Stylesheet::plain(),
+            short_message: false,
         }
     }
 
@@ -134,6 +136,11 @@ impl Renderer {
     /// ```
     pub const fn anonymized_line_numbers(mut self, anonymized_line_numbers: bool) -> Self {
         self.anonymized_line_numbers = anonymized_line_numbers;
+        self
+    }
+
+    pub const fn short_message(mut self, short_message: bool) -> Self {
+        self.short_message = short_message;
         self
     }
 
@@ -199,19 +206,23 @@ impl Renderer {
 
 impl Renderer {
     pub fn render(&self, mut message: Message<'_>) -> String {
-        let max_line_num_len = if self.anonymized_line_numbers {
-            ANONYMIZED_LINE_NUM.len()
+        if self.short_message {
+            self.render_short_message(message).unwrap()
         } else {
-            let n = message.max_line_number();
-            num_decimal_digits(n)
-        };
-        let title = message.groups.remove(0).elements.remove(0);
-        if let Some(first) = message.groups.first_mut() {
-            first.elements.insert(0, title);
-        } else {
-            message.groups.push(Group::new().element(title));
+            let max_line_num_len = if self.anonymized_line_numbers {
+                ANONYMIZED_LINE_NUM.len()
+            } else {
+                let n = message.max_line_number();
+                num_decimal_digits(n)
+            };
+            let title = message.groups.remove(0).elements.remove(0);
+            if let Some(first) = message.groups.first_mut() {
+                first.elements.insert(0, title);
+            } else {
+                message.groups.push(Group::new().element(title));
+            }
+            self.render_message(message, max_line_num_len).unwrap()
         }
-        self.render_message(message, max_line_num_len).unwrap()
     }
 
     fn render_message(
@@ -320,6 +331,7 @@ impl Renderer {
                             (true, false) => TitleStyle::Header,
                             (false, _) => TitleStyle::Secondary,
                         };
+                        let buffer_msg_line_offset = buffer.num_lines();
                         self.render_title(
                             &mut buffer,
                             title,
@@ -333,6 +345,7 @@ impl Renderer {
                                 }
                             }),
                             matches!(peek, Some(Element::Title(_))),
+                            buffer_msg_line_offset,
                         );
                         last_was_suggestion = false;
                     }
@@ -390,7 +403,13 @@ impl Renderer {
                     }
 
                     Element::Origin(origin) => {
-                        self.render_origin(&mut buffer, max_line_num_len, origin);
+                        let buffer_msg_line_offset = buffer.num_lines();
+                        self.render_origin(
+                            &mut buffer,
+                            max_line_num_len,
+                            origin,
+                            buffer_msg_line_offset,
+                        );
                         last_was_suggestion = false;
                     }
                     Element::Padding(_) => {
@@ -434,6 +453,91 @@ impl Renderer {
         Ok(out_string)
     }
 
+    fn render_short_message(&self, mut message: Message<'_>) -> Result<String, fmt::Error> {
+        let mut buffer = StyledBuffer::new();
+
+        let Element::Title(title) = message.groups.remove(0).elements.remove(0) else {
+            panic!(
+                "Expected first element to be a Title, got: {:?}",
+                message.groups
+            );
+        };
+
+        let mut labels = None;
+
+        if let Some(Element::Cause(cause)) = message.groups.first().and_then(|group| {
+            group
+                .elements
+                .iter()
+                .find(|e| matches!(e, Element::Cause(_)))
+        }) {
+            let labels_inner = cause
+                .markers
+                .iter()
+                .filter_map(|ann| match ann.label {
+                    Some(msg) if ann.kind.is_primary() => {
+                        if !msg.trim().is_empty() {
+                            Some(msg.to_owned())
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
+            if !labels_inner.is_empty() {
+                labels = Some(labels_inner);
+            }
+
+            if let Some(origin) = cause.origin {
+                let mut origin = Origin::new(origin);
+                origin.primary = true;
+
+                let source_map = SourceMap::new(cause.source, cause.line_start);
+                let (_depth, annotated_lines) =
+                    source_map.annotated_lines(cause.markers.clone(), cause.fold);
+
+                if let Some(primary_line) = annotated_lines
+                    .iter()
+                    .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
+                    .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
+                {
+                    origin.line = Some(primary_line.line_index);
+                    if let Some(first_annotation) = primary_line
+                        .annotations
+                        .iter()
+                        .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
+                    {
+                        origin.char_column = Some(first_annotation.start.char + 1);
+                    }
+                }
+
+                self.render_origin(&mut buffer, 0, &origin, 0);
+                buffer.append(0, ": ", ElementStyle::LineAndColumn);
+            }
+        }
+
+        self.render_title(
+            &mut buffer,
+            &title,
+            0, // No line numbers in short messages
+            TitleStyle::MainHeader,
+            message.id.as_ref(),
+            false,
+            0,
+        );
+
+        if let Some(labels) = labels {
+            buffer.append(0, &format!(": {labels}"), ElementStyle::NoStyle);
+        }
+
+        let mut out_string = String::new();
+        buffer.render(title.level, &self.stylesheet, &mut out_string)?;
+
+        Ok(out_string)
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn render_title(
         &self,
@@ -443,23 +547,27 @@ impl Renderer {
         title_style: TitleStyle,
         id: Option<&&str>,
         is_cont: bool,
+        buffer_msg_line_offset: usize,
     ) {
-        let line_offset = buffer.num_lines();
-
         if title_style == TitleStyle::Secondary {
             // This is a secondary message with no span info
             for _ in 0..max_line_num_len {
-                buffer.prepend(line_offset, " ", ElementStyle::NoStyle);
+                buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
             }
 
             if title.level.name != Some(None) {
-                self.draw_note_separator(buffer, line_offset, max_line_num_len + 1, is_cont);
+                self.draw_note_separator(
+                    buffer,
+                    buffer_msg_line_offset,
+                    max_line_num_len + 1,
+                    is_cont,
+                );
                 buffer.append(
-                    line_offset,
+                    buffer_msg_line_offset,
                     title.level.as_str(),
                     ElementStyle::MainHeaderMsg,
                 );
-                buffer.append(line_offset, ": ", ElementStyle::NoStyle);
+                buffer.append(buffer_msg_line_offset, ": ", ElementStyle::NoStyle);
             }
 
             let printed_lines =
@@ -476,7 +584,7 @@ impl Renderer {
                 //   │       bar
                 //   ╰ note: foo
                 //           bar
-                for i in line_offset + 1..=printed_lines {
+                for i in buffer_msg_line_offset + 1..=printed_lines {
                     self.draw_col_separator_no_space(buffer, i, max_line_num_len + 1);
                 }
             }
@@ -485,31 +593,49 @@ impl Renderer {
 
             if title.level.name != Some(None) {
                 buffer.append(
-                    line_offset,
+                    buffer_msg_line_offset,
                     title.level.as_str(),
                     ElementStyle::Level(title.level.level),
                 );
             }
             label_width += title.level.as_str().len();
             if let Some(id) = id {
-                buffer.append(line_offset, "[", ElementStyle::Level(title.level.level));
-                buffer.append(line_offset, id, ElementStyle::Level(title.level.level));
-                buffer.append(line_offset, "]", ElementStyle::Level(title.level.level));
+                buffer.append(
+                    buffer_msg_line_offset,
+                    "[",
+                    ElementStyle::Level(title.level.level),
+                );
+                buffer.append(
+                    buffer_msg_line_offset,
+                    id,
+                    ElementStyle::Level(title.level.level),
+                );
+                buffer.append(
+                    buffer_msg_line_offset,
+                    "]",
+                    ElementStyle::Level(title.level.level),
+                );
                 label_width += 2 + id.len();
             }
             let header_style = match title_style {
-                TitleStyle::MainHeader => ElementStyle::MainHeaderMsg,
+                TitleStyle::MainHeader => {
+                    if self.short_message {
+                        ElementStyle::NoStyle
+                    } else {
+                        ElementStyle::MainHeaderMsg
+                    }
+                }
                 TitleStyle::Header => ElementStyle::HeaderMsg,
                 TitleStyle::Secondary => unreachable!(),
             };
             if title.level.name != Some(None) {
-                buffer.append(line_offset, ": ", header_style);
+                buffer.append(buffer_msg_line_offset, ": ", header_style);
                 label_width += 2;
             }
             if !title.title.is_empty() {
                 for (line, text) in normalize_whitespace(title.title).lines().enumerate() {
                     buffer.append(
-                        line_offset + line,
+                        buffer_msg_line_offset + line,
                         &format!(
                             "{}{}",
                             if line == 0 {
@@ -600,15 +726,15 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         max_line_num_len: usize,
         origin: &Origin<'_>,
+        buffer_msg_line_offset: usize,
     ) {
-        let buffer_msg_line_offset = buffer.num_lines();
-        if origin.primary {
+        if origin.primary && !self.short_message {
             buffer.prepend(
                 buffer_msg_line_offset,
                 self.file_start(),
                 ElementStyle::LineNumber,
             );
-        } else {
+        } else if !self.short_message {
             // if !origin.standalone {
             //     // Add spacing line, as shown:
             //     //   --> $DIR/file:54:15
@@ -643,9 +769,12 @@ impl Renderer {
             (Some(line), None) => format!("{}:{}", origin.origin, line),
             _ => origin.origin.to_owned(),
         };
+
         buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
-        for _ in 0..max_line_num_len {
-            buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
+        if !self.short_message {
+            for _ in 0..max_line_num_len {
+                buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
+            }
         }
     }
 
@@ -707,7 +836,8 @@ impl Renderer {
                     }
                 }
             }
-            self.render_origin(buffer, max_line_num_len, &origin);
+            let buffer_msg_line_offset = buffer.num_lines();
+            self.render_origin(buffer, max_line_num_len, &origin, buffer_msg_line_offset);
         }
 
         // Put in the spacer between the location and annotated source
