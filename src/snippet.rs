@@ -13,7 +13,7 @@ pub(crate) const WARNING_TXT: &str = "warning";
 /// Top-level user message
 #[derive(Clone, Debug)]
 pub struct Message<'a> {
-    pub(crate) id: Option<&'a str>, // for "correctness", could be sloppy and be on Title
+    pub(crate) id: Option<Id<'a>>, // for "correctness", could be sloppy and be on Title
     pub(crate) groups: Vec<Group<'a>>,
 }
 
@@ -26,7 +26,17 @@ impl<'a> Message<'a> {
     ///
     /// </div>
     pub fn id(mut self, id: &'a str) -> Self {
-        self.id = Some(id);
+        self.id.get_or_insert(Id::default()).id = Some(id);
+        self
+    }
+
+    /// <div class="warning">
+    ///
+    /// This is only relevant if the `id` present
+    ///
+    /// </div>
+    pub fn id_url(mut self, url: &'a str) -> Self {
+        self.id.get_or_insert(Id::default()).url = Some(url);
         self
     }
 
@@ -73,6 +83,12 @@ impl<'a> Message<'a> {
             .max()
             .unwrap_or(1)
     }
+}
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Id<'a> {
+    pub(crate) id: Option<&'a str>,
+    pub(crate) url: Option<&'a str>,
 }
 
 /// An [`Element`] container

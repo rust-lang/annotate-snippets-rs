@@ -46,6 +46,7 @@ use crate::renderer::source_map::{
     AnnotatedLineInfo, LineInfo, Loc, SourceMap, SubstitutionHighlight,
 };
 use crate::renderer::styled_buffer::StyledBuffer;
+use crate::snippet::Id;
 use crate::{Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Snippet, Title};
 pub use anstyle::*;
 use margin::Margin;
@@ -545,7 +546,7 @@ impl Renderer {
         title: &Title<'_>,
         max_line_num_len: usize,
         title_style: TitleStyle,
-        id: Option<&&str>,
+        id: Option<&Id<'_>>,
         is_cont: bool,
         buffer_msg_line_offset: usize,
     ) {
@@ -620,17 +621,31 @@ impl Renderer {
                 );
             }
             label_width += title.level.as_str().len();
-            if let Some(id) = id {
+            if let Some(Id { id: Some(id), url }) = id {
                 buffer.append(
                     buffer_msg_line_offset,
                     "[",
                     ElementStyle::Level(title.level.level),
                 );
+                if let Some(url) = url.as_ref() {
+                    buffer.append(
+                        buffer_msg_line_offset,
+                        &format!("\x1B]8;;{url}\x1B\\"),
+                        ElementStyle::Level(title.level.level),
+                    );
+                }
                 buffer.append(
                     buffer_msg_line_offset,
                     id,
                     ElementStyle::Level(title.level.level),
                 );
+                if url.is_some() {
+                    buffer.append(
+                        buffer_msg_line_offset,
+                        "\x1B]8;;\x1B\\",
+                        ElementStyle::Level(title.level.level),
+                    );
+                }
                 buffer.append(
                     buffer_msg_line_offset,
                     "]",
