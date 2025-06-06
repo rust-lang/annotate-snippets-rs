@@ -164,7 +164,7 @@ pub struct Title<'a> {
 /// A source view [`Element`] in a [`Group`]
 #[derive(Clone, Debug)]
 pub struct Snippet<'a, T> {
-    pub(crate) origin: Option<&'a str>,
+    pub(crate) origin: Option<Origin<'a>>,
     pub(crate) line_start: usize,
     pub(crate) source: &'a str,
     pub(crate) markers: Vec<T>,
@@ -200,6 +200,11 @@ impl<'a, T: Clone> Snippet<'a, T> {
 
     /// The location of the [`source`][Self::source] (e.g. a path)
     ///
+    /// If only a location is provided (i.e. a `String`) then the rest of the
+    /// [`Origin`] is inferred (e.g. line and column numbers).  To adjust line
+    /// numbers, consider using [`Snippet::line_start`] instead as it will also
+    /// adjust line numbers for the [`Snippet::source`].
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such
@@ -207,8 +212,8 @@ impl<'a, T: Clone> Snippet<'a, T> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn origin(mut self, origin: &'a str) -> Self {
-        self.origin = Some(origin);
+    pub fn origin(mut self, origin: impl Into<Origin<'a>>) -> Self {
+        self.origin = Some(origin.into());
         self
     }
 
@@ -375,8 +380,16 @@ impl<'a> Patch<'a> {
     }
 }
 
-/// The location of the [`Snippet`] (e.g. a path)
-#[derive(Clone, Debug)]
+/// The location of the [`Snippet`] (e.g. a path).
+///
+/// This should be used if you want to set the line number and column
+/// explicitly for a [`Snippet`], or if you need to render a location without
+/// an accompanying [`Snippet`].
+///
+/// Note: `line` is always respected if set, but `char_column` is only
+/// respected if `line` has been set. `primary` is respected unless the origin
+/// is the first one in a [`Group`], in which case it is ignored.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Origin<'a> {
     pub(crate) origin: &'a str,
     pub(crate) line: Option<usize>,
@@ -412,14 +425,39 @@ impl<'a> Origin<'a> {
     /// Set the default column to display
     ///
     /// Otherwise this will be inferred from the primary [`Annotation`]
+    ///
+    /// <div class="warning">
+    ///
+    /// When [`Origin`] is passed into [`Snippet::origin`], `char_column` is
+    /// only be respected if [`Origin::line`] is also set.
+    ///
+    /// </div>
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
         self
     }
 
+    /// <div class="warning">
+    ///
+    /// When [`Origin`] is passed into [`Snippet::origin`], `primary` is
+    /// respected as long as the first [`Origin`] in a [`Group`].
+    ///
+    /// </div>
     pub fn primary(mut self, primary: bool) -> Self {
         self.primary = primary;
         self
+    }
+}
+
+impl<'a> From<&'a str> for Origin<'a> {
+    fn from(origin: &'a str) -> Self {
+        Self::new(origin)
+    }
+}
+
+impl<'a> From<&'a String> for Origin<'a> {
+    fn from(origin: &'a String) -> Self {
+        Self::new(origin)
     }
 }
 

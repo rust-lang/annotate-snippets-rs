@@ -239,14 +239,14 @@ impl Renderer {
                 group.elements.iter().find_map(|s| match &s {
                     Element::Cause(cause) => {
                         if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                            Some(cause.origin)
+                            Some(cause.origin.as_ref())
                         } else {
                             None
                         }
                     }
                     Element::Origin(origin) => {
                         if origin.primary {
-                            Some(Some(origin.origin))
+                            Some(Some(origin))
                         } else {
                             None
                         }
@@ -260,15 +260,15 @@ impl Renderer {
                     .iter()
                     .find_map(|group| {
                         group.elements.iter().find_map(|s| match &s {
-                            Element::Cause(cause) => Some(cause.origin),
-                            Element::Origin(origin) => Some(Some(origin.origin)),
+                            Element::Cause(cause) => Some(cause.origin.as_ref()),
+                            Element::Origin(origin) => Some(Some(origin)),
                             _ => None,
                         })
                     })
                     .unwrap_or_default(),
             );
         let group_len = message.groups.len();
-        for (g, group) in message.groups.into_iter().enumerate() {
+        for (g, group) in message.groups.iter().enumerate() {
             let mut buffer = StyledBuffer::new();
             let primary_origin = group
                 .elements
@@ -276,14 +276,14 @@ impl Renderer {
                 .find_map(|s| match &s {
                     Element::Cause(cause) => {
                         if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                            Some(cause.origin)
+                            Some(cause.origin.as_ref())
                         } else {
                             None
                         }
                     }
                     Element::Origin(origin) => {
                         if origin.primary {
-                            Some(Some(origin.origin))
+                            Some(Some(origin))
                         } else {
                             None
                         }
@@ -295,8 +295,8 @@ impl Renderer {
                         .elements
                         .iter()
                         .find_map(|s| match &s {
-                            Element::Cause(cause) => Some(cause.origin),
-                            Element::Origin(origin) => Some(Some(origin.origin)),
+                            Element::Cause(cause) => Some(cause.origin.as_ref()),
+                            Element::Origin(origin) => Some(Some(origin)),
                             _ => None,
                         })
                         .unwrap_or_default(),
@@ -490,26 +490,27 @@ impl Renderer {
                 labels = Some(labels_inner);
             }
 
-            if let Some(origin) = cause.origin {
-                let mut origin = Origin::new(origin);
+            if let Some(mut origin) = cause.origin.clone() {
                 origin.primary = true;
 
-                let source_map = SourceMap::new(cause.source, cause.line_start);
-                let (_depth, annotated_lines) =
-                    source_map.annotated_lines(cause.markers.clone(), cause.fold);
+                if origin.line.is_none() || origin.char_column.is_none() {
+                    let source_map = SourceMap::new(cause.source, cause.line_start);
+                    let (_depth, annotated_lines) =
+                        source_map.annotated_lines(cause.markers.clone(), cause.fold);
 
-                if let Some(primary_line) = annotated_lines
-                    .iter()
-                    .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
-                    .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
-                {
-                    origin.line = Some(primary_line.line_index);
-                    if let Some(first_annotation) = primary_line
-                        .annotations
+                    if let Some(primary_line) = annotated_lines
                         .iter()
-                        .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
+                        .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
+                        .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
                     {
-                        origin.char_column = Some(first_annotation.start.char + 1);
+                        origin.line = Some(primary_line.line_index);
+                        if let Some(first_annotation) = primary_line
+                            .annotations
+                            .iter()
+                            .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
+                        {
+                            origin.char_column = Some(first_annotation.start.char + 1);
+                        }
                     }
                 }
 
@@ -784,32 +785,40 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         max_line_num_len: usize,
         snippet: &Snippet<'_, Annotation<'_>>,
-        primary_origin: Option<&str>,
+        primary_origin: Option<&Origin<'_>>,
         sm: &SourceMap<'_>,
         annotated_lines: &[AnnotatedLineInfo<'_>],
         multiline_depth: usize,
         is_cont: bool,
     ) {
-        if let Some(origin) = snippet.origin {
-            let mut origin = Origin::new(origin);
+        if let Some(mut origin) = snippet.origin.clone() {
             // print out the span location and spacer before we print the annotated source
             // to do this, we need to know if this span will be primary
-            let is_primary = primary_origin == Some(origin.origin);
+            let is_primary = origin.primary || primary_origin == Some(&origin);
 
             if is_primary {
                 origin.primary = true;
-                if let Some(primary_line) = annotated_lines
-                    .iter()
-                    .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
-                    .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
-                {
-                    origin.line = Some(primary_line.line_index);
-                    if let Some(first_annotation) = primary_line
-                        .annotations
+
+                if origin.line.is_none() || origin.char_column.is_none() {
+                    if let Some(primary_line) = annotated_lines
                         .iter()
-                        .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
+                        .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
+                        .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
                     {
-                        origin.char_column = Some(first_annotation.start.char + 1);
+                        if origin.line.is_none() {
+                            origin.line = Some(primary_line.line_index);
+                        }
+
+                        // Always set the char column, as it is either `None`
+                        // or we set the line and now need to set the column on
+                        // that line.
+                        if let Some(first_annotation) = primary_line
+                            .annotations
+                            .iter()
+                            .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
+                        {
+                            origin.char_column = Some(first_annotation.start.char + 1);
+                        }
                     }
                 }
             } else {
@@ -829,10 +838,12 @@ impl Renderer {
                     buffer_msg_line_offset,
                     max_line_num_len + 1,
                 );
-                if let Some(first_line) = annotated_lines.first() {
-                    origin.line = Some(first_line.line_index);
-                    if let Some(first_annotation) = first_line.annotations.first() {
-                        origin.char_column = Some(first_annotation.start.char + 1);
+                if origin.line.is_none() {
+                    if let Some(first_line) = annotated_lines.first() {
+                        origin.line = Some(first_line.line_index);
+                        if let Some(first_annotation) = first_line.annotations.first() {
+                            origin.char_column = Some(first_annotation.start.char + 1);
+                        }
                     }
                 }
             }
@@ -1648,7 +1659,7 @@ impl Renderer {
         suggestion: &Snippet<'_, Patch<'_>>,
         max_line_num_len: usize,
         sm: &SourceMap<'_>,
-        primary_origin: Option<&str>,
+        primary_origin: Option<&Origin<'_>>,
         is_cont: bool,
     ) {
         let suggestions = sm.splice_lines(suggestion.markers.clone());
@@ -1671,14 +1682,22 @@ impl Renderer {
                     ElementStyle::LineNumber,
                 );
             }
-            if suggestion.origin != primary_origin {
-                if let Some(origin) = suggestion.origin {
-                    let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+
+            if suggestion.origin.as_ref() != primary_origin && primary_origin.is_some() {
+                if let Some(origin) = suggestion.origin.clone() {
+                    let (line, char_col) =
+                        if let (Some(line), Some(char_col)) = (origin.line, origin.char_column) {
+                            (line, char_col)
+                        } else {
+                            let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+                            (loc.line, loc.char + 1)
+                        };
+
                     // --> file.rs:line:col
                     //  |
                     let arrow = self.file_start();
                     buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                    let message = format!("{}:{}:{}", origin, loc.line, loc.char + 1);
+                    let message = format!("{}:{}:{}", origin.origin, line, char_col);
                     if is_cont {
                         buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
                     } else {
