@@ -6,6 +6,7 @@
 //! # Example
 //!
 //! ```rust
+//! # #[allow(clippy::needless_doctest_main)]
 #![doc = include_str!("../examples/expected_type.rs")]
 //! ```
 //!
