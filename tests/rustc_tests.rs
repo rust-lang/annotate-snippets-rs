@@ -2680,3 +2680,117 @@ LL | | */
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+#[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+fn mismatched_types1() {
+    // tests/ui/include-macros/mismatched-types.rs
+
+    let file_txt_source = r#""#;
+
+    let rust_source = r#"fn main() {
+    let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+    let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+}"#;
+
+    let input = Level::ERROR.header("mismatched types").id("E0308").group(
+        Group::new()
+            .element(
+                Snippet::source(file_txt_source)
+                    .fold(true)
+                    .line_start(3)
+                    .origin("$DIR/file.txt")
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(0..0)
+                            .label("expected `&[u8]`, found `&str`"),
+                    ),
+            )
+            .element(
+                Snippet::source(rust_source)
+                    .origin("$DIR/mismatched-types.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(23..28)
+                            .label("expected due to this"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(31..55)
+                            .label("in this macro invocation"),
+                    ),
+            )
+            .element(
+                Level::NOTE.title("expected reference `&[u8]`\n   found reference `&'static str`"),
+            ),
+    );
+
+    let expected = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/file.txt:3:1
+   |
+LL |
+   | ^ expected `&[u8]`, found `&str`
+   |
+  ::: $DIR/mismatched-types.rs:2:12
+   |
+LL |     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+   |            -----   ------------------------ in this macro invocation
+   |            |
+   |            expected due to this
+   |
+   = note: expected reference `&[u8]`
+              found reference `&'static str`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn mismatched_types2() {
+    // tests/ui/include-macros/mismatched-types.rs
+
+    let source = r#"fn main() {
+    let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+    let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+}"#;
+
+    let input = Level::ERROR.header("mismatched types").id("E0308").group(
+        Group::new()
+            .element(
+                Snippet::source(source)
+                    .origin("$DIR/mismatched-types.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(105..131)
+                            .label("expected `&str`, found `&[u8; 0]`"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(98..102)
+                            .label("expected due to this"),
+                    ),
+            )
+            .element(
+                Level::NOTE
+                    .title("expected reference `&str`\n   found reference `&'static [u8; 0]`"),
+            ),
+    );
+
+    let expected = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/mismatched-types.rs:3:19
+   |
+LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+   |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
+   |            |
+   |            expected due to this
+   |
+   = note: expected reference `&str`
+              found reference `&'static [u8; 0]`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
