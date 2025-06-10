@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 #[test]
 fn custom_error() {
     let target = "custom_error";
@@ -62,4 +64,41 @@ fn assert_example(target: &str, expected: snapbox::Data) {
         .assert()
         .success()
         .stdout_eq(expected.raw());
+}
+
+#[test]
+fn ensure_all_examples_have_tests() {
+    let path = snapbox::utils::current_rs!();
+    let actual = std::fs::read_to_string(&path).unwrap();
+    let actual = actual
+        .lines()
+        .filter_map(|l| {
+            if l.starts_with("fn ")
+                && !l.starts_with("fn all_examples_have_tests")
+                && !l.starts_with("fn assert_example")
+            {
+                Some(l[3..l.len() - 4].to_string())
+            } else {
+                None
+            }
+        })
+        .collect::<BTreeSet<_>>();
+
+    let expected = std::fs::read_dir("examples")
+        .unwrap()
+        .map(|res| res.map(|e| e.path().file_stem().unwrap().display().to_string()))
+        .collect::<Result<BTreeSet<_>, std::io::Error>>()
+        .unwrap();
+
+    let mut diff = expected.difference(&actual).collect::<Vec<_>>();
+    diff.sort();
+
+    let mut need_added = String::new();
+    for name in &diff {
+        need_added.push_str(&format!("{name}\n"));
+    }
+    assert!(
+        diff.is_empty(),
+        "\n`Please add a test for the following examples to `tests/examples.rs`:\n{need_added}",
+    );
 }
