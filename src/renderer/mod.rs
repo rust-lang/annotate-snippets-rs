@@ -315,12 +315,16 @@ impl Renderer {
                 let peek = message_iter.peek().map(|(_, s)| s).copied();
                 match &section {
                     Element::Title(title) => {
+                        let title_style = match (i == 0, g == 0) {
+                            (true, true) => TitleStyle::MainHeader,
+                            (true, false) => TitleStyle::Header,
+                            (false, _) => TitleStyle::Secondary,
+                        };
                         self.render_title(
                             &mut buffer,
                             title,
-                            peek,
                             max_line_num_len,
-                            if i == 0 { false } else { !title.primary },
+                            title_style,
                             message.id.as_ref().and_then(|id| {
                                 if g == 0 && i == 0 {
                                     Some(id)
@@ -433,26 +437,14 @@ impl Renderer {
         &self,
         buffer: &mut StyledBuffer,
         title: &Title<'_>,
-        next_section: Option<&Element<'_>>,
         max_line_num_len: usize,
-        is_secondary: bool,
+        title_style: TitleStyle,
         id: Option<&&str>,
         is_cont: bool,
     ) {
         let line_offset = buffer.num_lines();
 
-        let (has_primary_spans, has_span_labels) =
-            next_section.map_or((false, false), |s| match s {
-                Element::Title(_) | Element::Padding(_) => (false, false),
-                Element::Cause(cause) => (
-                    cause.markers.iter().any(|m| m.kind.is_primary()),
-                    cause.markers.iter().any(|m| m.label.is_some()),
-                ),
-                Element::Suggestion(_) => (true, false),
-                Element::Origin(_) => (false, true),
-            });
-
-        if !has_primary_spans && !has_span_labels && is_secondary {
+        if title_style == TitleStyle::Secondary {
             // This is a secondary message with no span info
             for _ in 0..max_line_num_len {
                 buffer.prepend(line_offset, " ", ElementStyle::NoStyle);
@@ -503,10 +495,10 @@ impl Renderer {
                 buffer.append(line_offset, "]", ElementStyle::Level(title.level.level));
                 label_width += 2 + id.len();
             }
-            let header_style = if is_secondary {
-                ElementStyle::HeaderMsg
-            } else {
-                ElementStyle::MainHeaderMsg
+            let header_style = match title_style {
+                TitleStyle::MainHeader => ElementStyle::MainHeaderMsg,
+                TitleStyle::Header => ElementStyle::HeaderMsg,
+                TitleStyle::Secondary => unreachable!(),
             };
             if title.level.name != Some(None) {
                 buffer.append(line_offset, ": ", header_style);
@@ -661,7 +653,14 @@ impl Renderer {
                 max_line_num_len + 1,
             );
             let title = Level::NOTE.title(label);
-            self.render_title(buffer, &title, None, max_line_num_len, true, None, false);
+            self.render_title(
+                buffer,
+                &title,
+                max_line_num_len,
+                TitleStyle::Secondary,
+                None,
+                false,
+            );
         }
     }
 
@@ -2715,6 +2714,13 @@ pub(crate) fn is_different(sm: &SourceMap<'_>, suggested: &str, range: Range<usi
 pub enum OutputTheme {
     Ascii,
     Unicode,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TitleStyle {
+    MainHeader,
+    Header,
+    Secondary,
 }
 
 #[cfg(test)]

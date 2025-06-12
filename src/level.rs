@@ -78,7 +78,6 @@ impl<'a> Level<'a> {
             groups: vec![Group::new().element(Element::Title(Title {
                 level: self,
                 title: header,
-                primary: true,
             }))],
         }
     }
@@ -92,11 +91,7 @@ impl<'a> Level<'a> {
     ///
     /// </div>
     pub fn title(self, title: &'a str) -> Title<'a> {
-        Title {
-            level: self,
-            title,
-            primary: false,
-        }
+        Title { level: self, title }
     }
 
     pub(crate) fn as_str(&self) -> &'a str {

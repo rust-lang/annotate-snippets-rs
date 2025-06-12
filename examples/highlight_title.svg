@@ -41,7 +41,7 @@
 </tspan>
     <tspan x="10px" y="190px"><tspan>                 found fn item `fn(Box&lt;</tspan><tspan class="fg-magenta bold">(dyn Any + Send + 'static)</tspan><tspan>&gt;) -&gt; Pin&lt;_&gt; </tspan><tspan class="fg-magenta bold">{wrapped_fn}</tspan><tspan>`</tspan>
 </tspan>
-    <tspan x="10px" y="208px"><tspan class="fg-bright-green bold">note</tspan><tspan class="bold">: function defined here</tspan>
+    <tspan x="10px" y="208px"><tspan class="fg-bright-green bold">note</tspan><tspan>: function defined here</tspan>
 </tspan>
     <tspan x="10px" y="226px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>$DIR/highlighting.rs:10:4</tspan>
 </tspan>
