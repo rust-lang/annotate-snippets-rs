@@ -695,8 +695,7 @@ impl Renderer {
                     if let Some(first_annotation) = primary_line
                         .annotations
                         .iter()
-                        .find(|a| a.is_primary())
-                        .or(primary_line.annotations.first())
+                        .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
                     {
                         origin.char_column = Some(first_annotation.start.char + 1);
                     }

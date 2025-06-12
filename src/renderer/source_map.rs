@@ -293,10 +293,6 @@ impl<'a> SourceMap<'a> {
             annotated_line_infos.retain(|l| !l.annotations.is_empty());
         }
 
-        for l in annotated_line_infos.iter_mut() {
-            l.annotations.sort_by(|a, b| a.start.cmp(&b.start));
-        }
-
         (max_depth, annotated_line_infos)
     }
 
