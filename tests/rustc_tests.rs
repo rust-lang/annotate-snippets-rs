@@ -2,7 +2,7 @@
 //!
 //! [parser-tests]: https://github.com/rust-lang/rust/blob/894f7a4ba6554d3797404bbf550d9919df060b97/compiler/rustc_parse/src/parser/tests.rs
 
-use annotate_snippets::{AnnotationKind, Group, Level, Origin, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Group, Level, Origin, Patch, Renderer, Snippet};
 
 use annotate_snippets::renderer::OutputTheme;
 use snapbox::{assert_data_eq, str};
@@ -2018,5 +2018,96 @@ LL | ... = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...0, 0, 0, 0, 0, 0, 0, 0, 0
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(120);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn lint_map_unit_fn() {
+    // tests/ui/lint/lint_map_unit_fn.rs
+    let source = r#"#![deny(map_unit_fn)]
+
+fn foo(items: &mut Vec<u8>) {
+    items.sort();
+}
+
+fn main() {
+    let mut x: Vec<Vec<u8>> = vec![vec![0, 2, 1], vec![5, 4, 3]];
+    x.iter_mut().map(foo);
+    //~^ ERROR `Iterator::map` call that discard the iterator's values
+    x.iter_mut().map(|items| {
+    //~^ ERROR `Iterator::map` call that discard the iterator's values
+        items.sort();
+    });
+    let f = |items: &mut Vec<u8>| {
+        items.sort();
+    };
+    x.iter_mut().map(f);
+    //~^ ERROR `Iterator::map` call that discard the iterator's values
+}
+"#;
+
+    let input = Level::ERROR
+        .header("`Iterator::map` call that discard the iterator's values")
+        .group(
+            Group::new()
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/lint_map_unit_fn.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Context.span(271..278).label(
+                            "this function returns `()`, which is likely not what you wanted",
+                        ))
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(271..379)
+                                .label("called `Iterator::map` with callable that returns `()`"),
+                        )
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(267..380)
+                                .label("after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items")
+                        )
+                        .annotation(AnnotationKind::Primary.span(267..380)),
+                )
+                .element(
+                    Level::NOTE.title("`Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated")),
+        )
+        .group(
+            Group::new()
+                .element(Level::HELP.title("you might have meant to use `Iterator::for_each`"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/lint_map_unit_fn.rs")
+                        .fold(true)
+                        .patch(Patch::new(267..270, r#"for_each"#)),
+                ),
+        );
+
+    let expected = str![[r#"
+error: `Iterator::map` call that discard the iterator's values
+  --> $DIR/lint_map_unit_fn.rs:11:18
+   |
+LL |         x.iter_mut().map(|items| {
+   |                      ^   -------
+   |                      |   |
+   |  ____________________|___this function returns `()`, which is likely not what you wanted
+   | |  __________________|
+   | | |
+LL | | |     //~^ ERROR `Iterator::map` call that discard the iterator's values
+LL | | |         items.sort();
+LL | | |     });
+   | | |     -^ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+   | | |_____||
+   | |_______|
+   |         called `Iterator::map` with callable that returns `()`
+   |
+   = note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
+help: you might have meant to use `Iterator::for_each`
+   |
+LL -     x.iter_mut().map(|items| {
+LL +     x.iter_mut().for_each(|items| {
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
