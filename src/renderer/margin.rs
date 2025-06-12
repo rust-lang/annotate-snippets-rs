@@ -17,7 +17,7 @@ pub(crate) struct Margin {
     /// The end of the line to be displayed.
     computed_right: usize,
     /// The current width of the terminal. 140 by default and in tests.
-    term_width: usize,
+    pub(crate) term_width: usize,
     /// The end column of a span label, including the span. Doesn't account for labels not in the
     /// same line as the span.
     label_right: usize,
@@ -56,18 +56,6 @@ impl Margin {
 
     pub(crate) fn was_cut_left(&self) -> bool {
         self.computed_left > 0
-    }
-
-    pub(crate) fn was_cut_right(&self, line_len: usize) -> bool {
-        let right =
-            if self.computed_right == self.span_right || self.computed_right == self.label_right {
-                // Account for the "..." padding given above. Otherwise we end up with code lines that
-                // do fit but end in "..." as if they were trimmed.
-                self.computed_right - ELLIPSIS_PASSING
-            } else {
-                self.computed_right
-            };
-        right < line_len && self.computed_left + self.term_width < line_len
     }
 
     fn compute(&mut self, max_line_len: usize) {

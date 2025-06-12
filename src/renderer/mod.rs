@@ -967,21 +967,7 @@ impl Renderer {
 
         let line_offset = buffer.num_lines();
 
-        // Left trim
-        let left = margin.left(str_width(&source_string));
-
-        // FIXME: This looks fishy. See #132860.
-        // Account for unicode characters of width !=0 that were removed.
-        let mut taken = 0;
-        source_string.chars().for_each(|ch| {
-            let next = char_width(ch);
-            if taken + next <= left {
-                taken += next;
-            }
-        });
-
-        let left = taken;
-        self.draw_line(
+        let left = self.draw_line(
             buffer,
             &source_string,
             line_info.line_index,
@@ -1136,11 +1122,16 @@ impl Renderer {
         //      |      x_span
         //      <EMPTY LINE>
         //
+        let mut overlap = vec![false; annotations.len()];
         let mut annotations_position = vec![];
         let mut line_len: usize = 0;
         let mut p = 0;
         for (i, annotation) in annotations.iter().enumerate() {
             for (j, next) in annotations.iter().enumerate() {
+                if overlaps(next, annotation, 0) && j > 1 {
+                    overlap[i] = true;
+                    overlap[j] = true;
+                }
                 if overlaps(next, annotation, 0)  // This label overlaps with another one and both
                     && annotation.has_label()     // take space (they have text and are not
                     && j > i                      // multiline lines).
@@ -1485,6 +1476,39 @@ impl Renderer {
                     (code_offset + annotation.start.display).saturating_sub(left),
                     uline.label_start,
                     uline.style,
+                );
+            }
+        }
+
+        // We look for individual *long* spans, and we trim the *middle*, so that we render
+        // LL | ...= [0, 0, 0, ..., 0, 0];
+        //    |      ^^^^^^^^^^...^^^^^^^ expected `&[u8]`, found `[{integer}; 1680]`
+        for (i, (_pos, annotation)) in annotations_position.iter().enumerate() {
+            // Skip cases where multiple spans overlap eachother.
+            if overlap[i] {
+                continue;
+            };
+            let LineAnnotationType::Singleline = annotation.annotation_type else {
+                continue;
+            };
+            let width = annotation.end.display - annotation.start.display;
+            if width > margin.term_width * 2 && width > 10 {
+                // If the terminal is *too* small, we keep at least a tiny bit of the span for
+                // display.
+                let pad = max(margin.term_width / 3, 5);
+                // Code line
+                buffer.replace(
+                    line_offset,
+                    annotation.start.display + pad,
+                    annotation.end.display - pad,
+                    self.margin(),
+                );
+                // Underline line
+                buffer.replace(
+                    line_offset + 1,
+                    annotation.start.display + pad,
+                    annotation.end.display - pad,
+                    self.margin(),
                 );
             }
         }
@@ -2036,12 +2060,12 @@ impl Renderer {
         code_offset: usize,
         max_line_num_len: usize,
         margin: Margin,
-    ) {
+    ) -> usize {
         // Tabs are assumed to have been replaced by spaces in calling code.
         debug_assert!(!source_string.contains('\t'));
         let line_len = str_width(source_string);
         // Create the source line we will highlight.
-        let left = margin.left(line_len);
+        let mut left = margin.left(line_len);
         let right = margin.right(line_len);
         // FIXME: The following code looks fishy. See #132860.
         // On long lines, we strip the source line, accounting for unicode.
@@ -2074,10 +2098,15 @@ impl Renderer {
                     break;
                 }
             }
+
+            if width_taken > padding {
+                left -= width_taken - padding;
+            }
+
             buffer.puts(
                 line_offset,
                 code_offset,
-                &format!("{placeholder:>width_taken$}"),
+                placeholder,
                 ElementStyle::LineNumber,
             );
             (width_taken, bytes_taken)
@@ -2092,7 +2121,7 @@ impl Renderer {
             ElementStyle::Quotation,
         );
 
-        if margin.was_cut_right(line_len) {
+        if line_len > right {
             // We have stripped some code/whitespace from the beginning, make it clear.
             let mut char_taken = 0;
             let mut width_taken_inner = 0;
@@ -2121,6 +2150,8 @@ impl Renderer {
         );
 
         self.draw_col_separator_no_space(buffer, line_offset, width_offset - 2);
+
+        left
     }
 
     fn draw_range(
