@@ -550,30 +550,59 @@ impl Renderer {
         is_cont: bool,
         buffer_msg_line_offset: usize,
     ) {
-        if title_style == TitleStyle::Secondary {
-            // This is a secondary message with no span info
-            for _ in 0..max_line_num_len {
-                buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
-            }
+        let (label_style, title_element_style) = match title_style {
+            TitleStyle::MainHeader => (
+                ElementStyle::Level(title.level.level),
+                if self.short_message {
+                    ElementStyle::NoStyle
+                } else {
+                    ElementStyle::MainHeaderMsg
+                },
+            ),
+            TitleStyle::Header => (
+                ElementStyle::Level(title.level.level),
+                ElementStyle::HeaderMsg,
+            ),
+            TitleStyle::Secondary => {
+                for _ in 0..max_line_num_len {
+                    buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
+                }
 
-            self.draw_note_separator(
-                buffer,
-                buffer_msg_line_offset,
-                max_line_num_len + 1,
-                is_cont,
-            );
-
-            let label_width = if title.level.name != Some(None) {
-                buffer.append(
+                self.draw_note_separator(
+                    buffer,
                     buffer_msg_line_offset,
-                    title.level.as_str(),
-                    ElementStyle::MainHeaderMsg,
+                    max_line_num_len + 1,
+                    is_cont,
                 );
-                buffer.append(buffer_msg_line_offset, ": ", ElementStyle::NoStyle);
-                title.level.as_str().len() + 2
-            } else {
-                0
-            };
+                (ElementStyle::MainHeaderMsg, ElementStyle::NoStyle)
+            }
+        };
+        let mut label_width = 0;
+
+        if title.level.name != Some(None) {
+            buffer.append(buffer_msg_line_offset, title.level.as_str(), label_style);
+            label_width += title.level.as_str().len();
+            if let Some(Id { id: Some(id), url }) = id {
+                buffer.append(buffer_msg_line_offset, "[", label_style);
+                if let Some(url) = url.as_ref() {
+                    buffer.append(
+                        buffer_msg_line_offset,
+                        &format!("\x1B]8;;{url}\x1B\\"),
+                        label_style,
+                    );
+                }
+                buffer.append(buffer_msg_line_offset, id, label_style);
+                if url.is_some() {
+                    buffer.append(buffer_msg_line_offset, "\x1B]8;;\x1B\\", label_style);
+                }
+                buffer.append(buffer_msg_line_offset, "]", label_style);
+                label_width += 2 + id.len();
+            }
+            buffer.append(buffer_msg_line_offset, ": ", title_element_style);
+            label_width += 2;
+        }
+
+        let padding = " ".repeat(if title_style == TitleStyle::Secondary {
             // The extra 3 ` ` is padding that's always needed to align to the
             // label i.e. `note: `:
             //
@@ -591,165 +620,43 @@ impl Renderer {
             //    |  |     width of label
             //    |  magic `3`
             //    `max_line_num_len`
-            let padding = max_line_num_len + 3 + label_width;
-
-            let printed_lines =
-                self.msgs_to_buffer(buffer, title.title, padding, None, title.is_pre_styled);
-            if is_cont && matches!(self.theme, OutputTheme::Unicode) {
-                // There's another note after this one, associated to the subwindow above.
-                // We write additional vertical lines to join them:
-                //   ╭▸ test.rs:3:3
-                //   │
-                // 3 │   code
-                //   │   ━━━━
-                //   │
-                //   ├ note: foo
-                //   │       bar
-                //   ╰ note: foo
-                //           bar
-                for i in buffer_msg_line_offset + 1..=printed_lines {
-                    self.draw_col_separator_no_space(buffer, i, max_line_num_len + 1);
-                }
-            }
+            max_line_num_len + 3 + label_width
         } else {
-            let mut label_width = 0;
+            label_width
+        });
 
-            if title.level.name != Some(None) {
-                buffer.append(
-                    buffer_msg_line_offset,
-                    title.level.as_str(),
-                    ElementStyle::Level(title.level.level),
-                );
-            }
-            label_width += title.level.as_str().len();
-            if let Some(Id { id: Some(id), url }) = id {
-                buffer.append(
-                    buffer_msg_line_offset,
-                    "[",
-                    ElementStyle::Level(title.level.level),
-                );
-                if let Some(url) = url.as_ref() {
-                    buffer.append(
-                        buffer_msg_line_offset,
-                        &format!("\x1B]8;;{url}\x1B\\"),
-                        ElementStyle::Level(title.level.level),
-                    );
-                }
-                buffer.append(
-                    buffer_msg_line_offset,
-                    id,
-                    ElementStyle::Level(title.level.level),
-                );
-                if url.is_some() {
-                    buffer.append(
-                        buffer_msg_line_offset,
-                        "\x1B]8;;\x1B\\",
-                        ElementStyle::Level(title.level.level),
-                    );
-                }
-                buffer.append(
-                    buffer_msg_line_offset,
-                    "]",
-                    ElementStyle::Level(title.level.level),
-                );
-                label_width += 2 + id.len();
-            }
-            let header_style = match title_style {
-                TitleStyle::MainHeader => {
-                    if self.short_message {
-                        ElementStyle::NoStyle
-                    } else {
-                        ElementStyle::MainHeaderMsg
-                    }
-                }
-                TitleStyle::Header => ElementStyle::HeaderMsg,
-                TitleStyle::Secondary => unreachable!(),
-            };
-            if title.level.name != Some(None) {
-                buffer.append(buffer_msg_line_offset, ": ", header_style);
-                label_width += 2;
-            }
-            if !title.title.is_empty() {
-                let (title_str, style) = if title.is_pre_styled {
-                    (title.title.to_owned(), ElementStyle::NoStyle)
-                } else {
-                    (normalize_whitespace(title.title), header_style)
-                };
-                for (line, text) in title_str.lines().enumerate() {
-                    buffer.append(
-                        buffer_msg_line_offset + line,
-                        &format!(
-                            "{}{}",
-                            if line == 0 {
-                                String::new()
-                            } else {
-                                " ".repeat(label_width)
-                            },
-                            text
-                        ),
-                        style,
-                    );
-                }
-            }
-        }
-    }
-
-    /// Adds a left margin to every line but the first, given a padding length and the label being
-    /// displayed, keeping the provided highlighting.
-    fn msgs_to_buffer(
-        &self,
-        buffer: &mut StyledBuffer,
-        title: &str,
-        padding: usize,
-        override_style: Option<ElementStyle>,
-        is_pre_styled: bool,
-    ) -> usize {
-        let padding = " ".repeat(padding);
-
-        let mut line_number = buffer.num_lines().saturating_sub(1);
-
-        // Provided the following diagnostic message:
-        //
-        //     let msgs = vec![
-        //       ("
-        //       ("highlighted multiline\nstring to\nsee how it ", Style::NoStyle),
-        //       ("looks", Style::Highlight),
-        //       ("with\nvery ", Style::NoStyle),
-        //       ("weird", Style::Highlight),
-        //       (" formats\n", Style::NoStyle),
-        //       ("see?", Style::Highlight),
-        //     ];
-        //
-        // the expected output on a note is (* surround the highlighted text)
-        //
-        //        = note: highlighted multiline
-        //                string to
-        //                see how it *looks* with
-        //                very *weird* formats
-        //                see?
-        let style = if let Some(override_style) = override_style {
-            override_style
+        let (title_str, style) = if title.is_pre_styled {
+            (title.title.to_owned(), ElementStyle::NoStyle)
         } else {
-            ElementStyle::NoStyle
+            (normalize_whitespace(title.title), title_element_style)
         };
-        let title_str = if is_pre_styled {
-            title.to_owned()
-        } else {
-            normalize_whitespace(title)
-        };
-        let lines = title_str.split('\n').collect::<Vec<_>>();
-        if lines.len() > 1 {
-            for (i, line) in lines.iter().enumerate() {
-                if i != 0 {
-                    line_number += 1;
-                    buffer.append(line_number, &padding, ElementStyle::NoStyle);
+        for (i, text) in title_str.lines().enumerate() {
+            if i != 0 {
+                buffer.append(buffer_msg_line_offset + i, &padding, ElementStyle::NoStyle);
+                if title_style == TitleStyle::Secondary
+                    && is_cont
+                    && matches!(self.theme, OutputTheme::Unicode)
+                {
+                    // There's another note after this one, associated to the subwindow above.
+                    // We write additional vertical lines to join them:
+                    //   ╭▸ test.rs:3:3
+                    //   │
+                    // 3 │   code
+                    //   │   ━━━━
+                    //   │
+                    //   ├ note: foo
+                    //   │       bar
+                    //   ╰ note: foo
+                    //           bar
+                    self.draw_col_separator_no_space(
+                        buffer,
+                        buffer_msg_line_offset + i,
+                        max_line_num_len + 1,
+                    );
                 }
-                buffer.append(line_number, line, style);
             }
-        } else {
-            buffer.append(line_number, &title_str, style);
+            buffer.append(buffer_msg_line_offset + i, text, style);
         }
-        line_number
     }
 
     fn render_origin(
