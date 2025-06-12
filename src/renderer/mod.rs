@@ -555,13 +555,14 @@ impl Renderer {
                 buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
             }
 
+            self.draw_note_separator(
+                buffer,
+                buffer_msg_line_offset,
+                max_line_num_len + 1,
+                is_cont,
+            );
+
             if title.level.name != Some(None) {
-                self.draw_note_separator(
-                    buffer,
-                    buffer_msg_line_offset,
-                    max_line_num_len + 1,
-                    is_cont,
-                );
                 buffer.append(
                     buffer_msg_line_offset,
                     title.level.as_str(),
