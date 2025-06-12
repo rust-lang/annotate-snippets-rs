@@ -2,7 +2,7 @@
 
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
-use crate::{Element, Group, Message, Title};
+use crate::Title;
 use anstyle::Style;
 
 /// Default `error:` [`Level`]
@@ -35,7 +35,7 @@ pub const HELP: Level<'_> = Level {
     level: LevelInner::Help,
 };
 
-/// [`Message`] or [`Title`] severity level
+/// [`Title`] severity level
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Level<'a> {
     pub(crate) name: Option<Option<&'a str>>,
@@ -65,24 +65,6 @@ impl<'a> Level<'a> {
 }
 
 impl<'a> Level<'a> {
-    /// <div class="warning">
-    ///
-    /// Text passed to this function is considered "untrusted input", as such
-    /// all text is passed through a normalization function. Pre-styled text is
-    /// not allowed to be passed to this function.
-    ///
-    /// </div>
-    pub fn header(self, header: &'a str) -> Message<'a> {
-        Message {
-            groups: vec![Group::new().element(Element::Title(Title {
-                level: self,
-                id: None,
-                title: header,
-                is_pre_styled: false,
-            }))],
-        }
-    }
-
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such

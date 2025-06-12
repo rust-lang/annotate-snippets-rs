@@ -41,39 +41,35 @@ fn main() {
         magenta.render_reset()
     );
 
-    let message = Level::ERROR
-        .header("mismatched types")
-        .id("E0308")
-        .group(
-            Group::new()
-                .element(
-                    Snippet::source(source)
-                        .fold(true)
-                        .path("$DIR/highlighting.rs")
-                        .annotation(
-                            AnnotationKind::Primary
-                                .span(553..563)
-                                .label("one type is more general than the other"),
-                        )
-                        .annotation(
-                            AnnotationKind::Context
-                                .span(547..552)
-                                .label("arguments to this function are incorrect"),
-                        ),
-                )
-                .element(Level::NOTE.pre_styled_title(&title)),
-        )
-        .group(
-            Group::new()
-                .element(Level::NOTE.title("function defined here"))
-                .element(
-                    Snippet::source(source)
-                        .fold(true)
-                        .path("$DIR/highlighting.rs")
-                        .annotation(AnnotationKind::Context.span(200..333).label(""))
-                        .annotation(AnnotationKind::Primary.span(194..199)),
-                ),
-        );
+    let message = &[
+        Group::new()
+            .element(Level::ERROR.title("mismatched types").id("E0308"))
+            .element(
+                Snippet::source(source)
+                    .fold(true)
+                    .path("$DIR/highlighting.rs")
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(553..563)
+                            .label("one type is more general than the other"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(547..552)
+                            .label("arguments to this function are incorrect"),
+                    ),
+            )
+            .element(Level::NOTE.pre_styled_title(&title)),
+        Group::new()
+            .element(Level::NOTE.title("function defined here"))
+            .element(
+                Snippet::source(source)
+                    .fold(true)
+                    .path("$DIR/highlighting.rs")
+                    .annotation(AnnotationKind::Context.span(200..333).label(""))
+                    .annotation(AnnotationKind::Primary.span(194..199)),
+            ),
+    ];
 
     let renderer = Renderer::styled().anonymized_line_numbers(true);
     anstream::println!("{}", renderer.render(message));

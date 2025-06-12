@@ -28,8 +28,9 @@ fn case() {
     }
 "#;
 
-    let input = Level::ERROR.header("mismatched types").id("E0308").group(
-        Group::new().element(
+    let input = &[Group::new()
+        .element(Level::ERROR.title("mismatched types").id("E0308"))
+        .element(
             Snippet::source(source)
                 .path("src/format.rs")
                 .line_start(51)
@@ -42,8 +43,7 @@ fn case() {
                         .span(22..766)
                         .label("expected enum `std::option::Option`, found ()"),
                 ),
-        ),
-    );
+        )];
     let expected = file!["fold_ann_multiline.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

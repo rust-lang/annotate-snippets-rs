@@ -29,11 +29,14 @@ fn main() {
     }
 }
 "#;
-    let message = Level::ERROR
-        .header("`break` with value from a `while` loop")
-        .id("E0571")
-        .group(
-            Group::new().element(
+    let message = &[
+        Group::new()
+            .element(
+                Level::ERROR
+                    .title("`break` with value from a `while` loop")
+                    .id("E0571"),
+            )
+            .element(
                 Snippet::source(source)
                     .line_start(1)
                     .path("$DIR/issue-114529-illegal-break-with-value.rs")
@@ -49,22 +52,20 @@ fn main() {
                             .label("you can't `break` with a value in a `while` loop"),
                     ),
             ),
-        )
-        .group(
-            Group::new()
-                .element(
-                    Level::HELP
-                        .text(Some("suggestion"))
-                        .title("use `break` on its own without a value inside this `while` loop"),
-                )
-                .element(
-                    Snippet::source(source)
-                        .line_start(1)
-                        .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                        .fold(true)
-                        .patch(Patch::new(483..581, "break")),
-                ),
-        );
+        Group::new()
+            .element(
+                Level::HELP
+                    .text(Some("suggestion"))
+                    .title("use `break` on its own without a value inside this `while` loop"),
+            )
+            .element(
+                Snippet::source(source)
+                    .line_start(1)
+                    .path("$DIR/issue-114529-illegal-break-with-value.rs")
+                    .fold(true)
+                    .patch(Patch::new(483..581, "break")),
+            ),
+    ];
 
     let renderer = Renderer::styled().theme(OutputTheme::Unicode);
     anstream::println!("{}", renderer.render(message));

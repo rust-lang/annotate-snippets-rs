@@ -1,6 +1,6 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
-//! The renderer for [`Message`]s
+//! The renderer for [`Group`]s
 //!
 //! # Example
 //! ```
@@ -18,21 +18,24 @@
 //!     bar();
 //! }
 //! "#;
-//! Level::ERROR
-//!     .header("unresolved import `baz::zed`")
-//!     .id("E0432")
-//!     .group(
-//!         Group::new().element(
-//!             Snippet::source(source)
-//!                 .path("temp.rs")
-//!                 .line_start(1)
-//!                 .fold(true)
-//!                 .annotation(
-//!                     AnnotationKind::Primary
-//!                         .span(10..13)
-//!                          .label("could not find `zed` in `baz`"),
-//!                 )
-//!         )
+//!
+//!
+//!  Group::new()
+//!     .element(
+//!         Level::ERROR
+//!             .title("unresolved import `baz::zed`")
+//!             .id("E0432")
+//!     )
+//!     .element(
+//!         Snippet::source(source)
+//!             .path("temp.rs")
+//!             .line_start(1)
+//!             .fold(true)
+//!             .annotation(
+//!                 AnnotationKind::Primary
+//!                     .span(10..13)
+//!                     .label("could not find `zed` in `baz`"),
+//!             )
 //!     );
 //! ```
 
@@ -47,7 +50,7 @@ use crate::renderer::source_map::{
 };
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
-use crate::{Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Snippet, Title};
+use crate::{Annotation, AnnotationKind, Element, Group, Origin, Patch, Snippet, Title};
 pub use anstyle::*;
 use margin::Margin;
 use std::borrow::Cow;
@@ -60,7 +63,7 @@ use stylesheet::Stylesheet;
 const ANONYMIZED_LINE_NUM: &str = "LL";
 pub const DEFAULT_TERM_WIDTH: usize = 140;
 
-/// A renderer for [`Message`]s
+/// A renderer for [`Group`]s
 #[derive(Clone, Debug)]
 pub struct Renderer {
     anonymized_line_numbers: bool,
@@ -206,265 +209,220 @@ impl Renderer {
 }
 
 impl Renderer {
-    pub fn render(&self, mut message: Message<'_>) -> String {
+    pub fn render(&self, groups: &[Group<'_>]) -> String {
         if self.short_message {
-            self.render_short_message(message).unwrap()
+            self.render_short_message(groups).unwrap()
         } else {
             let max_line_num_len = if self.anonymized_line_numbers {
                 ANONYMIZED_LINE_NUM.len()
             } else {
-                let n = message.max_line_number();
-                num_decimal_digits(n)
+                num_decimal_digits(max_line_number(groups))
             };
-            let title = message.groups.remove(0).elements.remove(0);
-            if let Some(first) = message.groups.first_mut() {
-                first.elements.insert(0, title);
-            } else {
-                message.groups.push(Group::new().element(title));
-            }
-            self.render_message(message, max_line_num_len).unwrap()
-        }
-    }
-
-    fn render_message(
-        &self,
-        message: Message<'_>,
-        max_line_num_len: usize,
-    ) -> Result<String, fmt::Error> {
-        let mut out_string = String::new();
-
-        let og_primary_path = message
-            .groups
-            .iter()
-            .find_map(|group| {
-                group.elements.iter().find_map(|s| match &s {
-                    Element::Cause(cause) => {
-                        if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                            Some(cause.path)
-                        } else {
-                            None
-                        }
-                    }
-                    Element::Origin(origin) => {
-                        if origin.primary {
-                            Some(Some(origin.path))
-                        } else {
-                            None
-                        }
-                    }
-                    _ => None,
-                })
-            })
-            .unwrap_or(
-                message
-                    .groups
+            let mut out_string = String::new();
+            let group_len = groups.len();
+            let mut og_primary_path = None;
+            for (g, group) in groups.iter().enumerate() {
+                let mut buffer = StyledBuffer::new();
+                let primary_path = group
+                    .elements
                     .iter()
-                    .find_map(|group| {
-                        group.elements.iter().find_map(|s| match &s {
-                            Element::Cause(cause) => Some(cause.path),
-                            Element::Origin(origin) => Some(Some(origin.path)),
-                            _ => None,
-                        })
+                    .find_map(|s| match &s {
+                        Element::Cause(cause) => {
+                            if cause.markers.iter().any(|m| m.kind.is_primary()) {
+                                Some(cause.path)
+                            } else {
+                                None
+                            }
+                        }
+                        Element::Origin(origin) => {
+                            if origin.primary {
+                                Some(Some(origin.path))
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
                     })
-                    .unwrap_or_default(),
-            );
-        let group_len = message.groups.len();
-        for (g, group) in message.groups.into_iter().enumerate() {
-            let mut buffer = StyledBuffer::new();
-            let primary_path = group
-                .elements
-                .iter()
-                .find_map(|s| match &s {
-                    Element::Cause(cause) => {
-                        if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                            Some(cause.path)
-                        } else {
-                            None
-                        }
-                    }
-                    Element::Origin(origin) => {
-                        if origin.primary {
-                            Some(Some(origin.path))
-                        } else {
-                            None
-                        }
-                    }
-                    _ => None,
-                })
-                .unwrap_or(
-                    group
-                        .elements
-                        .iter()
-                        .find_map(|s| match &s {
-                            Element::Cause(cause) => Some(cause.path),
-                            Element::Origin(origin) => Some(Some(origin.path)),
-                            _ => None,
-                        })
-                        .unwrap_or_default(),
-                );
-            let level = group
-                .elements
-                .iter()
-                .find_map(|s| match &s {
-                    Element::Title(title) => Some(title.level.clone()),
-                    _ => None,
-                })
-                .unwrap_or(Level::ERROR);
-            let mut source_map_annotated_lines = VecDeque::new();
-            let mut max_depth = 0;
-            for e in &group.elements {
-                if let Element::Cause(cause) = e {
-                    let source_map = SourceMap::new(cause.source, cause.line_start);
-                    let (depth, annotated_lines) =
-                        source_map.annotated_lines(cause.markers.clone(), cause.fold);
-                    max_depth = max(max_depth, depth);
-                    source_map_annotated_lines.push_back((source_map, annotated_lines));
+                    .unwrap_or(
+                        group
+                            .elements
+                            .iter()
+                            .find_map(|s| match &s {
+                                Element::Cause(cause) => Some(cause.path),
+                                Element::Origin(origin) => Some(Some(origin.path)),
+                                _ => None,
+                            })
+                            .unwrap_or_default(),
+                    );
+                if og_primary_path.is_none() && primary_path.is_some() {
+                    og_primary_path = primary_path;
                 }
-            }
-            let mut message_iter = group.elements.iter().enumerate().peekable();
-            let mut last_was_suggestion = false;
-            while let Some((i, section)) = message_iter.next() {
-                let peek = message_iter.peek().map(|(_, s)| s).copied();
-                match &section {
-                    Element::Title(title) => {
-                        let title_style = match (i == 0, g == 0) {
-                            (true, true) => TitleStyle::MainHeader,
-                            (true, false) => TitleStyle::Header,
-                            (false, _) => TitleStyle::Secondary,
-                        };
-                        let buffer_msg_line_offset = buffer.num_lines();
-                        self.render_title(
-                            &mut buffer,
-                            title,
-                            max_line_num_len,
-                            title_style,
-                            matches!(peek, Some(Element::Title(_))),
-                            buffer_msg_line_offset,
-                        );
-                        last_was_suggestion = false;
+                let level = group
+                    .elements
+                    .iter()
+                    .find_map(|s| match &s {
+                        Element::Title(title) => Some(title.level.clone()),
+                        _ => None,
+                    })
+                    .unwrap_or(Level::ERROR);
+                let mut source_map_annotated_lines = VecDeque::new();
+                let mut max_depth = 0;
+                for e in &group.elements {
+                    if let Element::Cause(cause) = e {
+                        let source_map = SourceMap::new(cause.source, cause.line_start);
+                        let (depth, annotated_lines) =
+                            source_map.annotated_lines(cause.markers.clone(), cause.fold);
+                        max_depth = max(max_depth, depth);
+                        source_map_annotated_lines.push_back((source_map, annotated_lines));
                     }
-                    Element::Cause(cause) => {
-                        if let Some((source_map, annotated_lines)) =
-                            source_map_annotated_lines.pop_front()
-                        {
-                            self.render_snippet_annotations(
+                }
+                let mut message_iter = group.elements.iter().enumerate().peekable();
+                let mut last_was_suggestion = false;
+                while let Some((i, section)) = message_iter.next() {
+                    let peek = message_iter.peek().map(|(_, s)| s).copied();
+                    match &section {
+                        Element::Title(title) => {
+                            let title_style = match (i == 0, g == 0) {
+                                (true, true) => TitleStyle::MainHeader,
+                                (true, false) => TitleStyle::Header,
+                                (false, _) => TitleStyle::Secondary,
+                            };
+                            let buffer_msg_line_offset = buffer.num_lines();
+                            self.render_title(
                                 &mut buffer,
+                                title,
                                 max_line_num_len,
-                                cause,
-                                primary_path,
-                                &source_map,
-                                &annotated_lines,
-                                max_depth,
-                                peek.is_some() || (g == 0 && group_len > 1),
+                                title_style,
+                                matches!(peek, Some(Element::Title(_))),
+                                buffer_msg_line_offset,
                             );
+                            last_was_suggestion = false;
+                        }
+                        Element::Cause(cause) => {
+                            if let Some((source_map, annotated_lines)) =
+                                source_map_annotated_lines.pop_front()
+                            {
+                                self.render_snippet_annotations(
+                                    &mut buffer,
+                                    max_line_num_len,
+                                    cause,
+                                    primary_path,
+                                    &source_map,
+                                    &annotated_lines,
+                                    max_depth,
+                                    peek.is_some() || (g == 0 && group_len > 1),
+                                );
 
-                            if g == 0 {
-                                let current_line = buffer.num_lines();
-                                match peek {
-                                    Some(Element::Title(level))
-                                        if level.level.name != Some(None) =>
-                                    {
-                                        self.draw_col_separator_no_space(
+                                if g == 0 {
+                                    let current_line = buffer.num_lines();
+                                    match peek {
+                                        Some(Element::Title(level))
+                                            if level.level.name != Some(None) =>
+                                        {
+                                            self.draw_col_separator_no_space(
+                                                &mut buffer,
+                                                current_line,
+                                                max_line_num_len + 1,
+                                            );
+                                        }
+
+                                        None if group_len > 1 => self.draw_col_separator_end(
                                             &mut buffer,
                                             current_line,
                                             max_line_num_len + 1,
-                                        );
+                                        ),
+                                        _ => {}
                                     }
-
-                                    None if group_len > 1 => self.draw_col_separator_end(
-                                        &mut buffer,
-                                        current_line,
-                                        max_line_num_len + 1,
-                                    ),
-                                    _ => {}
                                 }
                             }
+
+                            last_was_suggestion = false;
+                        }
+                        Element::Suggestion(suggestion) => {
+                            let source_map =
+                                SourceMap::new(suggestion.source, suggestion.line_start);
+                            self.emit_suggestion_default(
+                                &mut buffer,
+                                suggestion,
+                                max_line_num_len,
+                                &source_map,
+                                primary_path.or(og_primary_path),
+                                last_was_suggestion,
+                            );
+                            last_was_suggestion = true;
                         }
 
-                        last_was_suggestion = false;
+                        Element::Origin(origin) => {
+                            let buffer_msg_line_offset = buffer.num_lines();
+                            self.render_origin(
+                                &mut buffer,
+                                max_line_num_len,
+                                origin,
+                                buffer_msg_line_offset,
+                            );
+                            last_was_suggestion = false;
+                        }
+                        Element::Padding(_) => {
+                            let current_line = buffer.num_lines();
+                            self.draw_col_separator_no_space(
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        }
                     }
-                    Element::Suggestion(suggestion) => {
-                        let source_map = SourceMap::new(suggestion.source, suggestion.line_start);
-                        self.emit_suggestion_default(
-                            &mut buffer,
-                            suggestion,
-                            max_line_num_len,
-                            &source_map,
-                            primary_path.or(og_primary_path),
-                            last_was_suggestion,
-                        );
-                        last_was_suggestion = true;
-                    }
-
-                    Element::Origin(origin) => {
-                        let buffer_msg_line_offset = buffer.num_lines();
-                        self.render_origin(
-                            &mut buffer,
-                            max_line_num_len,
-                            origin,
-                            buffer_msg_line_offset,
-                        );
-                        last_was_suggestion = false;
-                    }
-                    Element::Padding(_) => {
-                        let current_line = buffer.num_lines();
-                        self.draw_col_separator_no_space(
-                            &mut buffer,
-                            current_line,
-                            max_line_num_len + 1,
-                        );
-                    }
-                }
-                if g == 0
-                    && (matches!(section, Element::Origin(_))
-                        || (matches!(section, Element::Title(_)) && i == 0)
-                        || matches!(section, Element::Title(level) if level.level.name == Some(None)))
-                {
-                    let current_line = buffer.num_lines();
-                    if peek.is_none() && group_len > 1 {
-                        self.draw_col_separator_end(
-                            &mut buffer,
-                            current_line,
-                            max_line_num_len + 1,
-                        );
-                    } else if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
+                    if g == 0
+                        && (matches!(section, Element::Origin(_))
+                            || (matches!(section, Element::Title(_)) && i == 0)
+                            || matches!(section, Element::Title(level) if level.level.name == Some(None)))
                     {
-                        self.draw_col_separator_no_space(
-                            &mut buffer,
-                            current_line,
-                            max_line_num_len + 1,
-                        );
+                        let current_line = buffer.num_lines();
+                        if peek.is_none() && group_len > 1 {
+                            self.draw_col_separator_end(
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        } else if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
+                        {
+                            self.draw_col_separator_no_space(
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        }
                     }
                 }
-            }
-            buffer.render(level, &self.stylesheet, &mut out_string)?;
-            if g != group_len - 1 {
-                use std::fmt::Write;
+                buffer
+                    .render(&level, &self.stylesheet, &mut out_string)
+                    .unwrap();
+                if g != group_len - 1 {
+                    use std::fmt::Write;
 
-                writeln!(out_string)?;
+                    writeln!(out_string).unwrap();
+                }
             }
+            out_string
         }
-        Ok(out_string)
     }
 
-    fn render_short_message(&self, mut message: Message<'_>) -> Result<String, fmt::Error> {
+    fn render_short_message(&self, groups: &[Group<'_>]) -> Result<String, fmt::Error> {
         let mut buffer = StyledBuffer::new();
+        let mut labels = None;
+        let group = groups.first().expect("Expected at least one group");
 
-        let Element::Title(title) = message.groups.remove(0).elements.remove(0) else {
+        let Some(Element::Title(title)) = group.elements.first() else {
             panic!(
                 "Expected first element to be a Title, got: {:?}",
-                message.groups
+                group.elements.first()
             );
         };
 
-        let mut labels = None;
-
-        if let Some(Element::Cause(cause)) = message.groups.first().and_then(|group| {
-            group
-                .elements
-                .iter()
-                .find(|e| matches!(e, Element::Cause(_)))
-        }) {
+        if let Some(Element::Cause(cause)) = group
+            .elements
+            .iter()
+            .find(|e| matches!(e, Element::Cause(_)))
+        {
             let labels_inner = cause
                 .markers
                 .iter()
@@ -514,7 +472,7 @@ impl Renderer {
 
         self.render_title(
             &mut buffer,
-            &title,
+            title,
             0, // No line numbers in short messages
             TitleStyle::MainHeader,
             false,
@@ -526,7 +484,7 @@ impl Renderer {
         }
 
         let mut out_string = String::new();
-        buffer.render(title.level, &self.stylesheet, &mut out_string)?;
+        buffer.render(&title.level, &self.stylesheet, &mut out_string)?;
 
         Ok(out_string)
     }
@@ -2869,6 +2827,57 @@ enum TitleStyle {
     MainHeader,
     Header,
     Secondary,
+}
+
+fn max_line_number(groups: &[Group<'_>]) -> usize {
+    groups
+        .iter()
+        .map(|v| {
+            v.elements
+                .iter()
+                .map(|s| match s {
+                    Element::Title(_) | Element::Origin(_) | Element::Padding(_) => 0,
+                    Element::Cause(cause) => {
+                        let end = cause
+                            .markers
+                            .iter()
+                            .map(|a| a.span.end)
+                            .max()
+                            .unwrap_or(cause.source.len())
+                            .min(cause.source.len());
+
+                        cause.line_start + newline_count(&cause.source[..end])
+                    }
+                    Element::Suggestion(suggestion) => {
+                        let end = suggestion
+                            .markers
+                            .iter()
+                            .map(|a| a.span.end)
+                            .max()
+                            .unwrap_or(suggestion.source.len())
+                            .min(suggestion.source.len());
+
+                        suggestion.line_start + newline_count(&suggestion.source[..end])
+                    }
+                })
+                .max()
+                .unwrap_or(1)
+        })
+        .max()
+        .unwrap_or(1)
+}
+
+fn newline_count(body: &str) -> usize {
+    #[cfg(feature = "simd")]
+    {
+        memchr::memchr_iter(b'\n', body.as_bytes())
+            .count()
+            .saturating_sub(1)
+    }
+    #[cfg(not(feature = "simd"))]
+    {
+        body.lines().count().saturating_sub(1)
+    }
 }
 
 #[cfg(test)]

@@ -12,24 +12,6 @@
 //!
 #![doc = include_str!("../examples/expected_type.svg")]
 //!
-//! The crate uses a three stage process with two conversions between states:
-//!
-//! ```text
-//! Message --> Renderer --> impl Display
-//! ```
-//!
-//! The input type - [Message] is a structure designed
-//! to align with likely output from any parser whose code snippet is to be
-//! annotated.
-//!
-//! The middle structure - [Renderer] is a structure designed
-//! to convert a snippet into an internal structure that is designed to store
-//! the snippet data in a way that is easy to format.
-//! [Renderer] also handles the user-configurable formatting
-//! options, such as color, or margins.
-//!
-//! Finally, `impl Display` into a final `String` output.
-//!
 //! # features
 //! - `testing-colors` - Makes [Renderer::styled] colors OS independent, which
 //! allows for easier testing when testing colored output. It should be added as

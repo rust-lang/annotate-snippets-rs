@@ -41,14 +41,14 @@ impl StyledBuffer {
 
     pub(crate) fn render(
         &self,
-        level: Level<'_>,
+        level: &Level<'_>,
         stylesheet: &Stylesheet,
         str: &mut String,
     ) -> Result<(), fmt::Error> {
         for (i, line) in self.lines.iter().enumerate() {
             let mut current_style = stylesheet.none;
             for StyledChar { ch, style } in line {
-                let ch_style = style.color_spec(&level, stylesheet);
+                let ch_style = style.color_spec(level, stylesheet);
                 if ch_style != current_style {
                     if !line.is_empty() {
                         write!(str, "{}", current_style.render_reset())?;

@@ -10,96 +10,6 @@ pub(crate) const INFO_TXT: &str = "info";
 pub(crate) const NOTE_TXT: &str = "note";
 pub(crate) const WARNING_TXT: &str = "warning";
 
-/// Top-level user message
-#[derive(Clone, Debug)]
-pub struct Message<'a> {
-    pub(crate) groups: Vec<Group<'a>>,
-}
-
-impl<'a> Message<'a> {
-    /// <div class="warning">
-    ///
-    /// Text passed to this function is considered "untrusted input", as such
-    /// all text is passed through a normalization function. Pre-styled text is
-    /// not allowed to be passed to this function.
-    ///
-    /// </div>
-    pub fn id(mut self, id: &'a str) -> Self {
-        let Some(Element::Title(title)) =
-            self.groups.get_mut(0).and_then(|g| g.elements.first_mut())
-        else {
-            panic!(
-                "Expected first element to be a Title, got: {:?}",
-                self.groups
-            );
-        };
-        title.id.get_or_insert(Id::default()).id = Some(id);
-        self
-    }
-
-    /// <div class="warning">
-    ///
-    /// This is only relevant if the `id` present
-    ///
-    /// </div>
-    pub fn id_url(mut self, url: &'a str) -> Self {
-        let Some(Element::Title(title)) =
-            self.groups.get_mut(0).and_then(|g| g.elements.first_mut())
-        else {
-            panic!(
-                "Expected first element to be a Title, got: {:?}",
-                self.groups
-            );
-        };
-        title.id.get_or_insert(Id::default()).url = Some(url);
-        self
-    }
-
-    /// Add an [`Element`] container
-    pub fn group(mut self, group: Group<'a>) -> Self {
-        self.groups.push(group);
-        self
-    }
-
-    pub(crate) fn max_line_number(&self) -> usize {
-        self.groups
-            .iter()
-            .map(|v| {
-                v.elements
-                    .iter()
-                    .map(|s| match s {
-                        Element::Title(_) | Element::Origin(_) | Element::Padding(_) => 0,
-                        Element::Cause(cause) => {
-                            let end = cause
-                                .markers
-                                .iter()
-                                .map(|a| a.span.end)
-                                .max()
-                                .unwrap_or(cause.source.len())
-                                .min(cause.source.len());
-
-                            cause.line_start + newline_count(&cause.source[..end])
-                        }
-                        Element::Suggestion(suggestion) => {
-                            let end = suggestion
-                                .markers
-                                .iter()
-                                .map(|a| a.span.end)
-                                .max()
-                                .unwrap_or(suggestion.source.len())
-                                .min(suggestion.source.len());
-
-                            suggestion.line_start + newline_count(&suggestion.source[..end])
-                        }
-                    })
-                    .max()
-                    .unwrap_or(1)
-            })
-            .max()
-            .unwrap_or(1)
-    }
-}
-
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Id<'a> {
     pub(crate) id: Option<&'a str>,
@@ -350,7 +260,8 @@ impl<'a> Annotation<'a> {
 /// The category of the [`Annotation`]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum AnnotationKind {
-    /// Color to [`Message`]'s [`Level`]
+    /// Color to the [`Level`] the first [`Title`] in [`Group`]. If no [`Title`]
+    /// is present, it will default to `error`.
     Primary,
     /// "secondary"; fixed color
     Context,
@@ -493,19 +404,6 @@ impl<'a> Origin<'a> {
     pub fn primary(mut self, primary: bool) -> Self {
         self.primary = primary;
         self
-    }
-}
-
-fn newline_count(body: &str) -> usize {
-    #[cfg(feature = "simd")]
-    {
-        memchr::memchr_iter(b'\n', body.as_bytes())
-            .count()
-            .saturating_sub(1)
-    }
-    #[cfg(not(feature = "simd"))]
-    {
-        body.lines().count().saturating_sub(1)
     }
 }
 
