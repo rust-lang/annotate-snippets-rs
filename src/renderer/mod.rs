@@ -593,7 +593,8 @@ impl Renderer {
             //    `max_line_num_len`
             let padding = max_line_num_len + 3 + label_width;
 
-            let printed_lines = self.msgs_to_buffer(buffer, title.title, padding, None);
+            let printed_lines =
+                self.msgs_to_buffer(buffer, title.title, padding, None, title.is_pre_styled);
             if is_cont && matches!(self.theme, OutputTheme::Unicode) {
                 // There's another note after this one, associated to the subwindow above.
                 // We write additional vertical lines to join them:
@@ -669,7 +670,12 @@ impl Renderer {
                 label_width += 2;
             }
             if !title.title.is_empty() {
-                for (line, text) in normalize_whitespace(title.title).lines().enumerate() {
+                let (title_str, style) = if title.is_pre_styled {
+                    (title.title.to_owned(), ElementStyle::NoStyle)
+                } else {
+                    (normalize_whitespace(title.title), header_style)
+                };
+                for (line, text) in title_str.lines().enumerate() {
                     buffer.append(
                         buffer_msg_line_offset + line,
                         &format!(
@@ -681,7 +687,7 @@ impl Renderer {
                             },
                             text
                         ),
-                        header_style,
+                        style,
                     );
                 }
             }
@@ -696,6 +702,7 @@ impl Renderer {
         title: &str,
         padding: usize,
         override_style: Option<ElementStyle>,
+        is_pre_styled: bool,
     ) -> usize {
         let padding = " ".repeat(padding);
 
@@ -725,7 +732,12 @@ impl Renderer {
         } else {
             ElementStyle::NoStyle
         };
-        let lines = title.split('\n').collect::<Vec<_>>();
+        let title_str = if is_pre_styled {
+            title.to_owned()
+        } else {
+            normalize_whitespace(title)
+        };
+        let lines = title_str.split('\n').collect::<Vec<_>>();
         if lines.len() > 1 {
             for (i, line) in lines.iter().enumerate() {
                 if i != 0 {
@@ -735,7 +747,7 @@ impl Renderer {
                 buffer.append(line_number, line, style);
             }
         } else {
-            buffer.append(line_number, title, style);
+            buffer.append(line_number, &title_str, style);
         }
         line_number
     }

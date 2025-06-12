@@ -175,6 +175,7 @@ pub struct Padding;
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) title: &'a str,
+    pub(crate) is_pre_styled: bool,
 }
 
 /// A source view [`Element`] in a [`Group`]

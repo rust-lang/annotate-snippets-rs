@@ -78,7 +78,23 @@ impl<'a> Level<'a> {
             groups: vec![Group::new().element(Element::Title(Title {
                 level: self,
                 title: header,
+                is_pre_styled: false,
             }))],
+        }
+    }
+
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
+    pub fn title(self, title: &'a str) -> Title<'a> {
+        Title {
+            level: self,
+            title,
+            is_pre_styled: false,
         }
     }
 
@@ -90,8 +106,12 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn title(self, title: &'a str) -> Title<'a> {
-        Title { level: self, title }
+    pub fn pre_styled_title(self, title: &'a str) -> Title<'a> {
+        Title {
+            level: self,
+            title,
+            is_pre_styled: true,
+        }
     }
 
     pub(crate) fn as_str(&self) -> &'a str {

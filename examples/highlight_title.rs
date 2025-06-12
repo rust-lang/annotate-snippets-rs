@@ -61,7 +61,7 @@ fn main() {
                                 .label("arguments to this function are incorrect"),
                         ),
                 )
-                .element(Level::NOTE.title(&title)),
+                .element(Level::NOTE.pre_styled_title(&title)),
         )
         .group(
             Group::new()
