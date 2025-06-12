@@ -2494,3 +2494,96 @@ LL │ �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
+
+#[test]
+fn secondary_title_no_level_text() {
+    let source = r#"fn main() {
+    let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+    let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+}"#;
+
+    let input = Level::ERROR.header("mismatched types").id("E0308").group(
+        Group::new()
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/mismatched-types.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(105..131)
+                            .label("expected `&str`, found `&[u8; 0]`"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(98..102)
+                            .label("expected due to this"),
+                    ),
+            )
+            .element(
+                Level::NOTE
+                    .text(None)
+                    .title("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
+            ),
+    );
+
+    let expected = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/mismatched-types.rs:3:19
+   |
+LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+   |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
+   |            |
+   |            expected due to this
+  expected reference `&str`
+           found reference `&'static [u8; 0]`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn secondary_title_custom_level_text() {
+    let source = r#"fn main() {
+    let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+    let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+}"#;
+
+    let input = Level::ERROR.header("mismatched types").id("E0308").group(
+        Group::new()
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/mismatched-types.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(105..131)
+                            .label("expected `&str`, found `&[u8; 0]`"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(98..102)
+                            .label("expected due to this"),
+                    ),
+            )
+            .element(
+                Level::NOTE
+                    .text(Some("custom"))
+                    .title("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
+            ),
+    );
+
+    let expected = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/mismatched-types.rs:3:19
+   |
+LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+   |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
+   |            |
+   |            expected due to this
+   |
+   = custom: expected reference `&str`
+           found reference `&'static [u8; 0]`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
