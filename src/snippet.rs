@@ -13,7 +13,6 @@ pub(crate) const WARNING_TXT: &str = "warning";
 /// Top-level user message
 #[derive(Clone, Debug)]
 pub struct Message<'a> {
-    pub(crate) id: Option<Id<'a>>, // for "correctness", could be sloppy and be on Title
     pub(crate) groups: Vec<Group<'a>>,
 }
 
@@ -26,7 +25,15 @@ impl<'a> Message<'a> {
     ///
     /// </div>
     pub fn id(mut self, id: &'a str) -> Self {
-        self.id.get_or_insert(Id::default()).id = Some(id);
+        let Some(Element::Title(title)) =
+            self.groups.get_mut(0).and_then(|g| g.elements.first_mut())
+        else {
+            panic!(
+                "Expected first element to be a Title, got: {:?}",
+                self.groups
+            );
+        };
+        title.id.get_or_insert(Id::default()).id = Some(id);
         self
     }
 
@@ -36,7 +43,15 @@ impl<'a> Message<'a> {
     ///
     /// </div>
     pub fn id_url(mut self, url: &'a str) -> Self {
-        self.id.get_or_insert(Id::default()).url = Some(url);
+        let Some(Element::Title(title)) =
+            self.groups.get_mut(0).and_then(|g| g.elements.first_mut())
+        else {
+            panic!(
+                "Expected first element to be a Title, got: {:?}",
+                self.groups
+            );
+        };
+        title.id.get_or_insert(Id::default()).url = Some(url);
         self
     }
 
@@ -174,8 +189,39 @@ pub struct Padding;
 #[derive(Clone, Debug)]
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
+    pub(crate) id: Option<Id<'a>>,
     pub(crate) title: &'a str,
     pub(crate) is_pre_styled: bool,
+}
+
+impl<'a> Title<'a> {
+    /// <div class="warning">
+    ///
+    /// This is only relevant if the title is the first element of a group.
+    ///
+    /// </div>
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
+    pub fn id(mut self, id: &'a str) -> Self {
+        self.id.get_or_insert(Id::default()).id = Some(id);
+        self
+    }
+
+    /// <div class="warning">
+    ///
+    /// This is only relevant if the title is the first element of a group and
+    /// `id` present
+    ///
+    /// </div>
+    pub fn id_url(mut self, url: &'a str) -> Self {
+        self.id.get_or_insert(Id::default()).url = Some(url);
+        self
+    }
 }
 
 /// A source view [`Element`] in a [`Group`]

@@ -74,9 +74,9 @@ impl<'a> Level<'a> {
     /// </div>
     pub fn header(self, header: &'a str) -> Message<'a> {
         Message {
-            id: None,
             groups: vec![Group::new().element(Element::Title(Title {
                 level: self,
+                id: None,
                 title: header,
                 is_pre_styled: false,
             }))],
@@ -93,6 +93,7 @@ impl<'a> Level<'a> {
     pub fn title(self, title: &'a str) -> Title<'a> {
         Title {
             level: self,
+            id: None,
             title,
             is_pre_styled: false,
         }
@@ -109,6 +110,7 @@ impl<'a> Level<'a> {
     pub fn pre_styled_title(self, title: &'a str) -> Title<'a> {
         Title {
             level: self,
+            id: None,
             title,
             is_pre_styled: true,
         }

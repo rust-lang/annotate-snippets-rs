@@ -338,13 +338,6 @@ impl Renderer {
                             title,
                             max_line_num_len,
                             title_style,
-                            message.id.as_ref().and_then(|id| {
-                                if g == 0 && i == 0 {
-                                    Some(id)
-                                } else {
-                                    None
-                                }
-                            }),
                             matches!(peek, Some(Element::Title(_))),
                             buffer_msg_line_offset,
                         );
@@ -524,7 +517,6 @@ impl Renderer {
             &title,
             0, // No line numbers in short messages
             TitleStyle::MainHeader,
-            message.id.as_ref(),
             false,
             0,
         );
@@ -546,7 +538,6 @@ impl Renderer {
         title: &Title<'_>,
         max_line_num_len: usize,
         title_style: TitleStyle,
-        id: Option<&Id<'_>>,
         is_cont: bool,
         buffer_msg_line_offset: usize,
     ) {
@@ -582,7 +573,7 @@ impl Renderer {
         if title.level.name != Some(None) {
             buffer.append(buffer_msg_line_offset, title.level.as_str(), label_style);
             label_width += title.level.as_str().len();
-            if let Some(Id { id: Some(id), url }) = id {
+            if let Some(Id { id: Some(id), url }) = title.id {
                 buffer.append(buffer_msg_line_offset, "[", label_style);
                 if let Some(url) = url.as_ref() {
                     buffer.append(
