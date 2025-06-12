@@ -351,23 +351,25 @@ impl Renderer {
                                 peek.is_some() || (g == 0 && group_len > 1),
                             );
 
-                            if g == 0 && group_len > 1 {
+                            if g == 0 {
                                 let current_line = buffer.num_lines();
-                                if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
-                                {
-                                    self.draw_col_separator_no_space(
+                                match peek {
+                                    Some(Element::Title(level))
+                                        if level.level.name != Some(None) =>
+                                    {
+                                        self.draw_col_separator_no_space(
+                                            &mut buffer,
+                                            current_line,
+                                            max_line_num_len + 1,
+                                        );
+                                    }
+
+                                    None if group_len > 1 => self.draw_col_separator_end(
                                         &mut buffer,
                                         current_line,
                                         max_line_num_len + 1,
-                                    );
-                                // We want to draw the separator when it is
-                                // requested, or when it is the last element
-                                } else if peek.is_none() {
-                                    self.draw_col_separator_end(
-                                        &mut buffer,
-                                        current_line,
-                                        max_line_num_len + 1,
-                                    );
+                                    ),
+                                    _ => {}
                                 }
                             }
                         }
