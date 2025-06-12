@@ -415,9 +415,9 @@ fn char_eol_annotate_char() {
 error: 
  --> file/path:3:1
   |
-3 | a
-  | ^
-4 | b
+3 | / a
+4 | | b
+  | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input), expected);
@@ -437,10 +437,11 @@ fn char_eol_annotate_char_double_width() {
 error: 
  --> <current file>:1:2
   |
-1 | こん
-  |   ^^
-2 | にちは
-3 | 世界
+1 |   こん
+  |  ___^
+2 | | にちは
+  | |_^
+3 |   世界
 "#]];
 
     let renderer = Renderer::plain();
@@ -485,9 +486,10 @@ fn annotate_eol2() {
 error: 
  --> file/path:3:2
   |
-3 | a
-  |  ^
-4 | b
+3 |   a
+  |  __^
+4 | | b
+  | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input), expected);
@@ -508,9 +510,10 @@ fn annotate_eol3() {
 error: 
  --> file/path:3:3
   |
-3 | a
-  |  ^
-4 | b
+3 |   a
+  |  __^
+4 | | b
+  | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input), expected);
@@ -553,10 +556,11 @@ fn annotate_eol_double_width() {
 error: 
  --> <current file>:1:4
   |
-1 | こん
-  |     ^
-2 | にちは
-3 | 世界
+1 |   こん
+  |  _____^
+2 | | にちは
+  | |_^
+3 |   世界
 "#]];
 
     let renderer = Renderer::plain();
@@ -678,8 +682,8 @@ error:
 3 |   a
   |  __^
 4 | | b
-  | |__^
-5 |   c
+5 | | c
+  | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input), expected);
@@ -728,8 +732,8 @@ error:
 3 |   a
   |  __^
 4 | | b
-  | |__^
-5 |   c
+5 | | c
+  | |_^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(false);
     assert_data_eq!(renderer.render(input), expected);
@@ -1532,6 +1536,7 @@ LL -     T
 LL -     :
 LL -     ?
 LL -     Sized
+LL + {
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
@@ -1640,8 +1645,12 @@ LL | struct Wrapper<T>(T);
    |                this could be changed to `T: ?Sized`...
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
    |
-LL ~ and 
-LL ~ + Send{
+LL - and where
+LL -     T
+LL -     :
+LL -     ?
+LL -     Sized
+LL + and + Send{
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);

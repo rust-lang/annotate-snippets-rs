@@ -2111,3 +2111,358 @@ LL +     x.iter_mut().for_each(|items| {
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+fn bad_char_literals() {
+    // tests/ui/parser/bad-char-literals.rs
+
+    let source = r#"// ignore-tidy-cr
+// ignore-tidy-tab
+
+fn main() {
+    // these literals are just silly.
+    ''';
+    //~^ ERROR: character constant must be escaped: `'`
+
+    // note that this is a literal "\n" byte
+    '
+';
+    //~^^ ERROR: character constant must be escaped: `\n`
+
+    // note that this is a literal "\r" byte
+; //~ ERROR: character constant must be escaped: `\r`
+
+    // note that this is a literal NULL
+    '--'; //~ ERROR: character literal may only contain one codepoint
+
+    // note that this is a literal tab character here
+    '  ';
+    //~^ ERROR: character constant must be escaped: `\t`
+}
+"#;
+
+    let input = Level::ERROR
+        .header("character constant must be escaped: `\\n`")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/bad-char-literals.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(204..205)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::HELP.title("escape the character"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/bad-char-literals.rs")
+                        .line_start(1)
+                        .fold(true)
+                        .patch(Patch::new(204..205, r#"\n"#)),
+                ),
+        );
+    let expected = str![[r#"
+error: character constant must be escaped: `/n`
+  --> $DIR/bad-char-literals.rs:10:6
+   |
+LL |       '
+   |  ______^
+LL | | ';
+   | |_^
+   |
+help: escape the character
+   |
+LL |     '/n';
+   |      ++
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unclosed_1() {
+    // tests/ui/frontmatter/unclosed-1.rs
+
+    let source = r#"----cargo
+//~^ ERROR: unclosed frontmatter
+
+// This test checks that the #! characters can help us recover a frontmatter
+// close. There should not be a "missing `main` function" error as the rest
+// are properly parsed.
+
+#![feature(frontmatter)]
+
+fn main() {}
+"#;
+
+    let input = Level::ERROR
+        .header("unclosed frontmatter")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/unclosed-1.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(0..221)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("frontmatter opening here was not closed"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/unclosed-1.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(0..4)),
+                ),
+        );
+    let expected = str![[r#"
+error: unclosed frontmatter
+  --> $DIR/unclosed-1.rs:1:1
+   |
+LL | / ----cargo
+...  |
+LL | |
+   | |_^
+   |
+note: frontmatter opening here was not closed
+  --> $DIR/unclosed-1.rs:1:1
+   |
+LL | ----cargo
+   | ^^^^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unclosed_2() {
+    // tests/ui/frontmatter/unclosed-2.rs
+
+    let source = r#"----cargo
+//~^ ERROR: unclosed frontmatter
+//~| ERROR: frontmatters are experimental
+
+//@ compile-flags: --crate-type lib
+
+// Leading whitespace on the feature line prevents recovery. However
+// the dashes quoted will not be used for recovery and the entire file
+// should be treated as within the frontmatter block.
+
+ #![feature(frontmatter)]
+
+fn foo() -> &str {
+    "----"
+}
+"#;
+
+    let input = Level::ERROR
+        .header("unclosed frontmatter")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/unclosed-2.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(0..377)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("frontmatter opening here was not closed"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/unclosed-2.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(0..4)),
+                ),
+        );
+    let expected = str![[r#"
+error: unclosed frontmatter
+  --> $DIR/unclosed-2.rs:1:1
+   |
+LL | / ----cargo
+...  |
+LL | |     "----"
+LL | | }
+   | |__^
+   |
+note: frontmatter opening here was not closed
+  --> $DIR/unclosed-2.rs:1:1
+   |
+LL | ----cargo
+   | ^^^^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unclosed_3() {
+    // tests/ui/frontmatter/unclosed-3.rs
+
+    let source = r#"----cargo
+//~^ ERROR: frontmatter close does not match the opening
+
+//@ compile-flags: --crate-type lib
+
+// Unfortunate recovery situation. Not really preventable with improving the
+// recovery strategy, but this type of code is rare enough already.
+
+ #![feature(frontmatter)]
+
+fn foo(x: i32) -> i32 {
+    ---x
+    //~^ ERROR: invalid preceding whitespace for frontmatter close
+    //~| ERROR: extra characters after frontmatter close are not allowed
+}
+//~^ ERROR: unexpected closing delimiter: `}`
+"#;
+
+    let input = Level::ERROR
+        .header("invalid preceding whitespace for frontmatter close")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/unclosed-3.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(302..310)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(
+                    Level::NOTE.title("frontmatter close should not be preceded by whitespace"),
+                )
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/unclosed-3.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(302..306)),
+                ),
+        );
+    let expected = str![[r#"
+error: invalid preceding whitespace for frontmatter close
+  --> $DIR/unclosed-3.rs:12:1
+   |
+LL |     ---x
+   | ^^^^^^^^
+   |
+note: frontmatter close should not be preceded by whitespace
+  --> $DIR/unclosed-3.rs:12:1
+   |
+LL |     ---x
+   | ^^^^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unclosed_4() {
+    // tests/ui/frontmatter/unclosed-4.rs
+
+    let source = r#"----cargo
+//~^ ERROR: unclosed frontmatter
+
+//! Similarly, a module-level content should allow for recovery as well (as
+//! per unclosed-1.rs)
+
+#![feature(frontmatter)]
+
+fn main() {}
+"#;
+
+    let input = Level::ERROR
+        .header("unclosed frontmatter")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/unclosed-4.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(0..43)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("frontmatter opening here was not closed"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/unclosed-4.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(0..4)),
+                ),
+        );
+    let expected = str![[r#"
+error: unclosed frontmatter
+  --> $DIR/unclosed-4.rs:1:1
+   |
+LL | / ----cargo
+LL | | //~^ ERROR: unclosed frontmatter
+LL | |
+   | |_^
+   |
+note: frontmatter opening here was not closed
+  --> $DIR/unclosed-4.rs:1:1
+   |
+LL | ----cargo
+   | ^^^^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unclosed_5() {
+    // tests/ui/frontmatter/unclosed-5.rs
+
+    let source = r#"----cargo
+//~^ ERROR: unclosed frontmatter
+//~| ERROR: frontmatters are experimental
+
+// Similarly, a use statement should allow for recovery as well (as
+// per unclosed-1.rs)
+
+use std::env;
+
+fn main() {}
+"#;
+
+    let input = Level::ERROR
+        .header("unclosed frontmatter")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/unclosed-5.rs")
+                    .fold(true)
+                    .annotation(AnnotationKind::Primary.span(0..176)),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("frontmatter opening here was not closed"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/unclosed-5.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(0..4)),
+                ),
+        );
+
+    let expected = str![[r#"
+error: unclosed frontmatter
+  --> $DIR/unclosed-5.rs:1:1
+   |
+LL | / ----cargo
+...  |
+LL | |
+   | |_^
+   |
+note: frontmatter opening here was not closed
+  --> $DIR/unclosed-5.rs:1:1
+   |
+LL | ----cargo
+   | ^^^^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
