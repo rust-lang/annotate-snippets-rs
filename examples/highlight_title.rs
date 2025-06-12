@@ -5,7 +5,6 @@ fn main() {
     let source = r#"// Make sure "highlighted" code is colored purple
 
 //@ compile-flags: --error-format=human --color=always
-//@ error-pattern:[35mfor<'a> [0m
 //@ edition:2018
 
 use core::pin::Pin;
@@ -24,8 +23,7 @@ fn wrapped_fn<'a>(_: Box<(dyn Any + Send)>) -> Pin<Box<(
 
 fn main() {
     query(wrapped_fn);
-}
-"#;
+}"#;
 
     let magenta = annotate_snippets::renderer::AnsiColor::Magenta
         .on_default()
@@ -43,25 +41,39 @@ fn main() {
         magenta.render_reset()
     );
 
-    let message = Level::ERROR.header("mismatched types").id("E0308").group(
-        Group::new()
-            .element(
-                Snippet::source(source)
-                    .fold(true)
-                    .origin("$DIR/highlighting.rs")
-                    .annotation(
-                        AnnotationKind::Primary
-                            .span(589..599)
-                            .label("one type is more general than the other"),
-                    )
-                    .annotation(
-                        AnnotationKind::Context
-                            .span(583..588)
-                            .label("arguments to this function are incorrect"),
-                    ),
-            )
-            .element(Level::NOTE.title(&title)),
-    );
+    let message = Level::ERROR
+        .header("mismatched types")
+        .id("E0308")
+        .group(
+            Group::new()
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .origin("$DIR/highlighting.rs")
+                        .annotation(
+                            AnnotationKind::Primary
+                                .span(553..563)
+                                .label("one type is more general than the other"),
+                        )
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(547..552)
+                                .label("arguments to this function are incorrect"),
+                        ),
+                )
+                .element(Level::NOTE.title(&title)),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("function defined here"))
+                .element(
+                    Snippet::source(source)
+                        .fold(true)
+                        .origin("$DIR/highlighting.rs")
+                        .annotation(AnnotationKind::Context.span(200..333).label(""))
+                        .annotation(AnnotationKind::Primary.span(194..199)),
+                ),
+        );
 
     let renderer = Renderer::styled().anonymized_line_numbers(true);
     anstream::println!("{}", renderer.render(message));
