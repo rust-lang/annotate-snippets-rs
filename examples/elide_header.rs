@@ -9,6 +9,7 @@ def foobar(door, bar={}):
 "#;
 
     let message = &[Group::new()
+        .primary_level(Level::NOTE)
         .element(
             Snippet::source(source)
                 .fold(false)
