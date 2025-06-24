@@ -382,7 +382,6 @@ pub struct Origin<'a> {
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
     pub(crate) primary: bool,
-    pub(crate) label: Option<&'a str>,
 }
 
 impl<'a> Origin<'a> {
@@ -399,7 +398,6 @@ impl<'a> Origin<'a> {
             line: None,
             char_column: None,
             primary: false,
-            label: None,
         }
     }
 
@@ -421,20 +419,6 @@ impl<'a> Origin<'a> {
 
     pub fn primary(mut self, primary: bool) -> Self {
         self.primary = primary;
-        self
-    }
-
-    /// Like [`Annotation::label`], but when there is no source
-    ///
-    /// <div class="warning">
-    ///
-    /// Text passed to this function is considered "untrusted input", as such
-    /// all text is passed through a normalization function. Pre-styled text is
-    /// not allowed to be passed to this function.
-    ///
-    /// </div>
-    pub fn label(mut self, label: &'a str) -> Self {
-        self.label = Some(label);
         self
     }
 }

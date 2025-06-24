@@ -2,7 +2,7 @@
 //!
 //! [parser-tests]: https://github.com/rust-lang/rust/blob/894f7a4ba6554d3797404bbf550d9919df060b97/compiler/rustc_parse/src/parser/tests.rs
 
-use annotate_snippets::{AnnotationKind, Group, Level, Origin, Patch, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Group, Level, Origin, Padding, Patch, Renderer, Snippet};
 
 use annotate_snippets::renderer::OutputTheme;
 use snapbox::{assert_data_eq, str};
@@ -1845,9 +1845,9 @@ fn main() {
                         .line(334)
                         .char_column(14)
                         .primary(true)
-                        .label("...because it uses `Self` as a type parameter")
-
                 )
+                .element(Padding)
+                .element(Level::NOTE.title("...because it uses `Self` as a type parameter"))
                 .element(
                     Snippet::source(source)
                         .line_start(1)

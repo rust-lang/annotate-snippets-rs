@@ -647,23 +647,6 @@ impl Renderer {
         for _ in 0..max_line_num_len {
             buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
         }
-
-        if let Some(label) = &origin.label {
-            self.draw_col_separator_no_space(
-                buffer,
-                buffer_msg_line_offset + 1,
-                max_line_num_len + 1,
-            );
-            let title = Level::NOTE.title(label);
-            self.render_title(
-                buffer,
-                &title,
-                max_line_num_len,
-                TitleStyle::Secondary,
-                None,
-                false,
-            );
-        }
     }
 
     #[allow(clippy::too_many_arguments)]
