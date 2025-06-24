@@ -2793,3 +2793,99 @@ LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+fn short_error_format1() {
+    // tests/ui/short-error-format.rs
+
+    let source = r#"//@ compile-flags: --error-format=short
+
+fn foo(_: u32) {}
+
+fn main() {
+    foo("Bonjour".to_owned());
+    let x = 0u32;
+    x.salut();
+}
+"#;
+
+    let input = Level::ERROR
+        .header("mismatched types")
+        .id("E0308")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/short-error-format.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(80..100)
+                            .label("expected `u32`, found `String`"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(76..79)
+                            .label("arguments to this function are incorrect"),
+                    ),
+            ),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("function defined here"))
+                .element(
+                    Snippet::source(source)
+                        .origin("$DIR/short-error-format.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Context.span(48..54).label(""))
+                        .annotation(AnnotationKind::Primary.span(44..47)),
+                ),
+        );
+
+    let expected = str![[r#"
+$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`
+"#]];
+    let renderer = Renderer::plain()
+        .short_message(true)
+        .anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn short_error_format2() {
+    // tests/ui/short-error-format.rs
+
+    let source = r#"//@ compile-flags: --error-format=short
+
+fn foo(_: u32) {}
+
+fn main() {
+    foo("Bonjour".to_owned());
+    let x = 0u32;
+    x.salut();
+}
+"#;
+
+    let input = Level::ERROR
+        .header("no method named `salut` found for type `u32` in the current scope")
+        .id("E0599")
+        .group(
+            Group::new().element(
+                Snippet::source(source)
+                    .origin("$DIR/short-error-format.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(127..132)
+                            .label("method not found in `u32`"),
+                    ),
+            ),
+        );
+
+    let expected = str![[r#"
+$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`
+"#]];
+    let renderer = Renderer::plain()
+        .short_message(true)
+        .anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
