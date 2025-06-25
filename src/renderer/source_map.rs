@@ -124,7 +124,7 @@ impl<'a> SourceMap<'a> {
             if start >= line_info.end_byte {
                 continue;
             }
-            if end <= line_info.start_byte {
+            if end < line_info.start_byte {
                 break;
             }
             lines.push(line_info);
