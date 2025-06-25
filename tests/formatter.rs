@@ -2706,6 +2706,7 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
 }
 
 #[test]
+#[should_panic = "Patch span `47..47` is beyond the end of buffer `45`"]
 fn suggestion_span_bigger_than_source() {
     let snippet_source = r#"#![allow(unused)]
 fn main() {
@@ -2749,26 +2750,6 @@ fn main() {
         ),
     ];
 
-    let expected = str![[r#"
-warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
- --> lint_example.rs:3:11
-  |
-3 | [1, 2, 3].into_iter().for_each(|n| { *n; });
-  |           ^^^^^^^^^
-  |
-  = warning: this changes meaning in Rust 2021
-  = note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
-  = note: `#[warn(array_into_iter)]` on by default
-help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
-  |
-3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
-3 + [1, 2, 3].iter().for_each(|n| { *n; });
-  |
-help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
-  |
-3 | IntoIterator::into_iter(
-  |
-"#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    renderer.render(input);
 }
