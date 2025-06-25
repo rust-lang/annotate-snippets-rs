@@ -103,6 +103,11 @@ impl StyledBuffer {
         if start == end {
             return;
         }
+        // If the replacement range would be out of bounds, do nothing, as we
+        // can't replace things that don't exist.
+        if start > self.lines[line].len() || end > self.lines[line].len() {
+            return;
+        }
         let _ = self.lines[line].drain(start..(end - string.chars().count()));
         for (i, c) in string.chars().enumerate() {
             self.lines[line][start + i] = StyledChar::new(c, ElementStyle::LineNumber);

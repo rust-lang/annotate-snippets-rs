@@ -2889,3 +2889,78 @@ $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for 
         .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+fn rustdoc_ui_diagnostic_width() {
+    // tests/rustdoc-ui/diagnostic-width.rs
+
+    let source_0 = r#"//@ compile-flags: --diagnostic-width=10
+#![deny(rustdoc::bare_urls)]
+
+/// This is a long line that contains a http://link.com
+pub struct Foo; //~^ ERROR
+"#;
+    let source_1 = r#"/// This is a long line that contains a http://link.com
+"#;
+
+    let input = Level::ERROR
+        .header("this URL is not a hyperlink")
+        .group(
+            Group::new()
+                .element(
+                    Snippet::source(source_0)
+                        .origin("$DIR/diagnostic-width.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(111..126)),
+                )
+                .element(
+                    Level::NOTE
+                        .title("bare URLs are not automatically turned into clickable links"),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::NOTE.title("the lint level is defined here"))
+                .element(
+                    Snippet::source(source_0)
+                        .origin("$DIR/diagnostic-width.rs")
+                        .fold(true)
+                        .annotation(AnnotationKind::Primary.span(49..67)),
+                ),
+        )
+        .group(
+            Group::new()
+                .element(Level::HELP.title("use an automatic link instead"))
+                .element(
+                    Snippet::source(source_1)
+                        .origin("$DIR/diagnostic-width.rs")
+                        .line_start(4)
+                        .fold(true)
+                        .patch(Patch::new(40..40, "<"))
+                        .patch(Patch::new(55..55, ">")),
+                ),
+        );
+
+    let expected = str![[r#"
+error: this URL is not a hyperlink
+  --> $DIR/diagnostic-width.rs:4:41
+   |
+LL | ... a http://link.com
+   |       ^^^^^^^^^^^^^^^
+   |
+   = note: bare URLs are not automatically turned into clickable links
+note: the lint level is defined here
+  --> $DIR/diagnostic-width.rs:2:9
+   |
+LL | ...ny(ru...are_urls)]
+   |       ^^...^^^^^^^^
+help: use an automatic link instead
+   |
+LL | /// This is a long line that contains a <http://link.com>
+   |                                         +               +
+"#]];
+    let renderer = Renderer::plain()
+        .anonymized_line_numbers(true)
+        .term_width(10);
+    assert_data_eq!(renderer.render(input), expected);
+}
