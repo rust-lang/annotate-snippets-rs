@@ -45,11 +45,11 @@
 </tspan>
     <tspan x="10px" y="226px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╭╴</tspan>
 </tspan>
-    <tspan x="10px" y="244px"><tspan class="fg-bright-blue bold">22</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        break (|| { //~ ERROR `break` with value from a `while` loop</tspan>
+    <tspan x="10px" y="244px"><tspan class="fg-bright-blue bold">22</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        </tspan><tspan class="fg-bright-red">break (|| { //~ ERROR `break` with value from a `while` loop</tspan>
 </tspan>
-    <tspan x="10px" y="262px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>            let local = 9;</tspan>
+    <tspan x="10px" y="262px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">-             let local = 9;</tspan>
 </tspan>
-    <tspan x="10px" y="280px"><tspan class="fg-bright-blue bold">24</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        </tspan><tspan class="fg-bright-red">})</tspan><tspan>;</tspan>
+    <tspan x="10px" y="280px"><tspan class="fg-bright-blue bold">24</tspan><tspan> </tspan><tspan class="fg-bright-red">-         })</tspan><tspan>;</tspan>
 </tspan>
     <tspan x="10px" y="298px"><tspan class="fg-bright-blue bold">22</tspan><tspan> </tspan><tspan class="fg-bright-green">+ </tspan><tspan>        </tspan><tspan class="fg-bright-green">break</tspan><tspan>;</tspan>
 </tspan>
