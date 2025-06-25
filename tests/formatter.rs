@@ -1519,7 +1519,7 @@ fn main() {}"#;
                 .element(
                     Snippet::source(source)
                         .fold(true)
-                        .patch(Patch::new(52..86, "")),
+                        .patch(Patch::new(52..85, "")),
                 ),
         );
     let expected = str![[r#"
@@ -1537,7 +1537,6 @@ LL -     T
 LL -     :
 LL -     ?
 LL -     Sized
-LL + {
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
@@ -1619,8 +1618,8 @@ fn main() {}"#;
         ).element(
             Snippet::source(source)
                 .fold(true)
-                .patch(Patch::new(56..90, ""))
-                .patch(Patch::new(90..90, "+ Send"))
+                .patch(Patch::new(56..89, ""))
+                .patch(Patch::new(89..89, "+ Send"))
                 ,
         ));
     let expected = str![[r#"
@@ -1651,7 +1650,7 @@ LL -     T
 LL -     :
 LL -     ?
 LL -     Sized
-LL + and + Send{
+LL + and + Send
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
