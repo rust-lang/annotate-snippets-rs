@@ -162,6 +162,8 @@ pub struct Title<'a> {
 }
 
 /// A source view [`Element`] in a [`Group`]
+///
+/// If you do not have [source][Snippet::source] available, see instead [`Origin`]
 #[derive(Clone, Debug)]
 pub struct Snippet<'a, T> {
     pub(crate) path: Option<&'a str>,
@@ -375,7 +377,9 @@ impl<'a> Patch<'a> {
     }
 }
 
-/// The location of the [`Snippet`] (e.g. a path)
+/// The referenced location (e.g. a path)
+///
+/// If you have source available, see instead [`Snippet`]
 #[derive(Clone, Debug)]
 pub struct Origin<'a> {
     pub(crate) path: &'a str,
@@ -412,6 +416,12 @@ impl<'a> Origin<'a> {
     /// Set the default column to display
     ///
     /// Otherwise this will be inferred from the primary [`Annotation`]
+    ///
+    /// <div class="warning">
+    ///
+    /// `char_column` is only be respected if [`Origin::line`] is also set.
+    ///
+    /// </div>
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
         self
