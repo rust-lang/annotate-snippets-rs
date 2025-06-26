@@ -12,7 +12,7 @@ invalid syntax
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("path/to/error.rs")
+                .path("path/to/error.rs")
                 .line_start(1)
                 .fold(true)
                 .annotation(AnnotationKind::Context.span(2..16).label("error here")),

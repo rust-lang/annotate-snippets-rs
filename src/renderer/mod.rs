@@ -24,7 +24,7 @@
 //!     .group(
 //!         Group::new().element(
 //!             Snippet::source(source)
-//!                 .origin("temp.rs")
+//!                 .path("temp.rs")
 //!                 .line_start(1)
 //!                 .fold(true)
 //!                 .annotation(
@@ -232,21 +232,21 @@ impl Renderer {
     ) -> Result<String, fmt::Error> {
         let mut out_string = String::new();
 
-        let og_primary_origin = message
+        let og_primary_path = message
             .groups
             .iter()
             .find_map(|group| {
                 group.elements.iter().find_map(|s| match &s {
                     Element::Cause(cause) => {
                         if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                            Some(cause.origin)
+                            Some(cause.path)
                         } else {
                             None
                         }
                     }
                     Element::Origin(origin) => {
                         if origin.primary {
-                            Some(Some(origin.origin))
+                            Some(Some(origin.path))
                         } else {
                             None
                         }
@@ -260,8 +260,8 @@ impl Renderer {
                     .iter()
                     .find_map(|group| {
                         group.elements.iter().find_map(|s| match &s {
-                            Element::Cause(cause) => Some(cause.origin),
-                            Element::Origin(origin) => Some(Some(origin.origin)),
+                            Element::Cause(cause) => Some(cause.path),
+                            Element::Origin(origin) => Some(Some(origin.path)),
                             _ => None,
                         })
                     })
@@ -270,20 +270,20 @@ impl Renderer {
         let group_len = message.groups.len();
         for (g, group) in message.groups.into_iter().enumerate() {
             let mut buffer = StyledBuffer::new();
-            let primary_origin = group
+            let primary_path = group
                 .elements
                 .iter()
                 .find_map(|s| match &s {
                     Element::Cause(cause) => {
                         if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                            Some(cause.origin)
+                            Some(cause.path)
                         } else {
                             None
                         }
                     }
                     Element::Origin(origin) => {
                         if origin.primary {
-                            Some(Some(origin.origin))
+                            Some(Some(origin.path))
                         } else {
                             None
                         }
@@ -295,8 +295,8 @@ impl Renderer {
                         .elements
                         .iter()
                         .find_map(|s| match &s {
-                            Element::Cause(cause) => Some(cause.origin),
-                            Element::Origin(origin) => Some(Some(origin.origin)),
+                            Element::Cause(cause) => Some(cause.path),
+                            Element::Origin(origin) => Some(Some(origin.path)),
                             _ => None,
                         })
                         .unwrap_or_default(),
@@ -357,7 +357,7 @@ impl Renderer {
                                 &mut buffer,
                                 max_line_num_len,
                                 cause,
-                                primary_origin,
+                                primary_path,
                                 &source_map,
                                 &annotated_lines,
                                 max_depth,
@@ -396,7 +396,7 @@ impl Renderer {
                             suggestion,
                             max_line_num_len,
                             &source_map,
-                            primary_origin.or(og_primary_origin),
+                            primary_path.or(og_primary_path),
                             last_was_suggestion,
                         );
                         last_was_suggestion = true;
@@ -490,8 +490,8 @@ impl Renderer {
                 labels = Some(labels_inner);
             }
 
-            if let Some(origin) = cause.origin {
-                let mut origin = Origin::new(origin);
+            if let Some(path) = cause.path {
+                let mut origin = Origin::new(path);
                 origin.primary = true;
 
                 let source_map = SourceMap::new(cause.source, cause.line_start);
@@ -764,10 +764,10 @@ impl Renderer {
 
         let str = match (&origin.line, &origin.char_column) {
             (Some(line), Some(col)) => {
-                format!("{}:{}:{}", origin.origin, line, col)
+                format!("{}:{}:{}", origin.path, line, col)
             }
-            (Some(line), None) => format!("{}:{}", origin.origin, line),
-            _ => origin.origin.to_owned(),
+            (Some(line), None) => format!("{}:{}", origin.path, line),
+            _ => origin.path.to_owned(),
         };
 
         buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
@@ -784,17 +784,17 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         max_line_num_len: usize,
         snippet: &Snippet<'_, Annotation<'_>>,
-        primary_origin: Option<&str>,
+        primary_path: Option<&str>,
         sm: &SourceMap<'_>,
         annotated_lines: &[AnnotatedLineInfo<'_>],
         multiline_depth: usize,
         is_cont: bool,
     ) {
-        if let Some(origin) = snippet.origin {
-            let mut origin = Origin::new(origin);
+        if let Some(path) = snippet.path {
+            let mut origin = Origin::new(path);
             // print out the span location and spacer before we print the annotated source
             // to do this, we need to know if this span will be primary
-            let is_primary = primary_origin == Some(origin.origin);
+            let is_primary = primary_path == Some(origin.path);
 
             if is_primary {
                 origin.primary = true;
@@ -1648,7 +1648,7 @@ impl Renderer {
         suggestion: &Snippet<'_, Patch<'_>>,
         max_line_num_len: usize,
         sm: &SourceMap<'_>,
-        primary_origin: Option<&str>,
+        primary_path: Option<&str>,
         is_cont: bool,
     ) {
         let suggestions = sm.splice_lines(suggestion.markers.clone());
@@ -1671,14 +1671,14 @@ impl Renderer {
                     ElementStyle::LineNumber,
                 );
             }
-            if suggestion.origin != primary_origin {
-                if let Some(origin) = suggestion.origin {
+            if suggestion.path != primary_path {
+                if let Some(path) = suggestion.path {
                     let (loc, _) = sm.span_to_locations(parts[0].span.clone());
                     // --> file.rs:line:col
                     //  |
                     let arrow = self.file_start();
                     buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                    let message = format!("{}:{}:{}", origin, loc.line, loc.char + 1);
+                    let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
                     if is_cont {
                         buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
                     } else {

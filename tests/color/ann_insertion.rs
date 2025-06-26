@@ -7,7 +7,7 @@ fn case() {
     let input = Level::ERROR.header("expected `.`, `=`").group(
         Group::new().element(
             Snippet::source("asf")
-                .origin("Cargo.toml")
+                .path("Cargo.toml")
                 .line_start(1)
                 .annotation(AnnotationKind::Primary.span(2..2).label("'d' belongs here")),
         ),

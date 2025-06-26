@@ -36,7 +36,7 @@ fn main() {
             Group::new().element(
                 Snippet::source(source)
                     .line_start(1)
-                    .origin("$DIR/issue-114529-illegal-break-with-value.rs")
+                    .path("$DIR/issue-114529-illegal-break-with-value.rs")
                     .fold(true)
                     .annotation(
                         AnnotationKind::Primary
@@ -60,7 +60,7 @@ fn main() {
                 .element(
                     Snippet::source(source)
                         .line_start(1)
-                        .origin("$DIR/issue-114529-illegal-break-with-value.rs")
+                        .path("$DIR/issue-114529-illegal-break-with-value.rs")
                         .fold(true)
                         .patch(Patch::new(483..581, "break")),
                 ),

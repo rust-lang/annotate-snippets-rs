@@ -17,7 +17,7 @@ fn main() {}
                 .element(
                     Snippet::source(source)
                         .fold(true)
-                        .origin("$DIR/E0010-teach.rs")
+                        .path("$DIR/E0010-teach.rs")
                         .annotation(
                             AnnotationKind::Primary
                                 .span(72..85)

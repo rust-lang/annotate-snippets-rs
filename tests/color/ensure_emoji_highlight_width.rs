@@ -12,7 +12,7 @@ fn case() {
             Group::new()
                 .element(
                     Snippet::source(source)
-                        .origin("<file>")
+                        .path("<file>")
                         .line_start(7)
                         .annotation(AnnotationKind::Primary.span(0..35).label(""))
                 )

@@ -8,7 +8,7 @@ fn main() {
             Group::new().element(
                 Snippet::source("        slices: vec![\"A\",")
                     .line_start(13)
-                    .origin("src/multislice.rs")
+                    .path("src/multislice.rs")
                     .annotation(AnnotationKind::Primary.span(21..24).label(
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
                     )),

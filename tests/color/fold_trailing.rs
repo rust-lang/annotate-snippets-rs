@@ -22,7 +22,7 @@ edition = "2021"
         .group(
             Group::new().element(
                 Snippet::source(source)
-                    .origin("Cargo.toml")
+                    .path("Cargo.toml")
                     .line_start(1)
                     .fold(true)
                     .annotation(AnnotationKind::Primary.span(8..10).label("")),

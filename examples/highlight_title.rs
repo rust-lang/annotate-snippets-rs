@@ -49,7 +49,7 @@ fn main() {
                 .element(
                     Snippet::source(source)
                         .fold(true)
-                        .origin("$DIR/highlighting.rs")
+                        .path("$DIR/highlighting.rs")
                         .annotation(
                             AnnotationKind::Primary
                                 .span(553..563)
@@ -69,7 +69,7 @@ fn main() {
                 .element(
                     Snippet::source(source)
                         .fold(true)
-                        .origin("$DIR/highlighting.rs")
+                        .path("$DIR/highlighting.rs")
                         .annotation(AnnotationKind::Context.span(200..333).label(""))
                         .annotation(AnnotationKind::Primary.span(194..199)),
                 ),

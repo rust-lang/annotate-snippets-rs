@@ -71,7 +71,7 @@ fn main() {}
             Group::new()
                 .element(
                     Snippet::source(source)
-                        .origin("$DIR/multiline-removal-suggestion.rs")
+                        .path("$DIR/multiline-removal-suggestion.rs")
                         .fold(true)
                         .annotation(
                             AnnotationKind::Primary
@@ -102,7 +102,7 @@ fn main() {}
                 .element(Level::HELP.title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds"))
                 .element(
                     Snippet::source(source)
-                        .origin("$DIR/multiline-removal-suggestion.rs")
+                        .path("$DIR/multiline-removal-suggestion.rs")
                         .fold(true)
                         .patch(Patch::new(708..768, "")),
                 ),

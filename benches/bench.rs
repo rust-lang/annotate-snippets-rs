@@ -28,7 +28,7 @@ fn simple() -> String {
         Group::new().element(
             Snippet::source(source)
                 .line_start(51)
-                .origin("src/format.rs")
+                .path("src/format.rs")
                 .annotation(
                     AnnotationKind::Context
                         .span(5..19)
@@ -73,7 +73,7 @@ fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
                 Group::new().element(
                     Snippet::source(&input)
                         .fold(true)
-                        .origin("src/format.rs")
+                        .path("src/format.rs")
                         .annotation(
                             AnnotationKind::Context
                                 .span(span)

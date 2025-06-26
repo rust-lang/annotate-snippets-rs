@@ -9,7 +9,7 @@ fn case() {
     let input = Level::ERROR.header("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("$DIR/whitespace-trimming.rs")
+                .path("$DIR/whitespace-trimming.rs")
                 .line_start(4)
                 .annotation(
                     AnnotationKind::Primary

@@ -6,12 +6,12 @@ fn main() {
             .element(
                 Snippet::<Annotation<'_>>::source("Foo")
                     .line_start(51)
-                    .origin("src/format.rs"),
+                    .path("src/format.rs"),
             )
             .element(
                 Snippet::<Annotation<'_>>::source("Faa")
                     .line_start(129)
-                    .origin("src/display.rs"),
+                    .path("src/display.rs"),
             ),
     );
 

@@ -164,7 +164,7 @@ pub struct Title<'a> {
 /// A source view [`Element`] in a [`Group`]
 #[derive(Clone, Debug)]
 pub struct Snippet<'a, T> {
-    pub(crate) origin: Option<&'a str>,
+    pub(crate) path: Option<&'a str>,
     pub(crate) line_start: usize,
     pub(crate) source: &'a str,
     pub(crate) markers: Vec<T>,
@@ -183,7 +183,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
     /// </div>
     pub fn source(source: &'a str) -> Self {
         Self {
-            origin: None,
+            path: None,
             line_start: 1,
             source,
             markers: vec![],
@@ -207,8 +207,8 @@ impl<'a, T: Clone> Snippet<'a, T> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn origin(mut self, origin: &'a str) -> Self {
-        self.origin = Some(origin);
+    pub fn path(mut self, path: &'a str) -> Self {
+        self.path = Some(path);
         self
     }
 
@@ -378,7 +378,7 @@ impl<'a> Patch<'a> {
 /// The location of the [`Snippet`] (e.g. a path)
 #[derive(Clone, Debug)]
 pub struct Origin<'a> {
-    pub(crate) origin: &'a str,
+    pub(crate) path: &'a str,
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
     pub(crate) primary: bool,
@@ -392,9 +392,9 @@ impl<'a> Origin<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn new(origin: &'a str) -> Self {
+    pub fn new(path: &'a str) -> Self {
         Self {
-            origin,
+            path,
             line: None,
             char_column: None,
             primary: false,

@@ -22,7 +22,7 @@ pub static C: u32 = 0 - 1;
         .group(
             Group::new().element(
                 Snippet::source(source)
-                    .origin("$DIR/err.rs")
+                    .path("$DIR/err.rs")
                     .fold(true)
                     .annotation(
                         AnnotationKind::Primary

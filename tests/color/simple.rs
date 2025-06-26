@@ -14,7 +14,7 @@ fn case() {
         .group(
             Group::new().element(
                 Snippet::source(source)
-                    .origin("src/format_color.rs")
+                    .path("src/format_color.rs")
                     .line_start(169)
                     .annotation(
                         AnnotationKind::Primary

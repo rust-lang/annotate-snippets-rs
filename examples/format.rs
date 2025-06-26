@@ -27,7 +27,7 @@ fn main() {
         Group::new().element(
             Snippet::source(source)
                 .line_start(51)
-                .origin("src/format.rs")
+                .path("src/format.rs")
                 .annotation(
                     AnnotationKind::Context
                         .span(5..19)
