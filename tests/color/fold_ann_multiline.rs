@@ -31,7 +31,7 @@ fn case() {
     let input = Level::ERROR.header("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("src/format.rs")
+                .path("src/format.rs")
                 .line_start(51)
                 .fold(true)
                 .annotation(AnnotationKind::Context.span(5..19).label(

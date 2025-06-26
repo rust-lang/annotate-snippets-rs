@@ -15,7 +15,7 @@ fn case() {
         .group(
             Group::new().element(
                 Snippet::source(source)
-                    .origin("src/display_list.rs")
+                    .path("src/display_list.rs")
                     .line_start(139)
                     .fold(false)
                     .annotation(

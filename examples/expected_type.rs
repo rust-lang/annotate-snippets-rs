@@ -10,7 +10,7 @@ fn main() {
             Group::new().element(
                 Snippet::source(source)
                     .line_start(26)
-                    .origin("examples/footer.rs")
+                    .path("examples/footer.rs")
                     .fold(true)
                     .annotation(AnnotationKind::Primary.span(193..195).label(
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",

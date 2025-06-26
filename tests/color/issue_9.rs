@@ -9,7 +9,7 @@ fn case() {
             Group::new()
                 .element(
                     Snippet::source("let x = vec![1];")
-                        .origin("/code/rust/src/test/ui/annotate-snippet/suggestion.rs")
+                        .path("/code/rust/src/test/ui/annotate-snippet/suggestion.rs")
                         .line_start(4)
                         .annotation(AnnotationKind::Context.span(4..5).label("move occurs because `x` has type `std::vec::Vec<i32>`, which does not implement the `Copy` trait"))
                 )

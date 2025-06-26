@@ -15,7 +15,7 @@ to exactly one character on next line.
         .group(
             Group::new().element(
                 Snippet::source(source)
-                    .origin("foo.txt")
+                    .path("foo.txt")
                     .line_start(26)
                     .fold(false)
                     .annotation(

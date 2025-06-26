@@ -8,7 +8,7 @@ fn test_i_29() {
     let snippets = Level::ERROR.header("oops").group(
         Group::new().element(
             Snippet::source("First line\r\nSecond oops line")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(19..23).label("oops"))
                 .fold(true),
         ),
@@ -30,7 +30,7 @@ fn test_point_to_double_width_characters() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こんにちは、世界")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(18..24).label("world")),
         ),
     );
@@ -52,7 +52,7 @@ fn test_point_to_double_width_characters_across_lines() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("おはよう\nございます")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(6..22).label("Good morning")),
         ),
     );
@@ -76,7 +76,7 @@ fn test_point_to_double_width_characters_multiple() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("お寿司\n食べたい🍣")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(0..9).label("Sushi1"))
                 .annotation(AnnotationKind::Context.span(16..22).label("Sushi2")),
         ),
@@ -101,7 +101,7 @@ fn test_point_to_double_width_characters_mixed() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こんにちは、新しいWorld！")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(18..32).label("New world")),
         ),
     );
@@ -153,12 +153,12 @@ fn test_format_snippets_continuation() {
             .element(
                 Snippet::<Annotation<'_>>::source(src_0)
                     .line_start(5402)
-                    .origin("file1.rs"),
+                    .path("file1.rs"),
             )
             .element(
                 Snippet::<Annotation<'_>>::source(src_1)
                     .line_start(2)
-                    .origin("file2.rs"),
+                    .path("file2.rs"),
             ),
     );
     let expected = str![[r#"
@@ -298,7 +298,7 @@ error:
 fn test_only_source() {
     let input = Level::ERROR
         .header("")
-        .group(Group::new().element(Snippet::<Annotation<'_>>::source("").origin("file.rs")));
+        .group(Group::new().element(Snippet::<Annotation<'_>>::source("").path("file.rs")));
     let expected = str![[r#"
 error: 
  --> file.rs
@@ -332,7 +332,7 @@ fn issue_130() {
     let input = Level::ERROR.header("dummy").group(
         Group::new().element(
             Snippet::source("foo\nbar\nbaz")
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(4..11)),
@@ -360,7 +360,7 @@ a\"
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..10)),
@@ -384,7 +384,7 @@ fn char_and_nl_annotate_char() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(0..2)),
         ), // a\r
@@ -407,7 +407,7 @@ fn char_eol_annotate_char() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(0..3)),
         ), // a\r\n
@@ -429,7 +429,7 @@ fn char_eol_annotate_char_double_width() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(3..8)),
         ), // ん\r\n
     );
@@ -455,7 +455,7 @@ fn annotate_eol() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(1..2)),
         ), // \r
@@ -478,7 +478,7 @@ fn annotate_eol2() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(1..3)),
         ), // \r\n
@@ -502,7 +502,7 @@ fn annotate_eol3() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(2..3)),
         ), // \n
@@ -526,7 +526,7 @@ fn annotate_eol4() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(2..2)),
         ), // \n
@@ -548,7 +548,7 @@ fn annotate_eol_double_width() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(7..8)),
         ), // \n
     );
@@ -574,7 +574,7 @@ fn multiline_eol_start() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(1..4)),
         ), // \r\nb
@@ -598,7 +598,7 @@ fn multiline_eol_start2() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(2..4)),
         ), // \nb
@@ -622,7 +622,7 @@ fn multiline_eol_start3() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(1..3)),
         ), // \nb
@@ -645,7 +645,7 @@ fn multiline_eol_start_double_width() {
     let snippets = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source("こん\r\nにちは\r\n世界")
-                .origin("<current file>")
+                .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(7..11)),
         ), // \r\nに
     );
@@ -671,7 +671,7 @@ fn multiline_eol_start_eol_end() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(1..4)),
         ), // \nb\n
@@ -696,7 +696,7 @@ fn multiline_eol_start_eol_end2() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(2..5)),
         ), // \nb\r
@@ -721,7 +721,7 @@ fn multiline_eol_start_eol_end3() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(2..6)),
         ), // \nb\r\n
@@ -746,7 +746,7 @@ fn multiline_eol_start_eof_end() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(1..5)),
         ), // \r\nb(EOF)
@@ -770,7 +770,7 @@ fn multiline_eol_start_eof_end_double_width() {
     let input = Level::ERROR.header("").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("file/path")
+                .path("file/path")
                 .line_start(3)
                 .annotation(AnnotationKind::Primary.span(3..9)),
         ), // \r\nに(EOF)
@@ -794,7 +794,7 @@ fn two_single_line_same_line() {
     let input = Level::ERROR.header("unused optional dependency").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("Cargo.toml")
+                .path("Cargo.toml")
                 .line_start(4)
                 .annotation(
                     AnnotationKind::Primary
@@ -969,7 +969,7 @@ fn origin_correct_start_line() {
     let input = Level::ERROR.header("title").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("origin.txt")
+                .path("origin.txt")
                 .fold(false)
                 .annotation(AnnotationKind::Primary.span(8..8 + 3).label("annotation")),
         ),
@@ -995,7 +995,7 @@ fn origin_correct_mid_line() {
     let input = Level::ERROR.header("title").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("origin.txt")
+                .path("origin.txt")
                 .fold(false)
                 .annotation(
                     AnnotationKind::Primary
@@ -1565,7 +1565,7 @@ fn main() {}"#;
         .id("E0277")
         .group(Group::new().element(Snippet::source(source)
             .line_start(1)
-            .origin("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
+            .path("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
             .fold(true)
             .annotation(
                 AnnotationKind::Primary
@@ -1583,7 +1583,7 @@ fn main() {}"#;
         ).element(
             Snippet::source(source)
                 .line_start(1)
-                .origin("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
+                .path("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
                 .fold(true)
                 .annotation(
                     AnnotationKind::Primary
@@ -1598,7 +1598,7 @@ fn main() {}"#;
             .element(
             Snippet::source(source)
                 .line_start(1)
-                .origin("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
+                .path("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
                 .fold(true)
                 .annotation(
                     AnnotationKind::Primary
@@ -1744,7 +1744,7 @@ fn main() {
         .id("E0271")
         .group(Group::new().element(Snippet::source(source)
             .line_start(4)
-            .origin("$DIR/E0271.rs")
+            .path("$DIR/E0271.rs")
             .fold(true)
             .annotation(
                 AnnotationKind::Primary
@@ -1756,7 +1756,7 @@ fn main() {
         ).element(
             Snippet::source(source)
                 .line_start(4)
-                .origin("$DIR/E0271.rs")
+                .path("$DIR/E0271.rs")
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(89..90))
         ).element(
@@ -1832,7 +1832,7 @@ fn main() {
         .id("E0271")
         .group(Group::new().element(Snippet::source(source)
             .line_start(4)
-            .origin("$DIR/E0271.rs")
+            .path("$DIR/E0271.rs")
             .fold(true)
             .annotation(
                 AnnotationKind::Primary
@@ -1844,7 +1844,7 @@ fn main() {
         ).element(
             Snippet::source(source)
                 .line_start(4)
-                .origin("$DIR/E0271.rs")
+                .path("$DIR/E0271.rs")
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(89..90))
         ).element(
@@ -1986,7 +1986,7 @@ fn main() {
         .group(Group::new().element(
             Snippet::source(source)
                 .line_start(7)
-                .origin("$DIR/long-E0308.rs")
+                .path("$DIR/long-E0308.rs")
                 .fold(true)
                 .annotation(
                     AnnotationKind::Primary
@@ -2071,7 +2071,7 @@ fn main() {
         .group(Group::new().element(
             Snippet::source(source)
                 .line_start(7)
-                .origin("$DIR/unicode-output.rs")
+                .path("$DIR/unicode-output.rs")
                 .fold(true)
                 .annotation(
                     AnnotationKind::Primary
@@ -2093,7 +2093,7 @@ fn main() {
         ).element(
             Snippet::source(source)
                 .line_start(7)
-                .origin("$DIR/unicode-output.rs")
+                .path("$DIR/unicode-output.rs")
                 .fold(true)
                 .annotation(AnnotationKind::Primary.span(77..210))
                 .annotation(AnnotationKind::Context.span(71..76)),
@@ -2299,7 +2299,7 @@ fn main() {
     let input = Level::ERROR.header("mismatched types").id("E0308").group(
         Group::new().element(
             Snippet::source(source)
-                .origin("$DIR/non-whitespace-trimming-unicode.rs")
+                .path("$DIR/non-whitespace-trimming-unicode.rs")
                 .fold(true)
                 .annotation(
                     AnnotationKind::Primary
@@ -2359,7 +2359,7 @@ fn main() {
             Group::new()
                 .element(
                     Snippet::source(source)
-                        .origin("$DIR/non-1-width-unicode-multiline-label.rs")
+                        .path("$DIR/non-1-width-unicode-multiline-label.rs")
                         .fold(true)
                         .annotation(AnnotationKind::Context.span(970..984).label("&str"))
                         .annotation(AnnotationKind::Context.span(987..1001).label("&str"))
@@ -2379,7 +2379,7 @@ fn main() {
                 .element(Level::HELP.title("create an owned `String` from a string reference"))
                 .element(
                     Snippet::source(source)
-                        .origin("$DIR/non-1-width-unicode-multiline-label.rs")
+                        .path("$DIR/non-1-width-unicode-multiline-label.rs")
                         .fold(true)
                         .patch(Patch::new(984..984, ".to_owned()")),
                 ),
@@ -2442,7 +2442,7 @@ fn foo() {
         .group(
             Group::new().element(
                 Snippet::source(source)
-                    .origin("$DIR/not-utf8.rs")
+                    .path("$DIR/not-utf8.rs")
                     .fold(true)
                     .annotation(AnnotationKind::Primary.span(136..160)),
             ),
@@ -2452,7 +2452,7 @@ fn foo() {
                 .element(Level::NOTE.title("byte `193` is not valid utf-8"))
                 .element(
                     Snippet::source(bin_source)
-                        .origin("$DIR/not-utf8.bin")
+                        .path("$DIR/not-utf8.bin")
                         .fold(true)
                         .annotation(AnnotationKind::Primary.span(0..0)),
                 )
