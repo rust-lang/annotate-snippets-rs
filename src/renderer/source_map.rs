@@ -1,5 +1,6 @@
 use crate::renderer::{char_width, is_different, num_overlap, LineAnnotation, LineAnnotationType};
 use crate::{Annotation, AnnotationKind, Patch};
+use std::borrow::Cow;
 use std::cmp::{max, min};
 use std::ops::Range;
 
@@ -453,14 +454,14 @@ impl<'a> SourceMap<'a> {
                 .replacement
                 .split('\n')
                 .next()
-                .unwrap_or(part.replacement)
+                .unwrap_or(&part.replacement)
                 .chars()
                 .map(|c| match c {
                     '\t' => 4,
                     _ => 1,
                 })
                 .sum();
-            if !is_different(self, part.replacement, part.span.clone()) {
+            if !is_different(self, &part.replacement, part.span.clone()) {
                 // Account for cases where we are suggesting the same code that's already
                 // there. This shouldn't happen often, but in some cases for multipart
                 // suggestions it's much easier to handle it here than in the origin.
@@ -470,7 +471,7 @@ impl<'a> SourceMap<'a> {
                     end: (cur_lo.char as isize + acc + len) as usize,
                 });
             }
-            buf.push_str(part.replacement);
+            buf.push_str(&part.replacement);
             // Account for the difference between the width of the current code and the
             // snippet being suggested, so that the *later* suggestions are correctly
             // aligned on the screen. Note that cur_hi and cur_lo can be on different
@@ -514,7 +515,7 @@ pub(crate) struct MultilineAnnotation<'a> {
     pub start: Loc,
     pub end: Loc,
     pub kind: AnnotationKind,
-    pub label: Option<&'a str>,
+    pub label: Option<Cow<'a, str>>,
     pub overlaps_exactly: bool,
     pub highlight_source: bool,
 }
@@ -555,7 +556,7 @@ impl<'a> MultilineAnnotation<'a> {
             },
             end: self.end,
             kind: self.kind,
-            label: self.label,
+            label: self.label.clone(),
             annotation_type: LineAnnotationType::MultilineEnd(self.depth),
             highlight_source: self.highlight_source,
         }

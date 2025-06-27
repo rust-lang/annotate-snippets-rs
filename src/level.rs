@@ -2,8 +2,9 @@
 
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
-use crate::Title;
+use crate::{OptionCow, Title};
 use anstyle::Style;
+use std::borrow::Cow;
 
 /// Default `error:` [`Level`]
 pub const ERROR: Level<'_> = Level {
@@ -38,7 +39,7 @@ pub const HELP: Level<'_> = Level {
 /// [`Title`] severity level
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Level<'a> {
-    pub(crate) name: Option<Option<&'a str>>,
+    pub(crate) name: Option<Option<Cow<'a, str>>>,
     pub(crate) level: LevelInner,
 }
 
@@ -56,9 +57,9 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn text(self, text: Option<&'a str>) -> Level<'a> {
+    pub fn text(self, text: impl Into<OptionCow<'a>>) -> Level<'a> {
         Level {
-            name: Some(text),
+            name: Some(text.into().0),
             level: self.level,
         }
     }
@@ -72,11 +73,11 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn title(self, title: &'a str) -> Title<'a> {
+    pub fn title(self, title: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,
-            title,
+            title: title.into(),
             is_pre_styled: false,
         }
     }
@@ -89,18 +90,18 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn pre_styled_title(self, title: &'a str) -> Title<'a> {
+    pub fn pre_styled_title(self, title: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,
-            title,
+            title: title.into(),
             is_pre_styled: true,
         }
     }
 
-    pub(crate) fn as_str(&self) -> &'a str {
-        match (self.name, self.level) {
-            (Some(Some(name)), _) => name,
+    pub(crate) fn as_str(&'a self) -> &'a str {
+        match (&self.name, self.level) {
+            (Some(Some(name)), _) => name.as_ref(),
             (Some(None), _) => "",
             (None, LevelInner::Error) => ERROR_TXT,
             (None, LevelInner::Warning) => WARNING_TXT,
