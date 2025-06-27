@@ -23,8 +23,9 @@ fn main() {
             _ => continue,
         }
     }"#;
-    let message = Level::ERROR.header("mismatched types").id("E0308").group(
-        Group::new().element(
+    let message = &[Group::new()
+        .element(Level::ERROR.title("mismatched types").id("E0308"))
+        .element(
             Snippet::source(source)
                 .line_start(51)
                 .path("src/format.rs")
@@ -38,8 +39,7 @@ fn main() {
                         .span(26..724)
                         .label("expected enum `std::option::Option`"),
                 ),
-        ),
-    );
+        )];
 
     let renderer = Renderer::styled();
     anstream::println!("{}", renderer.render(message));

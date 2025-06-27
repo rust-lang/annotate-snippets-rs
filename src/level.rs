@@ -2,7 +2,7 @@
 
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
-use crate::{Element, Group, Message, Title};
+use crate::Title;
 use anstyle::Style;
 
 /// Default `error:` [`Level`]
@@ -35,7 +35,7 @@ pub const HELP: Level<'_> = Level {
     level: LevelInner::Help,
 };
 
-/// [`Message`] or [`Title`] severity level
+/// [`Title`] severity level
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Level<'a> {
     pub(crate) name: Option<Option<&'a str>>,
@@ -72,13 +72,12 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn header(self, header: &'a str) -> Message<'a> {
-        Message {
+    pub fn title(self, title: &'a str) -> Title<'a> {
+        Title {
+            level: self,
             id: None,
-            groups: vec![Group::new().element(Element::Title(Title {
-                level: self,
-                title: header,
-            }))],
+            title,
+            is_pre_styled: false,
         }
     }
 
@@ -90,8 +89,13 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn title(self, title: &'a str) -> Title<'a> {
-        Title { level: self, title }
+    pub fn pre_styled_title(self, title: &'a str) -> Title<'a> {
+        Title {
+            level: self,
+            id: None,
+            title,
+            is_pre_styled: true,
+        }
     }
 
     pub(crate) fn as_str(&self) -> &'a str {

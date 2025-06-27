@@ -15,27 +15,25 @@ fn case() {
 }
 "#;
 
-    let input = Level::ERROR.header("").group(
-        Group::new().element(
-            Snippet::source(source)
-                .line_start(96)
-                .annotation(
-                    AnnotationKind::Primary
-                        .span(100..110)
-                        .label("Variable defined here"),
-                )
-                .annotation(
-                    AnnotationKind::Primary
-                        .span(184..194)
-                        .label("Referenced here"),
-                )
-                .annotation(
-                    AnnotationKind::Primary
-                        .span(243..253)
-                        .label("Referenced again here"),
-                ),
-        ),
-    );
+    let input = &[Group::new().element(Level::ERROR.title("")).element(
+        Snippet::source(source)
+            .line_start(96)
+            .annotation(
+                AnnotationKind::Primary
+                    .span(100..110)
+                    .label("Variable defined here"),
+            )
+            .annotation(
+                AnnotationKind::Primary
+                    .span(184..194)
+                    .label("Referenced here"),
+            )
+            .annotation(
+                AnnotationKind::Primary
+                    .span(243..253)
+                    .label("Referenced again here"),
+            ),
+    )];
     let expected = file!["multiple_annotations.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

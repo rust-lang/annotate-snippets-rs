@@ -16,18 +16,19 @@ rust-version = "1.70"
 edition = "2021"
 "#;
 
-    let input = Level::ERROR
-        .header("invalid type: integer `20`, expected a lints table")
-        .id("E0308")
-        .group(
-            Group::new().element(
-                Snippet::source(source)
-                    .path("Cargo.toml")
-                    .line_start(1)
-                    .fold(true)
-                    .annotation(AnnotationKind::Primary.span(8..10).label("")),
-            ),
-        );
+    let input = &[Group::new()
+        .element(
+            Level::ERROR
+                .title("invalid type: integer `20`, expected a lints table")
+                .id("E0308"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("Cargo.toml")
+                .line_start(1)
+                .fold(true)
+                .annotation(AnnotationKind::Primary.span(8..10).label("")),
+        )];
     let expected = file!["fold_trailing.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

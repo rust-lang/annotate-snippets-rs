@@ -64,49 +64,44 @@ fn bay() -> Vec<(bool, HashSet<u8>)> {
 fn main() {}
 "#;
 
-    let input = Level::ERROR
-        .header("`(bool, HashSet<u8>)` is not an iterator")
-        .id("E0277")
-        .group(
-            Group::new()
-                .element(
-                    Snippet::source(source)
-                        .path("$DIR/multiline-removal-suggestion.rs")
-                        .fold(true)
-                        .annotation(
-                            AnnotationKind::Primary
-                                .span(769..776)
-                                .label("`(bool, HashSet<u8>)` is not an iterator"),
-                        ),
-                )
-                .element(
-                    Level::HELP
-                        .title("the trait `Iterator` is not implemented for `(bool, HashSet<u8>)`"),
-                )
-                .element(
-                    Level::NOTE
-                        .title("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
-                ),
-        )
-        .group(
-            Group::new()
-                .element(Level::NOTE.title("required by a bound in `flatten`"))
-                .element(
-                    Origin::new("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
-                        .line(1556)
-                        .char_column(4),
-                ),
-        )
-        .group(
-            Group::new()
-                .element(Level::HELP.title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds"))
-                .element(
-                    Snippet::source(source)
-                        .path("$DIR/multiline-removal-suggestion.rs")
-                        .fold(true)
-                        .patch(Patch::new(708..768, "")),
-                ),
-        );
+    let input = &[
+        Group::new()
+            .element(
+                Level::ERROR
+                    .title("`(bool, HashSet<u8>)` is not an iterator")
+                    .id("E0277"),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/multiline-removal-suggestion.rs")
+                    .fold(true)
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(769..776)
+                            .label("`(bool, HashSet<u8>)` is not an iterator"),
+                    ),
+            )
+            .element(
+                Level::HELP
+                    .title("the trait `Iterator` is not implemented for `(bool, HashSet<u8>)`"),
+            )
+            .element(
+                Level::NOTE.title("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
+            ),
+        Group::new()
+            .element(Level::NOTE.title("required by a bound in `flatten`"))
+            .element(
+                Origin::new("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
+                    .line(1556)
+                    .char_column(4),
+            ),
+        Group::new().element(Level::HELP.title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds")).element(
+            Snippet::source(source)
+                .path("$DIR/multiline-removal-suggestion.rs")
+                .fold(true)
+                .patch(Patch::new(708..768, "")),
+        ),
+    ];
     let expected = file!["multiline_removal_suggestion.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

@@ -15,22 +15,23 @@ fn main() {
 pub static C: u32 = 0 - 1;
 //~^ ERROR could not evaluate static initializer
 "#;
-    let message = Level::ERROR
-        .text(Some("error: internal compiler error"))
-        .header("could not evaluate static initializer")
-        .id("E0080")
-        .group(
-            Group::new().element(
-                Snippet::source(source)
-                    .path("$DIR/err.rs")
-                    .fold(true)
-                    .annotation(
-                        AnnotationKind::Primary
-                            .span(386..391)
-                            .label("attempt to compute `0_u32 - 1_u32`, which would overflow"),
-                    ),
-            ),
-        );
+    let message = &[Group::new()
+        .element(
+            Level::ERROR
+                .text(Some("error: internal compiler error"))
+                .title("could not evaluate static initializer")
+                .id("E0080"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/err.rs")
+                .fold(true)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(386..391)
+                        .label("attempt to compute `0_u32 - 1_u32`, which would overflow"),
+                ),
+        )];
 
     let renderer = Renderer::styled().theme(OutputTheme::Unicode);
     anstream::println!("{}", renderer.render(message));
