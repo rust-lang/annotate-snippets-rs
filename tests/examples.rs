@@ -50,6 +50,13 @@ fn highlight_title() {
 }
 
 #[test]
+fn id_hyperlink() {
+    let target = "id_hyperlink";
+    let expected = snapbox::file!["../examples/id_hyperlink.svg": TermSvg];
+    assert_example(target, expected);
+}
+
+#[test]
 fn multislice() {
     let target = "multislice";
     let expected = snapbox::file!["../examples/multislice.svg": TermSvg];
