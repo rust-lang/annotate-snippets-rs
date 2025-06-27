@@ -555,23 +555,44 @@ impl Renderer {
                 buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
             }
 
-            if title.level.name != Some(None) {
-                self.draw_note_separator(
-                    buffer,
-                    buffer_msg_line_offset,
-                    max_line_num_len + 1,
-                    is_cont,
-                );
+            self.draw_note_separator(
+                buffer,
+                buffer_msg_line_offset,
+                max_line_num_len + 1,
+                is_cont,
+            );
+
+            let label_width = if title.level.name != Some(None) {
                 buffer.append(
                     buffer_msg_line_offset,
                     title.level.as_str(),
                     ElementStyle::MainHeaderMsg,
                 );
                 buffer.append(buffer_msg_line_offset, ": ", ElementStyle::NoStyle);
-            }
+                title.level.as_str().len() + 2
+            } else {
+                0
+            };
+            // The extra 3 ` ` is padding that's always needed to align to the
+            // label i.e. `note: `:
+            //
+            //   error: message
+            //     --> file.rs:13:20
+            //      |
+            //   13 |     <CODE>
+            //      |      ^^^^
+            //      |
+            //      = note: multiline
+            //              message
+            //   ++^^^------
+            //    |  |     |
+            //    |  |     |
+            //    |  |     width of label
+            //    |  magic `3`
+            //    `max_line_num_len`
+            let padding = max_line_num_len + 3 + label_width;
 
-            let printed_lines =
-                self.msgs_to_buffer(buffer, title.title, max_line_num_len, "note", None);
+            let printed_lines = self.msgs_to_buffer(buffer, title.title, padding, None);
             if is_cont && matches!(self.theme, OutputTheme::Unicode) {
                 // There's another note after this one, associated to the subwindow above.
                 // We write additional vertical lines to join them:
@@ -659,26 +680,9 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         title: &str,
         padding: usize,
-        label: &str,
         override_style: Option<ElementStyle>,
     ) -> usize {
-        // The extra 5 ` ` is padding that's always needed to align to the `note: `:
-        //
-        //   error: message
-        //     --> file.rs:13:20
-        //      |
-        //   13 |     <CODE>
-        //      |      ^^^^
-        //      |
-        //      = note: multiline
-        //              message
-        //   ++^^^----xx
-        //    |  |   | |
-        //    |  |   | magic `2`
-        //    |  |   length of label
-        //    |  magic `3`
-        //    `max_line_num_len`
-        let padding = " ".repeat(padding + label.len() + 5);
+        let padding = " ".repeat(padding);
 
         let mut line_number = buffer.num_lines().saturating_sub(1);
 
