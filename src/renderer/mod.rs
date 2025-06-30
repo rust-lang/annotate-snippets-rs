@@ -229,14 +229,14 @@ impl Renderer {
                     .find_map(|s| match &s {
                         Element::Cause(cause) => {
                             if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                                Some(cause.path)
+                                Some(cause.path.as_ref())
                             } else {
                                 None
                             }
                         }
                         Element::Origin(origin) => {
                             if origin.primary {
-                                Some(Some(origin.path))
+                                Some(Some(&origin.path))
                             } else {
                                 None
                             }
@@ -248,8 +248,8 @@ impl Renderer {
                             .elements
                             .iter()
                             .find_map(|s| match &s {
-                                Element::Cause(cause) => Some(cause.path),
-                                Element::Origin(origin) => Some(Some(origin.path)),
+                                Element::Cause(cause) => Some(cause.path.as_ref()),
+                                Element::Origin(origin) => Some(Some(&origin.path)),
                                 _ => None,
                             })
                             .unwrap_or_default(),
@@ -269,7 +269,7 @@ impl Renderer {
                 let mut max_depth = 0;
                 for e in &group.elements {
                     if let Element::Cause(cause) = e {
-                        let source_map = SourceMap::new(cause.source, cause.line_start);
+                        let source_map = SourceMap::new(&cause.source, cause.line_start);
                         let (depth, annotated_lines) =
                             source_map.annotated_lines(cause.markers.clone(), cause.fold);
                         max_depth = max(max_depth, depth);
@@ -340,7 +340,7 @@ impl Renderer {
                         }
                         Element::Suggestion(suggestion) => {
                             let source_map =
-                                SourceMap::new(suggestion.source, suggestion.line_start);
+                                SourceMap::new(&suggestion.source, suggestion.line_start);
                             self.emit_suggestion_default(
                                 &mut buffer,
                                 suggestion,
@@ -426,10 +426,10 @@ impl Renderer {
             let labels_inner = cause
                 .markers
                 .iter()
-                .filter_map(|ann| match ann.label {
+                .filter_map(|ann| match &ann.label {
                     Some(msg) if ann.kind.is_primary() => {
                         if !msg.trim().is_empty() {
-                            Some(msg.to_owned())
+                            Some(msg.to_string())
                         } else {
                             None
                         }
@@ -442,11 +442,11 @@ impl Renderer {
                 labels = Some(labels_inner);
             }
 
-            if let Some(path) = cause.path {
-                let mut origin = Origin::new(path);
+            if let Some(path) = &cause.path {
+                let mut origin = Origin::new(path.as_ref());
                 origin.primary = true;
 
-                let source_map = SourceMap::new(cause.source, cause.line_start);
+                let source_map = SourceMap::new(&cause.source, cause.line_start);
                 let (_depth, annotated_lines) =
                     source_map.annotated_lines(cause.markers.clone(), cause.fold);
 
@@ -531,7 +531,7 @@ impl Renderer {
         if title.level.name != Some(None) {
             buffer.append(buffer_msg_line_offset, title.level.as_str(), label_style);
             label_width += title.level.as_str().len();
-            if let Some(Id { id: Some(id), url }) = title.id {
+            if let Some(Id { id: Some(id), url }) = &title.id {
                 buffer.append(buffer_msg_line_offset, "[", label_style);
                 if let Some(url) = url.as_ref() {
                     buffer.append(
@@ -575,9 +575,9 @@ impl Renderer {
         });
 
         let (title_str, style) = if title.is_pre_styled {
-            (title.title.to_owned(), ElementStyle::NoStyle)
+            (title.title.to_string(), ElementStyle::NoStyle)
         } else {
-            (normalize_whitespace(title.title), title_element_style)
+            (normalize_whitespace(&title.title), title_element_style)
         };
         for (i, text) in title_str.lines().enumerate() {
             if i != 0 {
@@ -654,7 +654,7 @@ impl Renderer {
                 format!("{}:{}:{}", origin.path, line, col)
             }
             (Some(line), None) => format!("{}:{}", origin.path, line),
-            _ => origin.path.to_owned(),
+            _ => origin.path.to_string(),
         };
 
         buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
@@ -671,17 +671,17 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         max_line_num_len: usize,
         snippet: &Snippet<'_, Annotation<'_>>,
-        primary_path: Option<&str>,
+        primary_path: Option<&Cow<'_, str>>,
         sm: &SourceMap<'_>,
         annotated_lines: &[AnnotatedLineInfo<'_>],
         multiline_depth: usize,
         is_cont: bool,
     ) {
-        if let Some(path) = snippet.path {
-            let mut origin = Origin::new(path);
+        if let Some(path) = &snippet.path {
+            let mut origin = Origin::new(path.as_ref());
             // print out the span location and spacer before we print the annotated source
             // to do this, we need to know if this span will be primary
-            let is_primary = primary_path == Some(origin.path);
+            let is_primary = primary_path == Some(&origin.path);
 
             if is_primary {
                 origin.primary = true;
@@ -1394,7 +1394,7 @@ impl Renderer {
             } else {
                 (pos + 2, annotation.start.display.saturating_sub(left))
             };
-            if let Some(label) = annotation.label {
+            if let Some(label) = &annotation.label {
                 buffer.puts(line_offset + pos, code_offset + col, label, style);
             }
         }
@@ -1535,7 +1535,7 @@ impl Renderer {
         suggestion: &Snippet<'_, Patch<'_>>,
         max_line_num_len: usize,
         sm: &SourceMap<'_>,
-        primary_path: Option<&str>,
+        primary_path: Option<&Cow<'_, str>>,
         is_cont: bool,
     ) {
         let suggestions = sm.splice_lines(suggestion.markers.clone());
@@ -1558,8 +1558,8 @@ impl Renderer {
                     ElementStyle::LineNumber,
                 );
             }
-            if suggestion.path != primary_path {
-                if let Some(path) = suggestion.path {
+            if suggestion.path.as_ref() != primary_path {
+                if let Some(path) = suggestion.path.as_ref() {
                     let (loc, _) = sm.span_to_locations(parts[0].span.clone());
                     // --> file.rs:line:col
                     //  |
@@ -1781,7 +1781,7 @@ impl Renderer {
                     // ...or trailing spaces. Account for substitutions containing unicode
                     // characters.
                     let sub_len: usize = str_width(if is_whitespace_addition {
-                        part.replacement
+                        &part.replacement
                     } else {
                         part.replacement.trim()
                     });
@@ -1802,7 +1802,7 @@ impl Renderer {
                     let padding: usize = max_line_num_len + 3;
                     for p in underline_start..underline_end {
                         if matches!(show_code_change, DisplaySuggestion::Underline)
-                            && is_different(sm, part.replacement, part.span.clone())
+                            && is_different(sm, &part.replacement, part.span.clone())
                         {
                             // If this is a replacement, underline with `~`, if this is an addition
                             // underline with `+`.
@@ -1903,7 +1903,7 @@ impl Renderer {
                     }
 
                     // length of the code after substitution
-                    let full_sub_len = str_width(part.replacement) as isize;
+                    let full_sub_len = str_width(&part.replacement) as isize;
 
                     // length of the code to be substituted
                     let snippet_len = span_end_pos as isize - span_start_pos as isize;
@@ -2631,7 +2631,7 @@ pub(crate) struct LineAnnotation<'a> {
     pub kind: AnnotationKind,
 
     /// Optional label to display adjacent to the annotation.
-    pub label: Option<&'a str>,
+    pub label: Option<Cow<'a, str>>,
 
     /// Is this a single line, multiline or multiline span minimized down to a
     /// smaller span.
@@ -2658,7 +2658,7 @@ impl LineAnnotation<'_> {
     }
 
     pub(crate) fn has_label(&self) -> bool {
-        if let Some(label) = self.label {
+        if let Some(label) = &self.label {
             // Consider labels with no text as effectively not being there
             // to avoid weird output with unnecessary vertical lines, like:
             //
