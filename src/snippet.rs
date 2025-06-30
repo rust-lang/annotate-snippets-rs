@@ -259,6 +259,7 @@ impl<'a> Annotation<'a> {
 
 /// The category of the [`Annotation`]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive]
 pub enum AnnotationKind {
     /// Color to the [`Level`] the first [`Title`] in [`Group`]. If no [`Title`]
     /// is present, it will default to `error`.
