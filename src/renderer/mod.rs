@@ -277,8 +277,8 @@ impl Renderer {
                 }
                 let level = group
                     .elements
-                    .iter()
-                    .find_map(|s| match &s {
+                    .first()
+                    .and_then(|s| match &s {
                         Element::Title(title) => Some(title.level.clone()),
                         _ => None,
                     })

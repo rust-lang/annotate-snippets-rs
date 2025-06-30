@@ -3,7 +3,7 @@
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
     .fg-bright-blue { fill: #5555FF }
-    .fg-bright-cyan { fill: #55FFFF }
+    .fg-bright-red { fill: #FF5555 }
     .container {
       padding: 0 10px;
       line-height: 18px;
@@ -27,7 +27,7 @@
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan> def foobar(door, bar={}):</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                      </tspan><tspan class="fg-bright-cyan bold">^^</tspan><tspan> </tspan><tspan class="fg-bright-cyan bold">B006</tspan>
+    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                      </tspan><tspan class="fg-bright-red bold">^^</tspan><tspan> </tspan><tspan class="fg-bright-red bold">B006</tspan>
 </tspan>
     <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">4</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>     """</tspan>
 </tspan>
