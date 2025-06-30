@@ -206,6 +206,24 @@ impl Renderer {
         self.stylesheet.none = style;
         self
     }
+
+    /// Set the output style for [`AnnotationKind::Context`]
+    pub const fn context(mut self, style: Style) -> Self {
+        self.stylesheet.context = style;
+        self
+    }
+
+    /// Set the output style for additions
+    pub const fn addition(mut self, style: Style) -> Self {
+        self.stylesheet.addition = style;
+        self
+    }
+
+    /// Set the output style for removals
+    pub const fn removal(mut self, style: Style) -> Self {
+        self.stylesheet.removal = style;
+        self
+    }
 }
 
 impl Renderer {
