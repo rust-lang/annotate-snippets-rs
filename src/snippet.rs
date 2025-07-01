@@ -20,6 +20,7 @@ pub(crate) struct Id<'a> {
 /// An [`Element`] container
 #[derive(Clone, Debug)]
 pub struct Group<'a> {
+    pub(crate) primary_level: Option<Level<'a>>,
     pub(crate) elements: Vec<Element<'a>>,
 }
 
@@ -31,7 +32,10 @@ impl Default for Group<'_> {
 
 impl<'a> Group<'a> {
     pub fn new() -> Self {
-        Self { elements: vec![] }
+        Self {
+            primary_level: None,
+            elements: vec![],
+        }
     }
 
     pub fn element(mut self, section: impl Into<Element<'a>>) -> Self {
@@ -41,6 +45,15 @@ impl<'a> Group<'a> {
 
     pub fn elements(mut self, sections: impl IntoIterator<Item = impl Into<Element<'a>>>) -> Self {
         self.elements.extend(sections.into_iter().map(Into::into));
+        self
+    }
+
+    /// Set the primary [`Level`] for this [`Group`].
+    ///
+    /// If not specified, use the [`Level`] of the first element in a [`Group`]
+    /// if it is a [`Title`]. If not it will default to [`Level::ERROR`].
+    pub fn primary_level(mut self, level: Level<'a>) -> Self {
+        self.primary_level = Some(level);
         self
     }
 
@@ -262,10 +275,16 @@ impl<'a> Annotation<'a> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum AnnotationKind {
-    /// Color to the [`Level`] the first [`Title`] in [`Group`]. If no [`Title`]
-    /// is present, it will default to `error`.
+    /// Match the primary [`Level`] of the group.
+    ///
+    /// See [`Group::primary_level`] for details about how this is determined
     Primary,
-    /// "secondary"; fixed color
+    /// Additional context to explain the [`Primary`][Self::Primary]
+    /// [`Annotation`]
+    ///
+    /// See also [`Renderer::context`].
+    ///
+    /// [`Renderer::context`]: crate::renderer::Renderer
     Context,
 }
 

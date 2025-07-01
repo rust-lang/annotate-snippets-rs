@@ -15,6 +15,13 @@ fn custom_level() {
 }
 
 #[test]
+fn elide_header() {
+    let target = "elide_header";
+    let expected = snapbox::file!["../examples/elide_header.svg": TermSvg];
+    assert_example(target, expected);
+}
+
+#[test]
 fn expected_type() {
     let target = "expected_type";
     let expected = snapbox::file!["../examples/expected_type.svg": TermSvg];
