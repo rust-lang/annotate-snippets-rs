@@ -262,10 +262,14 @@ impl<'a> Annotation<'a> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum AnnotationKind {
-    /// Color to the [`Level`] the first [`Title`] in [`Group`]. If no [`Title`]
-    /// is present, it will default to `error`.
+    /// Match the primary [`Level`] of the group.
     Primary,
-    /// "secondary"; fixed color
+    /// Additional context to explain the [`Primary`][Self::Primary]
+    /// [`Annotation`]
+    ///
+    /// See also [`Renderer::context`].
+    ///
+    /// [`Renderer::context`]: crate::renderer::Renderer
     Context,
 }
 
