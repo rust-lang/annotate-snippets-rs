@@ -267,9 +267,9 @@ impl<'a> Annotation<'a> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum AnnotationKind {
-    /// Match the primary [`Level`] of the group.
+    /// Shows the source that the [Group's Title][Group::with_title] references
     ///
-    /// See [`Group::with_level`] for details about how this is determined
+    /// For [`Title`]-less groups, see [`Group::with_level`]
     Primary,
     /// Additional context to explain the [`Primary`][Self::Primary]
     /// [`Annotation`]
@@ -396,16 +396,12 @@ impl<'a> Origin<'a> {
     }
 
     /// Set the default line number to display
-    ///
-    /// Otherwise this will be inferred from the primary [`Annotation`]
     pub fn line(mut self, line: usize) -> Self {
         self.line = Some(line);
         self
     }
 
     /// Set the default column to display
-    ///
-    /// Otherwise this will be inferred from the primary [`Annotation`]
     ///
     /// <div class="warning">
     ///
@@ -417,6 +413,7 @@ impl<'a> Origin<'a> {
         self
     }
 
+    /// Mark this as the source that the [Group's Title][Group::with_title] references
     pub fn primary(mut self, primary: bool) -> Self {
         self.primary = primary;
         self
