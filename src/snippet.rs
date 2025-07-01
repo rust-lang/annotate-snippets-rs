@@ -396,16 +396,12 @@ impl<'a> Origin<'a> {
     }
 
     /// Set the default line number to display
-    ///
-    /// Otherwise this will be inferred from the primary [`Annotation`]
     pub fn line(mut self, line: usize) -> Self {
         self.line = Some(line);
         self
     }
 
     /// Set the default column to display
-    ///
-    /// Otherwise this will be inferred from the primary [`Annotation`]
     ///
     /// <div class="warning">
     ///
