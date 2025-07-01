@@ -25,7 +25,6 @@ edition = "2021"
         Snippet::source(source)
             .path("Cargo.toml")
             .line_start(1)
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(8..10).label("")),
     )];
     let expected = file!["fold_trailing.term.svg"];

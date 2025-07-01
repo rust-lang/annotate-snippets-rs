@@ -29,7 +29,6 @@
 //!      Snippet::source(source)
 //!          .path("temp.rs")
 //!          .line_start(1)
-//!          .fold(true)
 //!          .annotation(
 //!              AnnotationKind::Primary
 //!                  .span(10..13)

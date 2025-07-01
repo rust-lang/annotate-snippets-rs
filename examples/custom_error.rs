@@ -22,14 +22,11 @@ pub static C: u32 = 0 - 1;
             .id("E0080"),
     )
     .element(
-        Snippet::source(source)
-            .path("$DIR/err.rs")
-            .fold(true)
-            .annotation(
-                AnnotationKind::Primary
-                    .span(386..391)
-                    .label("attempt to compute `0_u32 - 1_u32`, which would overflow"),
-            ),
+        Snippet::source(source).path("$DIR/err.rs").annotation(
+            AnnotationKind::Primary
+                .span(386..391)
+                .label("attempt to compute `0_u32 - 1_u32`, which would overflow"),
+        ),
     )];
 
     let renderer = Renderer::styled().theme(OutputTheme::Unicode);

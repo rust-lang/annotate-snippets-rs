@@ -33,7 +33,6 @@ fn case() {
             Snippet::source(source)
                 .path("src/format.rs")
                 .line_start(51)
-                .fold(true)
                 .annotation(AnnotationKind::Context.span(5..19).label(
                     "expected `std::option::Option<std::string::String>` because of return type",
                 ))

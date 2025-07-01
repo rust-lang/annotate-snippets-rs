@@ -5,11 +5,13 @@ fn main() {
         .element(
             Snippet::<Annotation<'_>>::source("Foo")
                 .line_start(51)
+                .fold(false)
                 .path("src/format.rs"),
         )
         .element(
             Snippet::<Annotation<'_>>::source("Faa")
                 .line_start(129)
+                .fold(false)
                 .path("src/display.rs"),
         )];
 
