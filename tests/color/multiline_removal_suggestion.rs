@@ -65,8 +65,7 @@ fn main() {}
 "#;
 
     let input = &[
-        Group::new()
-            .element(
+        Group::with_title(
                 Level::ERROR
                     .title("`(bool, HashSet<u8>)` is not an iterator")
                     .id("E0277"),
@@ -88,14 +87,13 @@ fn main() {}
             .element(
                 Level::NOTE.title("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
             ),
-        Group::new()
-            .element(Level::NOTE.title("required by a bound in `flatten`"))
+        Group::with_title(Level::NOTE.title("required by a bound in `flatten`"))
             .element(
                 Origin::new("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
                     .line(1556)
                     .char_column(4),
             ),
-        Group::new().element(Level::HELP.title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds")).element(
+        Group::with_title(Level::HELP.title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds")).element(
             Snippet::source(source)
                 .path("$DIR/multiline-removal-suggestion.rs")
                 .fold(true)

@@ -9,9 +9,8 @@ of an edge case of an annotation overflowing
 to exactly one character on next line.
 "#;
 
-    let input = &[Group::new()
-        .element(Level::ERROR.title("spacing error found").id("E####"))
-        .element(
+    let input = &[
+        Group::with_title(Level::ERROR.title("spacing error found").id("E####")).element(
             Snippet::source(source)
                 .path("foo.txt")
                 .line_start(26)
@@ -21,7 +20,8 @@ to exactly one character on next line.
                         .span(11..19)
                         .label("this should not be on separate lines"),
                 ),
-        )];
+        ),
+    ];
     let expected = file!["ann_multiline2.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

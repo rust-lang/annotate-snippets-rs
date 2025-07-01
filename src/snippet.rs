@@ -20,20 +20,21 @@ pub(crate) struct Id<'a> {
 /// An [`Element`] container
 #[derive(Clone, Debug)]
 pub struct Group<'a> {
-    pub(crate) primary_level: Option<Level<'a>>,
+    pub(crate) primary_level: Level<'a>,
     pub(crate) elements: Vec<Element<'a>>,
 }
 
-impl Default for Group<'_> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl<'a> Group<'a> {
-    pub fn new() -> Self {
+    /// Create group with a title, deriving the primary [`Level`] for [`Annotation`]s from it
+    pub fn with_title(title: Title<'a>) -> Self {
+        let level = title.level.clone();
+        Self::with_level(level).element(title)
+    }
+
+    /// Create a title-less group with a primary [`Level`] for [`Annotation`]s
+    pub fn with_level(level: Level<'a>) -> Self {
         Self {
-            primary_level: None,
+            primary_level: level,
             elements: vec![],
         }
     }
@@ -45,15 +46,6 @@ impl<'a> Group<'a> {
 
     pub fn elements(mut self, sections: impl IntoIterator<Item = impl Into<Element<'a>>>) -> Self {
         self.elements.extend(sections.into_iter().map(Into::into));
-        self
-    }
-
-    /// Set the primary [`Level`] for this [`Group`].
-    ///
-    /// If not specified, use the [`Level`] of the first element in a [`Group`]
-    /// if it is a [`Title`]. If not it will default to [`Level::ERROR`].
-    pub fn primary_level(mut self, level: Level<'a>) -> Self {
-        self.primary_level = Some(level);
         self
     }
 
@@ -277,7 +269,7 @@ impl<'a> Annotation<'a> {
 pub enum AnnotationKind {
     /// Match the primary [`Level`] of the group.
     ///
-    /// See [`Group::primary_level`] for details about how this is determined
+    /// See [`Group::with_level`] for details about how this is determined
     Primary,
     /// Additional context to explain the [`Primary`][Self::Primary]
     /// [`Annotation`]

@@ -4,7 +4,7 @@ use snapbox::{assert_data_eq, file};
 
 #[test]
 fn case() {
-    let input = &[Group::new().element(Level::ERROR.title("expected one of `.`, `;`, `?`, or an operator, found `for`"))
+    let input = &[Group::with_title(Level::ERROR.title("expected one of `.`, `;`, `?`, or an operator, found `for`"))
         .element(
             Snippet::source("let x = vec![1];")
                 .path("/code/rust/src/test/ui/annotate-snippet/suggestion.rs")

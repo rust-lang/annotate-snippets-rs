@@ -17,19 +17,18 @@ edition = "2021"
 workspace = 20
 "#;
 
-    let input = &[Group::new()
-        .element(
-            Level::ERROR
-                .title("invalid type: integer `20`, expected a bool")
-                .id("E0308"),
-        )
-        .element(
-            Snippet::source(source)
-                .path("Cargo.toml")
-                .line_start(1)
-                .fold(true)
-                .annotation(AnnotationKind::Primary.span(132..134).label("")),
-        )];
+    let input = &[Group::with_title(
+        Level::ERROR
+            .title("invalid type: integer `20`, expected a bool")
+            .id("E0308"),
+    )
+    .element(
+        Snippet::source(source)
+            .path("Cargo.toml")
+            .line_start(1)
+            .fold(true)
+            .annotation(AnnotationKind::Primary.span(132..134).label("")),
+    )];
     let expected = file!["fold_leading.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

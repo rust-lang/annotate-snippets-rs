@@ -42,8 +42,7 @@ fn main() {
     );
 
     let message = &[
-        Group::new()
-            .element(Level::ERROR.title("mismatched types").id("E0308"))
+        Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(source)
                     .fold(true)
@@ -60,15 +59,13 @@ fn main() {
                     ),
             )
             .element(Level::NOTE.pre_styled_title(&title)),
-        Group::new()
-            .element(Level::NOTE.title("function defined here"))
-            .element(
-                Snippet::source(source)
-                    .fold(true)
-                    .path("$DIR/highlighting.rs")
-                    .annotation(AnnotationKind::Context.span(200..333).label(""))
-                    .annotation(AnnotationKind::Primary.span(194..199)),
-            ),
+        Group::with_title(Level::NOTE.title("function defined here")).element(
+            Snippet::source(source)
+                .fold(true)
+                .path("$DIR/highlighting.rs")
+                .annotation(AnnotationKind::Context.span(200..333).label(""))
+                .annotation(AnnotationKind::Primary.span(194..199)),
+        ),
     ];
 
     let renderer = Renderer::styled().anonymized_line_numbers(true);

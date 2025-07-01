@@ -9,23 +9,24 @@ fn case() {
         for line in &self.body {
 "#;
 
-    let input = &[Group::new()
-        .element(Level::ERROR.title("expected one of `.`, `;`, `?`, or an operator, found `for`"))
-        .element(
-            Snippet::source(source)
-                .path("src/format_color.rs")
-                .line_start(169)
-                .annotation(
-                    AnnotationKind::Primary
-                        .span(20..23)
-                        .label("unexpected token"),
-                )
-                .annotation(
-                    AnnotationKind::Context
-                        .span(10..11)
-                        .label("expected one of `.`, `;`, `?`, or an operator here"),
-                ),
-        )];
+    let input = &[Group::with_title(
+        Level::ERROR.title("expected one of `.`, `;`, `?`, or an operator, found `for`"),
+    )
+    .element(
+        Snippet::source(source)
+            .path("src/format_color.rs")
+            .line_start(169)
+            .annotation(
+                AnnotationKind::Primary
+                    .span(20..23)
+                    .label("unexpected token"),
+            )
+            .annotation(
+                AnnotationKind::Context
+                    .span(10..11)
+                    .label("expected one of `.`, `;`, `?`, or an operator here"),
+            ),
+    )];
     let expected = file!["simple.term.svg"];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected);

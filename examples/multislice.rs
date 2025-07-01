@@ -1,8 +1,7 @@
 use annotate_snippets::{Annotation, Group, Level, Renderer, Snippet};
 
 fn main() {
-    let message = &[Group::new()
-        .element(Level::ERROR.title("mismatched types"))
+    let message = &[Group::with_title(Level::ERROR.title("mismatched types"))
         .element(
             Snippet::<Annotation<'_>>::source("Foo")
                 .line_start(51)

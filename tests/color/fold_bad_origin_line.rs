@@ -9,7 +9,7 @@ fn case() {
 invalid syntax
 "#;
 
-    let input = &[Group::new().element(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.title("")).element(
         Snippet::source(source)
             .path("path/to/error.rs")
             .line_start(1)
