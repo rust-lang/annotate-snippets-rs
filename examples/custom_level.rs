@@ -30,41 +30,39 @@ fn main() {
 }
 "#;
     let message = &[
-        Group::new()
-            .element(
-                Level::ERROR
-                    .title("`break` with value from a `while` loop")
-                    .id("E0571"),
-            )
-            .element(
-                Snippet::source(source)
-                    .line_start(1)
-                    .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                    .fold(true)
-                    .annotation(
-                        AnnotationKind::Primary
-                            .span(483..581)
-                            .label("can only break with a value inside `loop` or breakable block"),
-                    )
-                    .annotation(
-                        AnnotationKind::Context
-                            .span(462..472)
-                            .label("you can't `break` with a value in a `while` loop"),
-                    ),
-            ),
-        Group::new()
-            .element(
-                Level::HELP
-                    .text(Some("suggestion"))
-                    .title("use `break` on its own without a value inside this `while` loop"),
-            )
-            .element(
-                Snippet::source(source)
-                    .line_start(1)
-                    .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                    .fold(true)
-                    .patch(Patch::new(483..581, "break")),
-            ),
+        Group::with_title(
+            Level::ERROR
+                .title("`break` with value from a `while` loop")
+                .id("E0571"),
+        )
+        .element(
+            Snippet::source(source)
+                .line_start(1)
+                .path("$DIR/issue-114529-illegal-break-with-value.rs")
+                .fold(true)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(483..581)
+                        .label("can only break with a value inside `loop` or breakable block"),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(462..472)
+                        .label("you can't `break` with a value in a `while` loop"),
+                ),
+        ),
+        Group::with_title(
+            Level::HELP
+                .text(Some("suggestion"))
+                .title("use `break` on its own without a value inside this `while` loop"),
+        )
+        .element(
+            Snippet::source(source)
+                .line_start(1)
+                .path("$DIR/issue-114529-illegal-break-with-value.rs")
+                .fold(true)
+                .patch(Patch::new(483..581, "break")),
+        ),
     ];
 
     let renderer = Renderer::styled().theme(OutputTheme::Unicode);

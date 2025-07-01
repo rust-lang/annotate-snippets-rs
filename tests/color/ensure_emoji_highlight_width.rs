@@ -7,8 +7,7 @@ fn case() {
     let source = r#""haha this isn't a valid name 🐛" = { package = "libc", version = "0.1" }
 "#;
 
-    let input = &[Group::new()
-        .element(Level::ERROR.title("invalid character ` ` in package name: `haha this isn't a valid name 🐛`, characters must be Unicode XID characters (numbers, `-`, `_`, or most letters)"))
+    let input = &[Group::with_title(Level::ERROR.title("invalid character ` ` in package name: `haha this isn't a valid name 🐛`, characters must be Unicode XID characters (numbers, `-`, `_`, or most letters)"))
         .element(
             Snippet::source(source)
                 .path("<file>")

@@ -6,9 +6,8 @@ fn main() {
                     ,
                 range: <22, 25>,"#;
     let message =
-        &[Group::new()
-            .element(Level::ERROR.title("expected type, found `22`"))
-            .element(
+        &[
+            Group::with_title(Level::ERROR.title("expected type, found `22`")).element(
                 Snippet::source(source)
                     .line_start(26)
                     .path("examples/footer.rs")
@@ -21,7 +20,8 @@ fn main() {
                             .span(34..50)
                             .label("while parsing this struct"),
                     ),
-            )];
+            ),
+        ];
 
     let renderer = Renderer::styled();
     anstream::println!("{}", renderer.render(message));

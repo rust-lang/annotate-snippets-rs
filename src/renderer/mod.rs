@@ -20,23 +20,22 @@
 //! "#;
 //!
 //!
-//!  Group::new()
-//!     .element(
-//!         Level::ERROR
-//!             .title("unresolved import `baz::zed`")
-//!             .id("E0432")
-//!     )
-//!     .element(
-//!         Snippet::source(source)
-//!             .path("temp.rs")
-//!             .line_start(1)
-//!             .fold(true)
-//!             .annotation(
-//!                 AnnotationKind::Primary
-//!                     .span(10..13)
-//!                     .label("could not find `zed` in `baz`"),
-//!             )
-//!     );
+//!  Group::with_title(
+//!      Level::ERROR
+//!          .title("unresolved import `baz::zed`")
+//!          .id("E0432")
+//!  )
+//!  .element(
+//!      Snippet::source(source)
+//!          .path("temp.rs")
+//!          .line_start(1)
+//!          .fold(true)
+//!          .annotation(
+//!              AnnotationKind::Primary
+//!                  .span(10..13)
+//!                  .label("could not find `zed` in `baz`"),
+//!          )
+//!  );
 //! ```
 
 mod margin;
@@ -275,16 +274,7 @@ impl Renderer {
                 if og_primary_path.is_none() && primary_path.is_some() {
                     og_primary_path = primary_path;
                 }
-                let level = group.primary_level.clone().unwrap_or_else(|| {
-                    group
-                        .elements
-                        .first()
-                        .and_then(|s| match &s {
-                            Element::Title(title) => Some(title.level.clone()),
-                            _ => None,
-                        })
-                        .unwrap_or(Level::ERROR)
-                });
+                let level = group.primary_level.clone();
                 let mut source_map_annotated_lines = VecDeque::new();
                 let mut max_depth = 0;
                 for e in &group.elements {

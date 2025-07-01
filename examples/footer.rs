@@ -1,10 +1,9 @@
 use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
 
 fn main() {
-    let message = &[
-        Group::new()
-            .element(Level::ERROR.title("mismatched types").id("E0308"))
-            .element(
+    let message =
+        &[
+            Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
                 Snippet::source("        slices: vec![\"A\",")
                     .line_start(13)
                     .path("src/multislice.rs")
@@ -12,10 +11,10 @@ fn main() {
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
                     )),
             ),
-        Group::new().element(Level::NOTE.title(
-            "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
-        )),
-    ];
+            Group::with_title(Level::NOTE.title(
+                "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
+            )),
+        ];
 
     let renderer = Renderer::styled();
     anstream::println!("{}", renderer.render(message));
