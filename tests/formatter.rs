@@ -2612,3 +2612,26 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input_new), expected);
 }
+
+#[test]
+fn empty_span_start_line() {
+    let source = "#: E112\nif False:\nprint()\n#: E113\nprint()\n";
+    let input = &[Group::with_level(Level::ERROR).element(
+        Snippet::source(source)
+            .line_start(7)
+            .fold(false)
+            .annotation(AnnotationKind::Primary.span(18..18).label("E112")),
+    )];
+
+    let expected = str![[r#"
+   |
+ 7 | #: E112
+ 8 | if False:
+ 9 | print()
+   | ^ E112
+10 | #: E113
+11 | print()
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected);
+}
