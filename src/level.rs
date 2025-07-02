@@ -50,6 +50,8 @@ impl<'a> Level<'a> {
     pub const NOTE: Level<'a> = NOTE;
     pub const HELP: Level<'a> = HELP;
 
+    /// Replace the name describing this [`Level`]
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such
@@ -57,9 +59,9 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn text(self, text: impl Into<OptionCow<'a>>) -> Level<'a> {
+    pub fn with_name(self, name: impl Into<OptionCow<'a>>) -> Level<'a> {
         Level {
-            name: Some(text.into().0),
+            name: Some(name.into().0),
             level: self.level,
         }
     }

@@ -2397,7 +2397,7 @@ fn secondary_title_no_level_text() {
             )
             .element(
                 Level::NOTE
-                    .text(None::<&str>)
+                    .with_name(None::<&str>)
                     .title("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
             ),
     ];
@@ -2442,7 +2442,7 @@ fn secondary_title_custom_level_text() {
             )
             .element(
                 Level::NOTE
-                    .text(Some("custom"))
+                    .with_name(Some("custom"))
                     .title("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
             ),
     ];
@@ -2515,7 +2515,7 @@ fn main() {
         ),
         Group::with_title(
             Level::HELP
-                .text(Some("suggestion"))
+                .with_name(Some("suggestion"))
                 .title("use `break` on its own without a value inside this `while` loop")
                 .id("S0123"),
         )

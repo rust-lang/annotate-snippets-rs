@@ -52,7 +52,7 @@ fn main() {
         ),
         Group::with_title(
             Level::HELP
-                .text(Some("suggestion"))
+                .with_name(Some("suggestion"))
                 .title("use `break` on its own without a value inside this `while` loop"),
         )
         .element(
