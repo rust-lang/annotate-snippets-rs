@@ -28,6 +28,7 @@ fn main() {
             Snippet::source(source)
                 .line_start(51)
                 .path("src/format.rs")
+                .fold(false)
                 .annotation(
                     AnnotationKind::Context
                         .span(5..19)

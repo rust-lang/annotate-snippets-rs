@@ -26,7 +26,6 @@ workspace = 20
         Snippet::source(source)
             .path("Cargo.toml")
             .line_start(1)
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(132..134).label("")),
     )];
     let expected = file!["fold_leading.term.svg"];

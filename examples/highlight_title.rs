@@ -45,7 +45,6 @@ fn main() {
         Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(source)
-                    .fold(true)
                     .path("$DIR/highlighting.rs")
                     .annotation(
                         AnnotationKind::Primary
@@ -61,7 +60,6 @@ fn main() {
             .element(Level::NOTE.pre_styled_title(&title)),
         Group::with_title(Level::NOTE.title("function defined here")).element(
             Snippet::source(source)
-                .fold(true)
                 .path("$DIR/highlighting.rs")
                 .annotation(AnnotationKind::Context.span(200..333).label(""))
                 .annotation(AnnotationKind::Primary.span(194..199)),

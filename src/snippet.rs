@@ -168,7 +168,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
             line_start: 1,
             source: source.into(),
             markers: vec![],
-            fold: false,
+            fold: true,
         }
     }
 

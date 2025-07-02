@@ -13,7 +13,6 @@ fn main() {}
         .id("E0010"))
         .element(
             Snippet::source(source)
-                .fold(true)
                 .path("$DIR/E0010-teach.rs")
                 .annotation(
                     AnnotationKind::Primary

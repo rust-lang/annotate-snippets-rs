@@ -17,7 +17,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(10..13).label("test")),
     )];
 
@@ -45,7 +44,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(10..17).label("test")),
     )];
     let expected = str![[r#"
@@ -74,7 +72,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..32)
@@ -115,7 +112,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..27)
@@ -157,7 +153,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(17..38)
@@ -199,7 +194,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..38)
@@ -244,7 +238,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..38)
@@ -290,7 +283,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(17..27)
@@ -338,7 +330,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..27)
@@ -380,7 +371,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(17..27)
@@ -421,7 +411,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(18..25).label(""))
             .annotation(
                 AnnotationKind::Context
@@ -452,7 +441,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..27)
@@ -482,7 +470,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(18..25)
@@ -515,7 +502,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(14..27).label(""))
             .annotation(
                 AnnotationKind::Context
@@ -547,7 +533,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..18)
@@ -579,7 +564,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(14..27).label(""))
             .annotation(AnnotationKind::Context.span(18..25).label("")),
     )];
@@ -605,7 +589,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(18..25).label(""))
             .annotation(AnnotationKind::Context.span(14..27).label(""))
             .annotation(AnnotationKind::Context.span(22..23).label("")),
@@ -632,7 +615,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..27)
@@ -669,7 +651,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(14..27)
@@ -698,7 +679,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(AnnotationKind::Primary.span(14..27).label("")),
     )];
 
@@ -736,7 +716,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(17..27)
@@ -794,7 +773,6 @@ fn foo() {
         Snippet::source(source)
             .line_start(1)
             .path("test.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(17..73)
@@ -849,7 +827,6 @@ fn f(){||yield(((){),
                     Snippet::source(source)
                         .line_start(1)
                         .path("$DIR/issue-91334.rs")
-                        .fold(true)
                         .annotation(
                             AnnotationKind::Context
                                 .span(151..152)
@@ -923,7 +900,6 @@ fn main() {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(483..581)
@@ -942,7 +918,6 @@ fn main() {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Context.span(483..581).label("break")),
         ),
     ];
@@ -1130,7 +1105,6 @@ fn nsize() {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/primitive_reprs_should_have_correct_length.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(4375..4381)
@@ -1141,7 +1115,6 @@ fn nsize() {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/primitive_reprs_should_have_correct_length.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Context
                         .span(225..240)
@@ -1211,7 +1184,7 @@ fn main() {
         .id("E027s7")).element(
                 Snippet::source(source)
                     .line_start(1)
-                    .fold(true)
+
                     .path("$DIR/align-fail.rs")
                     .annotation(
                         AnnotationKind::Primary
@@ -1281,7 +1254,6 @@ fn main() {}
         Snippet::source(source)
             .line_start(1)
             .path("$DIR/missing-semicolon.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Context
                     .span(108..144)
@@ -1372,7 +1344,7 @@ outer_macro!(FirstStruct, FirstAttrStruct);
                     Snippet::source(aux_source)
                         .line_start(1)
                         .path("$DIR/auxiliary/nested-macro-rules.rs")
-                        .fold(true)
+
                         .annotation(
                             AnnotationKind::Context
                                 .span(41..65)
@@ -1384,7 +1356,7 @@ outer_macro!(FirstStruct, FirstAttrStruct);
                     Snippet::source(source)
                         .line_start(1)
                         .path("$DIR/nested-macro-rules.rs")
-                        .fold(true)
+
                         .annotation(
                             AnnotationKind::Context
                                 .span(510..574)
@@ -1404,7 +1376,7 @@ outer_macro!(FirstStruct, FirstAttrStruct);
                     Snippet::source(source)
                         .line_start(1)
                         .path("$DIR/nested-macro-rules.rs")
-                        .fold(true)
+
                         .annotation(AnnotationKind::Primary.span(224..245)),
                 )];
     let expected = str![[r#"
@@ -1503,7 +1475,6 @@ macro_rules! inline {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/method-on-ambiguous-numeric-type.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(916..919)),
         ),
         Group::with_title(
@@ -1513,7 +1484,6 @@ macro_rules! inline {
             Snippet::source(aux_source)
                 .line_start(1)
                 .path("$DIR/auxiliary/macro-in-other-crate.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Context.span(69..69).label(": i32")),
         ),
     ];
@@ -1563,7 +1533,6 @@ fn main() {}
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/issue-42234-unknown-receiver-type.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(536..539).label(
                     "cannot infer type of the type parameter `S` declared on the method `sum`",
                 )),
@@ -1670,7 +1639,7 @@ fn main() {}
                 Snippet::source(source)
                     .line_start(1)
                     .path("$DIR/empty-match.rs")
-                    .fold(true)
+
                     .annotation(
                         AnnotationKind::Primary
                             .span(2911..2928)
@@ -1682,7 +1651,7 @@ fn main() {}
                     Snippet::source(source)
                         .line_start(1)
                         .path("$DIR/empty-match.rs")
-                        .fold(true)
+
                         .annotation(AnnotationKind::Primary.span(818..831))
                         .annotation(AnnotationKind::Context.span(842..844).label("not covered"))
                         .annotation(AnnotationKind::Context.span(854..856).label("not covered"))
@@ -1701,7 +1670,7 @@ fn main() {}
                     Snippet::source(source)
                         .line_start(1)
                         .path("$DIR/empty-match.rs")
-                        .fold(true)
+
                         .annotation(AnnotationKind::Context.span(485..485).label(",\n                _ => todo!()"))
 
         )];
@@ -1763,7 +1732,7 @@ fn main() {
                 Snippet::source(source)
                     .line_start(1)
                     .path("$DIR/object-fail.rs")
-                    .fold(true)
+
                     .annotation(
                         AnnotationKind::Primary
                             .span(107..114)
@@ -1785,7 +1754,7 @@ fn main() {
                     Snippet::source(source)
                         .line_start(1)
                         .path("$DIR/object-fail.rs")
-                        .fold(true)
+
                         .annotation(
                             AnnotationKind::Context
                                 .span(32..39)
@@ -1827,7 +1796,6 @@ fn main() {}
         Group::with_title(Level::ERROR.title("mismatched types").id("E0038")).element(
             Snippet::source(source)
                 .path("$DIR/long-span.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(15..5055)
@@ -1861,7 +1829,6 @@ fn main() {}
         Group::with_title(Level::ERROR.title("mismatched types").id("E0038")).element(
             Snippet::source(source)
                 .path("$DIR/long-span.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(15..5055)
@@ -1896,7 +1863,6 @@ fn main() {}
         Group::with_title(Level::ERROR.title("mismatched types").id("E0038")).element(
             Snippet::source(source)
                 .path("$DIR/long-span.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(15..5055)
@@ -1931,7 +1897,6 @@ fn main() {}
         Group::with_title(Level::ERROR.title("mismatched types").id("E0038")).element(
             Snippet::source(source)
                 .path("$DIR/long-span.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(15..5055)
@@ -1983,7 +1948,7 @@ fn main() {
                 .element(
                     Snippet::source(source)
                         .path("$DIR/lint_map_unit_fn.rs")
-                        .fold(true)
+
                         .annotation(AnnotationKind::Context.span(271..278).label(
                             "this function returns `()`, which is likely not what you wanted",
                         ))
@@ -2005,7 +1970,7 @@ fn main() {
                 .element(
                     Snippet::source(source)
                         .path("$DIR/lint_map_unit_fn.rs")
-                        .fold(true)
+
                         .patch(Patch::new(267..270, r#"for_each"#)),
                 )];
 
@@ -2071,14 +2036,12 @@ fn main() {
         Group::with_title(Level::ERROR.title("character constant must be escaped: `\\n`")).element(
             Snippet::source(source)
                 .path("$DIR/bad-char-literals.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(204..205)),
         ),
         Group::with_title(Level::HELP.title("escape the character")).element(
             Snippet::source(source)
                 .path("$DIR/bad-char-literals.rs")
                 .line_start(1)
-                .fold(true)
                 .patch(Patch::new(204..205, r#"\n"#)),
         ),
     ];
@@ -2120,13 +2083,11 @@ fn main() {}
         Group::with_title(Level::ERROR.title("unclosed frontmatter")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-1.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..221)),
         ),
         Group::with_title(Level::NOTE.title("frontmatter opening here was not closed")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-1.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..4)),
         ),
     ];
@@ -2174,13 +2135,11 @@ fn foo() -> &str {
         Group::with_title(Level::ERROR.title("unclosed frontmatter")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-2.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..377)),
         ),
         Group::with_title(Level::NOTE.title("frontmatter opening here was not closed")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-2.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..4)),
         ),
     ];
@@ -2231,7 +2190,6 @@ fn foo(x: i32) -> i32 {
             .element(
                 Snippet::source(source)
                     .path("$DIR/unclosed-3.rs")
-                    .fold(true)
                     .annotation(AnnotationKind::Primary.span(302..310)),
             ),
         Group::with_title(
@@ -2240,7 +2198,6 @@ fn foo(x: i32) -> i32 {
         .element(
             Snippet::source(source)
                 .path("$DIR/unclosed-3.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(302..306)),
         ),
     ];
@@ -2280,13 +2237,11 @@ fn main() {}
         Group::with_title(Level::ERROR.title("unclosed frontmatter")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-4.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..43)),
         ),
         Group::with_title(Level::NOTE.title("frontmatter opening here was not closed")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-4.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..4)),
         ),
     ];
@@ -2329,13 +2284,11 @@ fn main() {}
         Group::with_title(Level::ERROR.title("unclosed frontmatter")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-5.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..176)),
         ),
         Group::with_title(Level::NOTE.title("frontmatter opening here was not closed")).element(
             Snippet::source(source)
                 .path("$DIR/unclosed-5.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(0..4)),
         ),
     ];
@@ -2454,13 +2407,11 @@ pub enum E2 {
         .element(
             Snippet::source(source)
                 .path("$DIR/pat-tuple-field-count-cross.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(1760..1766)),
         )
         .element(
             Snippet::source(source1)
                 .path("$DIR/auxiliary/declarations-for-tuple-field-count-errors.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Context
                         .span(143..145)
@@ -2476,13 +2427,11 @@ pub enum E2 {
             .element(
                 Snippet::source(source)
                     .path("$DIR/pat-tuple-field-count-cross.rs")
-                    .fold(true)
                     .patch(Patch::new(1760..1766, r#"E1::Z1()"#)),
             ),
         Group::with_title(Level::HELP.title("a unit variant with a similar name exists")).element(
             Snippet::source(source)
                 .path("$DIR/pat-tuple-field-count-cross.rs")
-                .fold(true)
                 .patch(Patch::new(1764..1766, r#"Z0"#)),
         ),
     ];
@@ -2528,7 +2477,6 @@ fn unterminated_nested_comment() {
         Group::with_title(Level::ERROR.title("unterminated block comment").id("E0758")).element(
             Snippet::source(source)
                 .path("$DIR/unterminated-nested-comment.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Context
                         .span(0..2)
@@ -2584,7 +2532,6 @@ fn mismatched_types1() {
         Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(file_txt_source)
-                    .fold(true)
                     .line_start(3)
                     .path("$DIR/file.txt")
                     .annotation(
@@ -2596,7 +2543,6 @@ fn mismatched_types1() {
             .element(
                 Snippet::source(rust_source)
                     .path("$DIR/mismatched-types.rs")
-                    .fold(true)
                     .annotation(
                         AnnotationKind::Context
                             .span(23..28)
@@ -2648,7 +2594,6 @@ fn mismatched_types2() {
             .element(
                 Snippet::source(source)
                     .path("$DIR/mismatched-types.rs")
-                    .fold(true)
                     .annotation(
                         AnnotationKind::Primary
                             .span(105..131)
@@ -2701,7 +2646,6 @@ fn main() {
         Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
             Snippet::source(source)
                 .path("$DIR/short-error-format.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(80..100)
@@ -2716,7 +2660,6 @@ fn main() {
         Group::with_title(Level::NOTE.title("function defined here")).element(
             Snippet::source(source)
                 .path("$DIR/short-error-format.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Context.span(48..54).label(""))
                 .annotation(AnnotationKind::Primary.span(44..47)),
         ),
@@ -2754,7 +2697,6 @@ fn main() {
     .element(
         Snippet::source(source)
             .path("$DIR/short-error-format.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(127..132)
@@ -2789,7 +2731,6 @@ pub struct Foo; //~^ ERROR
             .element(
                 Snippet::source(source_0)
                     .path("$DIR/diagnostic-width.rs")
-                    .fold(true)
                     .annotation(AnnotationKind::Primary.span(111..126)),
             )
             .element(
@@ -2798,14 +2739,12 @@ pub struct Foo; //~^ ERROR
         Group::with_title(Level::NOTE.title("the lint level is defined here")).element(
             Snippet::source(source_0)
                 .path("$DIR/diagnostic-width.rs")
-                .fold(true)
                 .annotation(AnnotationKind::Primary.span(49..67)),
         ),
         Group::with_title(Level::HELP.title("use an automatic link instead")).element(
             Snippet::source(source_1)
                 .path("$DIR/diagnostic-width.rs")
                 .line_start(4)
-                .fold(true)
                 .patch(Patch::new(40..40, "<"))
                 .patch(Patch::new(55..55, ">")),
         ),
@@ -2854,7 +2793,6 @@ fn main() {
             .element(
                 Snippet::source(source1)
                     .path("lint_example.rs")
-                    .fold(true)
                     .annotation(AnnotationKind::Primary.span(40..49)),
             )
             .element(Level::WARNING.title("this changes meaning in Rust 2021"))
@@ -2867,14 +2805,12 @@ fn main() {
             Snippet::source(source2)
                 .path("lint_example.rs")
                 .line_start(3)
-                .fold(true)
                 .patch(Patch::new(10..19, "iter")),
         ),
         Group::with_title(Level::HELP.title(long_title3)).element(
             Snippet::source(source2)
                 .path("lint_example.rs")
                 .line_start(3)
-                .fold(true)
                 .patch(Patch::new(0..0, "IntoIterator::into_iter("))
                 .patch(Patch::new(9..21, ")")),
         ),

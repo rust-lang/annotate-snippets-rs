@@ -39,7 +39,6 @@ fn main() {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                .fold(true)
                 .annotation(
                     AnnotationKind::Primary
                         .span(483..581)
@@ -60,7 +59,6 @@ fn main() {
             Snippet::source(source)
                 .line_start(1)
                 .path("$DIR/issue-114529-illegal-break-with-value.rs")
-                .fold(true)
                 .patch(Patch::new(483..581, "break")),
         ),
     ];

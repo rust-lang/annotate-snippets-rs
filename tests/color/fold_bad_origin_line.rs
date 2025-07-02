@@ -13,7 +13,6 @@ invalid syntax
         Snippet::source(source)
             .path("path/to/error.rs")
             .line_start(1)
-            .fold(true)
             .annotation(AnnotationKind::Context.span(2..16).label("error here")),
     )];
     let expected = file!["fold_bad_origin_line.term.svg"];

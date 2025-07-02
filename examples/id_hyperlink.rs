@@ -17,7 +17,6 @@ fn main() {
         Snippet::source(source)
             .line_start(1)
             .path("$DIR/terminal_urls.rs")
-            .fold(true)
             .annotation(
                 AnnotationKind::Primary
                     .span(59..61)

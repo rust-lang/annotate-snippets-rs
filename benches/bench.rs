@@ -71,14 +71,11 @@ fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
         .bench_values(|(input, span)| {
             let message = &[
                 Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
-                    Snippet::source(&input)
-                        .fold(true)
-                        .path("src/format.rs")
-                        .annotation(
-                            AnnotationKind::Context
-                                .span(span)
-                                .label("expected `Option<String>` because of return type"),
-                        ),
+                    Snippet::source(&input).path("src/format.rs").annotation(
+                        AnnotationKind::Context
+                            .span(span)
+                            .label("expected `Option<String>` because of return type"),
+                    ),
                 ),
             ];
 
