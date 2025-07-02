@@ -65,6 +65,11 @@ impl<'a> Level<'a> {
             level: self.level,
         }
     }
+
+    /// Do not show the [`Level`]s name
+    pub fn no_name(self) -> Level<'a> {
+        self.with_name(None::<&str>)
+    }
 }
 
 impl<'a> Level<'a> {
