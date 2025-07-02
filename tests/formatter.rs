@@ -199,7 +199,7 @@ error:
 #[test]
 fn test_format_footer_title() {
     let input = &[Group::with_title(Level::ERROR.title(""))
-        .element(Level::ERROR.title("This __is__ a title"))];
+        .element(Level::ERROR.message("This __is__ a title"))];
     let expected = str![[r#"
 error: 
   |
@@ -2258,7 +2258,9 @@ fn main() {
                         .label("`+` cannot be used to concatenate two `&str` strings"),
                 ),
         )
-        .element(Level::NOTE.title("string concatenation requires an owned `String` on the left")),
+        .element(
+            Level::NOTE.message("string concatenation requires an owned `String` on the left"),
+        ),
         Group::with_title(Level::HELP.title("create an owned `String` from a string reference"))
             .element(
                 Snippet::source(source)
@@ -2333,7 +2335,7 @@ fn foo() {
 
                         .annotation(AnnotationKind::Primary.span(0..0)),
                 )
-                .element(Level::NOTE.title("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
+                .element(Level::NOTE.message("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
        ];
 
     let expected_ascii = str![[r#"

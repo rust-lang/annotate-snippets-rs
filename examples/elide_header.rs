@@ -14,7 +14,7 @@ def foobar(door, bar={}):
                 .fold(false)
                 .annotation(AnnotationKind::Primary.span(56..58).label("B006")),
         )
-        .element(Level::HELP.title("Replace with `None`; initialize within function"))];
+        .element(Level::HELP.message("Replace with `None`; initialize within function"))];
 
     let renderer = Renderer::styled();
     anstream::println!("{}", renderer.render(message));
