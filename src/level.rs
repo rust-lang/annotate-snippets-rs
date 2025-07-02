@@ -80,11 +80,11 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn title(self, title: impl Into<Cow<'a, str>>) -> Title<'a> {
+    pub fn title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,
-            title: title.into(),
+            text: text.into(),
             is_pre_styled: false,
         }
     }
@@ -97,11 +97,11 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn pre_styled_title(self, title: impl Into<Cow<'a, str>>) -> Title<'a> {
+    pub fn pre_styled_title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,
-            title: title.into(),
+            text: text.into(),
             is_pre_styled: true,
         }
     }

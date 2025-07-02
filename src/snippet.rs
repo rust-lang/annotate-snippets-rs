@@ -110,7 +110,7 @@ pub struct Padding;
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) id: Option<Id<'a>>,
-    pub(crate) title: Cow<'a, str>,
+    pub(crate) text: Cow<'a, str>,
     pub(crate) is_pre_styled: bool,
 }
 

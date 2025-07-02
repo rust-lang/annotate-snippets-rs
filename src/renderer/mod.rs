@@ -585,9 +585,9 @@ impl Renderer {
         });
 
         let (title_str, style) = if title.is_pre_styled {
-            (title.title.to_string(), ElementStyle::NoStyle)
+            (title.text.to_string(), ElementStyle::NoStyle)
         } else {
-            (normalize_whitespace(&title.title), title_element_style)
+            (normalize_whitespace(&title.text), title_element_style)
         };
         for (i, text) in title_str.lines().enumerate() {
             if i != 0 {
