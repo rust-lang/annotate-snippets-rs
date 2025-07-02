@@ -50,9 +50,9 @@ fn highlight_source() {
 }
 
 #[test]
-fn highlight_title() {
-    let target = "highlight_title";
-    let expected = snapbox::file!["../examples/highlight_title.svg": TermSvg];
+fn highlight_message() {
+    let target = "highlight_message";
+    let expected = snapbox::file!["../examples/highlight_message.svg": TermSvg];
     assert_example(target, expected);
 }
 
