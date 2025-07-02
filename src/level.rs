@@ -73,6 +73,10 @@ impl<'a> Level<'a> {
 }
 
 impl<'a> Level<'a> {
+    /// A text [`Element`][crate::Element] to start a [`Group`][crate::Group]
+    ///
+    /// See [`Group::with_title`][crate::Group::with_title]
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such
@@ -89,6 +93,8 @@ impl<'a> Level<'a> {
         }
     }
 
+    /// A text [`Element`][crate::Element] in a [`Group`][crate::Group]
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is allowed to be pre-styled, as such all
