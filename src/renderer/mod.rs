@@ -225,6 +225,7 @@ impl Renderer {
 }
 
 impl Renderer {
+    /// Render a diagnostic, a series of [`Group`]s
     pub fn render(&self, groups: &[Group<'_>]) -> String {
         if self.short_message {
             self.render_short_message(groups).unwrap()

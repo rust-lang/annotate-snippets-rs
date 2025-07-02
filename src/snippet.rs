@@ -18,6 +18,10 @@ pub(crate) struct Id<'a> {
 }
 
 /// An [`Element`] container
+///
+/// A [diagnostic][crate::Renderer::render] is made of several `Group`s.
+/// `Group`s are used to [annotate][AnnotationKind::Primary] [`Snippet`]s
+/// with different [semantic reasons][Title].
 #[derive(Clone, Debug)]
 pub struct Group<'a> {
     pub(crate) primary_level: Level<'a>,
