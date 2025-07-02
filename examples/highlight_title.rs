@@ -28,7 +28,7 @@ fn main() {
     let magenta = annotate_snippets::renderer::AnsiColor::Magenta
         .on_default()
         .effects(Effects::BOLD);
-    let title = format!(
+    let message = format!(
         "expected fn pointer `{}for<'a>{} fn(Box<{}(dyn Any + Send + 'a){}>) -> Pin<_>`
       found fn item `fn(Box<{}(dyn Any + Send + 'static){}>) -> Pin<_> {}{{wrapped_fn}}{}`",
         magenta.render(),
@@ -57,7 +57,7 @@ fn main() {
                             .label("arguments to this function are incorrect"),
                     ),
             )
-            .element(Level::NOTE.pre_styled_title(&title)),
+            .element(Level::NOTE.pre_styled_title(&message)),
         Group::with_title(Level::NOTE.title("function defined here")).element(
             Snippet::source(source)
                 .path("$DIR/highlighting.rs")
