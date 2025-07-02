@@ -50,6 +50,8 @@ impl<'a> Level<'a> {
     pub const NOTE: Level<'a> = NOTE;
     pub const HELP: Level<'a> = HELP;
 
+    /// Replace the text describing this [`Level`]
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such
