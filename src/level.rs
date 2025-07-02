@@ -2,7 +2,7 @@
 
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
-use crate::{OptionCow, Title};
+use crate::{Message, OptionCow, Title};
 use anstyle::Style;
 use std::borrow::Cow;
 
@@ -89,7 +89,6 @@ impl<'a> Level<'a> {
             level: self,
             id: None,
             text: text.into(),
-            is_pre_styled: false,
         }
     }
 
@@ -103,12 +102,10 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn message(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
-        Title {
+    pub fn message(self, text: impl Into<Cow<'a, str>>) -> Message<'a> {
+        Message {
             level: self,
-            id: None,
             text: text.into(),
-            is_pre_styled: true,
         }
     }
 

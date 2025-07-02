@@ -63,6 +63,7 @@ impl<'a> Group<'a> {
 #[non_exhaustive]
 pub enum Element<'a> {
     Title(Title<'a>),
+    Message(Message<'a>),
     Cause(Snippet<'a, Annotation<'a>>),
     Suggestion(Snippet<'a, Patch<'a>>),
     Origin(Origin<'a>),
@@ -72,6 +73,12 @@ pub enum Element<'a> {
 impl<'a> From<Title<'a>> for Element<'a> {
     fn from(value: Title<'a>) -> Self {
         Element::Title(value)
+    }
+}
+
+impl<'a> From<Message<'a>> for Element<'a> {
+    fn from(value: Message<'a>) -> Self {
+        Element::Message(value)
     }
 }
 
@@ -103,7 +110,7 @@ impl From<Padding> for Element<'_> {
 #[derive(Clone, Debug)]
 pub struct Padding;
 
-/// A text [`Element`] in a [`Group`]
+/// A text [`Element`] to start a [`Group`]
 ///
 /// See [`Level::title`] to create this.
 #[derive(Clone, Debug)]
@@ -111,7 +118,6 @@ pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) id: Option<Id<'a>>,
     pub(crate) text: Cow<'a, str>,
-    pub(crate) is_pre_styled: bool,
 }
 
 impl<'a> Title<'a> {
@@ -142,6 +148,15 @@ impl<'a> Title<'a> {
         self.id.get_or_insert(Id::default()).url = Some(url.into());
         self
     }
+}
+
+/// A text [`Element`] in a [`Group`]
+///
+/// See [`Level::message`] to create this.
+#[derive(Clone, Debug)]
+pub struct Message<'a> {
+    pub(crate) level: Level<'a>,
+    pub(crate) text: Cow<'a, str>,
 }
 
 /// A source view [`Element`] in a [`Group`]
