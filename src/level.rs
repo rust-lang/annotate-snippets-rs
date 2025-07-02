@@ -97,7 +97,7 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn pre_styled_title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
+    pub fn message(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,

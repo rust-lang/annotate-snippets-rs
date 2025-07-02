@@ -57,7 +57,7 @@ fn main() {
                             .label("arguments to this function are incorrect"),
                     ),
             )
-            .element(Level::NOTE.pre_styled_title(&message)),
+            .element(Level::NOTE.message(&message)),
         Group::with_title(Level::NOTE.title("function defined here")).element(
             Snippet::source(source)
                 .path("$DIR/highlighting.rs")
