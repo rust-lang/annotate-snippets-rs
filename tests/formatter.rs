@@ -2599,15 +2599,15 @@ zappy
     )];
     let expected = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
-  |
-8 | cargo
-9 | fuzzy
-  | ^^^^^
-10| pizza
-11| jumps
-12| crazy
-13| quack
-14| zappy
+   |
+ 8 | cargo
+ 9 | fuzzy
+   | ^^^^^
+10 | pizza
+11 | jumps
+12 | crazy
+13 | quack
+14 | zappy
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input_new), expected);

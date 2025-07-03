@@ -2919,26 +2919,34 @@ fn max_line_number(groups: &[Group<'_>]) -> usize {
                     | Element::Origin(_)
                     | Element::Padding(_) => 0,
                     Element::Cause(cause) => {
-                        let end = cause
-                            .markers
-                            .iter()
-                            .map(|a| a.span.end)
-                            .max()
-                            .unwrap_or(cause.source.len())
-                            .min(cause.source.len());
+                        if cause.fold {
+                            let end = cause
+                                .markers
+                                .iter()
+                                .map(|a| a.span.end)
+                                .max()
+                                .unwrap_or(cause.source.len())
+                                .min(cause.source.len());
 
-                        cause.line_start + newline_count(&cause.source[..end])
+                            cause.line_start + newline_count(&cause.source[..end])
+                        } else {
+                            cause.line_start + newline_count(&cause.source)
+                        }
                     }
                     Element::Suggestion(suggestion) => {
-                        let end = suggestion
-                            .markers
-                            .iter()
-                            .map(|a| a.span.end)
-                            .max()
-                            .unwrap_or(suggestion.source.len())
-                            .min(suggestion.source.len());
+                        if suggestion.fold {
+                            let end = suggestion
+                                .markers
+                                .iter()
+                                .map(|a| a.span.end)
+                                .max()
+                                .unwrap_or(suggestion.source.len())
+                                .min(suggestion.source.len());
 
-                        suggestion.line_start + newline_count(&suggestion.source[..end])
+                            suggestion.line_start + newline_count(&suggestion.source[..end])
+                        } else {
+                            suggestion.line_start + newline_count(&suggestion.source)
+                        }
                     }
                 })
                 .max()
