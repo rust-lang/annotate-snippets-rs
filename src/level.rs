@@ -36,7 +36,7 @@ pub const HELP: Level<'_> = Level {
     level: LevelInner::Help,
 };
 
-/// [`Title`] severity level
+/// Severity level for [`Title`]s and [`Message`]s
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Level<'a> {
     pub(crate) name: Option<Option<Cow<'a, str>>>,
