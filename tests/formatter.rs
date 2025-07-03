@@ -2574,3 +2574,41 @@ LL +         break;
     let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
+
+#[test]
+fn max_line_num_no_fold() {
+    let source = r#"cargo
+fuzzy
+pizza
+jumps
+crazy
+quack
+zappy
+"#;
+
+    let input_new = &[Group::with_title(
+        Level::ERROR
+            .title("the size for values of type `T` cannot be known at compilation time")
+            .id("E0277"),
+    )
+    .element(
+        Snippet::source(source)
+            .line_start(8)
+            .fold(false)
+            .annotation(AnnotationKind::Primary.span(6..11)),
+    )];
+    let expected = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+  |
+8 | cargo
+9 | fuzzy
+  | ^^^^^
+10| pizza
+11| jumps
+12| crazy
+13| quack
+14| zappy
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input_new), expected);
+}
