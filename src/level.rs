@@ -59,6 +59,13 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    #[doc = include_str!("../examples/custom_level.rs")]
+    /// ```
+    #[doc = include_str!("../examples/custom_level.svg")]
     pub fn with_name(self, name: impl Into<OptionCow<'a>>) -> Level<'a> {
         Level {
             name: Some(name.into().0),
