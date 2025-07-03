@@ -22,6 +22,13 @@ pub(crate) struct Id<'a> {
 /// A [diagnostic][crate::Renderer::render] is made of several `Group`s.
 /// `Group`s are used to [annotate][AnnotationKind::Primary] [`Snippet`]s
 /// with different [semantic reasons][Title].
+///
+/// # Example
+///
+/// ```rust
+#[doc = include_str!("../examples/highlight_message.rs")]
+/// ```
+#[doc = include_str!("../examples/highlight_message.svg")]
 #[derive(Clone, Debug)]
 pub struct Group<'a> {
     pub(crate) primary_level: Level<'a>,
@@ -36,6 +43,13 @@ impl<'a> Group<'a> {
     }
 
     /// Create a title-less group with a primary [`Level`] for [`Annotation`]s
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    #[doc = include_str!("../examples/elide_header.rs")]
+    /// ```
+    #[doc = include_str!("../examples/elide_header.svg")]
     pub fn with_level(level: Level<'a>) -> Self {
         Self {
             primary_level: level,
@@ -386,9 +400,21 @@ impl<'a> Patch<'a> {
     }
 }
 
-/// The referenced location (e.g. a path)
+/// A source location [`Element`] in a [`Group`]
 ///
 /// If you have source available, see instead [`Snippet`]
+///
+/// # Example
+///
+/// ```rust
+/// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level, Origin};
+/// let input = &[
+///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+///         .element(
+///             Origin::path("$DIR/mismatched-types.rs")
+///         )
+/// ];
+/// ```
 #[derive(Clone, Debug)]
 pub struct Origin<'a> {
     pub(crate) path: Cow<'a, str>,
@@ -405,7 +431,7 @@ impl<'a> Origin<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn new(path: impl Into<Cow<'a, str>>) -> Self {
+    pub fn path(path: impl Into<Cow<'a, str>>) -> Self {
         Self {
             path: path.into(),
             line: None,
@@ -441,7 +467,7 @@ impl<'a> Origin<'a> {
 
 impl<'a> From<Cow<'a, str>> for Origin<'a> {
     fn from(origin: Cow<'a, str>) -> Self {
-        Self::new(origin)
+        Self::path(origin)
     }
 }
 

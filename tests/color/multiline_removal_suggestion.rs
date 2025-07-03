@@ -88,7 +88,7 @@ fn main() {}
             ),
         Group::with_title(Level::NOTE.title("required by a bound in `flatten`"))
             .element(
-                Origin::new("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
+                Origin::path("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
                     .line(1556)
                     .char_column(4),
             ),

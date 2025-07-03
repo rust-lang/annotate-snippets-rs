@@ -1,5 +1,7 @@
 use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use anstyle::AnsiColor;
 use anstyle::Effects;
+use anstyle::Style;
 
 fn main() {
     let source = r#"// Make sure "highlighted" code is colored purple
@@ -25,20 +27,10 @@ fn main() {
     query(wrapped_fn);
 }"#;
 
-    let magenta = annotate_snippets::renderer::AnsiColor::Magenta
-        .on_default()
-        .effects(Effects::BOLD);
+    const MAGENTA: Style = AnsiColor::Magenta.on_default().effects(Effects::BOLD);
     let message = format!(
-        "expected fn pointer `{}for<'a>{} fn(Box<{}(dyn Any + Send + 'a){}>) -> Pin<_>`
-      found fn item `fn(Box<{}(dyn Any + Send + 'static){}>) -> Pin<_> {}{{wrapped_fn}}{}`",
-        magenta.render(),
-        magenta.render_reset(),
-        magenta.render(),
-        magenta.render_reset(),
-        magenta.render(),
-        magenta.render_reset(),
-        magenta.render(),
-        magenta.render_reset()
+        "expected fn pointer `{MAGENTA}for<'a>{MAGENTA:#} fn(Box<{MAGENTA}(dyn Any + Send + 'a){MAGENTA:#}>) -> Pin<_>`
+      found fn item `fn(Box<{MAGENTA}(dyn Any + Send + 'static){MAGENTA:#}>) -> Pin<_> {MAGENTA}{{wrapped_fn}}{MAGENTA:#}`",
     );
 
     let message = &[
