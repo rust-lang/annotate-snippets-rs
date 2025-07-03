@@ -2053,7 +2053,7 @@ error: title
 
     let expected_unicode = str![[r#"
 error: title
-  │
+  ╭▸ 
 1 │   version = "0.1.0"
 2 │   # Ensure that the spans from toml handle utf-8 correctly
 3 │   authors = [
@@ -2093,7 +2093,7 @@ error: expected item, found `?`
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
-  │
+  ╭▸ 
 1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
   │                                                              ━ expected item
   │
@@ -2130,7 +2130,7 @@ error: expected item, found `?`
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
-  │
+  ╭▸ 
 1 │ … 的。这是宽的。这是宽的。这是宽的。…
   │             ━━ expected item
   │
@@ -2167,7 +2167,7 @@ error: expected item, found `?`
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
-  │
+  ╭▸ 
 1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
   │                                                             ━ expected item
   │
@@ -2752,4 +2752,74 @@ fn main() {
 
     let renderer = Renderer::plain();
     renderer.render(input);
+}
+
+#[test]
+fn snippet_no_path() {
+    // Taken from: https://docs.python.org/3/library/typing.html#annotating-callable-objects
+
+    let source = "def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...";
+    let input = &[Group::with_title(Level::ERROR.title("")).element(
+        Snippet::source(source).annotation(AnnotationKind::Primary.span(4..12).label("annotation")),
+    )];
+
+    let expected_ascii = str![[r#"
+error: 
+  |
+1 | def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
+  |     ^^^^^^^^ annotation
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ 
+1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
+  ╰╴    ━━━━━━━━ annotation
+"#]];
+    let renderer = Renderer::plain().theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn multiple_snippet_no_path() {
+    // Taken from: https://docs.python.org/3/library/typing.html#annotating-callable-objects
+
+    let source = "def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...";
+    let input = &[Group::with_title(Level::ERROR.title(""))
+        .element(
+            Snippet::source(source)
+                .annotation(AnnotationKind::Primary.span(4..12).label("annotation")),
+        )
+        .element(
+            Snippet::source(source)
+                .annotation(AnnotationKind::Primary.span(4..12).label("annotation")),
+        )];
+
+    let expected_ascii = str![[r#"
+error: 
+  |
+1 | def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
+  |     ^^^^^^^^ annotation
+  |
+ ::: 
+1 | def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
+  |     ^^^^^^^^ annotation
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ 
+1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
+  │     ━━━━━━━━ annotation
+  │
+  ⸬  
+1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
+  ╰╴    ━━━━━━━━ annotation
+"#]];
+    let renderer = Renderer::plain().theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
