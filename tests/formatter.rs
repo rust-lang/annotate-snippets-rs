@@ -2053,7 +2053,7 @@ error: title
 
     let expected_unicode = str![[r#"
 error: title
-  │
+  ╭▸ 
 1 │   version = "0.1.0"
 2 │   # Ensure that the spans from toml handle utf-8 correctly
 3 │   authors = [
@@ -2093,7 +2093,7 @@ error: expected item, found `?`
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
-  │
+  ╭▸ 
 1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
   │                                                              ━ expected item
   │
@@ -2130,7 +2130,7 @@ error: expected item, found `?`
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
-  │
+  ╭▸ 
 1 │ … 的。这是宽的。这是宽的。这是宽的。…
   │             ━━ expected item
   │
@@ -2167,7 +2167,7 @@ error: expected item, found `?`
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
-  │
+  ╭▸ 
 1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
   │                                                             ━ expected item
   │
@@ -2774,7 +2774,7 @@ error:
 
     let expected_unicode = str![[r#"
 error: 
-  │
+  ╭▸ 
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   ╰╴    ━━━━━━━━ annotation
 "#]];
@@ -2803,6 +2803,7 @@ error:
 1 | def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   |     ^^^^^^^^ annotation
   |
+ ::: 
 1 | def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   |     ^^^^^^^^ annotation
 "#]];
@@ -2811,10 +2812,11 @@ error:
 
     let expected_unicode = str![[r#"
 error: 
-  │
+  ╭▸ 
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   │     ━━━━━━━━ annotation
   │
+  ⸬  
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   ╰╴    ━━━━━━━━ annotation
 "#]];

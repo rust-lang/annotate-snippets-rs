@@ -288,10 +288,14 @@ impl Renderer {
                 }
                 let mut message_iter = group.elements.iter().enumerate().peekable();
                 let mut last_was_suggestion = false;
+                let mut first_was_title = false;
                 while let Some((i, section)) = message_iter.next() {
                     let peek = message_iter.peek().map(|(_, s)| s).copied();
                     match &section {
                         Element::Title(title) => {
+                            if i == 0 {
+                                first_was_title = true;
+                            }
                             let title_style = match (i == 0, g == 0) {
                                 (true, true) => TitleStyle::MainHeader,
                                 (true, false) => TitleStyle::Header,
@@ -329,11 +333,13 @@ impl Renderer {
                             if let Some((source_map, annotated_lines)) =
                                 source_map_annotated_lines.pop_front()
                             {
+                                let is_primary = primary_path == cause.path.as_ref()
+                                    && i == first_was_title as usize;
                                 self.render_snippet_annotations(
                                     &mut buffer,
                                     max_line_num_len,
                                     cause,
-                                    primary_path,
+                                    is_primary,
                                     &source_map,
                                     &annotated_lines,
                                     max_depth,
@@ -722,7 +728,7 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         max_line_num_len: usize,
         snippet: &Snippet<'_, Annotation<'_>>,
-        primary_path: Option<&Cow<'_, str>>,
+        is_primary: bool,
         sm: &SourceMap<'_>,
         annotated_lines: &[AnnotatedLineInfo<'_>],
         multiline_depth: usize,
@@ -732,7 +738,7 @@ impl Renderer {
             let mut origin = Origin::path(path.as_ref());
             // print out the span location and spacer before we print the annotated source
             // to do this, we need to know if this span will be primary
-            let is_primary = primary_path == Some(&origin.path);
+            //let is_primary = primary_path == Some(&origin.path);
 
             if is_primary {
                 origin.primary = true;
@@ -776,11 +782,54 @@ impl Renderer {
             }
             let buffer_msg_line_offset = buffer.num_lines();
             self.render_origin(buffer, max_line_num_len, &origin, buffer_msg_line_offset);
-        }
+            // Put in the spacer between the location and annotated source
+            self.draw_col_separator_no_space(
+                buffer,
+                buffer_msg_line_offset + 1,
+                max_line_num_len + 1,
+            );
+        } else {
+            let buffer_msg_line_offset = buffer.num_lines();
+            if is_primary {
+                if self.theme == OutputTheme::Unicode {
+                    buffer.puts(
+                        buffer_msg_line_offset,
+                        max_line_num_len,
+                        self.file_start(),
+                        ElementStyle::LineNumber,
+                    );
+                } else {
+                    self.draw_col_separator_no_space(
+                        buffer,
+                        buffer_msg_line_offset,
+                        max_line_num_len + 1,
+                    );
+                }
+            } else {
+                // Add spacing line, as shown:
+                //   --> $DIR/file:54:15
+                //    |
+                // LL |         code
+                //    |         ^^^^
+                //    | (<- It prints *this* line)
+                //   ::: $DIR/other_file.rs:15:5
+                //    |
+                // LL |     code
+                //    |     ----
+                self.draw_col_separator_no_space(
+                    buffer,
+                    buffer_msg_line_offset,
+                    max_line_num_len + 1,
+                );
 
-        // Put in the spacer between the location and annotated source
-        let buffer_msg_line_offset = buffer.num_lines();
-        self.draw_col_separator_no_space(buffer, buffer_msg_line_offset, max_line_num_len + 1);
+                buffer.puts(
+                    buffer_msg_line_offset + 1,
+                    max_line_num_len,
+                    self.secondary_file_start(),
+                    ElementStyle::LineNumber,
+                );
+            }
+        }
 
         // Contains the vertical lines' positions for active multiline annotations
         let mut multilines = Vec::new();
