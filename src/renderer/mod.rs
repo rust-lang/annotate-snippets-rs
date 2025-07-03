@@ -636,7 +636,7 @@ impl Renderer {
         } else {
             (normalize_whitespace(title.text()), title_element_style)
         };
-        for (i, text) in title_str.lines().enumerate() {
+        for (i, text) in title_str.split('\n').enumerate() {
             if i != 0 {
                 buffer.append(buffer_msg_line_offset + i, &padding, ElementStyle::NoStyle);
                 if title_style == TitleStyle::Secondary
