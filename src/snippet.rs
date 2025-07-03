@@ -43,6 +43,13 @@ impl<'a> Group<'a> {
     }
 
     /// Create a title-less group with a primary [`Level`] for [`Annotation`]s
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    #[doc = include_str!("../examples/elide_header.rs")]
+    /// ```
+    #[doc = include_str!("../examples/elide_header.svg")]
     pub fn with_level(level: Level<'a>) -> Self {
         Self {
             primary_level: level,
