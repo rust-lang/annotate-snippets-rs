@@ -3370,3 +3370,77 @@ note: the traits `Iterator` and `ToTokens` must be implemented
     let renderer = renderer.theme(OutputTheme::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn not_found_self_type_differs_shadowing_trait_item() {
+    // tests/ui/associated-inherent-types/not-found-self-type-differs-shadowing-trait-item.rs
+
+    let source = r#"#![feature(inherent_associated_types)]
+#![allow(incomplete_features)]
+
+// Check that it's okay to report “[inherent] associated type […] not found” for inherent associated
+// type candidates that are not applicable (due to unsuitable Self type) even if there exists a
+// “shadowed” associated type from a trait with the same name since its use would be ambiguous
+// anyway if the IAT didn't exist.
+// FIXME(inherent_associated_types): Figure out which error would be more helpful here.
+
+//@ revisions: shadowed uncovered
+
+struct S<T>(T);
+
+trait Tr {
+    type Pr;
+}
+
+impl<T> Tr for S<T> {
+    type Pr = ();
+}
+
+#[cfg(shadowed)]
+impl S<()> {
+    type Pr = i32;
+}
+
+fn main() {
+    let _: S::<bool>::Pr = ();
+    //[shadowed]~^ ERROR associated type `Pr` not found
+    //[uncovered]~^^ ERROR associated type `Pr` not found
+}
+"#;
+
+    let input = &[Group::with_title(
+        Level::ERROR
+            .title("associated type `Pr` not found for `S<bool>` in the current scope")
+            .id("E0220"),
+    )
+    .element(
+        Snippet::source(source)
+            .path("$DIR/not-found-self-type-differs-shadowing-trait-item.rs")
+            .annotation(
+                AnnotationKind::Primary
+                    .span(705..707)
+                    .label("associated item not found in `S<bool>`"),
+            )
+            .annotation(
+                AnnotationKind::Context
+                    .span(532..543)
+                    .label("associated type `Pr` not found for this struct"),
+            ),
+    )
+    .element(Level::NOTE.title("the associated type was found for\n"))];
+
+    let expected = str![[r#"
+error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
+  --> $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23
+   |
+LL | struct S<T>(T);
+   | ----------- associated type `Pr` not found for this struct
+...
+LL |     let _: S::<bool>::Pr = ();
+   |                       ^^ associated item not found in `S<bool>`
+   |
+   = note: the associated type was found for
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
