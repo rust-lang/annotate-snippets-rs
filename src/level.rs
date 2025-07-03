@@ -43,13 +43,71 @@ pub struct Level<'a> {
     pub(crate) level: LevelInner,
 }
 
+/// # Constructors
 impl<'a> Level<'a> {
     pub const ERROR: Level<'a> = ERROR;
     pub const WARNING: Level<'a> = WARNING;
     pub const INFO: Level<'a> = INFO;
     pub const NOTE: Level<'a> = NOTE;
     pub const HELP: Level<'a> = HELP;
+}
 
+impl<'a> Level<'a> {
+    /// A text [`Element`][crate::Element] to start a [`Group`][crate::Group]
+    ///
+    /// See [`Group::with_title`][crate::Group::with_title]
+    ///
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
+    pub fn title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
+        Title {
+            level: self,
+            id: None,
+            text: text.into(),
+        }
+    }
+
+    /// A text [`Element`][crate::Element] in a [`Group`][crate::Group]
+    ///
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is allowed to be pre-styled, as such all
+    /// text is considered "trusted input" and has no normalizations applied to
+    /// it. [`normalize_untrusted_str`](crate::normalize_untrusted_str) can be
+    /// used to normalize untrusted text before it is passed to this function.
+    ///
+    /// </div>
+    pub fn message(self, text: impl Into<Cow<'a, str>>) -> Message<'a> {
+        Message {
+            level: self,
+            text: text.into(),
+        }
+    }
+
+    pub(crate) fn as_str(&'a self) -> &'a str {
+        match (&self.name, self.level) {
+            (Some(Some(name)), _) => name.as_ref(),
+            (Some(None), _) => "",
+            (None, LevelInner::Error) => ERROR_TXT,
+            (None, LevelInner::Warning) => WARNING_TXT,
+            (None, LevelInner::Info) => INFO_TXT,
+            (None, LevelInner::Note) => NOTE_TXT,
+            (None, LevelInner::Help) => HELP_TXT,
+        }
+    }
+
+    pub(crate) fn style(&self, stylesheet: &Stylesheet) -> Style {
+        self.level.style(stylesheet)
+    }
+}
+
+/// # Customize the `Level`
+impl<'a> Level<'a> {
     /// Replace the name describing this [`Level`]
     ///
     /// <div class="warning">
@@ -108,60 +166,6 @@ impl<'a> Level<'a> {
     /// ```
     pub fn no_name(self) -> Level<'a> {
         self.with_name(None::<&str>)
-    }
-}
-
-impl<'a> Level<'a> {
-    /// A text [`Element`][crate::Element] to start a [`Group`][crate::Group]
-    ///
-    /// See [`Group::with_title`][crate::Group::with_title]
-    ///
-    /// <div class="warning">
-    ///
-    /// Text passed to this function is considered "untrusted input", as such
-    /// all text is passed through a normalization function. Pre-styled text is
-    /// not allowed to be passed to this function.
-    ///
-    /// </div>
-    pub fn title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
-        Title {
-            level: self,
-            id: None,
-            text: text.into(),
-        }
-    }
-
-    /// A text [`Element`][crate::Element] in a [`Group`][crate::Group]
-    ///
-    /// <div class="warning">
-    ///
-    /// Text passed to this function is allowed to be pre-styled, as such all
-    /// text is considered "trusted input" and has no normalizations applied to
-    /// it. [`normalize_untrusted_str`](crate::normalize_untrusted_str) can be
-    /// used to normalize untrusted text before it is passed to this function.
-    ///
-    /// </div>
-    pub fn message(self, text: impl Into<Cow<'a, str>>) -> Message<'a> {
-        Message {
-            level: self,
-            text: text.into(),
-        }
-    }
-
-    pub(crate) fn as_str(&'a self) -> &'a str {
-        match (&self.name, self.level) {
-            (Some(Some(name)), _) => name.as_ref(),
-            (Some(None), _) => "",
-            (None, LevelInner::Error) => ERROR_TXT,
-            (None, LevelInner::Warning) => WARNING_TXT,
-            (None, LevelInner::Info) => INFO_TXT,
-            (None, LevelInner::Note) => NOTE_TXT,
-            (None, LevelInner::Help) => HELP_TXT,
-        }
-    }
-
-    pub(crate) fn style(&self, stylesheet: &Stylesheet) -> Style {
-        self.level.style(stylesheet)
     }
 }
 
