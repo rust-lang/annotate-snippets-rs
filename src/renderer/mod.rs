@@ -316,7 +316,11 @@ impl Renderer {
                                 title,
                                 max_line_num_len,
                                 title_style,
-                                matches!(peek, Some(Element::Title(_) | Element::Message(_))),
+                                matches!(
+                                    peek,
+                                    Some(Element::Title(_) | Element::Message(_))
+                                        | Some(Element::Padding(_))
+                                ),
                                 buffer_msg_line_offset,
                             );
                             last_was_suggestion = false;
@@ -348,6 +352,12 @@ impl Renderer {
                                                 max_line_num_len + 1,
                                             );
                                         }
+                                        Some(Element::Origin(origin)) if origin.primary => self
+                                            .draw_col_separator_end(
+                                                &mut buffer,
+                                                current_line,
+                                                max_line_num_len + 1,
+                                            ),
 
                                         Some(Element::Message(level))
                                             if level.level.name != Some(None) =>

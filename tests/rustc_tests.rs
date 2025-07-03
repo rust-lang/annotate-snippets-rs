@@ -2840,3 +2840,533 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+fn autoderef_box_no_add() {
+    // tests/ui/autoref-autoderef/autoderef-box-no-add.rs
+
+    let source = r#"//! Tests that auto-dereferencing does not allow addition of `Box<isize>` values.
+//!
+//! This test ensures that `Box<isize>` fields in structs (`Clam` and `Fish`) are not
+//! automatically dereferenced to `isize` during addition operations, as `Box<isize>`
+//! does not implement the `Add` trait.
+
+struct Clam {
+    x: Box<isize>,
+    y: Box<isize>,
+}
+
+struct Fish {
+    a: Box<isize>,
+}
+
+fn main() {
+    let a: Clam = Clam {
+        x: Box::new(1),
+        y: Box::new(2),
+    };
+    let b: Clam = Clam {
+        x: Box::new(10),
+        y: Box::new(20),
+    };
+    let z: isize = a.x + b.y;
+    //~^ ERROR cannot add `Box<isize>` to `Box<isize>`
+    println!("{}", z);
+    assert_eq!(z, 21);
+    let forty: Fish = Fish { a: Box::new(40) };
+    let two: Fish = Fish { a: Box::new(2) };
+    let answer: isize = forty.a + two.a;
+    //~^ ERROR cannot add `Box<isize>` to `Box<isize>`
+    println!("{}", answer);
+    assert_eq!(answer, 42);
+}
+"#;
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .title("cannot add `Box<isize>` to `Box<isize>`")
+                .id("E0369"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/autoderef-box-no-add.rs")
+                .annotation(AnnotationKind::Context.span(583..586).label("Box<isize>"))
+                .annotation(AnnotationKind::Context.span(589..592).label("Box<isize>"))
+                .annotation(AnnotationKind::Primary.span(587..588)),
+        ),
+        Group::with_title(
+            Level::NOTE.title("the foreign item type `Box<isize>` doesn't implement `Add`"),
+        )
+        .element(
+            Origin::path("$SRC_DIR/alloc/src/boxed.rs")
+                .line(231)
+                .char_column(0)
+                .primary(true),
+        )
+        .element(
+            Origin::path("$SRC_DIR/alloc/src/boxed.rs")
+                .line(234)
+                .char_column(1),
+        )
+        .element(Padding)
+        .element(Level::NOTE.message("not implement `Add`")),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0369]: cannot add `Box<isize>` to `Box<isize>`
+  --> $DIR/autoderef-box-no-add.rs:25:24
+   |
+LL |     let z: isize = a.x + b.y;
+   |                    --- ^ --- Box<isize>
+   |                    |
+   |                    Box<isize>
+   |
+note: the foreign item type `Box<isize>` doesn't implement `Add`
+  --> $SRC_DIR/alloc/src/boxed.rs:231:0
+  ::: $SRC_DIR/alloc/src/boxed.rs:234:1
+   |
+   = note: not implement `Add`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0369]: cannot add `Box<isize>` to `Box<isize>`
+   ╭▸ $DIR/autoderef-box-no-add.rs:25:24
+   │
+LL │     let z: isize = a.x + b.y;
+   │                    ┬── ━ ─── Box<isize>
+   │                    │
+   │                    Box<isize>
+   ╰╴
+note: the foreign item type `Box<isize>` doesn't implement `Add`
+   ╭▸ $SRC_DIR/alloc/src/boxed.rs:231:0
+   ⸬  $SRC_DIR/alloc/src/boxed.rs:234:1
+   │
+   ╰ note: not implement `Add`
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn dont_project_to_specializable_projection() {
+    // tests/ui/async-await/in-trait/dont-project-to-specializable-projection.rs
+
+    let source = r#"//@ edition: 2021
+//@ known-bug: #108309
+
+#![feature(min_specialization)]
+
+struct MyStruct;
+
+trait MyTrait<T> {
+    async fn foo(_: T) -> &'static str;
+}
+
+impl<T> MyTrait<T> for MyStruct {
+    default async fn foo(_: T) -> &'static str {
+        "default"
+    }
+}
+
+impl MyTrait<i32> for MyStruct {
+    async fn foo(_: i32) -> &'static str {
+        "specialized"
+    }
+}
+
+async fn async_main() {
+    assert_eq!(MyStruct::foo(42).await, "specialized");
+    assert_eq!(indirection(42).await, "specialized");
+}
+
+async fn indirection<T>(x: T) -> &'static str {
+    //explicit type coercion is currently necessary
+    // because of https://github.com/rust-lang/rust/issues/67918
+    <MyStruct as MyTrait<T>>::foo(x).await
+}
+
+// ------------------------------------------------------------------------- //
+// Implementation Details Below...
+
+use std::pin::{pin, Pin};
+use std::task::*;
+
+fn main() {
+    let mut fut = pin!(async_main());
+
+    // Poll loop, just to test the future...
+    let ctx = &mut Context::from_waker(Waker::noop());
+
+    loop {
+        match fut.as_mut().poll(ctx) {
+            Poll::Pending => {}
+            Poll::Ready(()) => break,
+        }
+    }
+}
+"#;
+
+    let title_0 = "no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope";
+    let title_1 = "trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title(title_0).id("E0599"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/dont-project-to-specializable-projection.rs")
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(1071..1075)
+                            .label("method not found in `Pin<&mut impl Future<Output = ()>>`"),
+                    ),
+            )
+            .element(
+                Origin::path("$SRC_DIR/core/src/future/future.rs")
+                    .line(104)
+                    .char_column(7)
+                    .primary(true),
+            )
+            .element(Padding)
+            .element(
+                Level::NOTE.message(
+                    "the method is available for `Pin<&mut impl Future<Output = ()>>` here",
+                ),
+            )
+            .element(Padding)
+            .element(
+                Level::HELP.message("items from traits can only be used if the trait is in scope"),
+            ),
+        Group::with_title(Level::HELP.title(title_1)).element(
+            Snippet::source("struct MyStruct;\n")
+                .path("$DIR/dont-project-to-specializable-projection.rs")
+                .line_start(6)
+                .patch(Patch::new(
+                    0..0,
+                    r#"use std::future::Future;
+"#,
+                )),
+        ),
+    ];
+    let expected_ascii = str![[r#"
+error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
+  --> $DIR/dont-project-to-specializable-projection.rs:48:28
+   |
+LL |         match fut.as_mut().poll(ctx) {
+   |                            ^^^^ method not found in `Pin<&mut impl Future<Output = ()>>`
+   |
+  --> $SRC_DIR/core/src/future/future.rs:104:7
+   |
+   = note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it
+   |
+LL + use std::future::Future;
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
+   ╭▸ $DIR/dont-project-to-specializable-projection.rs:48:28
+   │
+LL │         match fut.as_mut().poll(ctx) {
+   │                            ━━━━ method not found in `Pin<&mut impl Future<Output = ()>>`
+   ╰╴
+   ╭▸ $SRC_DIR/core/src/future/future.rs:104:7
+   │
+   ├ note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
+   │
+   ╰ help: items from traits can only be used if the trait is in scope
+help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it
+   ╭╴
+LL + use std::future::Future;
+   ╰╴
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn binary_op_not_allowed_issue_125631() {
+    // tests/ui/binop/binary-op-not-allowed-issue-125631.rs
+
+    let source = r#"use std::io::{Error, ErrorKind};
+use std::thread;
+
+struct T1;
+struct T2;
+
+fn main() {
+    (Error::new(ErrorKind::Other, "1"), T1, 1) == (Error::new(ErrorKind::Other, "1"), T1, 2);
+    //~^ERROR binary operation `==` cannot be applied to type
+    (Error::new(ErrorKind::Other, "2"), thread::current())
+        == (Error::new(ErrorKind::Other, "2"), thread::current());
+    //~^ERROR binary operation `==` cannot be applied to type
+    (Error::new(ErrorKind::Other, "4"), thread::current(), T1, T2)
+        == (Error::new(ErrorKind::Other, "4"), thread::current(), T1, T2);
+    //~^ERROR binary operation `==` cannot be applied to type
+}
+"#;
+    let title_0 = "binary operation `==` cannot be applied to type `(std::io::Error, Thread)`";
+    let title_1 =
+        "the foreign item types don't implement required traits for this operation to be valid";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title(title_0).id("E0369")).element(
+            Snippet::source(source)
+                .path("$DIR/binary-op-not-allowed-issue-125631.rs")
+                .annotation(
+                    AnnotationKind::Context
+                        .span(246..300)
+                        .label("(std::io::Error, Thread)"),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(312..366)
+                        .label("(std::io::Error, Thread)"),
+                )
+                .annotation(AnnotationKind::Primary.span(309..311)),
+        ),
+        Group::with_title(Level::NOTE.title(title_1))
+            .element(
+                Origin::path("$SRC_DIR/std/src/io/error.rs")
+                    .line(65)
+                    .char_column(0)
+                    .primary(true),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("not implement `PartialEq`"))
+            .element(
+                Origin::path("$SRC_DIR/std/src/thread/mod.rs")
+                    .line(1415)
+                    .char_column(0)
+                    .primary(true),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("not implement `PartialEq`")),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+  --> $DIR/binary-op-not-allowed-issue-125631.rs:11:9
+   |
+LL |     (Error::new(ErrorKind::Other, "2"), thread::current())
+   |     ------------------------------------------------------ (std::io::Error, Thread)
+LL |         == (Error::new(ErrorKind::Other, "2"), thread::current());
+   |         ^^ ------------------------------------------------------ (std::io::Error, Thread)
+   |
+note: the foreign item types don't implement required traits for this operation to be valid
+  --> $SRC_DIR/std/src/io/error.rs:65:0
+   |
+   = note: not implement `PartialEq`
+  --> $SRC_DIR/std/src/thread/mod.rs:1415:0
+   |
+   = note: not implement `PartialEq`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+   ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
+   │
+LL │     (Error::new(ErrorKind::Other, "2"), thread::current())
+   │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
+LL │         == (Error::new(ErrorKind::Other, "2"), thread::current());
+   │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
+   ╰╴
+note: the foreign item types don't implement required traits for this operation to be valid
+   ╭▸ $SRC_DIR/std/src/io/error.rs:65:0
+   │
+   ╰ note: not implement `PartialEq`
+   ╭▸ $SRC_DIR/std/src/thread/mod.rs:1415:0
+   │
+   ╰ note: not implement `PartialEq`
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn deriving_meta_unknown_trait() {
+    // tests/ui/derives/deriving-meta-unknown-trait.rs
+
+    let source = r#"#[derive(Eqr)]
+//~^ ERROR cannot find derive macro `Eqr` in this scope
+//~| ERROR cannot find derive macro `Eqr` in this scope
+struct Foo;
+
+pub fn main() {}
+"#;
+
+    let input =
+        &[
+            Group::with_title(Level::ERROR.title("cannot find derive macro `Eqr` in this scope"))
+                .element(
+                    Snippet::source(source)
+                        .path("$DIR/deriving-meta-unknown-trait.rs")
+                        .annotation(
+                            AnnotationKind::Primary
+                                .span(9..12)
+                                .label("help: a derive macro with a similar name exists: `Eq`"),
+                        ),
+                )
+                .element(
+                    Origin::path("$SRC_DIR/core/src/cmp.rs")
+                        .line(356)
+                        .char_column(0)
+                        .primary(true),
+                )
+                .element(Padding)
+                .element(Level::NOTE.message("similarly named derive macro `Eq` defined here"))
+                .element(Padding)
+                .element(Level::NOTE.message(
+                    "duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`",
+                )),
+        ];
+
+    let expected_ascii = str![[r#"
+error: cannot find derive macro `Eqr` in this scope
+  --> $DIR/deriving-meta-unknown-trait.rs:1:10
+   |
+LL | #[derive(Eqr)]
+   |          ^^^ help: a derive macro with a similar name exists: `Eq`
+   |
+  --> $SRC_DIR/core/src/cmp.rs:356:0
+   |
+   = note: similarly named derive macro `Eq` defined here
+   |
+   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: cannot find derive macro `Eqr` in this scope
+   ╭▸ $DIR/deriving-meta-unknown-trait.rs:1:10
+   │
+LL │ #[derive(Eqr)]
+   │          ━━━ help: a derive macro with a similar name exists: `Eq`
+   ╰╴
+   ╭▸ $SRC_DIR/core/src/cmp.rs:356:0
+   │
+   ├ note: similarly named derive macro `Eq` defined here
+   │
+   ╰ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn not_repeatable() {
+    // tests/ui/proc-macro/quote/not-repeatable.rs
+
+    let source = r#"#![feature(proc_macro_quote)]
+
+extern crate proc_macro;
+
+use proc_macro::quote;
+
+struct Ipv4Addr;
+
+fn main() {
+    let ip = Ipv4Addr;
+    let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
+}
+"#;
+    let label_0 = "method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`";
+    let title_0 = "the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied";
+    let title_1 = r#"the following trait bounds were not satisfied:
+`Ipv4Addr: Iterator`
+which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
+`&Ipv4Addr: Iterator`
+which is required by `&Ipv4Addr: proc_macro::ext::RepIteratorExt`
+`Ipv4Addr: ToTokens`
+which is required by `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+`&mut Ipv4Addr: Iterator`
+which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`"#;
+
+    let input = &[
+        Group::with_title(Level::ERROR.title(title_0).id("E0599"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/not-repeatable.rs")
+                    .annotation(AnnotationKind::Primary.span(146..164).label(
+                        "method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds",
+                    ))
+                    .annotation(AnnotationKind::Context.span(81..96).label(label_0)),
+            )
+            .element(Level::NOTE.message(title_1)),
+        Group::with_title(
+            Level::NOTE.title("the traits `Iterator` and `ToTokens` must be implemented"),
+        )
+        .element(
+            Origin::path("$SRC_DIR/proc_macro/src/to_tokens.rs")
+                .line(11)
+                .char_column(0)
+                .primary(true),
+        )
+        .element(
+            Origin::path("$SRC_DIR/core/src/iter/traits/iterator.rs")
+                .line(39)
+                .char_column(0)
+                .primary(true),
+        ),
+    ];
+    let expected_ascii = str![[r##"
+error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
+  --> $DIR/not-repeatable.rs:11:13
+   |
+LL | struct Ipv4Addr;
+   | --------------- method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+...
+LL |     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not s...
+   |             ^^^^^^^^^^^^^^^^^^ method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
+   |
+   = note: the following trait bounds were not satisfied:
+           `Ipv4Addr: Iterator`
+           which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
+           `&Ipv4Addr: Iterator`
+           which is required by `&Ipv4Addr: proc_macro::ext::RepIteratorExt`
+           `Ipv4Addr: ToTokens`
+           which is required by `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+           `&mut Ipv4Addr: Iterator`
+           which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`
+note: the traits `Iterator` and `ToTokens` must be implemented
+  --> $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
+  --> $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
+"##]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
+   ╭▸ $DIR/not-repeatable.rs:11:13
+   │
+LL │ struct Ipv4Addr;
+   │ ─────────────── method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+   ‡
+LL │     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not sat…
+   │             ━━━━━━━━━━━━━━━━━━ method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
+   │
+   ╰ note: the following trait bounds were not satisfied:
+           `Ipv4Addr: Iterator`
+           which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
+           `&Ipv4Addr: Iterator`
+           which is required by `&Ipv4Addr: proc_macro::ext::RepIteratorExt`
+           `Ipv4Addr: ToTokens`
+           which is required by `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+           `&mut Ipv4Addr: Iterator`
+           which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`
+note: the traits `Iterator` and `ToTokens` must be implemented
+   ╭▸ $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
+   ╭▸ $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
