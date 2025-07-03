@@ -26,6 +26,7 @@ pub(crate) struct Id<'a> {
 /// # Example
 ///
 /// ```rust
+/// # #[allow(clippy::needless_doctest_main)]
 #[doc = include_str!("../examples/highlight_message.rs")]
 /// ```
 #[doc = include_str!("../examples/highlight_message.svg")]
@@ -47,6 +48,7 @@ impl<'a> Group<'a> {
     /// # Example
     ///
     /// ```rust
+    /// # #[allow(clippy::needless_doctest_main)]
     #[doc = include_str!("../examples/elide_header.rs")]
     /// ```
     #[doc = include_str!("../examples/elide_header.svg")]
