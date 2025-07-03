@@ -74,6 +74,38 @@ impl<'a> Level<'a> {
     }
 
     /// Do not show the [`Level`]s name
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
+    ///let source = r#"fn main() {
+    ///     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+    ///     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+    /// }"#;
+    /// let input = &[
+    ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+    ///         .element(
+    ///             Snippet::source(source)
+    ///                 .path("$DIR/mismatched-types.rs")
+    ///                 .annotation(
+    ///                     AnnotationKind::Primary
+    ///                         .span(105..131)
+    ///                         .label("expected `&str`, found `&[u8; 0]`"),
+    ///                 )
+    ///                 .annotation(
+    ///                     AnnotationKind::Context
+    ///                         .span(98..102)
+    ///                         .label("expected due to this"),
+    ///                 ),
+    ///         )
+    ///         .element(
+    ///             Level::NOTE
+    ///                 .no_name()
+    ///                 .message("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
+    ///         ),
+    /// ];
+    /// ```
     pub fn no_name(self) -> Level<'a> {
         self.with_name(None::<&str>)
     }
