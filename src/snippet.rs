@@ -403,6 +403,18 @@ impl<'a> Patch<'a> {
 /// A source location [`Element`] in a [`Group`]
 ///
 /// If you have source available, see instead [`Snippet`]
+///
+/// # Example
+///
+/// ```rust
+/// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level, Origin};
+/// let input = &[
+///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+///         .element(
+///             Origin::new("$DIR/mismatched-types.rs")
+///         )
+/// ];
+/// ```
 #[derive(Clone, Debug)]
 pub struct Origin<'a> {
     pub(crate) path: Cow<'a, str>,
