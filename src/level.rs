@@ -144,6 +144,7 @@ impl<'a> Level<'a> {
     /// # Example
     ///
     /// ```rust
+    /// # #[allow(clippy::needless_doctest_main)]
     #[doc = include_str!("../examples/custom_level.rs")]
     /// ```
     #[doc = include_str!("../examples/custom_level.svg")]
