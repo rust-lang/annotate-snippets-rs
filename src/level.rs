@@ -64,6 +64,15 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
+    /// let input = &[
+    ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+    /// ];
+    /// ```
     pub fn title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
