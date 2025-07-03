@@ -411,7 +411,7 @@ impl<'a> Patch<'a> {
 /// let input = &[
 ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
 ///         .element(
-///             Origin::new("$DIR/mismatched-types.rs")
+///             Origin::path("$DIR/mismatched-types.rs")
 ///         )
 /// ];
 /// ```
@@ -431,7 +431,7 @@ impl<'a> Origin<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn new(path: impl Into<Cow<'a, str>>) -> Self {
+    pub fn path(path: impl Into<Cow<'a, str>>) -> Self {
         Self {
             path: path.into(),
             line: None,
@@ -467,7 +467,7 @@ impl<'a> Origin<'a> {
 
 impl<'a> From<Cow<'a, str>> for Origin<'a> {
     fn from(origin: Cow<'a, str>) -> Self {
-        Self::new(origin)
+        Self::path(origin)
     }
 }
 

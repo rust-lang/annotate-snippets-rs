@@ -1743,7 +1743,7 @@ fn main() {
                     Level::NOTE
                         .title("for a trait to be dyn compatible it needs to allow building a vtable\nfor more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>"))
                 .element(
-                    Origin::new("$SRC_DIR/core/src/cmp.rs")
+                    Origin::path("$SRC_DIR/core/src/cmp.rs")
                         .line(334)
                         .char_column(14)
                         .primary(true)
