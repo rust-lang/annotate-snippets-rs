@@ -379,6 +379,19 @@ impl<'a> SourceMap<'a> {
             }
             line_count
         }
+
+        let source_len = self.source.len();
+        if let Some(bigger) = patches.iter().find_map(|x| {
+            // Allow patching one past the last character in the source.
+            if source_len + 1 < x.span.end {
+                Some(&x.span)
+            } else {
+                None
+            }
+        }) {
+            panic!("Patch span `{bigger:?}` is beyond the end of buffer `{source_len}`")
+        }
+
         // Assumption: all spans are in the same file, and all spans
         // are disjoint. Sort in ascending order.
         patches.sort_by_key(|p| p.span.start);
