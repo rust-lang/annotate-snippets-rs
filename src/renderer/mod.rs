@@ -352,6 +352,12 @@ impl Renderer {
                                                 max_line_num_len + 1,
                                             );
                                         }
+                                        Some(Element::Origin(origin)) if origin.primary => self
+                                            .draw_col_separator_end(
+                                                &mut buffer,
+                                                current_line,
+                                                max_line_num_len + 1,
+                                            ),
 
                                         Some(Element::Message(level))
                                             if level.level.name != Some(None) =>

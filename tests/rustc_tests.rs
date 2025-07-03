@@ -3055,6 +3055,7 @@ error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Outp
    |
 LL |         match fut.as_mut().poll(ctx) {
    |                            ^^^^ method not found in `Pin<&mut impl Future<Output = ()>>`
+   |
   --> $SRC_DIR/core/src/future/future.rs:104:7
    |
    = note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
@@ -3074,6 +3075,7 @@ error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Outp
    │
 LL │         match fut.as_mut().poll(ctx) {
    │                            ━━━━ method not found in `Pin<&mut impl Future<Output = ()>>`
+   ╰╴
    ╭▸ $SRC_DIR/core/src/future/future.rs:104:7
    │
    ├ note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
@@ -3233,6 +3235,7 @@ error: cannot find derive macro `Eqr` in this scope
    |
 LL | #[derive(Eqr)]
    |          ^^^ help: a derive macro with a similar name exists: `Eq`
+   |
   --> $SRC_DIR/core/src/cmp.rs:356:0
    |
    = note: similarly named derive macro `Eq` defined here
@@ -3248,6 +3251,7 @@ error: cannot find derive macro `Eqr` in this scope
    │
 LL │ #[derive(Eqr)]
    │          ━━━ help: a derive macro with a similar name exists: `Eq`
+   ╰╴
    ╭▸ $SRC_DIR/core/src/cmp.rs:356:0
    │
    ├ note: similarly named derive macro `Eq` defined here
