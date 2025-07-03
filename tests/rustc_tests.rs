@@ -3076,7 +3076,7 @@ LL │         match fut.as_mut().poll(ctx) {
    │                            ━━━━ method not found in `Pin<&mut impl Future<Output = ()>>`
    ╭▸ $SRC_DIR/core/src/future/future.rs:104:7
    │
-   ╰ note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
+   ├ note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
    │
    ╰ help: items from traits can only be used if the trait is in scope
 help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it
@@ -3250,7 +3250,7 @@ LL │ #[derive(Eqr)]
    │          ━━━ help: a derive macro with a similar name exists: `Eq`
    ╭▸ $SRC_DIR/core/src/cmp.rs:356:0
    │
-   ╰ note: similarly named derive macro `Eq` defined here
+   ├ note: similarly named derive macro `Eq` defined here
    │
    ╰ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
 "#]];

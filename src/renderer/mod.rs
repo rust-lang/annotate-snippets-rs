@@ -316,7 +316,11 @@ impl Renderer {
                                 title,
                                 max_line_num_len,
                                 title_style,
-                                matches!(peek, Some(Element::Title(_) | Element::Message(_))),
+                                matches!(
+                                    peek,
+                                    Some(Element::Title(_) | Element::Message(_))
+                                        | Some(Element::Padding(_))
+                                ),
                                 buffer_msg_line_offset,
                             );
                             last_was_suggestion = false;
