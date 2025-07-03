@@ -29,16 +29,8 @@ fn main() {
         .on_default()
         .effects(Effects::BOLD);
     let message = format!(
-        "expected fn pointer `{}for<'a>{} fn(Box<{}(dyn Any + Send + 'a){}>) -> Pin<_>`
-      found fn item `fn(Box<{}(dyn Any + Send + 'static){}>) -> Pin<_> {}{{wrapped_fn}}{}`",
-        magenta.render(),
-        magenta.render_reset(),
-        magenta.render(),
-        magenta.render_reset(),
-        magenta.render(),
-        magenta.render_reset(),
-        magenta.render(),
-        magenta.render_reset()
+        "expected fn pointer `{magenta}for<'a>{magenta:#} fn(Box<{magenta}(dyn Any + Send + 'a){magenta:#}>) -> Pin<_>`
+      found fn item `fn(Box<{magenta}(dyn Any + Send + 'static){magenta:#}>) -> Pin<_> {magenta}{{wrapped_fn}}{magenta:#}`",
     );
 
     let message = &[

@@ -51,14 +51,14 @@ impl StyledBuffer {
                 let ch_style = style.color_spec(level, stylesheet);
                 if ch_style != current_style {
                     if !line.is_empty() {
-                        write!(str, "{}", current_style.render_reset())?;
+                        write!(str, "{current_style:#}")?;
                     }
                     current_style = ch_style;
-                    write!(str, "{}", current_style.render())?;
+                    write!(str, "{current_style}")?;
                 }
                 write!(str, "{ch}")?;
             }
-            write!(str, "{}", current_style.render_reset())?;
+            write!(str, "{current_style:#}")?;
             if i != self.lines.len() - 1 {
                 writeln!(str)?;
             }
