@@ -3440,6 +3440,7 @@ LL |     let _: S::<bool>::Pr = ();
    |                       ^^ associated item not found in `S<bool>`
    |
    = note: the associated type was found for
+           
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
