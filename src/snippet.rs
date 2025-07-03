@@ -386,7 +386,7 @@ impl<'a> Patch<'a> {
     }
 }
 
-/// The referenced location (e.g. a path)
+/// A source location [`Element`] in a [`Group`]
 ///
 /// If you have source available, see instead [`Snippet`]
 #[derive(Clone, Debug)]
