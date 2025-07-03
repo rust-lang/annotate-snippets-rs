@@ -1659,8 +1659,8 @@ fn main() {}
                         .annotation(AnnotationKind::Context.span(878..880).label("not covered"))
                         .annotation(AnnotationKind::Context.span(890..892).label("not covered"))
                 )
-                .element(Level::NOTE.title("the matched value is of type `NonEmptyEnum5`"))
-                .element(Level::NOTE.title("match arms with guards don't count towards exhaustivity")
+                .element(Level::NOTE.message("the matched value is of type `NonEmptyEnum5`"))
+                .element(Level::NOTE.message("match arms with guards don't count towards exhaustivity")
         ),
             Group::with_title(
                     Level::HELP
@@ -1749,7 +1749,7 @@ fn main() {
                         .primary(true)
                 )
                 .element(Padding)
-                .element(Level::NOTE.title("...because it uses `Self` as a type parameter"))
+                .element(Level::NOTE.message("...because it uses `Self` as a type parameter"))
                 .element(
                     Snippet::source(source)
                         .line_start(1)
@@ -2795,9 +2795,9 @@ fn main() {
                     .path("lint_example.rs")
                     .annotation(AnnotationKind::Primary.span(40..49)),
             )
-            .element(Level::WARNING.title("this changes meaning in Rust 2021"))
-            .element(Level::NOTE.title(long_title2))
-            .element(Level::NOTE.title("`#[warn(array_into_iter)]` on by default")),
+            .element(Level::WARNING.message("this changes meaning in Rust 2021"))
+            .element(Level::NOTE.message(long_title2))
+            .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
         Group::with_title(
             Level::HELP.title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
         )

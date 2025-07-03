@@ -2,7 +2,7 @@
 
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
-use crate::{OptionCow, Title};
+use crate::{Message, OptionCow, Title};
 use anstyle::Style;
 use std::borrow::Cow;
 
@@ -73,6 +73,10 @@ impl<'a> Level<'a> {
 }
 
 impl<'a> Level<'a> {
+    /// A text [`Element`][crate::Element] to start a [`Group`][crate::Group]
+    ///
+    /// See [`Group::with_title`][crate::Group::with_title]
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such
@@ -80,15 +84,16 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    pub fn title(self, title: impl Into<Cow<'a, str>>) -> Title<'a> {
+    pub fn title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,
-            title: title.into(),
-            is_pre_styled: false,
+            text: text.into(),
         }
     }
 
+    /// A text [`Element`][crate::Element] in a [`Group`][crate::Group]
+    ///
     /// <div class="warning">
     ///
     /// Text passed to this function is allowed to be pre-styled, as such all
@@ -97,12 +102,10 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    pub fn pre_styled_title(self, title: impl Into<Cow<'a, str>>) -> Title<'a> {
-        Title {
+    pub fn message(self, text: impl Into<Cow<'a, str>>) -> Message<'a> {
+        Message {
             level: self,
-            id: None,
-            title: title.into(),
-            is_pre_styled: true,
+            text: text.into(),
         }
     }
 

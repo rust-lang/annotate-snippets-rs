@@ -48,7 +48,7 @@ use crate::renderer::source_map::{
 };
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
-use crate::{Annotation, AnnotationKind, Element, Group, Origin, Patch, Snippet, Title};
+use crate::{Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Snippet, Title};
 pub use anstyle::*;
 use margin::Margin;
 use std::borrow::Cow;
@@ -303,7 +303,20 @@ impl Renderer {
                                 title,
                                 max_line_num_len,
                                 title_style,
-                                matches!(peek, Some(Element::Title(_))),
+                                matches!(peek, Some(Element::Title(_) | Element::Message(_))),
+                                buffer_msg_line_offset,
+                            );
+                            last_was_suggestion = false;
+                        }
+                        Element::Message(title) => {
+                            let title_style = TitleStyle::Secondary;
+                            let buffer_msg_line_offset = buffer.num_lines();
+                            self.render_title(
+                                &mut buffer,
+                                title,
+                                max_line_num_len,
+                                title_style,
+                                matches!(peek, Some(Element::Title(_) | Element::Message(_))),
                                 buffer_msg_line_offset,
                             );
                             last_was_suggestion = false;
@@ -327,6 +340,16 @@ impl Renderer {
                                     let current_line = buffer.num_lines();
                                     match peek {
                                         Some(Element::Title(level))
+                                            if level.level.name != Some(None) =>
+                                        {
+                                            self.draw_col_separator_no_space(
+                                                &mut buffer,
+                                                current_line,
+                                                max_line_num_len + 1,
+                                            );
+                                        }
+
+                                        Some(Element::Message(level))
                                             if level.level.name != Some(None) =>
                                         {
                                             self.draw_col_separator_no_space(
@@ -384,7 +407,8 @@ impl Renderer {
                     if g == 0
                         && (matches!(section, Element::Origin(_))
                             || (matches!(section, Element::Title(_)) && i == 0)
-                            || matches!(section, Element::Title(level) if level.level.name == Some(None)))
+                            || matches!(section, Element::Title(level) if level.level.name == Some(None))
+                            || matches!(section, Element::Message(level) if level.level.name == Some(None)))
                     {
                         let current_line = buffer.num_lines();
                         if peek.is_none() && group_len > 1 {
@@ -394,6 +418,13 @@ impl Renderer {
                                 max_line_num_len + 1,
                             );
                         } else if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
+                        {
+                            self.draw_col_separator_no_space(
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        } else if matches!(peek, Some(Element::Message(level)) if level.level.name != Some(None))
                         {
                             self.draw_col_separator_no_space(
                                 &mut buffer,
@@ -503,7 +534,7 @@ impl Renderer {
     fn render_title(
         &self,
         buffer: &mut StyledBuffer,
-        title: &Title<'_>,
+        title: &dyn MessageOrTitle,
         max_line_num_len: usize,
         title_style: TitleStyle,
         is_cont: bool,
@@ -511,7 +542,7 @@ impl Renderer {
     ) {
         let (label_style, title_element_style) = match title_style {
             TitleStyle::MainHeader => (
-                ElementStyle::Level(title.level.level),
+                ElementStyle::Level(title.level().level),
                 if self.short_message {
                     ElementStyle::NoStyle
                 } else {
@@ -519,7 +550,7 @@ impl Renderer {
                 },
             ),
             TitleStyle::Header => (
-                ElementStyle::Level(title.level.level),
+                ElementStyle::Level(title.level().level),
                 ElementStyle::HeaderMsg,
             ),
             TitleStyle::Secondary => {
@@ -538,10 +569,10 @@ impl Renderer {
         };
         let mut label_width = 0;
 
-        if title.level.name != Some(None) {
-            buffer.append(buffer_msg_line_offset, title.level.as_str(), label_style);
-            label_width += title.level.as_str().len();
-            if let Some(Id { id: Some(id), url }) = &title.id {
+        if title.level().name != Some(None) {
+            buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
+            label_width += title.level().as_str().len();
+            if let Some(Id { id: Some(id), url }) = &title.id() {
                 buffer.append(buffer_msg_line_offset, "[", label_style);
                 if let Some(url) = url.as_ref() {
                     buffer.append(
@@ -584,10 +615,10 @@ impl Renderer {
             label_width
         });
 
-        let (title_str, style) = if title.is_pre_styled {
-            (title.title.to_string(), ElementStyle::NoStyle)
+        let (title_str, style) = if title.is_pre_styled() {
+            (title.text().to_owned(), ElementStyle::NoStyle)
         } else {
-            (normalize_whitespace(&title.title), title_element_style)
+            (normalize_whitespace(title.text()), title_element_style)
         };
         for (i, text) in title_str.lines().enumerate() {
             if i != 0 {
@@ -2532,6 +2563,43 @@ impl Renderer {
     }
 }
 
+trait MessageOrTitle {
+    fn level(&self) -> &Level<'_>;
+    fn id(&self) -> Option<&Id<'_>>;
+    fn text(&self) -> &str;
+    fn is_pre_styled(&self) -> bool;
+}
+
+impl MessageOrTitle for Title<'_> {
+    fn level(&self) -> &Level<'_> {
+        &self.level
+    }
+    fn id(&self) -> Option<&Id<'_>> {
+        self.id.as_ref()
+    }
+    fn text(&self) -> &str {
+        self.text.as_ref()
+    }
+    fn is_pre_styled(&self) -> bool {
+        false
+    }
+}
+
+impl MessageOrTitle for Message<'_> {
+    fn level(&self) -> &Level<'_> {
+        &self.level
+    }
+    fn id(&self) -> Option<&Id<'_>> {
+        None
+    }
+    fn text(&self) -> &str {
+        self.text.as_ref()
+    }
+    fn is_pre_styled(&self) -> bool {
+        true
+    }
+}
+
 // instead of taking the String length or dividing by 10 while > 0, we multiply a limit by 10 until
 // we're higher. If the loop isn't exited by the `return`, the last multiplication will wrap, which
 // is OK, because while we cannot fit a higher power of 10 in a usize, the loop will end anyway.
@@ -2846,7 +2914,10 @@ fn max_line_number(groups: &[Group<'_>]) -> usize {
             v.elements
                 .iter()
                 .map(|s| match s {
-                    Element::Title(_) | Element::Origin(_) | Element::Padding(_) => 0,
+                    Element::Title(_)
+                    | Element::Message(_)
+                    | Element::Origin(_)
+                    | Element::Padding(_) => 0,
                     Element::Cause(cause) => {
                         let end = cause
                             .markers
