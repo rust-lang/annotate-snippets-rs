@@ -91,6 +91,20 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
+    /// let input = &[
+    ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+    ///         .element(
+    ///             Level::NOTE
+    ///                 .no_name()
+    ///                 .message("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
+    ///         ),
+    /// ];
+    /// ```
     pub fn message(self, text: impl Into<Cow<'a, str>>) -> Message<'a> {
         Message {
             level: self,
