@@ -2400,7 +2400,7 @@ fn secondary_title_no_level_text() {
             .element(
                 Level::NOTE
                     .no_name()
-                    .title("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
+                    .message("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
             ),
     ];
 
@@ -2445,7 +2445,7 @@ fn secondary_title_custom_level_text() {
             .element(
                 Level::NOTE
                     .with_name(Some("custom"))
-                    .title("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
+                    .message("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
             ),
     ];
 
