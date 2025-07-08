@@ -1,4 +1,4 @@
-use crate::renderer::{char_width, is_different, num_overlap, LineAnnotation, LineAnnotationType};
+use crate::renderer::{char_width, num_overlap, LineAnnotation, LineAnnotationType};
 use crate::{Annotation, AnnotationKind, Patch};
 use std::borrow::Cow;
 use std::cmp::{max, min};
@@ -474,16 +474,10 @@ impl<'a> SourceMap<'a> {
                     _ => 1,
                 })
                 .sum();
-            if !is_different(self, &part.replacement, part.span.clone()) {
-                // Account for cases where we are suggesting the same code that's already
-                // there. This shouldn't happen often, but in some cases for multipart
-                // suggestions it's much easier to handle it here than in the origin.
-            } else {
-                line_highlight.push(SubstitutionHighlight {
-                    start: (cur_lo.char as isize + acc) as usize,
-                    end: (cur_lo.char as isize + acc + len) as usize,
-                });
-            }
+            line_highlight.push(SubstitutionHighlight {
+                start: (cur_lo.char as isize + acc) as usize,
+                end: (cur_lo.char as isize + acc + len) as usize,
+            });
             buf.push_str(&part.replacement);
             // Account for the difference between the width of the current code and the
             // snippet being suggested, so that the *later* suggestions are correctly

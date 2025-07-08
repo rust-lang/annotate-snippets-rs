@@ -2997,6 +2997,9 @@ LL |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
    |
 help: consider specifying the generic argument
+   |
+LL |         .sum::<_>() //~ ERROR type annotations needed
+   |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
