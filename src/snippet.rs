@@ -138,6 +138,7 @@ pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) id: Option<Id<'a>>,
     pub(crate) text: Cow<'a, str>,
+    pub(crate) allows_styling: bool,
 }
 
 impl<'a> Title<'a> {

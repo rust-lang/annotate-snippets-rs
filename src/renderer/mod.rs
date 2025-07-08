@@ -596,7 +596,7 @@ impl Renderer {
             label_width
         });
 
-        let (title_str, style) = if title.is_pre_styled() {
+        let (title_str, style) = if title.allows_styling() {
             (title.text().to_owned(), ElementStyle::NoStyle)
         } else {
             (normalize_whitespace(title.text()), title_element_style)
@@ -2609,7 +2609,7 @@ trait MessageOrTitle {
     fn level(&self) -> &Level<'_>;
     fn id(&self) -> Option<&Id<'_>>;
     fn text(&self) -> &str;
-    fn is_pre_styled(&self) -> bool;
+    fn allows_styling(&self) -> bool;
 }
 
 impl MessageOrTitle for Title<'_> {
@@ -2622,8 +2622,8 @@ impl MessageOrTitle for Title<'_> {
     fn text(&self) -> &str {
         self.text.as_ref()
     }
-    fn is_pre_styled(&self) -> bool {
-        false
+    fn allows_styling(&self) -> bool {
+        self.allows_styling
     }
 }
 
@@ -2637,7 +2637,7 @@ impl MessageOrTitle for Message<'_> {
     fn text(&self) -> &str {
         self.text.as_ref()
     }
-    fn is_pre_styled(&self) -> bool {
+    fn allows_styling(&self) -> bool {
         true
     }
 }

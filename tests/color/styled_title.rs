@@ -30,7 +30,7 @@ use c::cnb_runtime;
                 .annotation(AnnotationKind::Primary.span(65..86).label(label_1))
                 .annotation(AnnotationKind::Context.span(53..64).label(label_2)),
         ),
-        Group::with_title(Level::HELP.primary_title(title_2)).element(
+        Group::with_title(Level::HELP.secondary_title(title_2)).element(
             Snippet::source(source)
                 .path("src/main.rs")
                 .annotation(AnnotationKind::Primary.span(4..5).label(label_3))
