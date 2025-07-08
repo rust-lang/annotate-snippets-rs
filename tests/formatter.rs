@@ -2952,3 +2952,52 @@ LL +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
     let renderer = renderer.theme(OutputTheme::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn suggestion_same_as_source() {
+    let source = r#"// When the type of a method call's receiver is unknown, the span should point
+// to the receiver (and not the entire call, as was previously the case before
+// the fix of which this tests).
+
+fn shines_a_beacon_through_the_darkness() {
+    let x: Option<_> = None; //~ ERROR type annotations needed
+    x.unwrap().method_that_could_exist_on_some_type();
+}
+
+fn courier_to_des_moines_and_points_west(data: &[u32]) -> String {
+    data.iter()
+        .sum::<_>() //~ ERROR type annotations needed
+        .to_string()
+}
+
+fn main() {}
+"#;
+
+    let input = &[
+        Group::with_title(Level::ERROR.title("type annotations needed").id("E0282")).element(
+            Snippet::source(source)
+                .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                .annotation(AnnotationKind::Primary.span(449..452).label(
+                    "cannot infer type of the type parameter `S` declared on the method `sum`",
+                )),
+        ),
+        Group::with_title(Level::HELP.title("consider specifying the generic argument")).element(
+            Snippet::source(source)
+                .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                .line_start(12)
+                .fold(true)
+                .patch(Patch::new(452..457, "::<_>")),
+        ),
+    ];
+    let expected = str![[r#"
+error[E0282]: type annotations needed
+  --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
+   |
+LL |         .sum::<_>() //~ ERROR type annotations needed
+   |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
+   |
+help: consider specifying the generic argument
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
