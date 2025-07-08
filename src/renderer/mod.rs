@@ -413,11 +413,19 @@ impl Renderer {
                         }
                         Element::Padding(_) => {
                             let current_line = buffer.num_lines();
-                            self.draw_col_separator_no_space(
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
+                            if peek.is_none() {
+                                self.draw_col_separator_end(
+                                    &mut buffer,
+                                    current_line,
+                                    max_line_num_len + 1,
+                                );
+                            } else {
+                                self.draw_col_separator_no_space(
+                                    &mut buffer,
+                                    current_line,
+                                    max_line_num_len + 1,
+                                );
+                            }
                         }
                     }
                     if g == 0

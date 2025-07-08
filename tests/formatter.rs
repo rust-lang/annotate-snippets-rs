@@ -2875,7 +2875,7 @@ error[E0282]: type annotations needed
    │
 LL │         .sum::<_>() //~ ERROR type annotations needed
    │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
-   │
+   ╰╴
 "#]];
     let renderer = renderer.theme(OutputTheme::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2942,7 +2942,7 @@ error[E0282]: type annotations needed
    │
 LL │         .sum::<_>() //~ ERROR type annotations needed
    │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
-   │
+   ╰╴
 help: consider specifying the generic argument
    ╭╴
 LL -         .sum::<_>() //~ ERROR type annotations needed
