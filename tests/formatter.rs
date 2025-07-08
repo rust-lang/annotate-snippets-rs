@@ -1,4 +1,6 @@
-use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Patch, Renderer, Snippet};
+use annotate_snippets::{
+    Annotation, AnnotationKind, Group, Level, Padding, Patch, Renderer, Snippet,
+};
 
 use annotate_snippets::renderer::OutputTheme;
 use snapbox::{assert_data_eq, str};
@@ -2821,5 +2823,132 @@ error:
   ╰╴    ━━━━━━━━ annotation
 "#]];
     let renderer = Renderer::plain().theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn padding_last_in_group() {
+    let source = r#"// When the type of a method call's receiver is unknown, the span should point
+// to the receiver (and not the entire call, as was previously the case before
+// the fix of which this tests).
+
+fn shines_a_beacon_through_the_darkness() {
+    let x: Option<_> = None; //~ ERROR type annotations needed
+    x.unwrap().method_that_could_exist_on_some_type();
+}
+
+fn courier_to_des_moines_and_points_west(data: &[u32]) -> String {
+    data.iter()
+        .sum::<_>() //~ ERROR type annotations needed
+        .to_string()
+}
+
+fn main() {}
+"#;
+
+    let input = &[
+        Group::with_title(Level::ERROR.title("type annotations needed").id("E0282"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                    .annotation(AnnotationKind::Primary.span(449..452).label(
+                        "cannot infer type of the type parameter `S` declared on the method `sum`",
+                    )),
+            )
+            .element(Padding),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0282]: type annotations needed
+  --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
+   |
+LL |         .sum::<_>() //~ ERROR type annotations needed
+   |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0282]: type annotations needed
+   ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:12:10
+   │
+LL │         .sum::<_>() //~ ERROR type annotations needed
+   │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
+   │
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn padding_last_in_group_with_group_after() {
+    let source = r#"// When the type of a method call's receiver is unknown, the span should point
+// to the receiver (and not the entire call, as was previously the case before
+// the fix of which this tests).
+
+fn shines_a_beacon_through_the_darkness() {
+    let x: Option<_> = None; //~ ERROR type annotations needed
+    x.unwrap().method_that_could_exist_on_some_type();
+}
+
+fn courier_to_des_moines_and_points_west(data: &[u32]) -> String {
+    data.iter()
+        .sum::<_>() //~ ERROR type annotations needed
+        .to_string()
+}
+
+fn main() {}
+"#;
+
+    let input = &[
+        Group::with_title(Level::ERROR.title("type annotations needed").id("E0282"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                    .annotation(AnnotationKind::Primary.span(449..452).label(
+                        "cannot infer type of the type parameter `S` declared on the method `sum`",
+                    )),
+            )
+            .element(Padding),
+        Group::with_title(Level::HELP.title("consider specifying the generic argument")).element(
+            Snippet::source(source)
+                .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                .line_start(12)
+                .fold(true)
+                .patch(Patch::new(452..457, "::<GENERIC_ARG>")),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0282]: type annotations needed
+  --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
+   |
+LL |         .sum::<_>() //~ ERROR type annotations needed
+   |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
+   |
+help: consider specifying the generic argument
+   |
+LL -         .sum::<_>() //~ ERROR type annotations needed
+LL +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0282]: type annotations needed
+   ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:12:10
+   │
+LL │         .sum::<_>() //~ ERROR type annotations needed
+   │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
+   │
+help: consider specifying the generic argument
+   ╭╴
+LL -         .sum::<_>() //~ ERROR type annotations needed
+LL +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
+   ╰╴
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
