@@ -16,3 +16,4 @@ mod simple;
 mod strip_line;
 mod strip_line_char;
 mod strip_line_non_ws;
+mod styled_title;
