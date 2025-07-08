@@ -5,7 +5,7 @@
 use annotate_snippets::{AnnotationKind, Group, Level, Origin, Padding, Patch, Renderer, Snippet};
 
 use annotate_snippets::renderer::OutputTheme;
-use snapbox::{assert_data_eq, str};
+use snapbox::{assert_data_eq, str, IntoData};
 
 #[test]
 fn ends_on_col0() {
@@ -3444,4 +3444,248 @@ LL |     let _: S::<bool>::Pr = ();
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn unsafe_extern_suggestion() {
+    // tests/ui/rust-2024/unsafe-extern-blocks/unsafe-extern-suggestion.rs
+
+    let source = r#"//@ run-rustfix
+
+#![deny(missing_unsafe_on_extern)]
+#![allow(unused)]
+
+extern "C" {
+    //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
+    //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+    static TEST1: i32;
+    fn test1(i: i32);
+}
+
+unsafe extern "C" {
+    static TEST2: i32;
+    fn test2(i: i32);
+}
+
+fn main() {}
+"#;
+
+    let title_0 =
+        "this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!";
+    let title_1 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title("extern blocks should be unsafe"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/unsafe-extern-suggestion.rs")
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(71..71)
+                            .label("help: needs `unsafe` before the extern keyword: `unsafe`"),
+                    )
+                    .annotation(AnnotationKind::Primary.span(71..303)),
+            )
+            .element(Level::WARNING.message(title_0))
+            .element(Level::NOTE.message(title_1)),
+        Group::with_title(Level::NOTE.title("the lint level is defined here")).element(
+            Snippet::source(source)
+                .path("$DIR/unsafe-extern-suggestion.rs")
+                .annotation(AnnotationKind::Primary.span(25..49)),
+        ),
+    ];
+
+    let expected = str![[r#"
+error: extern blocks should be unsafe
+  --> $DIR/unsafe-extern-suggestion.rs:6:1
+   |
+LL |   extern "C" {
+   |   ^ help: needs `unsafe` before the extern keyword: `unsafe`
+   |  _|
+   | |
+LL | |     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
+LL | |     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+LL | |     static TEST1: i32;
+LL | |     fn test1(i: i32);
+LL | | }
+   | |_^
+   |
+   = warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+   = note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
+note: the lint level is defined here
+  --> $DIR/unsafe-extern-suggestion.rs:3:9
+   |
+LL | #![deny(missing_unsafe_on_extern)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn alloc_error_handler_bad_signature_2() {
+    // tests/ui/alloc-error/alloc-error-handler-bad-signature-2.rs
+
+    let source = r#"//@ compile-flags:-C panic=abort
+
+#![feature(alloc_error_handler)]
+#![no_std]
+#![no_main]
+
+struct Layout;
+
+#[alloc_error_handler]
+fn oom(
+    info: Layout, //~^ ERROR mismatched types
+) { //~^^ ERROR mismatched types
+    loop {}
+}
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
+"#;
+    let title_0 =
+        "`core::alloc::Layout` and `Layout` have similar names, but are actually distinct types";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/alloc-error-handler-bad-signature-2.rs")
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(130..230)
+                            .label("expected `Layout`, found `core::alloc::Layout`"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(130..185)
+                            .label("arguments to this function are incorrect"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(107..129)
+                            .label("in this procedural macro expansion"),
+                    ),
+            )
+            .element(Level::NOTE.message(title_0)),
+        Group::with_title(Level::NOTE.title("`core::alloc::Layout` is defined in crate `core`"))
+            .element(
+                Origin::path("$SRC_DIR/core/src/alloc/layout.rs")
+                    .line(40)
+                    .char_column(0)
+                    .primary(true),
+            ),
+        Group::with_title(Level::NOTE.title("`Layout` is defined in the current crate")).element(
+            Snippet::source(source)
+                .path("$DIR/alloc-error-handler-bad-signature-2.rs")
+                .annotation(AnnotationKind::Primary.span(91..104)),
+        ),
+        Group::with_title(Level::NOTE.title("function defined here")).element(
+            Snippet::source(source)
+                .path("$DIR/alloc-error-handler-bad-signature-2.rs")
+                .annotation(AnnotationKind::Context.span(142..154).label(""))
+                .annotation(AnnotationKind::Primary.span(133..136)),
+        ),
+    ];
+    let expected = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/alloc-error-handler-bad-signature-2.rs:10:1
+   |
+LL |    #[alloc_error_handler]
+   |    ---------------------- in this procedural macro expansion
+LL | // fn oom(
+LL | ||     info: Layout, //~^ ERROR mismatched types
+LL | || ) { //~^^ ERROR mismatched types
+   | ||_- arguments to this function are incorrect
+LL | |      loop {}
+LL | |  }
+   | |__^ expected `Layout`, found `core::alloc::Layout`
+   |
+   = note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
+note: `core::alloc::Layout` is defined in crate `core`
+  --> $SRC_DIR/core/src/alloc/layout.rs:40:0
+note: `Layout` is defined in the current crate
+  --> $DIR/alloc-error-handler-bad-signature-2.rs:7:1
+   |
+LL | struct Layout;
+   | ^^^^^^^^^^^^^
+note: function defined here
+  --> $DIR/alloc-error-handler-bad-signature-2.rs:10:4
+   |
+LL | fn oom(
+   |    ^^^
+LL |     info: Layout, //~^ ERROR mismatched types
+   |     ------------
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn str_escape() {
+    // tests/ui/str/str-escape.rs
+
+    let source = r#"//@ check-pass
+// ignore-tidy-tab
+//@ edition: 2021
+
+fn main() {
+    let s = "\
+
+             ";
+    //~^^^ WARNING multiple lines skipped by escaped newline
+    assert_eq!(s, "");
+
+    let s = c"foo\
+             bar
+             ";
+    //~^^^ WARNING whitespace symbol '\u{a0}' is not skipped
+    assert_eq!(s, c"foo           bar\n             ");
+
+    let s = "a\
+ b";
+    assert_eq!(s, "ab");
+
+    let s = "a\
+	b";
+    assert_eq!(s, "ab");
+
+    let s = b"a\
+    
+    b";
+    //~^^ WARNING whitespace symbol '\u{c}' is not skipped
+    // '\x0c' is ASCII whitespace, but it may not need skipped
+    // discussion: https://github.com/rust-lang/rust/pull/108403
+    assert_eq!(s, b"a\x0cb");
+}
+"#;
+
+    let input =
+        &[
+            Group::with_title(Level::WARNING.title(r#"whitespace symbol '\u{a0}' is not skipped"#))
+                .element(
+                    Snippet::source(source)
+                        .path("$DIR/str-escape.rs")
+                        .annotation(
+                            AnnotationKind::Context
+                                .span(203..205)
+                                .label(r#"whitespace symbol '\u{a0}' is not skipped"#),
+                        )
+                        .annotation(AnnotationKind::Primary.span(199..205)),
+                ),
+        ];
+    let expected = str![[r#"
+warning: whitespace symbol '\u{a0}' is not skipped
+  --> $DIR/str-escape.rs:12:18
+   |
+LL |       let s = c"foo\
+   |  __________________^
+LL | |              bar
+   | |   ^ whitespace symbol '\u{a0}' is not skipped
+   | |___|
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected.raw());
 }
