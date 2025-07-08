@@ -55,7 +55,6 @@ use std::borrow::Cow;
 use std::cmp::{max, min, Ordering, Reverse};
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
-use std::ops::Range;
 use stylesheet::Stylesheet;
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
@@ -1911,9 +1910,7 @@ impl Renderer {
                     assert!(underline_start >= 0 && underline_end >= 0);
                     let padding: usize = max_line_num_len + 3;
                     for p in underline_start..underline_end {
-                        if matches!(show_code_change, DisplaySuggestion::Underline)
-                            && is_different(sm, &part.replacement, part.span.clone())
-                        {
+                        if matches!(show_code_change, DisplaySuggestion::Underline) {
                             // If this is a replacement, underline with `~`, if this is an addition
                             // underline with `+`.
                             buffer.putc(
@@ -2953,14 +2950,6 @@ struct UnderlineParts {
     multiline_end_up: char,
     multiline_end_same_line: char,
     multiline_bottom_right_with_text: char,
-}
-
-/// Whether the original and suggested code are the same.
-pub(crate) fn is_different(sm: &SourceMap<'_>, suggested: &str, range: Range<usize>) -> bool {
-    match sm.span_to_snippet(range) {
-        Some(s) => s != suggested,
-        None => true,
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
