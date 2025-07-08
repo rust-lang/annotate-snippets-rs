@@ -1167,7 +1167,7 @@ impl Renderer {
         // otherwise the lines would end up needing to go over a message.
 
         let mut annotations = line_info.annotations.clone();
-        annotations.sort_by_key(|a| Reverse(a.start.display));
+        annotations.sort_by_key(|a| Reverse((a.start.display, a.start.char)));
 
         // First, figure out where each label will be positioned.
         //
@@ -1250,7 +1250,9 @@ impl Renderer {
                     // If we're overlapping with an un-labelled annotation with the same span
                     // we can just merge them in the output
                     if next.start.display == annotation.start.display
+                        && next.start.char == annotation.start.char
                         && next.end.display == annotation.end.display
+                        && next.end.char == annotation.end.char
                         && !next.has_label()
                     {
                         continue;
@@ -1284,7 +1286,7 @@ impl Renderer {
                         && next.takes_space())
                         || (annotation.takes_space() && next.takes_space())
                         || (overlaps(next, annotation, l)
-                        && next.end.display <= annotation.end.display
+                        && (next.end.display, next.end.char) <= (annotation.end.display, annotation.end.char)
                         && next.has_label()
                         && p == 0)
                     // Avoid #42595.
