@@ -3500,8 +3500,9 @@ error: extern blocks should be unsafe
   --> $DIR/unsafe-extern-suggestion.rs:6:1
    |
 LL |   extern "C" {
-   |   ^ help: needs `unsafe` before the extern keyword: `unsafe`
-   |  _|
+   |   ^
+   |   |
+   |  _help: needs `unsafe` before the extern keyword: `unsafe`
    | |
 LL | |     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
 LL | |     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
