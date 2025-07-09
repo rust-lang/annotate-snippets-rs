@@ -3946,3 +3946,685 @@ note: the foreign item types don't implement required traits for this operation 
         .theme(OutputTheme::Unicode);
     assert_data_eq!(renderer.render(input), expected);
 }
+
+#[test]
+fn const_generics_issue_82656() {
+    // tests/ui/const-generics/issues/issue-82956.rs
+    let source = r#"#![feature(generic_const_exprs)]
+#![allow(incomplete_features)]
+
+pub struct ConstCheck<const CHECK: bool>;
+
+pub trait True {}
+impl True for ConstCheck<true> {}
+
+pub trait OrdesDec {
+    type Newlen;
+    type Output;
+
+    fn pop(self) -> (Self::Newlen, Self::Output);
+}
+
+impl<T, const N: usize> OrdesDec for [T; N]
+where
+    ConstCheck<{N > 1}>: True,
+    [T; N - 1]: Sized,
+{
+    type Newlen = [T; N - 1];
+    type Output = T;
+
+    fn pop(self) -> (Self::Newlen, Self::Output) {
+        let mut iter = IntoIter::new(self);
+        //~^ ERROR: failed to resolve: use of undeclared type `IntoIter`
+        let end = iter.next_back().unwrap();
+        let new = [(); N - 1].map(move |()| iter.next().unwrap());
+        (new, end)
+    }
+}
+
+fn main() {}
+"#;
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .title("failed to resolve: use of undeclared type `IntoIter`")
+                .id("E0433"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/issue-82956.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(502..510)
+                        .label("use of undeclared type `IntoIter`"),
+                ),
+        ),
+        Group::with_title(Level::HELP.title("consider importing one of these structs"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-82956.rs")
+                    .patch(Patch::new(65..65, "use std::array::IntoIter;\n\n")),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-82956.rs")
+                    .patch(Patch::new(
+                        65..65,
+                        "use std::collections::binary_heap::IntoIter;\n\n",
+                    )),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-82956.rs")
+                    .patch(Patch::new(
+                        65..65,
+                        "use std::collections::btree_map::IntoIter;\n\n",
+                    )),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-82956.rs")
+                    .patch(Patch::new(
+                        65..65,
+                        "use std::collections::btree_set::IntoIter;\n\n",
+                    )),
+            )
+            .element(Level::NOTE.no_name().message("and 9 other candidates")),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0433]: failed to resolve: use of undeclared type `IntoIter`
+  --> $DIR/issue-82956.rs:25:24
+   |
+LL |         let mut iter = IntoIter::new(self);
+   |                        ^^^^^^^^ use of undeclared type `IntoIter`
+   |
+help: consider importing one of these structs
+   |
+LL + use std::array::IntoIter;
+   |
+LL + use std::collections::binary_heap::IntoIter;
+   |
+LL + use std::collections::btree_map::IntoIter;
+   |
+LL + use std::collections::btree_set::IntoIter;
+   |
+   = and 9 other candidates
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0433]: failed to resolve: use of undeclared type `IntoIter`
+   ╭▸ $DIR/issue-82956.rs:25:24
+   │
+LL │         let mut iter = IntoIter::new(self);
+   │                        ━━━━━━━━ use of undeclared type `IntoIter`
+   ╰╴
+help: consider importing one of these structs
+   ╭╴
+LL + use std::array::IntoIter;
+   ╭╴
+LL + use std::collections::binary_heap::IntoIter;
+   ╭╴
+LL + use std::collections::btree_map::IntoIter;
+   ╭╴
+LL + use std::collections::btree_set::IntoIter;
+   ╰╴
+   ╰ and 9 other candidates
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn multi_suggestion() {
+    // tests/ui/suggestions/multi-suggestion.rs
+    let source = r#"//@ revisions: ascii unicode
+//@[unicode] compile-flags: -Zunstable-options --error-format=human-unicode
+
+#![allow(dead_code)]
+struct U <T> {
+    wtf: Option<Box<U<T>>>,
+    x: T,
+}
+fn main() {
+    U {
+        wtf: Some(Box(U { //[ascii]~ ERROR cannot initialize a tuple struct which contains private fields
+            wtf: None,
+            x: (),
+        })),
+        x: ()
+    };
+    let _ = std::collections::HashMap();
+    //[ascii]~^ ERROR expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
+    let _ = std::collections::HashMap {};
+    //[ascii]~^ ERROR cannot construct `HashMap<_, _, _>` with struct literal syntax due to private fields
+    let _ = Box {}; //[ascii]~ ERROR cannot construct `Box<_, _>` with struct literal syntax due to private fields
+}
+"#;
+    let title_0 = "expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title(title_0).id("E0423"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/multi-suggestion.rs")
+                    .annotation(AnnotationKind::Primary.span(396..423)),
+            )
+            .element(
+                Origin::path("$SRC_DIR/std/src/collections/hash/map.rs")
+                    .line(242)
+                    .char_column(0),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("`std::collections::HashMap` defined here"))
+            .element(Padding),
+        Group::with_title(
+            Level::HELP
+                .title("you might have meant to use an associated function to build this type"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/multi-suggestion.rs")
+                .patch(Patch::new(421..423, "::new()")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/multi-suggestion.rs")
+                .patch(Patch::new(421..423, "::with_capacity(_)")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/multi-suggestion.rs")
+                .patch(Patch::new(421..423, "::with_hasher(_)")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/multi-suggestion.rs")
+                .patch(Patch::new(421..423, "::with_capacity_and_hasher(_, _)")),
+        ),
+        Group::with_title(Level::HELP.title("consider using the `Default` trait")).element(
+            Snippet::source(source)
+                .path("$DIR/multi-suggestion.rs")
+                .patch(Patch::new(396..396, "<"))
+                .patch(Patch::new(
+                    421..423,
+                    " as std::default::Default>::default()",
+                )),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0423]: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
+  --> $DIR/multi-suggestion.rs:17:13
+   |
+LL |     let _ = std::collections::HashMap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ::: $SRC_DIR/std/src/collections/hash/map.rs:242:0
+   |
+   = note: `std::collections::HashMap` defined here
+   |
+help: you might have meant to use an associated function to build this type
+   |
+LL |     let _ = std::collections::HashMap::new();
+   |                                      +++++
+LL -     let _ = std::collections::HashMap();
+LL +     let _ = std::collections::HashMap::with_capacity(_);
+   |
+LL -     let _ = std::collections::HashMap();
+LL +     let _ = std::collections::HashMap::with_hasher(_);
+   |
+LL -     let _ = std::collections::HashMap();
+LL +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
+   |
+help: consider using the `Default` trait
+   |
+LL |     let _ = <std::collections::HashMap as std::default::Default>::default();
+   |             +                          ++++++++++++++++++++++++++++++++++
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0423]: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
+   ╭▸ $DIR/multi-suggestion.rs:17:13
+   │
+LL │     let _ = std::collections::HashMap();
+   │             ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ⸬  $SRC_DIR/std/src/collections/hash/map.rs:242:0
+   │
+   ├ note: `std::collections::HashMap` defined here
+   ╰╴
+help: you might have meant to use an associated function to build this type
+   ╭╴
+LL │     let _ = std::collections::HashMap::new();
+   ╭╴                                     +++++
+LL -     let _ = std::collections::HashMap();
+LL +     let _ = std::collections::HashMap::with_capacity(_);
+   ╭╴
+LL -     let _ = std::collections::HashMap();
+LL +     let _ = std::collections::HashMap::with_hasher(_);
+   ╭╴
+LL -     let _ = std::collections::HashMap();
+LL +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
+   ╰╴
+help: consider using the `Default` trait
+   ╭╴
+LL │     let _ = <std::collections::HashMap as std::default::Default>::default();
+   ╰╴            +                          ++++++++++++++++++++++++++++++++++
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn suggest_box_new() {
+    // tests/ui/privacy/suggest-box-new.rs
+    let source = r#"//@ revisions: ascii unicode
+//@[unicode] compile-flags: -Zunstable-options --error-format=human-unicode
+
+#![allow(dead_code)]
+struct U <T> {
+    wtf: Option<Box<U<T>>>,
+    x: T,
+}
+fn main() {
+    U {
+        wtf: Some(Box(U {
+            wtf: None,
+            x: (),
+        })),
+        x: ()
+    };
+    let _ = std::collections::HashMap();
+    //[ascii]~^ ERROR expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
+    let _ = std::collections::HashMap {};
+    //[ascii]~^ ERROR cannot construct `HashMap<_, _, _>` with struct literal syntax due to private fields
+    let _ = Box {}; //[ascii]~ ERROR cannot construct `Box<_, _>` with struct literal syntax due to private fields
+}
+"#;
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .title("cannot initialize a tuple struct which contains private fields")
+                .id("E0423"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/suggest-box-new.rs")
+                .annotation(AnnotationKind::Primary.span(220..223)),
+        ),
+        Group::with_title(
+            Level::NOTE.title("constructor is not visible here due to private fields"),
+        )
+        .element(
+            Origin::path("$SRC_DIR/alloc/src/boxed.rs")
+                .line(234)
+                .char_column(2),
+        )
+        .element(Padding)
+        .element(Level::NOTE.message("private field"))
+        .element(Padding)
+        .element(Level::NOTE.message("private field")),
+        Group::with_title(
+            Level::HELP
+                .title("you might have meant to use an associated function to build this type"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/suggest-box-new.rs")
+                .patch(Patch::new(223..280, "::new(_)")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/suggest-box-new.rs")
+                .patch(Patch::new(223..280, "::new_uninit()")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/suggest-box-new.rs")
+                .patch(Patch::new(223..280, "::new_zeroed()")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/suggest-box-new.rs")
+                .patch(Patch::new(223..280, "::new_in(_, _)")),
+        )
+        .element(Level::NOTE.no_name().message("and 12 other candidates")),
+        Group::with_title(Level::HELP.title("consider using the `Default` trait")).element(
+            Snippet::source(source)
+                .path("$DIR/suggest-box-new.rs")
+                .patch(Patch::new(220..220, "<"))
+                .patch(Patch::new(
+                    223..280,
+                    " as std::default::Default>::default()",
+                )),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0423]: cannot initialize a tuple struct which contains private fields
+  --> $DIR/suggest-box-new.rs:11:19
+   |
+LL |         wtf: Some(Box(U {
+   |                   ^^^
+   |
+note: constructor is not visible here due to private fields
+  --> $SRC_DIR/alloc/src/boxed.rs:234:2
+   |
+   = note: private field
+   |
+   = note: private field
+help: you might have meant to use an associated function to build this type
+   |
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new(_)),
+   |
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new_uninit()),
+   |
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new_zeroed()),
+   |
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new_in(_, _)),
+   |
+   = and 12 other candidates
+help: consider using the `Default` trait
+   |
+LL -         wtf: Some(Box(U {
+LL +         wtf: Some(<Box as std::default::Default>::default()),
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0423]: cannot initialize a tuple struct which contains private fields
+   ╭▸ $DIR/suggest-box-new.rs:11:19
+   │
+LL │         wtf: Some(Box(U {
+   │                   ━━━
+   ╰╴
+note: constructor is not visible here due to private fields
+   ╭▸ $SRC_DIR/alloc/src/boxed.rs:234:2
+   │
+   ├ note: private field
+   │
+   ╰ note: private field
+help: you might have meant to use an associated function to build this type
+   ╭╴
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new(_)),
+   ╭╴
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new_uninit()),
+   ╭╴
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new_zeroed()),
+   ╭╴
+LL -         wtf: Some(Box(U {
+LL -             wtf: None,
+LL -             x: (),
+LL -         })),
+LL +         wtf: Some(Box::new_in(_, _)),
+   ╰╴
+   ╰ and 12 other candidates
+help: consider using the `Default` trait
+   ╭╴
+LL -         wtf: Some(Box(U {
+LL +         wtf: Some(<Box as std::default::Default>::default()),
+   ╰╴
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn too_many_field_suggestions() {
+    // tests/ui/suggestions/too-many-field-suggestions.rs
+    let source = r#"struct Thing {
+    a0: Foo,
+    a1: Foo,
+    a2: Foo,
+    a3: Foo,
+    a4: Foo,
+    a5: Foo,
+    a6: Foo,
+    a7: Foo,
+    a8: Foo,
+    a9: Foo,
+}
+
+struct Foo {
+    field: Field,
+}
+
+struct Field;
+
+impl Foo {
+    fn bar(&self) {}
+}
+
+fn bar(t: Thing) {
+    t.bar();
+    t.field;
+}
+
+fn main() {}
+"#;
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .title("no method named `bar` found for struct `Thing` in the current scope")
+                .id("E0599"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/too-many-field-suggestions.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(257..260)
+                        .label("method not found in `Thing`"),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(0..12)
+                        .label("method `bar` not found for this struct"),
+                ),
+        ),
+        Group::with_title(
+            Level::HELP.title("some of the expressions' fields have a method of the same name"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/too-many-field-suggestions.rs")
+                .patch(Patch::new(257..257, "a0.")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/too-many-field-suggestions.rs")
+                .patch(Patch::new(257..257, "a1.")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/too-many-field-suggestions.rs")
+                .patch(Patch::new(257..257, "a2.")),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/too-many-field-suggestions.rs")
+                .patch(Patch::new(257..257, "a3.")),
+        )
+        .element(Level::NOTE.no_name().message("and 6 other candidates")),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0599]: no method named `bar` found for struct `Thing` in the current scope
+  --> $DIR/too-many-field-suggestions.rs:25:7
+   |
+LL | struct Thing {
+   | ------------ method `bar` not found for this struct
+...
+LL |     t.bar();
+   |       ^^^ method not found in `Thing`
+   |
+help: some of the expressions' fields have a method of the same name
+   |
+LL |     t.a0.bar();
+   |       +++
+LL |     t.a1.bar();
+   |       +++
+LL |     t.a2.bar();
+   |       +++
+LL |     t.a3.bar();
+   |       +++
+   = and 6 other candidates
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0599]: no method named `bar` found for struct `Thing` in the current scope
+   ╭▸ $DIR/too-many-field-suggestions.rs:25:7
+   │
+LL │ struct Thing {
+   │ ──────────── method `bar` not found for this struct
+   ‡
+LL │     t.bar();
+   │       ━━━ method not found in `Thing`
+   ╰╴
+help: some of the expressions' fields have a method of the same name
+   ╭╴
+LL │     t.a0.bar();
+   ╭╴      +++
+LL │     t.a1.bar();
+   ╭╴      +++
+LL │     t.a2.bar();
+   ╭╴      +++
+LL │     t.a3.bar();
+   ╰╴      +++
+   ╰ and 6 other candidates
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn invalid_arguments_unterminated() {
+    // tests/ui/check-cfg/invalid-arguments.unterminated.rs
+    let input = &[
+        Group::with_title(Level::ERROR.title("invalid `--check-cfg` argument: `cfg(`"))
+            .element(
+                Level::NOTE
+                    .message(r#"expected `cfg(name, values("value1", "value2", ... "valueN"))`"#),
+            )
+            .element(Level::NOTE.message(
+                "visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details",
+            )),
+    ];
+    let expected = str![[r#"
+error: invalid `--check-cfg` argument: `cfg(`
+   |
+   = note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
+   = note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn timeout() {
+    // tests/ui/consts/timeout.rs
+    let source = r#"//! This test checks that external macros don't hide
+//! the const eval timeout lint and then subsequently
+//! ICE.
+
+//@ compile-flags: --crate-type=lib -Ztiny-const-eval-limit
+
+static ROOK_ATTACKS_TABLE: () = {
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+    0_u64.count_ones();
+};
+
+//~? ERROR constant evaluation is taking a long time
+"#;
+
+    let title_0 =
+        "this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+If your compilation actually takes a long time, you can safely allow the lint.";
+    let title_1 = "this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title("constant evaluation is taking a long time"))
+            .element(
+                Origin::path("$SRC_DIR/core/src/num/mod.rs")
+                    .line(1151)
+                    .char_column(4),
+            )
+            .element(Level::NOTE.message(title_0)),
+        Group::with_title(Level::HELP.title("the constant being evaluated"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/timeout.rs")
+                    .annotation(AnnotationKind::Primary.span(178..207)),
+            )
+            .element(Level::NOTE.message("`#[deny(long_running_const_eval)]` on by default"))
+            .element(Level::NOTE.message(title_1)),
+    ];
+    let expected = str![[r#"
+error: constant evaluation is taking a long time
+  --> $SRC_DIR/core/src/num/mod.rs:1151:4
+   |
+   = note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+           If your compilation actually takes a long time, you can safely allow the lint.
+help: the constant being evaluated
+  --> $DIR/timeout.rs:7:1
+   |
+LL | static ROOK_ATTACKS_TABLE: () = {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `#[deny(long_running_const_eval)]` on by default
+   = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected);
+}
