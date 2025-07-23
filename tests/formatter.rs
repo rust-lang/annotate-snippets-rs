@@ -1599,11 +1599,11 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    |
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
    |
-8  - cargo
-9  - fuzzy
+ 8 - cargo
+ 9 - fuzzy
 10 - pizza
 11 - jumps
-8  + campy
+ 8 + campy
    |
 "#]];
     let renderer = Renderer::plain();
