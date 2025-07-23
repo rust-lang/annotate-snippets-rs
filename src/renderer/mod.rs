@@ -1718,7 +1718,7 @@ impl Renderer {
                     buffer.puts(
                         row_num - 1 + line - line_start.line,
                         0,
-                        &self.maybe_anonymized(line),
+                        &self.maybe_anonymized(line, max_line_num_len),
                         ElementStyle::LineNumber,
                     );
                     buffer.puts(
@@ -2066,7 +2066,7 @@ impl Renderer {
                 buffer.puts(
                     *row_num - 1,
                     0,
-                    &self.maybe_anonymized(line_num + index),
+                    &self.maybe_anonymized(line_num + index, max_line_num_len),
                     ElementStyle::LineNumber,
                 );
                 buffer.puts(
@@ -2097,7 +2097,7 @@ impl Renderer {
                 buffer.puts(
                     *row_num - 1,
                     0,
-                    &self.maybe_anonymized(line_num + file_lines.len() - 1),
+                    &self.maybe_anonymized(line_num + file_lines.len() - 1, max_line_num_len),
                     ElementStyle::LineNumber,
                 );
                 buffer.puts(
@@ -2131,7 +2131,7 @@ impl Renderer {
                     buffer.puts(
                         *row_num,
                         0,
-                        &self.maybe_anonymized(line_num),
+                        &self.maybe_anonymized(line_num, max_line_num_len),
                         ElementStyle::LineNumber,
                     );
                     buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
@@ -2146,7 +2146,7 @@ impl Renderer {
             buffer.puts(
                 *row_num,
                 0,
-                &self.maybe_anonymized(line_num),
+                &self.maybe_anonymized(line_num, max_line_num_len),
                 ElementStyle::LineNumber,
             );
             match &highlight_parts {
@@ -2182,7 +2182,7 @@ impl Renderer {
             buffer.puts(
                 *row_num,
                 0,
-                &self.maybe_anonymized(line_num),
+                &self.maybe_anonymized(line_num, max_line_num_len),
                 ElementStyle::LineNumber,
             );
             buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
@@ -2195,7 +2195,7 @@ impl Renderer {
             buffer.puts(
                 *row_num,
                 0,
-                &self.maybe_anonymized(line_num),
+                &self.maybe_anonymized(line_num, max_line_num_len),
                 ElementStyle::LineNumber,
             );
             self.draw_col_separator(buffer, *row_num, max_line_num_len + 1);
@@ -2327,7 +2327,7 @@ impl Renderer {
         buffer.puts(
             line_offset,
             0,
-            &format!("{:>max_line_num_len$}", self.maybe_anonymized(line_index)),
+            &self.maybe_anonymized(line_index, max_line_num_len),
             ElementStyle::LineNumber,
         );
 
@@ -2472,12 +2472,15 @@ impl Renderer {
         buffer.putc(line, col, chr, style);
     }
 
-    fn maybe_anonymized(&self, line_num: usize) -> Cow<'static, str> {
-        if self.anonymized_line_numbers {
-            Cow::Borrowed(ANONYMIZED_LINE_NUM)
-        } else {
-            Cow::Owned(line_num.to_string())
-        }
+    fn maybe_anonymized(&self, line_num: usize, max_line_num_len: usize) -> String {
+        format!(
+            "{:>max_line_num_len$}",
+            if self.anonymized_line_numbers {
+                Cow::Borrowed(ANONYMIZED_LINE_NUM)
+            } else {
+                Cow::Owned(line_num.to_string())
+            }
+        )
     }
 
     fn file_start(&self) -> &'static str {
