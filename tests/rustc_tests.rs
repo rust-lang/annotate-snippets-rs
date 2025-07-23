@@ -4614,7 +4614,6 @@ If your compilation actually takes a long time, you can safely allow the lint.";
     let expected = str![[r#"
 error: constant evaluation is taking a long time
   --> $SRC_DIR/core/src/num/mod.rs:1151:4
-   |
    = note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
            If your compilation actually takes a long time, you can safely allow the lint.
 help: the constant being evaluated
