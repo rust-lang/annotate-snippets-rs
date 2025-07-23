@@ -4065,11 +4065,11 @@ LL │         let mut iter = IntoIter::new(self);
 help: consider importing one of these structs
    ╭╴
 LL + use std::array::IntoIter;
-   ╭╴
+   ├╴
 LL + use std::collections::binary_heap::IntoIter;
-   ╭╴
+   ├╴
 LL + use std::collections::btree_map::IntoIter;
-   ╭╴
+   ├╴
 LL + use std::collections::btree_set::IntoIter;
    ╰╴
    ╰ and 9 other candidates
@@ -4200,13 +4200,13 @@ LL │     let _ = std::collections::HashMap();
 help: you might have meant to use an associated function to build this type
    ╭╴
 LL │     let _ = std::collections::HashMap::new();
-   ╭╴                                     +++++
+   ├╴                                     +++++
 LL -     let _ = std::collections::HashMap();
 LL +     let _ = std::collections::HashMap::with_capacity(_);
-   ╭╴
+   ├╴
 LL -     let _ = std::collections::HashMap();
 LL +     let _ = std::collections::HashMap::with_hasher(_);
-   ╭╴
+   ├╴
 LL -     let _ = std::collections::HashMap();
 LL +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
    ╰╴
@@ -4374,19 +4374,19 @@ LL -             wtf: None,
 LL -             x: (),
 LL -         })),
 LL +         wtf: Some(Box::new(_)),
-   ╭╴
+   ├╴
 LL -         wtf: Some(Box(U {
 LL -             wtf: None,
 LL -             x: (),
 LL -         })),
 LL +         wtf: Some(Box::new_uninit()),
-   ╭╴
+   ├╴
 LL -         wtf: Some(Box(U {
 LL -             wtf: None,
 LL -             x: (),
 LL -         })),
 LL +         wtf: Some(Box::new_zeroed()),
-   ╭╴
+   ├╴
 LL -         wtf: Some(Box(U {
 LL -             wtf: None,
 LL -             x: (),
@@ -4522,11 +4522,11 @@ LL │     t.bar();
 help: some of the expressions' fields have a method of the same name
    ╭╴
 LL │     t.a0.bar();
-   ╭╴      +++
+   ├╴      +++
 LL │     t.a1.bar();
-   ╭╴      +++
+   ├╴      +++
 LL │     t.a2.bar();
-   ╭╴      +++
+   ├╴      +++
 LL │     t.a3.bar();
    ╰╴      +++
    ╰ and 6 other candidates
