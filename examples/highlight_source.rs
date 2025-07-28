@@ -22,7 +22,7 @@ fn main() {}
                 ),
         )
         .element(
-            Level::NOTE.title("The runtime heap is not yet available at compile-time, so no runtime heap allocations can be created."),
+            Level::NOTE.message("The runtime heap is not yet available at compile-time, so no runtime heap allocations can be created."),
 
     )];
 

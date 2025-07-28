@@ -1365,11 +1365,11 @@ outer_macro!(FirstStruct, FirstAttrStruct);
                 )
                 .element(
                     Level::HELP
-                        .title("remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`")
+                        .message("remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`")
                 )
                 .element(
                     Level::NOTE
-                        .title("a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute")
+                        .message("a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute")
                 ),
             Group::with_title(Level::NOTE.title("the lint level is defined here"))
                 .element(
@@ -1965,7 +1965,7 @@ fn main() {
                         .annotation(AnnotationKind::Primary.span(267..380)),
                 )
                 .element(
-                    Level::NOTE.title("`Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated")),
+                    Level::NOTE.message("`Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated")),
             Group::with_title(Level::HELP.title("you might have meant to use `Iterator::for_each`"))
                 .element(
                     Snippet::source(source)
@@ -2555,7 +2555,8 @@ fn mismatched_types1() {
                     ),
             )
             .element(
-                Level::NOTE.title("expected reference `&[u8]`\n   found reference `&'static str`"),
+                Level::NOTE
+                    .message("expected reference `&[u8]`\n   found reference `&'static str`"),
             ),
     ];
 
@@ -2607,7 +2608,7 @@ fn mismatched_types2() {
             )
             .element(
                 Level::NOTE
-                    .title("expected reference `&str`\n   found reference `&'static [u8; 0]`"),
+                    .message("expected reference `&str`\n   found reference `&'static [u8; 0]`"),
             ),
     ];
 
@@ -2734,7 +2735,7 @@ pub struct Foo; //~^ ERROR
                     .annotation(AnnotationKind::Primary.span(111..126)),
             )
             .element(
-                Level::NOTE.title("bare URLs are not automatically turned into clickable links"),
+                Level::NOTE.message("bare URLs are not automatically turned into clickable links"),
             ),
         Group::with_title(Level::NOTE.title("the lint level is defined here")).element(
             Snippet::source(source_0)
@@ -3427,7 +3428,7 @@ fn main() {
                     .label("associated type `Pr` not found for this struct"),
             ),
     )
-    .element(Level::NOTE.title("the associated type was found for\n"))];
+    .element(Level::NOTE.message("the associated type was found for\n"))];
 
     let expected = str![[r#"
 error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope

@@ -33,6 +33,7 @@ pub(crate) struct Id<'a> {
 #[derive(Clone, Debug)]
 pub struct Group<'a> {
     pub(crate) primary_level: Level<'a>,
+    pub(crate) title: Option<Title<'a>>,
     pub(crate) elements: Vec<Element<'a>>,
 }
 
@@ -40,7 +41,9 @@ impl<'a> Group<'a> {
     /// Create group with a title, deriving the primary [`Level`] for [`Annotation`]s from it
     pub fn with_title(title: Title<'a>) -> Self {
         let level = title.level.clone();
-        Self::with_level(level).element(title)
+        let mut x = Self::with_level(level);
+        x.title = Some(title);
+        x
     }
 
     /// Create a title-less group with a primary [`Level`] for [`Annotation`]s
@@ -55,6 +58,7 @@ impl<'a> Group<'a> {
     pub fn with_level(level: Level<'a>) -> Self {
         Self {
             primary_level: level,
+            title: None,
             elements: vec![],
         }
     }
@@ -70,7 +74,7 @@ impl<'a> Group<'a> {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.elements.is_empty()
+        self.elements.is_empty() && self.title.is_none()
     }
 }
 
@@ -78,18 +82,11 @@ impl<'a> Group<'a> {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum Element<'a> {
-    Title(Title<'a>),
     Message(Message<'a>),
     Cause(Snippet<'a, Annotation<'a>>),
     Suggestion(Snippet<'a, Patch<'a>>),
     Origin(Origin<'a>),
     Padding(Padding),
-}
-
-impl<'a> From<Title<'a>> for Element<'a> {
-    fn from(value: Title<'a>) -> Self {
-        Element::Title(value)
-    }
 }
 
 impl<'a> From<Message<'a>> for Element<'a> {
