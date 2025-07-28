@@ -348,9 +348,7 @@ impl Renderer {
                                 if g == 0 {
                                     let current_line = buffer.num_lines();
                                     match peek {
-                                        Some(Element::Title(level))
-                                            if level.level.name != Some(None) =>
-                                        {
+                                        Some(Element::Message(_) | Element::Title(_)) => {
                                             self.draw_col_separator_no_space(
                                                 &mut buffer,
                                                 current_line,
@@ -363,17 +361,6 @@ impl Renderer {
                                                 current_line,
                                                 max_line_num_len + 1,
                                             ),
-
-                                        Some(Element::Message(level))
-                                            if level.level.name != Some(None) =>
-                                        {
-                                            self.draw_col_separator_no_space(
-                                                &mut buffer,
-                                                current_line,
-                                                max_line_num_len + 1,
-                                            );
-                                        }
-
                                         None if group_len > 1 => self.draw_col_separator_end(
                                             &mut buffer,
                                             current_line,
@@ -429,9 +416,7 @@ impl Renderer {
                     }
                     if g == 0
                         && (matches!(section, Element::Origin(_))
-                            || (matches!(section, Element::Title(_)) && i == 0)
-                            || matches!(section, Element::Title(level) if level.level.name == Some(None))
-                            || matches!(section, Element::Message(level) if level.level.name == Some(None)))
+                            || (matches!(section, Element::Title(_)) && i == 0))
                     {
                         let current_line = buffer.num_lines();
                         if peek.is_none() && group_len > 1 {
@@ -440,15 +425,7 @@ impl Renderer {
                                 current_line,
                                 max_line_num_len + 1,
                             );
-                        } else if matches!(peek, Some(Element::Title(level)) if level.level.name != Some(None))
-                        {
-                            self.draw_col_separator_no_space(
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
-                        } else if matches!(peek, Some(Element::Message(level)) if level.level.name != Some(None))
-                        {
+                        } else if matches!(peek, Some(Element::Message(_) | Element::Title(_))) {
                             self.draw_col_separator_no_space(
                                 &mut buffer,
                                 current_line,
