@@ -1746,7 +1746,6 @@ fn main() {
                     Origin::path("$SRC_DIR/core/src/cmp.rs")
                         .line(334)
                         .char_column(14)
-                        .primary(true)
                 )
                 .element(Padding)
                 .element(Level::NOTE.message("...because it uses `Self` as a type parameter"))
@@ -2901,8 +2900,7 @@ fn main() {
         .element(
             Origin::path("$SRC_DIR/alloc/src/boxed.rs")
                 .line(231)
-                .char_column(0)
-                .primary(true),
+                .char_column(0),
         )
         .element(
             Origin::path("$SRC_DIR/alloc/src/boxed.rs")
@@ -3013,21 +3011,20 @@ fn main() {
     let title_1 = "trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it";
 
     let input = &[
-        Group::with_title(Level::ERROR.title(title_0).id("E0599"))
-            .element(
-                Snippet::source(source)
-                    .path("$DIR/dont-project-to-specializable-projection.rs")
-                    .annotation(
-                        AnnotationKind::Primary
-                            .span(1071..1075)
-                            .label("method not found in `Pin<&mut impl Future<Output = ()>>`"),
-                    ),
-            )
+        Group::with_title(Level::ERROR.title(title_0).id("E0599")).element(
+            Snippet::source(source)
+                .path("$DIR/dont-project-to-specializable-projection.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(1071..1075)
+                        .label("method not found in `Pin<&mut impl Future<Output = ()>>`"),
+                ),
+        ),
+        Group::with_level(Level::ERROR)
             .element(
                 Origin::path("$SRC_DIR/core/src/future/future.rs")
                     .line(104)
-                    .char_column(7)
-                    .primary(true),
+                    .char_column(7),
             )
             .element(Padding)
             .element(
@@ -3136,16 +3133,15 @@ fn main() {
             .element(
                 Origin::path("$SRC_DIR/std/src/io/error.rs")
                     .line(65)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(Padding)
-            .element(Level::NOTE.message("not implement `PartialEq`"))
+            .element(Level::NOTE.message("not implement `PartialEq`")),
+        Group::with_level(Level::NOTE)
             .element(
                 Origin::path("$SRC_DIR/std/src/thread/mod.rs")
                     .line(1415)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(Padding)
             .element(Level::NOTE.message("not implement `PartialEq`")),
@@ -3204,31 +3200,31 @@ struct Foo;
 pub fn main() {}
 "#;
 
-    let input =
-        &[
-            Group::with_title(Level::ERROR.title("cannot find derive macro `Eqr` in this scope"))
-                .element(
-                    Snippet::source(source)
-                        .path("$DIR/deriving-meta-unknown-trait.rs")
-                        .annotation(
-                            AnnotationKind::Primary
-                                .span(9..12)
-                                .label("help: a derive macro with a similar name exists: `Eq`"),
-                        ),
-                )
-                .element(
-                    Origin::path("$SRC_DIR/core/src/cmp.rs")
-                        .line(356)
-                        .char_column(0)
-                        .primary(true),
-                )
-                .element(Padding)
-                .element(Level::NOTE.message("similarly named derive macro `Eq` defined here"))
-                .element(Padding)
-                .element(Level::NOTE.message(
-                    "duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`",
-                )),
-        ];
+    let input = &[
+        Group::with_title(Level::ERROR.title("cannot find derive macro `Eqr` in this scope"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/deriving-meta-unknown-trait.rs")
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(9..12)
+                            .label("help: a derive macro with a similar name exists: `Eq`"),
+                    ),
+            ),
+        Group::with_level(Level::ERROR)
+            .element(
+                Origin::path("$SRC_DIR/core/src/cmp.rs")
+                    .line(356)
+                    .char_column(0),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("similarly named derive macro `Eq` defined here"))
+            .element(Padding)
+            .element(
+                Level::NOTE
+                    .message("duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`"),
+            ),
+    ];
 
     let expected_ascii = str![[r#"
 error: cannot find derive macro `Eqr` in this scope
@@ -3309,17 +3305,15 @@ which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`"#;
         .element(
             Origin::path("$SRC_DIR/proc_macro/src/to_tokens.rs")
                 .line(11)
-                .char_column(0)
-                .primary(true),
-        )
-        .element(
+                .char_column(0),
+        ),
+        Group::with_level(Level::NOTE).element(
             Origin::path("$SRC_DIR/core/src/iter/traits/iterator.rs")
                 .line(39)
-                .char_column(0)
-                .primary(true),
+                .char_column(0),
         ),
     ];
-    let expected_ascii = str![[r##"
+    let expected_ascii = str![[r#"
 error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
   --> $DIR/not-repeatable.rs:11:13
    |
@@ -3341,7 +3335,7 @@ LL |     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exis
 note: the traits `Iterator` and `ToTokens` must be implemented
   --> $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
   --> $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
-"##]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
@@ -3575,8 +3569,7 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
             .element(
                 Origin::path("$SRC_DIR/core/src/alloc/layout.rs")
                     .line(40)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             ),
         Group::with_title(Level::NOTE.title("`Layout` is defined in the current crate")).element(
             Snippet::source(source)
@@ -3733,8 +3726,7 @@ fn main() {
             .element(
                 Origin::path("$SRC_DIR/core/src/option.rs")
                     .line(593)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(
                 Origin::path("$SRC_DIR/core/src/option.rs")
@@ -3822,8 +3814,7 @@ for more information, visit <https://doc.rust-lang.org/reference/items/traits.ht
             .element(
                 Origin::path("$SRC_DIR/core/src/cmp.rs")
                     .line(961)
-                    .char_column(20)
-                    .primary(true),
+                    .char_column(20),
             )
             .element(Padding)
             .element(Level::NOTE.message(
@@ -3920,16 +3911,15 @@ fn main() {
             .element(
                 Origin::path("$SRC_DIR/std/src/io/error.rs")
                     .line(65)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(Padding)
-            .element(Level::NOTE.message("not implement `PartialEq`"))
+            .element(Level::NOTE.message("not implement `PartialEq`")),
+        Group::with_level(Level::NOTE)
             .element(
                 Origin::path("$SRC_DIR/std/src/thread/mod.rs")
                     .line(1439)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(Padding)
             .element(Level::NOTE.message("not implement `PartialEq`")),
