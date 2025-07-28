@@ -2414,6 +2414,7 @@ LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
    |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
    |            |
    |            expected due to this
+   |
    = expected reference `&str`
      found reference `&'static [u8; 0]`
 "#]];
