@@ -70,6 +70,13 @@ fn multislice() {
     assert_example(target, expected);
 }
 
+#[test]
+fn struct_name_as_context() {
+    let target = "struct_name_as_context";
+    let expected = snapbox::file!["../examples/struct_name_as_context.svg": TermSvg];
+    assert_example(target, expected);
+}
+
 #[track_caller]
 fn assert_example(target: &str, expected: snapbox::Data) {
     let bin_path = snapbox::cmd::compile_example(target, ["--features=testing-colors"]).unwrap();
