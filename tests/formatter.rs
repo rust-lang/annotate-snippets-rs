@@ -3075,3 +3075,77 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input_new), expected);
 }
+
+#[test]
+fn message_before_primary_snippet() {
+    let source = r#"struct Thing {
+    a0: Foo,
+    a1: Foo,
+    a2: Foo,
+    a3: Foo,
+    a4: Foo,
+    a5: Foo,
+    a6: Foo,
+    a7: Foo,
+    a8: Foo,
+    a9: Foo,
+}
+
+struct Foo {
+    field: Field,
+}
+
+struct Field;
+
+impl Foo {
+    fn bar(&self) {}
+}
+
+fn bar(t: Thing) {
+    t.bar();
+    t.field;
+}
+
+fn main() {}
+"#;
+
+    let input = &[Group::with_title(
+        Level::ERROR
+            .title("no field `field` on type `Thing`")
+            .id("E0609"),
+    )
+    .element(Level::NOTE.message("a `Title` then a `Message`!?!?"))
+    .element(
+        Snippet::source(source)
+            .path("$DIR/too-many-field-suggestions.rs")
+            .annotation(
+                AnnotationKind::Primary
+                    .span(270..275)
+                    .label("unknown field"),
+            ),
+    )];
+
+    let expected_ascii = str![[r#"
+error[E0609]: no field `field` on type `Thing`
+   |
+   = note: a `Title` then a `Message`!?!?
+  --> $DIR/too-many-field-suggestions.rs:26:7
+   |
+LL |     t.field;
+   |       ^^^^^ unknown field
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0609]: no field `field` on type `Thing`
+   │
+   ├ note: a `Title` then a `Message`!?!?
+   ╭▸ $DIR/too-many-field-suggestions.rs:26:7
+   │
+LL │     t.field;
+   ╰╴      ━━━━━ unknown field
+"#]];
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
