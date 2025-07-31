@@ -81,10 +81,10 @@ fn main() {}
             )
             .element(
                 Level::HELP
-                    .title("the trait `Iterator` is not implemented for `(bool, HashSet<u8>)`"),
+                    .message("the trait `Iterator` is not implemented for `(bool, HashSet<u8>)`"),
             )
             .element(
-                Level::NOTE.title("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
+                Level::NOTE.message("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
             ),
         Group::with_title(Level::NOTE.title("required by a bound in `flatten`"))
             .element(

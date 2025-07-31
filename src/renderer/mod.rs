@@ -285,32 +285,45 @@ impl Renderer {
                         source_map_annotated_lines.push_back((source_map, annotated_lines));
                     }
                 }
-                let mut message_iter = group.elements.iter().enumerate().peekable();
+                let mut message_iter = group.elements.iter().peekable();
                 let mut last_was_suggestion = false;
-                let mut first_was_title = false;
-                while let Some((i, section)) = message_iter.next() {
-                    let peek = message_iter.peek().map(|(_, s)| s).copied();
+                if let Some(title) = &group.title {
+                    let peek = message_iter.peek().copied();
+                    let title_style = if g == 0 {
+                        TitleStyle::MainHeader
+                    } else {
+                        TitleStyle::Header
+                    };
+                    let buffer_msg_line_offset = buffer.num_lines();
+                    self.render_title(
+                        &mut buffer,
+                        title,
+                        max_line_num_len,
+                        title_style,
+                        matches!(peek, Some(Element::Message(_))),
+                        buffer_msg_line_offset,
+                    );
+                    let buffer_msg_line_offset = buffer.num_lines();
+
+                    if matches!(peek, Some(Element::Message(_))) {
+                        self.draw_col_separator_no_space(
+                            &mut buffer,
+                            buffer_msg_line_offset,
+                            max_line_num_len + 1,
+                        );
+                    }
+                    if peek.is_none() && g == 0 && group_len > 1 {
+                        self.draw_col_separator_end(
+                            &mut buffer,
+                            buffer_msg_line_offset,
+                            max_line_num_len + 1,
+                        );
+                    }
+                }
+                let mut seen_primary = false;
+                while let Some(section) = message_iter.next() {
+                    let peek = message_iter.peek().copied();
                     match &section {
-                        Element::Title(title) => {
-                            if i == 0 {
-                                first_was_title = true;
-                            }
-                            let title_style = match (i == 0, g == 0) {
-                                (true, true) => TitleStyle::MainHeader,
-                                (true, false) => TitleStyle::Header,
-                                (false, _) => TitleStyle::Secondary,
-                            };
-                            let buffer_msg_line_offset = buffer.num_lines();
-                            self.render_title(
-                                &mut buffer,
-                                title,
-                                max_line_num_len,
-                                title_style,
-                                matches!(peek, Some(Element::Title(_) | Element::Message(_))),
-                                buffer_msg_line_offset,
-                            );
-                            last_was_suggestion = false;
-                        }
                         Element::Message(title) => {
                             let title_style = TitleStyle::Secondary;
                             let buffer_msg_line_offset = buffer.num_lines();
@@ -321,8 +334,7 @@ impl Renderer {
                                 title_style,
                                 matches!(
                                     peek,
-                                    Some(Element::Title(_) | Element::Message(_))
-                                        | Some(Element::Padding(_))
+                                    Some(Element::Message(_)) | Some(Element::Padding(_))
                                 ),
                                 buffer_msg_line_offset,
                             );
@@ -332,8 +344,9 @@ impl Renderer {
                             if let Some((source_map, annotated_lines)) =
                                 source_map_annotated_lines.pop_front()
                             {
-                                let is_primary = primary_path == cause.path.as_ref()
-                                    && i == first_was_title as usize;
+                                let is_primary =
+                                    primary_path == cause.path.as_ref() && !seen_primary;
+                                seen_primary |= is_primary;
                                 self.render_snippet_annotations(
                                     &mut buffer,
                                     max_line_num_len,
@@ -348,7 +361,7 @@ impl Renderer {
                                 if g == 0 {
                                     let current_line = buffer.num_lines();
                                     match peek {
-                                        Some(Element::Message(_) | Element::Title(_)) => {
+                                        Some(Element::Message(_)) => {
                                             self.draw_col_separator_no_space(
                                                 &mut buffer,
                                                 current_line,
@@ -389,6 +402,8 @@ impl Renderer {
 
                         Element::Origin(origin) => {
                             let buffer_msg_line_offset = buffer.num_lines();
+                            let is_primary = primary_path == Some(&origin.path) && !seen_primary;
+                            seen_primary |= is_primary;
                             self.render_origin(
                                 &mut buffer,
                                 max_line_num_len,
@@ -414,10 +429,7 @@ impl Renderer {
                             }
                         }
                     }
-                    if g == 0
-                        && (matches!(section, Element::Origin(_))
-                            || (matches!(section, Element::Title(_)) && i == 0))
-                    {
+                    if g == 0 && matches!(section, Element::Origin(_)) {
                         let current_line = buffer.num_lines();
                         if peek.is_none() && group_len > 1 {
                             self.draw_col_separator_end(
@@ -425,7 +437,7 @@ impl Renderer {
                                 current_line,
                                 max_line_num_len + 1,
                             );
-                        } else if matches!(peek, Some(Element::Message(_) | Element::Title(_))) {
+                        } else if matches!(peek, Some(Element::Message(_))) {
                             self.draw_col_separator_no_space(
                                 &mut buffer,
                                 current_line,
@@ -452,11 +464,8 @@ impl Renderer {
         let mut labels = None;
         let group = groups.first().expect("Expected at least one group");
 
-        let Some(Element::Title(title)) = group.elements.first() else {
-            panic!(
-                "Expected first element to be a Title, got: {:?}",
-                group.elements.first()
-            );
+        let Some(title) = &group.title else {
+            panic!("Expected a Title");
         };
 
         if let Some(Element::Cause(cause)) = group
@@ -2952,10 +2961,7 @@ fn max_line_number(groups: &[Group<'_>]) -> usize {
             v.elements
                 .iter()
                 .map(|s| match s {
-                    Element::Title(_)
-                    | Element::Message(_)
-                    | Element::Origin(_)
-                    | Element::Padding(_) => 0,
+                    Element::Message(_) | Element::Origin(_) | Element::Padding(_) => 0,
                     Element::Cause(cause) => {
                         if cause.fold {
                             let end = cause

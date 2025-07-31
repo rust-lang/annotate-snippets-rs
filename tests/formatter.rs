@@ -1666,7 +1666,7 @@ fn main() {
                 .annotation(AnnotationKind::Primary.span(89..90))
         ).element(
             Level::NOTE
-                .title("required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`")
+                .message("required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`")
                 ,
         )];
 
@@ -1752,9 +1752,9 @@ fn main() {
                 .annotation(AnnotationKind::Primary.span(89..90))
         ).element(
             Level::NOTE
-                .title("required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`")
+                .message("required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`")
         ).element(
-            Level::NOTE.title("a second note"),
+            Level::NOTE.message("a second note"),
         )];
 
     let expected = str![[r#"
@@ -1902,13 +1902,13 @@ fn main() {
                 )
         ).element(
             Level::NOTE
-                .title("expected struct `Atype<Btype<..., i32>, i32>`\n     found enum `Result<Result<..., _>, _>`")
+                .message("expected struct `Atype<Btype<..., i32>, i32>`\n     found enum `Result<Result<..., _>, _>`")
         ).element(
             Level::NOTE
-                .title("the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'")
+                .message("the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'")
         ).element(
             Level::NOTE
-                .title("consider using `--verbose` to print the full type name to the console")
+                .message("consider using `--verbose` to print the full type name to the console")
                 ,
         )];
 
@@ -1986,7 +1986,7 @@ fn main() {
                 ),
         ).element(
             Level::NOTE
-                .title("expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`\n      found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`")
+                .message("expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`\n      found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`")
                 ,
         ),Group::with_title(
             Level::NOTE.title("function defined here"),
@@ -2077,7 +2077,7 @@ fn unicode_cut_handling2() {
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(499..500).label("expected item"))
             ).element(
-                Level::NOTE.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+                Level::NOTE.message("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
 
        )];
 
@@ -2114,7 +2114,7 @@ fn unicode_cut_handling3() {
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(251..254).label("expected item"))
             ).element(
-                Level::NOTE.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+                Level::NOTE.message("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
 
        )];
 
@@ -2151,7 +2151,7 @@ fn unicode_cut_handling4() {
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(334..335).label("expected item"))
             ).element(
-                Level::NOTE.title("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
+                Level::NOTE.message("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
 
        )];
 
