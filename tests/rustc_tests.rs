@@ -3848,7 +3848,7 @@ note: for a trait to be dyn compatible it needs to allow building a vtable
       for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
    ╭▸ $SRC_DIR/core/src/cmp.rs:961:20
    │
-   ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+   ├ note: the trait is not dyn compatible because it uses `Self` as a type parameter
    ⸬  $SRC_DIR/core/src/cmp.rs:338:14
    │
    ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter

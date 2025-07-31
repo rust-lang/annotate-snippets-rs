@@ -310,10 +310,7 @@ impl Renderer {
                                 title,
                                 max_line_num_len,
                                 title_style,
-                                matches!(
-                                    peek,
-                                    Some(Element::Message(_)) | Some(Element::Padding(_))
-                                ),
+                                peek.is_some(),
                                 buffer_msg_line_offset,
                             );
                             last_was_suggestion = false;
