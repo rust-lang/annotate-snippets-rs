@@ -243,33 +243,11 @@ impl Renderer {
                     .elements
                     .iter()
                     .find_map(|s| match &s {
-                        Element::Cause(cause) => {
-                            if cause.markers.iter().any(|m| m.kind.is_primary()) {
-                                Some(cause.path.as_ref())
-                            } else {
-                                None
-                            }
-                        }
-                        Element::Origin(origin) => {
-                            if origin.primary {
-                                Some(Some(&origin.path))
-                            } else {
-                                None
-                            }
-                        }
+                        Element::Cause(cause) => Some(cause.path.as_ref()),
+                        Element::Origin(origin) => Some(Some(&origin.path)),
                         _ => None,
                     })
-                    .unwrap_or(
-                        group
-                            .elements
-                            .iter()
-                            .find_map(|s| match &s {
-                                Element::Cause(cause) => Some(cause.path.as_ref()),
-                                Element::Origin(origin) => Some(Some(&origin.path)),
-                                _ => None,
-                            })
-                            .unwrap_or_default(),
-                    );
+                    .unwrap_or_default();
                 if og_primary_path.is_none() && primary_path.is_some() {
                     og_primary_path = primary_path;
                 }

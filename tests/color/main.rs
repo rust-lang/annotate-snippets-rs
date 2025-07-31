@@ -4,6 +4,7 @@ mod ann_multiline;
 mod ann_multiline2;
 mod ann_removed_nl;
 mod ensure_emoji_highlight_width;
+mod first_snippet_is_primary;
 mod fold_ann_multiline;
 mod fold_bad_origin_line;
 mod fold_leading;
