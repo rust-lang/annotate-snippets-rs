@@ -263,10 +263,10 @@ impl Renderer {
                         source_map_annotated_lines.push_back((source_map, annotated_lines));
                     }
                 }
-                let mut message_iter = group.elements.iter().peekable();
+                let mut message_iter = group.elements.iter().enumerate().peekable();
                 let mut last_was_suggestion = false;
                 if let Some(title) = &group.title {
-                    let peek = message_iter.peek().copied();
+                    let peek = message_iter.peek().map(|(_, s)| s).copied();
                     let title_style = if g == 0 {
                         TitleStyle::MainHeader
                     } else {
@@ -299,8 +299,9 @@ impl Renderer {
                     }
                 }
                 let mut seen_primary = false;
-                while let Some(section) = message_iter.next() {
-                    let peek = message_iter.peek().copied();
+                while let Some((i, section)) = message_iter.next() {
+                    let peek = message_iter.peek().map(|(_, s)| s).copied();
+                    let is_first = i == 0;
                     match &section {
                         Element::Message(title) => {
                             let title_style = TitleStyle::Secondary;
@@ -331,6 +332,7 @@ impl Renderer {
                                     &annotated_lines,
                                     max_depth,
                                     peek.is_some() || (g == 0 && group_len > 1),
+                                    is_first,
                                 );
 
                                 if g == 0 {
@@ -365,6 +367,7 @@ impl Renderer {
                                 &source_map,
                                 primary_path.or(og_primary_path),
                                 last_was_suggestion,
+                                is_first,
                             );
                             last_was_suggestion = true;
                         }
@@ -378,6 +381,7 @@ impl Renderer {
                                 max_line_num_len,
                                 origin,
                                 is_primary,
+                                is_first,
                                 buffer_msg_line_offset,
                             );
                             last_was_suggestion = false;
@@ -484,7 +488,7 @@ impl Renderer {
                     }
                 }
 
-                self.render_origin(&mut buffer, 0, &origin, true, 0);
+                self.render_origin(&mut buffer, 0, &origin, true, true, 0);
                 buffer.append(0, ": ", ElementStyle::LineAndColumn);
             }
         }
@@ -633,12 +637,13 @@ impl Renderer {
         max_line_num_len: usize,
         origin: &Origin<'_>,
         is_primary: bool,
+        is_first: bool,
         buffer_msg_line_offset: usize,
     ) {
         if is_primary && !self.short_message {
             buffer.prepend(
                 buffer_msg_line_offset,
-                self.file_start(),
+                self.file_start(is_first),
                 ElementStyle::LineNumber,
             );
         } else if !self.short_message {
@@ -696,6 +701,7 @@ impl Renderer {
         annotated_lines: &[AnnotatedLineInfo<'_>],
         multiline_depth: usize,
         is_cont: bool,
+        is_first: bool,
     ) {
         if let Some(path) = &snippet.path {
             let mut origin = Origin::path(path.as_ref());
@@ -748,6 +754,7 @@ impl Renderer {
                 max_line_num_len,
                 &origin,
                 is_primary,
+                is_first,
                 buffer_msg_line_offset,
             );
             // Put in the spacer between the location and annotated source
@@ -763,7 +770,7 @@ impl Renderer {
                     buffer.puts(
                         buffer_msg_line_offset,
                         max_line_num_len,
-                        self.file_start(),
+                        self.file_start(is_first),
                         ElementStyle::LineNumber,
                     );
                 } else {
@@ -1599,6 +1606,7 @@ impl Renderer {
             .collect::<Vec<_>>()
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn emit_suggestion_default(
         &self,
         buffer: &mut StyledBuffer,
@@ -1607,6 +1615,7 @@ impl Renderer {
         sm: &SourceMap<'_>,
         primary_path: Option<&Cow<'_, str>>,
         is_cont: bool,
+        is_first: bool,
     ) {
         let suggestions = sm.splice_lines(suggestion.markers.clone());
 
@@ -1633,7 +1642,7 @@ impl Renderer {
                     let (loc, _) = sm.span_to_locations(parts[0].span.clone());
                     // --> file.rs:line:col
                     //  |
-                    let arrow = self.file_start();
+                    let arrow = self.file_start(is_first);
                     buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
                     let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
                     if is_cont {
@@ -2444,10 +2453,11 @@ impl Renderer {
         )
     }
 
-    fn file_start(&self) -> &'static str {
+    fn file_start(&self, is_first: bool) -> &'static str {
         match self.theme {
             OutputTheme::Ascii => "--> ",
-            OutputTheme::Unicode => " ╭▸ ",
+            OutputTheme::Unicode if is_first => " ╭▸ ",
+            OutputTheme::Unicode => " ├▸ ",
         }
     }
 

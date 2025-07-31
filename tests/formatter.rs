@@ -3141,7 +3141,7 @@ LL |     t.field;
 error[E0609]: no field `field` on type `Thing`
    │
    ├ note: a `Title` then a `Message`!?!?
-   ╭▸ $DIR/too-many-field-suggestions.rs:26:7
+   ├▸ $DIR/too-many-field-suggestions.rs:26:7
    │
 LL │     t.field;
    ╰╴      ━━━━━ unknown field
