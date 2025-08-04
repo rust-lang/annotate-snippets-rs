@@ -440,6 +440,37 @@ error:
 }
 
 #[test]
+fn annotate_newline_empty_span() {
+    let message = &[Group::with_title(Level::ERROR.title("bad")).element(
+        Snippet::source("\n\n\n\n\n\n\n")
+            .path("test.txt")
+            .annotation(AnnotationKind::Primary.span(0..0)),
+    )];
+
+    let expected_ascii = str![[r#"
+error: bad
+ --> test.txt:1:1
+  |
+1 |
+  | ^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(message), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: bad
+  ╭▸ test.txt:1:1
+  │
+1 │
+  ╰╴━
+"#]];
+
+    let renderer = renderer.theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(message), expected_unicode);
+}
+
+#[test]
 fn annotate_eol() {
     let source = "a\r\nb";
     let input = &[Group::with_title(Level::ERROR.title("")).element(
