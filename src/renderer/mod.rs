@@ -264,7 +264,6 @@ impl Renderer {
                     }
                 }
                 let mut message_iter = group.elements.iter().enumerate().peekable();
-                let mut last_was_suggestion = false;
                 if let Some(title) = &group.title {
                     let peek = message_iter.peek().map(|(_, s)| s).copied();
                     let title_style = if g == 0 {
@@ -299,6 +298,7 @@ impl Renderer {
                     }
                 }
                 let mut seen_primary = false;
+                let mut last_suggestion_path = None;
                 while let Some((i, section)) = message_iter.next() {
                     let peek = message_iter.peek().map(|(_, s)| s).copied();
                     let is_first = i == 0;
@@ -314,7 +314,6 @@ impl Renderer {
                                 peek.is_some(),
                                 buffer_msg_line_offset,
                             );
-                            last_was_suggestion = false;
                         }
                         Element::Cause(cause) => {
                             if let Some((source_map, annotated_lines)) =
@@ -354,22 +353,27 @@ impl Renderer {
                                     }
                                 }
                             }
-
-                            last_was_suggestion = false;
                         }
                         Element::Suggestion(suggestion) => {
                             let source_map =
                                 SourceMap::new(&suggestion.source, suggestion.line_start);
+                            let matches_previous_suggestion =
+                                last_suggestion_path == Some(suggestion.path.as_ref());
                             self.emit_suggestion_default(
                                 &mut buffer,
                                 suggestion,
                                 max_line_num_len,
                                 &source_map,
                                 primary_path.or(og_primary_path),
-                                last_was_suggestion,
+                                matches_previous_suggestion,
                                 is_first,
                             );
-                            last_was_suggestion = true;
+
+                            if matches!(peek, Some(Element::Suggestion(_))) {
+                                last_suggestion_path = Some(suggestion.path.as_ref());
+                            } else {
+                                last_suggestion_path = None;
+                            }
                         }
 
                         Element::Origin(origin) => {
@@ -384,7 +388,6 @@ impl Renderer {
                                 is_first,
                                 buffer_msg_line_offset,
                             );
-                            last_was_suggestion = false;
                         }
                         Element::Padding(_) => {
                             let current_line = buffer.num_lines();
@@ -1614,48 +1617,46 @@ impl Renderer {
         max_line_num_len: usize,
         sm: &SourceMap<'_>,
         primary_path: Option<&Cow<'_, str>>,
-        is_cont: bool,
+        matches_previous_suggestion: bool,
         is_first: bool,
     ) {
         let suggestions = sm.splice_lines(suggestion.markers.clone());
 
         let buffer_offset = buffer.num_lines();
-        let mut row_num = buffer_offset + usize::from(!is_cont);
-        for (i, (complete, parts, highlights)) in suggestions.iter().enumerate() {
+        let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
+        for (complete, parts, highlights) in &suggestions {
             let has_deletion = parts
                 .iter()
                 .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
             let is_multiline = complete.lines().count() > 1;
 
-            if i == 0 {
-                self.draw_col_separator_start(buffer, row_num - 1, max_line_num_len + 1);
-            } else {
+            if matches_previous_suggestion {
                 buffer.puts(
                     row_num - 1,
                     max_line_num_len + 1,
                     self.multi_suggestion_separator(),
                     ElementStyle::LineNumber,
                 );
+            } else {
+                self.draw_col_separator_start(buffer, row_num - 1, max_line_num_len + 1);
             }
             if suggestion.path.as_ref() != primary_path {
                 if let Some(path) = suggestion.path.as_ref() {
-                    let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-                    // --> file.rs:line:col
-                    //  |
-                    let arrow = self.file_start(is_first);
-                    buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                    let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                    if is_cont {
-                        buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
-                    } else {
+                    if !matches_previous_suggestion {
+                        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+                        // --> file.rs:line:col
+                        //  |
+                        let arrow = self.file_start(is_first);
+                        buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
+                        let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
                         let col = usize::max(max_line_num_len + 1, arrow.len());
                         buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
+                        for _ in 0..max_line_num_len {
+                            buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
+                        }
+                        self.draw_col_separator_no_space(buffer, row_num, max_line_num_len + 1);
+                        row_num += 1;
                     }
-                    for _ in 0..max_line_num_len {
-                        buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
-                    }
-                    self.draw_col_separator_no_space(buffer, row_num, max_line_num_len + 1);
-                    row_num += 1;
                 }
             }
             let show_code_change = if has_deletion && !is_multiline {
