@@ -346,12 +346,6 @@ impl Renderer {
                                                 max_line_num_len + 1,
                                             );
                                         }
-                                        Some(Element::Origin(origin)) if origin.primary => self
-                                            .draw_col_separator_end(
-                                                &mut buffer,
-                                                current_line,
-                                                max_line_num_len + 1,
-                                            ),
                                         None if group_len > 1 => self.draw_col_separator_end(
                                             &mut buffer,
                                             current_line,
@@ -386,6 +380,7 @@ impl Renderer {
                                 &mut buffer,
                                 max_line_num_len,
                                 origin,
+                                is_primary,
                                 buffer_msg_line_offset,
                             );
                             last_was_suggestion = false;
@@ -472,7 +467,6 @@ impl Renderer {
 
             if let Some(path) = &cause.path {
                 let mut origin = Origin::path(path.as_ref());
-                origin.primary = true;
 
                 let source_map = SourceMap::new(&cause.source, cause.line_start);
                 let (_depth, annotated_lines) =
@@ -493,7 +487,7 @@ impl Renderer {
                     }
                 }
 
-                self.render_origin(&mut buffer, 0, &origin, 0);
+                self.render_origin(&mut buffer, 0, &origin, true, 0);
                 buffer.append(0, ": ", ElementStyle::LineAndColumn);
             }
         }
@@ -641,9 +635,10 @@ impl Renderer {
         buffer: &mut StyledBuffer,
         max_line_num_len: usize,
         origin: &Origin<'_>,
+        is_primary: bool,
         buffer_msg_line_offset: usize,
     ) {
-        if origin.primary && !self.short_message {
+        if is_primary && !self.short_message {
             buffer.prepend(
                 buffer_msg_line_offset,
                 self.file_start(),
@@ -712,7 +707,6 @@ impl Renderer {
             //let is_primary = primary_path == Some(&origin.path);
 
             if is_primary {
-                origin.primary = true;
                 if let Some(primary_line) = annotated_lines
                     .iter()
                     .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
@@ -752,7 +746,13 @@ impl Renderer {
                 }
             }
             let buffer_msg_line_offset = buffer.num_lines();
-            self.render_origin(buffer, max_line_num_len, &origin, buffer_msg_line_offset);
+            self.render_origin(
+                buffer,
+                max_line_num_len,
+                &origin,
+                is_primary,
+                buffer_msg_line_offset,
+            );
             // Put in the spacer between the location and annotated source
             self.draw_col_separator_no_space(
                 buffer,

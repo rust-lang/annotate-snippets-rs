@@ -1746,7 +1746,6 @@ fn main() {
                     Origin::path("$SRC_DIR/core/src/cmp.rs")
                         .line(334)
                         .char_column(14)
-                        .primary(true)
                 )
                 .element(Padding)
                 .element(Level::NOTE.message("...because it uses `Self` as a type parameter"))
@@ -2901,8 +2900,7 @@ fn main() {
         .element(
             Origin::path("$SRC_DIR/alloc/src/boxed.rs")
                 .line(231)
-                .char_column(0)
-                .primary(true),
+                .char_column(0),
         )
         .element(
             Origin::path("$SRC_DIR/alloc/src/boxed.rs")
@@ -3013,21 +3011,20 @@ fn main() {
     let title_1 = "trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it";
 
     let input = &[
-        Group::with_title(Level::ERROR.title(title_0).id("E0599"))
-            .element(
-                Snippet::source(source)
-                    .path("$DIR/dont-project-to-specializable-projection.rs")
-                    .annotation(
-                        AnnotationKind::Primary
-                            .span(1071..1075)
-                            .label("method not found in `Pin<&mut impl Future<Output = ()>>`"),
-                    ),
-            )
+        Group::with_title(Level::ERROR.title(title_0).id("E0599")).element(
+            Snippet::source(source)
+                .path("$DIR/dont-project-to-specializable-projection.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(1071..1075)
+                        .label("method not found in `Pin<&mut impl Future<Output = ()>>`"),
+                ),
+        ),
+        Group::with_level(Level::ERROR)
             .element(
                 Origin::path("$SRC_DIR/core/src/future/future.rs")
                     .line(104)
-                    .char_column(7)
-                    .primary(true),
+                    .char_column(7),
             )
             .element(Padding)
             .element(
@@ -3136,16 +3133,15 @@ fn main() {
             .element(
                 Origin::path("$SRC_DIR/std/src/io/error.rs")
                     .line(65)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(Padding)
-            .element(Level::NOTE.message("not implement `PartialEq`"))
+            .element(Level::NOTE.message("not implement `PartialEq`")),
+        Group::with_level(Level::NOTE)
             .element(
                 Origin::path("$SRC_DIR/std/src/thread/mod.rs")
                     .line(1415)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             )
             .element(Padding)
             .element(Level::NOTE.message("not implement `PartialEq`")),
@@ -3204,31 +3200,31 @@ struct Foo;
 pub fn main() {}
 "#;
 
-    let input =
-        &[
-            Group::with_title(Level::ERROR.title("cannot find derive macro `Eqr` in this scope"))
-                .element(
-                    Snippet::source(source)
-                        .path("$DIR/deriving-meta-unknown-trait.rs")
-                        .annotation(
-                            AnnotationKind::Primary
-                                .span(9..12)
-                                .label("help: a derive macro with a similar name exists: `Eq`"),
-                        ),
-                )
-                .element(
-                    Origin::path("$SRC_DIR/core/src/cmp.rs")
-                        .line(356)
-                        .char_column(0)
-                        .primary(true),
-                )
-                .element(Padding)
-                .element(Level::NOTE.message("similarly named derive macro `Eq` defined here"))
-                .element(Padding)
-                .element(Level::NOTE.message(
-                    "duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`",
-                )),
-        ];
+    let input = &[
+        Group::with_title(Level::ERROR.title("cannot find derive macro `Eqr` in this scope"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/deriving-meta-unknown-trait.rs")
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(9..12)
+                            .label("help: a derive macro with a similar name exists: `Eq`"),
+                    ),
+            ),
+        Group::with_level(Level::ERROR)
+            .element(
+                Origin::path("$SRC_DIR/core/src/cmp.rs")
+                    .line(356)
+                    .char_column(0),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("similarly named derive macro `Eq` defined here"))
+            .element(Padding)
+            .element(
+                Level::NOTE
+                    .message("duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`"),
+            ),
+    ];
 
     let expected_ascii = str![[r#"
 error: cannot find derive macro `Eqr` in this scope
@@ -3309,17 +3305,15 @@ which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`"#;
         .element(
             Origin::path("$SRC_DIR/proc_macro/src/to_tokens.rs")
                 .line(11)
-                .char_column(0)
-                .primary(true),
-        )
-        .element(
+                .char_column(0),
+        ),
+        Group::with_level(Level::NOTE).element(
             Origin::path("$SRC_DIR/core/src/iter/traits/iterator.rs")
                 .line(39)
-                .char_column(0)
-                .primary(true),
+                .char_column(0),
         ),
     ];
-    let expected_ascii = str![[r##"
+    let expected_ascii = str![[r#"
 error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
   --> $DIR/not-repeatable.rs:11:13
    |
@@ -3341,7 +3335,7 @@ LL |     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exis
 note: the traits `Iterator` and `ToTokens` must be implemented
   --> $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
   --> $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
-"##]];
+"#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
@@ -3575,8 +3569,7 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
             .element(
                 Origin::path("$SRC_DIR/core/src/alloc/layout.rs")
                     .line(40)
-                    .char_column(0)
-                    .primary(true),
+                    .char_column(0),
             ),
         Group::with_title(Level::NOTE.title("`Layout` is defined in the current crate")).element(
             Snippet::source(source)
@@ -3690,4 +3683,266 @@ LL | |              bar
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected.raw());
+}
+
+#[test]
+fn origin_path_repeated() {
+    // tests/ui/pattern/usefulness/match-privately-empty.rs
+    let source = r#"//@ revisions: normal exhaustive_patterns
+#![cfg_attr(exhaustive_patterns, feature(exhaustive_patterns))]
+#![feature(never_type)]
+
+mod private {
+    pub struct Private {
+        _bot: !,
+        pub misc: bool,
+    }
+    pub const DATA: Option<Private> = None;
+}
+
+fn main() {
+    match private::DATA {
+        //~^ ERROR non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
+        None => {}
+        Some(private::Private { misc: false, .. }) => {}
+    }
+}
+"#;
+    let title_0 = "non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered";
+    let title_1 = "`Option<Private>` defined here";
+    let title_2 = "ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown";
+
+    let input = &[
+        Group::with_title(Level::ERROR.title(title_0).id("E0004")).element(
+            Snippet::source(source)
+                .path("$DIR/match-privately-empty.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(286..299)
+                        .label("pattern `Some(Private { misc: true, .. })` not covered"),
+                ),
+        ),
+        Group::with_title(Level::NOTE.title(title_1))
+            .element(
+                Origin::path("$SRC_DIR/core/src/option.rs")
+                    .line(593)
+                    .char_column(0),
+            )
+            .element(
+                Origin::path("$SRC_DIR/core/src/option.rs")
+                    .line(601)
+                    .char_column(4),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("not covered"))
+            .element(Level::NOTE.message("the matched value is of type `Option<Private>`")),
+        Group::with_title(Level::HELP.title(title_2)).element(
+            Snippet::source(source)
+                .path("$DIR/match-privately-empty.rs")
+                .line_start(17)
+                .fold(true)
+                .patch(Patch::new(
+                    468..468,
+                    ",
+        Some(Private { misc: true, .. }) => todo!()",
+                )),
+        ),
+    ];
+    let expected = str![[r#"
+error[E0004]: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
+   ╭▸ $DIR/match-privately-empty.rs:14:11
+   │
+LL │     match private::DATA {
+   │           ━━━━━━━━━━━━━ pattern `Some(Private { misc: true, .. })` not covered
+   ╰╴
+note: `Option<Private>` defined here
+   ╭▸ $SRC_DIR/core/src/option.rs:593:0
+   ⸬  $SRC_DIR/core/src/option.rs:601:4
+   │
+   ├ note: not covered
+   ╰ note: the matched value is of type `Option<Private>`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+   ╭╴
+LL ±         Some(private::Private { misc: false, .. }) => {},
+LL +         Some(Private { misc: true, .. }) => todo!()
+   ╰╴
+"#]];
+    let renderer = Renderer::plain()
+        .anonymized_line_numbers(true)
+        .theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn origin_path_repeated_element_between() {
+    // tests/ui/dyn-compatibility/bare-trait-dont-suggest-dyn.rs
+    let source = r#"//@ revisions: old new
+//@[old] edition:2015
+//@[new] edition:2021
+//@[new] run-rustfix
+#![deny(bare_trait_objects)]
+fn ord_prefer_dot(s: String) -> Ord {
+    //[new]~^ ERROR expected a type, found a trait
+    //[old]~^^ ERROR the trait `Ord` is not dyn compatible
+    //[old]~| ERROR trait objects without an explicit `dyn` are deprecated
+    //[old]~| WARNING this is accepted in the current edition (Rust 2015)
+    (s.starts_with("."), s)
+}
+fn main() {
+    let _ = ord_prefer_dot(String::new());
+}
+"#;
+    let title_0 = "for a trait to be dyn compatible it needs to allow building a vtable
+for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>";
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .title("the trait `Ord` is not dyn compatible")
+                .id("E0038"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/bare-trait-dont-suggest-dyn.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(149..152)
+                        .label("`Ord` is not dyn compatible"),
+                ),
+        ),
+        Group::with_title(Level::NOTE.title(title_0))
+            .element(
+                Origin::path("$SRC_DIR/core/src/cmp.rs")
+                    .line(961)
+                    .char_column(20),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message(
+                "the trait is not dyn compatible because it uses `Self` as a type parameter",
+            ))
+            .element(
+                Origin::path("$SRC_DIR/core/src/cmp.rs")
+                    .line(338)
+                    .char_column(14),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message(
+                "the trait is not dyn compatible because it uses `Self` as a type parameter",
+            )),
+        Group::with_title(Level::HELP.title("consider using an opaque type instead")).element(
+            Snippet::source(source)
+                .path("$DIR/bare-trait-dont-suggest-dyn.rs")
+                .line_start(6)
+                .fold(true)
+                .patch(Patch::new(149..149, "impl ")),
+        ),
+    ];
+    let expected = str![[r#"
+error[E0038]: the trait `Ord` is not dyn compatible
+   ╭▸ $DIR/bare-trait-dont-suggest-dyn.rs:6:33
+   │
+LL │ fn ord_prefer_dot(s: String) -> Ord {
+   │                                 ━━━ `Ord` is not dyn compatible
+   ╰╴
+note: for a trait to be dyn compatible it needs to allow building a vtable
+      for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
+   ╭▸ $SRC_DIR/core/src/cmp.rs:961:20
+   │
+   ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+   ⸬  $SRC_DIR/core/src/cmp.rs:338:14
+   │
+   ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+help: consider using an opaque type instead
+   ╭╴
+LL │ fn ord_prefer_dot(s: String) -> impl Ord {
+   ╰╴                                ++++
+"#]];
+    let renderer = Renderer::plain()
+        .anonymized_line_numbers(true)
+        .theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected);
+}
+
+#[test]
+fn multiple_origin() {
+    // tests/ui/binop/binary-op-not-allowed-issue-125631.rs
+    let source_0 = r#"use std::io::{Error, ErrorKind};
+use std::thread;
+
+struct T1;
+struct T2;
+
+fn main() {
+    (Error::new(ErrorKind::Other, "1"), T1, 1) == (Error::new(ErrorKind::Other, "1"), T1, 2);
+    //~^ERROR binary operation `==` cannot be applied to type
+    (Error::new(ErrorKind::Other, "2"), thread::current())
+        == (Error::new(ErrorKind::Other, "2"), thread::current());
+    //~^ERROR binary operation `==` cannot be applied to type
+    (Error::new(ErrorKind::Other, "4"), thread::current(), T1, T2)
+        == (Error::new(ErrorKind::Other, "4"), thread::current(), T1, T2);
+    //~^ERROR binary operation `==` cannot be applied to type
+}
+"#;
+    let title_0 =
+        "the foreign item types don't implement required traits for this operation to be valid";
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .title("binary operation `==` cannot be applied to type `(std::io::Error, Thread)`")
+                .id("E0369"),
+        )
+        .element(
+            Snippet::source(source_0)
+                .path("$DIR/binary-op-not-allowed-issue-125631.rs")
+                .annotation(
+                    AnnotationKind::Context
+                        .span(246..300)
+                        .label("(std::io::Error, Thread)"),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(312..366)
+                        .label("(std::io::Error, Thread)"),
+                )
+                .annotation(AnnotationKind::Primary.span(309..311)),
+        ),
+        Group::with_title(Level::NOTE.title(title_0))
+            .element(
+                Origin::path("$SRC_DIR/std/src/io/error.rs")
+                    .line(65)
+                    .char_column(0),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("not implement `PartialEq`")),
+        Group::with_level(Level::NOTE)
+            .element(
+                Origin::path("$SRC_DIR/std/src/thread/mod.rs")
+                    .line(1439)
+                    .char_column(0),
+            )
+            .element(Padding)
+            .element(Level::NOTE.message("not implement `PartialEq`")),
+    ];
+    let expected = str![[r#"
+error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+   ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
+   │
+LL │     (Error::new(ErrorKind::Other, "2"), thread::current())
+   │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
+LL │         == (Error::new(ErrorKind::Other, "2"), thread::current());
+   │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
+   ╰╴
+note: the foreign item types don't implement required traits for this operation to be valid
+   ╭▸ $SRC_DIR/std/src/io/error.rs:65:0
+   │
+   ╰ note: not implement `PartialEq`
+   ╭▸ $SRC_DIR/std/src/thread/mod.rs:1439:0
+   │
+   ╰ note: not implement `PartialEq`
+"#]];
+    let renderer = Renderer::plain()
+        .anonymized_line_numbers(true)
+        .theme(OutputTheme::Unicode);
+    assert_data_eq!(renderer.render(input), expected);
 }

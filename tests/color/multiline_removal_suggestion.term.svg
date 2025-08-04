@@ -39,7 +39,7 @@
 </tspan>
     <tspan x="10px" y="172px"><tspan class="fg-bright-green bold">note</tspan><tspan>: required by a bound in `flatten`</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan>  </tspan><tspan class="fg-bright-blue bold">::: </tspan><tspan>/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs:1556:4</tspan>
+    <tspan x="10px" y="190px"><tspan>  </tspan><tspan class="fg-bright-blue bold">--&gt; </tspan><tspan>/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs:1556:4</tspan>
 </tspan>
     <tspan x="10px" y="208px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: consider removing this method call, as the receiver has type `std::vec::IntoIter&lt;HashSet&lt;u8&gt;&gt;` and `std::vec::IntoIter&lt;HashSet&lt;u8&gt;&gt;: Iterator` trivially holds</tspan>
 </tspan>

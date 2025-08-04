@@ -437,7 +437,6 @@ pub struct Origin<'a> {
     pub(crate) path: Cow<'a, str>,
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
-    pub(crate) primary: bool,
 }
 
 impl<'a> Origin<'a> {
@@ -453,7 +452,6 @@ impl<'a> Origin<'a> {
             path: path.into(),
             line: None,
             char_column: None,
-            primary: false,
         }
     }
 
@@ -472,12 +470,6 @@ impl<'a> Origin<'a> {
     /// </div>
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
-        self
-    }
-
-    /// Mark this as the source that the [Group's Title][Group::with_title] references
-    pub fn primary(mut self, primary: bool) -> Self {
-        self.primary = primary;
         self
     }
 }
