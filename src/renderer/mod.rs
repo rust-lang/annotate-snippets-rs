@@ -390,6 +390,14 @@ impl Renderer {
                                 is_first,
                                 buffer_msg_line_offset,
                             );
+                            let current_line = buffer.num_lines();
+                            if g == 0 && peek.is_none() && group_len > 1 {
+                                self.draw_col_separator_end(
+                                    &mut buffer,
+                                    current_line,
+                                    max_line_num_len + 1,
+                                );
+                            }
                         }
                         Element::Padding(_) => {
                             let current_line = buffer.num_lines();
@@ -406,22 +414,6 @@ impl Renderer {
                                     max_line_num_len + 1,
                                 );
                             }
-                        }
-                    }
-                    if g == 0 && matches!(section, Element::Origin(_)) {
-                        let current_line = buffer.num_lines();
-                        if peek.is_none() && group_len > 1 {
-                            self.draw_col_separator_end(
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
-                        } else if matches!(peek, Some(Element::Message(_))) {
-                            self.draw_col_separator_no_space(
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
                         }
                     }
                 }
