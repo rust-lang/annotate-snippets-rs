@@ -4071,7 +4071,7 @@ LL + use std::collections::binary_heap::IntoIter;
 LL + use std::collections::btree_map::IntoIter;
    ├╴
 LL + use std::collections::btree_set::IntoIter;
-   ╰╴
+   │
    ╰ and 9 other candidates
 "#]];
     let renderer = renderer.theme(OutputTheme::Unicode);
@@ -4392,7 +4392,7 @@ LL -             wtf: None,
 LL -             x: (),
 LL -         })),
 LL +         wtf: Some(Box::new_in(_, _)),
-   ╰╴
+   │
    ╰ and 12 other candidates
 help: consider using the `Default` trait
    ╭╴
@@ -4528,7 +4528,7 @@ LL │     t.a1.bar();
 LL │     t.a2.bar();
    ├╴      +++
 LL │     t.a3.bar();
-   ╰╴      +++
+   │       +++
    ╰ and 6 other candidates
 "#]];
     let renderer = renderer.theme(OutputTheme::Unicode);

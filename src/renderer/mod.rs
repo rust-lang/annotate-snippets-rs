@@ -367,6 +367,8 @@ impl Renderer {
                                 primary_path.or(og_primary_path),
                                 matches_previous_suggestion,
                                 is_first,
+                                //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
+                                peek.is_some(),
                             );
 
                             if matches!(peek, Some(Element::Suggestion(_))) {
@@ -1619,6 +1621,7 @@ impl Renderer {
         primary_path: Option<&Cow<'_, str>>,
         matches_previous_suggestion: bool,
         is_first: bool,
+        is_cont: bool,
     ) {
         let suggestions = sm.splice_lines(suggestion.markers.clone());
 
@@ -2010,7 +2013,11 @@ impl Renderer {
                     | DisplaySuggestion::Underline => row_num - 1,
                     DisplaySuggestion::None => row_num,
                 };
-                self.draw_col_separator_end(buffer, row, max_line_num_len + 1);
+                if is_cont {
+                    self.draw_col_separator_no_space(buffer, row, max_line_num_len + 1);
+                } else {
+                    self.draw_col_separator_end(buffer, row, max_line_num_len + 1);
+                }
                 row_num = row + 1;
             }
         }
