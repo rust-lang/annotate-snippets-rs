@@ -18,7 +18,7 @@ pub static C: u32 = 0 - 1;
     let message = &[Group::with_title(
         Level::ERROR
             .with_name(Some("error: internal compiler error"))
-            .title("could not evaluate static initializer")
+            .primary_title("could not evaluate static initializer")
             .id("E0080"),
     )
     .element(

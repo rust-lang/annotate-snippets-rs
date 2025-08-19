@@ -5,7 +5,7 @@ use snapbox::{assert_data_eq, file};
 #[test]
 fn case() {
     let input = &[
-        Group::with_title(Level::ERROR.title("expected `.`, `=`")).element(
+        Group::with_title(Level::ERROR.primary_title("expected `.`, `=`")).element(
             Snippet::source("asdf")
                 .path("Cargo.toml")
                 .line_start(1)

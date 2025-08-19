@@ -7,11 +7,13 @@ use snapbox::{assert_data_eq, str};
 
 #[test]
 fn test_i_29() {
-    let snippets = &[Group::with_title(Level::ERROR.title("oops")).element(
-        Snippet::source("First line\r\nSecond oops line")
-            .path("<current file>")
-            .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
-    )];
+    let snippets = &[
+        Group::with_title(Level::ERROR.primary_title("oops")).element(
+            Snippet::source("First line\r\nSecond oops line")
+                .path("<current file>")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+    ];
     let expected = str![[r#"
 error: oops
  --> <current file>:2:8
@@ -26,7 +28,7 @@ error: oops
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こんにちは、世界")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(18..24).label("world")),
@@ -46,7 +48,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("おはよう\nございます")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(6..22).label("Good morning")),
@@ -68,7 +70,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("お寿司\n食べたい🍣")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(0..9).label("Sushi1"))
@@ -91,7 +93,7 @@ error:
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こんにちは、新しいWorld！")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(18..32).label("New world")),
@@ -112,7 +114,7 @@ error:
 #[test]
 fn test_format_title() {
     let input = &[Group::with_title(
-        Level::ERROR.title("This is a title").id("E0001"),
+        Level::ERROR.primary_title("This is a title").id("E0001"),
     )];
 
     let expected = str![r#"error[E0001]: This is a title"#];
@@ -123,7 +125,7 @@ fn test_format_title() {
 #[test]
 fn test_format_snippet_only() {
     let source = "This is line 1\nThis is line 2";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::<Annotation<'_>>::source(source)
             .line_start(5402)
             .fold(false),
@@ -143,7 +145,7 @@ error:
 fn test_format_snippets_continuation() {
     let src_0 = "This is slice 1";
     let src_1 = "This is slice 2";
-    let input = &[Group::with_title(Level::ERROR.title(""))
+    let input = &[Group::with_title(Level::ERROR.primary_title(""))
         .element(
             Snippet::<Annotation<'_>>::source(src_0)
                 .line_start(5402)
@@ -177,7 +179,7 @@ fn test_format_snippet_annotation_standalone() {
     let source = [line_1, line_2].join("\n");
     // In line 2
     let range = 22..24;
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(&source)
             .line_start(5402)
             .fold(false)
@@ -200,7 +202,7 @@ error:
 
 #[test]
 fn test_format_footer_title() {
-    let input = &[Group::with_title(Level::ERROR.title(""))
+    let input = &[Group::with_title(Level::ERROR.primary_title(""))
         .element(Level::ERROR.message("This __is__ a title"))];
     let expected = str![[r#"
 error: 
@@ -216,7 +218,7 @@ error:
 fn test_i26() {
     let source = "short";
     let label = "label";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source).line_start(0).annotation(
             AnnotationKind::Primary
                 .span(0..source.len() + 2)
@@ -230,7 +232,7 @@ fn test_i26() {
 #[test]
 fn test_source_content() {
     let source = "This is an example\nof content lines";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::<Annotation<'_>>::source(source)
             .line_start(56)
             .fold(false),
@@ -248,7 +250,7 @@ error:
 #[test]
 fn test_source_annotation_standalone_singleline() {
     let source = "tests";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .line_start(1)
             .annotation(AnnotationKind::Context.span(0..5).label("Example string")),
@@ -266,7 +268,7 @@ error:
 #[test]
 fn test_source_annotation_standalone_multiline() {
     let source = "tests";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .line_start(1)
             .annotation(AnnotationKind::Context.span(0..5).label("Example string"))
@@ -287,7 +289,7 @@ error:
 
 #[test]
 fn test_only_source() {
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::<Annotation<'_>>::source("")
             .path("file.rs")
             .fold(false),
@@ -305,7 +307,7 @@ error:
 #[test]
 fn test_anon_lines() {
     let source = "This is an example\nof content lines\n\nabc";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::<Annotation<'_>>::source(source)
             .line_start(56)
             .fold(false),
@@ -324,13 +326,15 @@ LL | abc
 
 #[test]
 fn issue_130() {
-    let input = &[Group::with_title(Level::ERROR.title("dummy")).element(
-        Snippet::source("foo\nbar\nbaz")
-            .path("file/path")
-            .line_start(3)
-            .annotation(AnnotationKind::Primary.span(4..11)),
-        // bar\nbaz
-    )];
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title("dummy")).element(
+            Snippet::source("foo\nbar\nbaz")
+                .path("file/path")
+                .line_start(3)
+                .annotation(AnnotationKind::Primary.span(4..11)),
+            // bar\nbaz
+        ),
+    ];
 
     let expected = str![[r#"
 error: dummy
@@ -350,7 +354,7 @@ fn unterminated_string_multiline() {
 a\"
 // ...
 ";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -372,7 +376,7 @@ error:
 #[test]
 fn char_and_nl_annotate_char() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -395,7 +399,7 @@ error:
 #[test]
 fn char_eol_annotate_char() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -416,7 +420,7 @@ error:
 
 #[test]
 fn char_eol_annotate_char_double_width() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こん\r\nにちは\r\n世界")
             .path("<current file>")
             .fold(false)
@@ -441,11 +445,13 @@ error:
 
 #[test]
 fn annotate_newline_empty_span() {
-    let message = &[Group::with_title(Level::ERROR.title("bad")).element(
-        Snippet::source("\n\n\n\n\n\n\n")
-            .path("test.txt")
-            .annotation(AnnotationKind::Primary.span(0..0)),
-    )];
+    let message = &[
+        Group::with_title(Level::ERROR.primary_title("bad")).element(
+            Snippet::source("\n\n\n\n\n\n\n")
+                .path("test.txt")
+                .annotation(AnnotationKind::Primary.span(0..0)),
+        ),
+    ];
 
     let expected_ascii = str![[r#"
 error: bad
@@ -473,7 +479,7 @@ error: bad
 #[test]
 fn annotate_eol() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -496,7 +502,7 @@ error:
 #[test]
 fn annotate_eol2() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -519,7 +525,7 @@ error:
 #[test]
 fn annotate_eol3() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -542,7 +548,7 @@ error:
 #[test]
 fn annotate_eol4() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -564,7 +570,7 @@ error:
 
 #[test]
 fn annotate_eol_double_width() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こん\r\nにちは\r\n世界")
             .path("<current file>")
             .fold(false)
@@ -590,7 +596,7 @@ error:
 #[test]
 fn multiline_eol_start() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -613,7 +619,7 @@ error:
 #[test]
 fn multiline_eol_start2() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -636,7 +642,7 @@ error:
 #[test]
 fn multiline_eol_start3() {
     let source = "a\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -658,7 +664,7 @@ error:
 
 #[test]
 fn multiline_eol_start_double_width() {
-    let snippets = &[Group::with_title(Level::ERROR.title("")).element(
+    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こん\r\nにちは\r\n世界")
             .path("<current file>")
             .fold(false)
@@ -684,7 +690,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end() {
     let source = "a\nb\nc";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -708,7 +714,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end2() {
     let source = "a\r\nb\r\nc";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -733,7 +739,7 @@ error:
 #[test]
 fn multiline_eol_start_eol_end3() {
     let source = "a\r\nb\r\nc";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -757,7 +763,7 @@ error:
 #[test]
 fn multiline_eol_start_eof_end() {
     let source = "a\r\nb";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -780,7 +786,7 @@ error:
 #[test]
 fn multiline_eol_start_eof_end_double_width() {
     let source = "ん\r\nに";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .path("file/path")
             .line_start(3)
@@ -804,7 +810,7 @@ error:
 fn two_single_line_same_line() {
     let source = r#"bar = { version = "0.1.0", optional = true }"#;
     let input = &[
-        Group::with_title(Level::ERROR.title("unused optional dependency")).element(
+        Group::with_title(Level::ERROR.primary_title("unused optional dependency")).element(
             Snippet::source(source)
                 .path("Cargo.toml")
                 .line_start(4)
@@ -841,7 +847,7 @@ so is this
 bar = { version = "0.1.0", optional = true }
 "#;
     let input = &[
-        Group::with_title(Level::ERROR.title("unused optional dependency")).element(
+        Group::with_title(Level::ERROR.primary_title("unused optional dependency")).element(
             Snippet::source(source)
                 .line_start(4)
                 .annotation(
@@ -880,7 +886,7 @@ so is this
 bar = { version = "0.1.0", optional = true }
 "#;
     let input = &[
-        Group::with_title(Level::ERROR.title("unused optional dependency")).element(
+        Group::with_title(Level::ERROR.primary_title("unused optional dependency")).element(
             Snippet::source(source)
                 .line_start(4)
                 .annotation(
@@ -928,7 +934,7 @@ bar = { version = "0.1.0", optional = true }
 this is another line
 "#;
     let input = &[
-        Group::with_title(Level::ERROR.title("unused optional dependency")).element(
+        Group::with_title(Level::ERROR.primary_title("unused optional dependency")).element(
             Snippet::source(source)
                 .line_start(4)
                 .annotation(
@@ -978,12 +984,14 @@ error: unused optional dependency
 #[test]
 fn origin_correct_start_line() {
     let source = "aaa\nbbb\nccc\nddd\n";
-    let input = &[Group::with_title(Level::ERROR.title("title")).element(
-        Snippet::source(source)
-            .path("origin.txt")
-            .fold(false)
-            .annotation(AnnotationKind::Primary.span(8..8 + 3).label("annotation")),
-    )];
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title("title")).element(
+            Snippet::source(source)
+                .path("origin.txt")
+                .fold(false)
+                .annotation(AnnotationKind::Primary.span(8..8 + 3).label("annotation")),
+        ),
+    ];
 
     let expected = str![[r#"
 error: title
@@ -1002,16 +1010,18 @@ error: title
 #[test]
 fn origin_correct_mid_line() {
     let source = "aaa\nbbb\nccc\nddd\n";
-    let input = &[Group::with_title(Level::ERROR.title("title")).element(
-        Snippet::source(source)
-            .path("origin.txt")
-            .fold(false)
-            .annotation(
-                AnnotationKind::Primary
-                    .span(8 + 1..8 + 3)
-                    .label("annotation"),
-            ),
-    )];
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title("title")).element(
+            Snippet::source(source)
+                .path("origin.txt")
+                .fold(false)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(8 + 1..8 + 3)
+                        .label("annotation"),
+                ),
+        ),
+    ];
 
     let expected = str![[r#"
 error: title
@@ -1033,12 +1043,13 @@ fn two_suggestions_same_span() {
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("expected value, found enum `A`")
+                .primary_title("expected value, found enum `A`")
                 .id("E0423"),
         )
         .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(4..5))),
         Group::with_title(
-            Level::HELP.title("you might have meant to use one of the following enum variants"),
+            Level::HELP
+                .primary_title("you might have meant to use one of the following enum variants"),
         )
         .element(Snippet::source(source).patch(Patch::new(4..5, "(A::Tuple())")))
         .element(Snippet::source(source).patch(Patch::new(4..5, "A::Unit"))),
@@ -1085,7 +1096,7 @@ fn main() {
 }"#;
     let input_new =
         &[Group::with_title(Level::ERROR
-            .title("no method named `pick` found for struct `Chaenomeles` in the current scope")
+            .primary_title("no method named `pick` found for struct `Chaenomeles` in the current scope")
             .id("E0599")).element(
                     Snippet::source(source)
                         .line_start(1)
@@ -1101,7 +1112,7 @@ fn main() {
                                 .label("method not found in `Chaenomeles`"),
                         ),
                 ),
-                Group::with_title(Level::HELP.title(
+                Group::with_title(Level::HELP.primary_title(
                         "the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them",
                     ))
                     .element(
@@ -1141,7 +1152,7 @@ fn single_line_non_overlapping_suggestions() {
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("expected value, found enum `A`")
+                .primary_title("expected value, found enum `A`")
                 .id("E0423"),
         )
         .element(
@@ -1149,11 +1160,12 @@ fn single_line_non_overlapping_suggestions() {
                 .line_start(1)
                 .annotation(AnnotationKind::Primary.span(4..5)),
         ),
-        Group::with_title(Level::HELP.title("make these changes and things will work")).element(
-            Snippet::source(source)
-                .patch(Patch::new(4..5, "(A::Tuple())"))
-                .patch(Patch::new(6..9, "bar")),
-        ),
+        Group::with_title(Level::HELP.primary_title("make these changes and things will work"))
+            .element(
+                Snippet::source(source)
+                    .patch(Patch::new(4..5, "(A::Tuple())"))
+                    .patch(Patch::new(6..9, "bar")),
+            ),
     ];
 
     let expected = str![[r#"
@@ -1176,16 +1188,22 @@ LL +     (A::Tuple()).bar();
 fn single_line_non_overlapping_suggestions2() {
     let source = r#"    ThisIsVeryLong.foo();"#;
     let input_new = &[
-        Group::with_title(Level::ERROR.title("Found `ThisIsVeryLong`").id("E0423")).element(
+        Group::with_title(
+            Level::ERROR
+                .primary_title("Found `ThisIsVeryLong`")
+                .id("E0423"),
+        )
+        .element(
             Snippet::source(source)
                 .line_start(1)
                 .annotation(AnnotationKind::Primary.span(4..18)),
         ),
-        Group::with_title(Level::HELP.title("make these changes and things will work")).element(
-            Snippet::source(source)
-                .patch(Patch::new(4..18, "(A::Tuple())"))
-                .patch(Patch::new(19..22, "bar")),
-        ),
+        Group::with_title(Level::HELP.primary_title("make these changes and things will work"))
+            .element(
+                Snippet::source(source)
+                    .patch(Patch::new(4..18, "(A::Tuple())"))
+                    .patch(Patch::new(19..22, "bar")),
+            ),
     ];
 
     let expected = str![[r#"
@@ -1217,7 +1235,9 @@ fn multiple_replacements() {
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("cannot borrow `*self` as mutable because it is also borrowed as immutable")
+                .primary_title(
+                    "cannot borrow `*self` as mutable because it is also borrowed as immutable",
+                )
                 .id("E0502"),
         )
         .element(
@@ -1245,7 +1265,8 @@ fn multiple_replacements() {
                 ),
         ),
         Group::with_title(
-            Level::HELP.title("try explicitly pass `&Self` into the Closure as an argument"),
+            Level::HELP
+                .primary_title("try explicitly pass `&Self` into the Closure as an argument"),
         )
         .element(
             Snippet::source(source)
@@ -1297,7 +1318,7 @@ fn main() {
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("cannot borrow `chars` as mutable more than once at a time")
+                .primary_title("cannot borrow `chars` as mutable more than once at a time")
                 .id("E0499"),
         )
         .element(
@@ -1319,7 +1340,7 @@ fn main() {
                         .label("first borrow later used here"),
                 ),
         ),
-        Group::with_title(Level::HELP.title(
+        Group::with_title(Level::HELP.primary_title(
             "if you want to call `next` on a iterator within the loop, consider using `while let`",
         ))
         .element(
@@ -1377,7 +1398,7 @@ fn main() {}"#;
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("failed to resolve: use of undeclared crate or module `st`")
+                .primary_title("failed to resolve: use of undeclared crate or module `st`")
                 .id("E0433"),
         )
         .element(
@@ -1387,11 +1408,13 @@ fn main() {}"#;
                     .label("use of undeclared crate or module `st`"),
             ),
         ),
-        Group::with_title(Level::HELP.title("there is a crate or module with a similar name"))
-            .element(Snippet::source(source).patch(Patch::new(122..124, "std"))),
-        Group::with_title(Level::HELP.title("consider importing this module"))
+        Group::with_title(
+            Level::HELP.primary_title("there is a crate or module with a similar name"),
+        )
+        .element(Snippet::source(source).patch(Patch::new(122..124, "std"))),
+        Group::with_title(Level::HELP.primary_title("consider importing this module"))
             .element(Snippet::source(source).patch(Patch::new(1..1, "use std::cell;\n"))),
-        Group::with_title(Level::HELP.title("if you import `cell`, refer to it directly"))
+        Group::with_title(Level::HELP.primary_title("if you import `cell`, refer to it directly"))
             .element(Snippet::source(source).patch(Patch::new(122..126, ""))),
     ];
     let expected = str![[r#"
@@ -1440,7 +1463,9 @@ fn main() {}"#;
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("the size for values of type `T` cannot be known at compilation time")
+                .primary_title(
+                    "the size for values of type `T` cannot be known at compilation time",
+                )
                 .id("E0277"),
         )
         .element(
@@ -1457,10 +1482,9 @@ fn main() {}"#;
                         .label("this type parameter needs to be `Sized`"),
                 ),
         ),
-        Group::with_title(
-            Level::HELP
-                .title("consider removing the `?Sized` bound to make the type parameter `Sized`"),
-        )
+        Group::with_title(Level::HELP.primary_title(
+            "consider removing the `?Sized` bound to make the type parameter `Sized`",
+        ))
         .element(Snippet::source(source).patch(Patch::new(52..85, ""))),
     ];
     let expected = str![[r#"
@@ -1502,7 +1526,7 @@ and where
 
 fn main() {}"#;
     let input_new = &[Group::with_title(Level::ERROR
-        .title("the size for values of type `T` cannot be known at compilation time")
+        .primary_title("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")).element(Snippet::source(source)
             .line_start(1)
             .path("$DIR/removal-of-multiline-trait-bound-in-where-clause.rs")
@@ -1519,7 +1543,7 @@ fn main() {}"#;
             ))
         ,Group::with_title(
             Level::NOTE
-                .title("required by an implicit `Sized` bound in `Wrapper`")
+                .primary_title("required by an implicit `Sized` bound in `Wrapper`")
         ).element(
             Snippet::source(source)
                 .line_start(1)
@@ -1532,7 +1556,7 @@ fn main() {}"#;
                 )
         ), Group::with_title(
             Level::HELP
-                .title("you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`")
+                .primary_title("you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`")
             )
             .element(
             Snippet::source(source)
@@ -1552,7 +1576,7 @@ fn main() {}"#;
 
         ),Group::with_title(
             Level::HELP
-                .title("consider removing the `?Sized` bound to make the type parameter `Sized`")
+                .primary_title("consider removing the `?Sized` bound to make the type parameter `Sized`")
         ).element(
             Snippet::source(source)
 
@@ -1610,14 +1634,15 @@ zappy
     let input_new = &[
         Group::with_title(
             Level::ERROR
-                .title("the size for values of type `T` cannot be known at compilation time")
+                .primary_title(
+                    "the size for values of type `T` cannot be known at compilation time",
+                )
                 .id("E0277"),
         ),
         // We need an empty group here to ensure the HELP line is rendered correctly
-        Group::with_title(
-            Level::HELP
-                .title("consider removing the `?Sized` bound to make the type parameter `Sized`"),
-        )
+        Group::with_title(Level::HELP.primary_title(
+            "consider removing the `?Sized` bound to make the type parameter `Sized`",
+        ))
         .element(
             Snippet::source(source)
                 .line_start(7)
@@ -1678,7 +1703,7 @@ fn main() {
 "#;
 
     let input_new = &[Group::with_title(Level::ERROR
-        .title("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
+        .primary_title("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")).element(Snippet::source(source)
             .line_start(4)
             .path("$DIR/E0271.rs")
@@ -1688,7 +1713,7 @@ fn main() {
                     .span(208..510)
                     .label("type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`"),
             )),Group::with_title(
-            Level::NOTE.title("expected this to be `Foo`")
+            Level::NOTE.primary_title("expected this to be `Foo`")
         ).element(
             Snippet::source(source)
                 .line_start(4)
@@ -1764,7 +1789,7 @@ fn main() {
 "#;
 
     let input_new = &[Group::with_title(Level::ERROR
-        .title("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
+        .primary_title("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")).element(Snippet::source(source)
             .line_start(4)
             .path("$DIR/E0271.rs")
@@ -1774,7 +1799,7 @@ fn main() {
                     .span(208..510)
                     .label("type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`"),
             )),Group::with_title(
-            Level::NOTE.title("expected this to be `Foo`")
+            Level::NOTE.primary_title("expected this to be `Foo`")
         ).element(
             Snippet::source(source)
                 .line_start(4)
@@ -1915,7 +1940,7 @@ fn main() {
 "#;
 
     let input_new = &[Group::with_title(Level::ERROR
-        .title("mismatched types")
+        .primary_title("mismatched types")
         .id("E0308")).element(
             Snippet::source(source)
                 .line_start(7)
@@ -1999,7 +2024,7 @@ fn main() {
 "#;
 
     let input_new = &[Group::with_title(Level::ERROR
-        .title("mismatched types")
+        .primary_title("mismatched types")
         .id("E0308")).element(
             Snippet::source(source)
                 .line_start(7)
@@ -2020,7 +2045,7 @@ fn main() {
                 .message("expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`\n      found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`")
                 ,
         ),Group::with_title(
-            Level::NOTE.title("function defined here"),
+            Level::NOTE.primary_title("function defined here"),
         ).element(
             Snippet::source(source)
                 .line_start(7)
@@ -2065,11 +2090,13 @@ LL │ ┃ )>>) {}
 #[test]
 fn unicode_cut_handling() {
     let source = "version = \"0.1.0\"\n# Ensure that the spans from toml handle utf-8 correctly\nauthors = [\n    { name = \"Z\u{351}\u{36b}\u{343}\u{36a}\u{302}\u{36b}\u{33d}\u{34f}\u{334}\u{319}\u{324}\u{31e}\u{349}\u{35a}\u{32f}\u{31e}\u{320}\u{34d}A\u{36b}\u{357}\u{334}\u{362}\u{335}\u{31c}\u{330}\u{354}L\u{368}\u{367}\u{369}\u{358}\u{320}G\u{311}\u{357}\u{30e}\u{305}\u{35b}\u{341}\u{334}\u{33b}\u{348}\u{34d}\u{354}\u{339}O\u{342}\u{30c}\u{30c}\u{358}\u{328}\u{335}\u{339}\u{33b}\u{31d}\u{333}\", email = 1 }\n]\n";
-    let input = &[Group::with_title(Level::ERROR.title("title")).element(
-        Snippet::source(source)
-            .fold(false)
-            .annotation(AnnotationKind::Primary.span(85..228).label("annotation")),
-    )];
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title("title")).element(
+            Snippet::source(source)
+                .fold(false)
+                .annotation(AnnotationKind::Primary.span(85..228).label("annotation")),
+        ),
+    ];
     let expected_ascii = str![[r#"
 error: title
   |
@@ -2103,7 +2130,7 @@ error: title
 fn unicode_cut_handling2() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
     let input = &[Group::with_title(Level::ERROR
-        .title("expected item, found `?`")).element(
+        .primary_title("expected item, found `?`")).element(
                 Snippet::source(source)
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(499..500).label("expected item"))
@@ -2140,7 +2167,7 @@ error: expected item, found `?`
 fn unicode_cut_handling3() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
     let input = &[Group::with_title(Level::ERROR
-        .title("expected item, found `?`")).element(
+        .primary_title("expected item, found `?`")).element(
                 Snippet::source(source)
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(251..254).label("expected item"))
@@ -2177,7 +2204,7 @@ error: expected item, found `?`
 fn unicode_cut_handling4() {
     let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
     let input = &[Group::with_title(Level::ERROR
-        .title("expected item, found `?`")).element(
+        .primary_title("expected item, found `?`")).element(
                 Snippet::source(source)
                     .fold(false)
                     .annotation(AnnotationKind::Primary.span(334..335).label("expected item"))
@@ -2220,7 +2247,7 @@ fn main() {
 }
 "##;
     let input = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
             Snippet::source(source)
                 .path("$DIR/non-whitespace-trimming-unicode.rs")
                 .annotation(
@@ -2277,7 +2304,7 @@ fn main() {
     let input = &[
         Group::with_title(
             Level::ERROR
-                .title("cannot add `&str` to `&str`")
+                .primary_title("cannot add `&str` to `&str`")
                 .id("E0369"),
         )
         .element(
@@ -2294,12 +2321,14 @@ fn main() {
         .element(
             Level::NOTE.message("string concatenation requires an owned `String` on the left"),
         ),
-        Group::with_title(Level::HELP.title("create an owned `String` from a string reference"))
-            .element(
-                Snippet::source(source)
-                    .path("$DIR/non-1-width-unicode-multiline-label.rs")
-                    .patch(Patch::new(984..984, ".to_owned()")),
-            ),
+        Group::with_title(
+            Level::HELP.primary_title("create an owned `String` from a string reference"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/non-1-width-unicode-multiline-label.rs")
+                .patch(Patch::new(984..984, ".to_owned()")),
+        ),
     ];
 
     let expected_ascii = str![[r#"
@@ -2355,13 +2384,13 @@ fn foo() {
 "##;
     let bin_source = "�|�\u{0002}!5�cc\u{0015}\u{0002}�Ӻi��WWj�ȥ�'�}�\u{0012}�J�ȉ��W�\u{001e}O�@����\u{001c}w�V���LO����\u{0014}[ \u{0003}_�'���SQ�~ذ��ų&��-\t��lN~��!@␌ _#���kQ��h�\u{001d}�:�\u{001c}\u{0007}�";
     let input = &[Group::with_title(Level::ERROR
-        .title("couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8")).element(
+        .primary_title("couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8")).element(
                 Snippet::source(source)
                     .path("$DIR/not-utf8.rs")
 
                     .annotation(AnnotationKind::Primary.span(136..160)),
             ),
-            Group::with_title(Level::NOTE.title("byte `193` is not valid utf-8"))
+            Group::with_title(Level::NOTE.primary_title("byte `193` is not valid utf-8"))
                 .element(
                     Snippet::source(bin_source)
                         .path("$DIR/not-utf8.bin")
@@ -2415,7 +2444,7 @@ fn secondary_title_no_level_text() {
 }"#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/mismatched-types.rs")
@@ -2461,7 +2490,7 @@ fn secondary_title_custom_level_text() {
 }"#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/mismatched-types.rs")
@@ -2531,7 +2560,7 @@ fn main() {
     let input = &[
         Group::with_title(
             Level::ERROR
-                .title("`break` with value from a `while` loop")
+                .primary_title("`break` with value from a `while` loop")
                 .id("E0571"),
         )
         .element(
@@ -2552,7 +2581,7 @@ fn main() {
         Group::with_title(
             Level::HELP
                 .with_name(Some("suggestion"))
-                .title("use `break` on its own without a value inside this `while` loop")
+                .primary_title("use `break` on its own without a value inside this `while` loop")
                 .id("S0123"),
         )
         .element(
@@ -2622,7 +2651,7 @@ zappy
 
     let input_new = &[Group::with_title(
         Level::ERROR
-            .title("the size for values of type `T` cannot be known at compilation time")
+            .primary_title("the size for values of type `T` cannot be known at compilation time")
             .id("E0277"),
     )
     .element(
@@ -2686,7 +2715,7 @@ fn main() {
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
     let input = &[
-        Group::with_title(Level::WARNING.title(long_title1))
+        Group::with_title(Level::WARNING.primary_title(long_title1))
             .element(
                 Snippet::source(snippet_source)
                     .path("lint_example.rs")
@@ -2696,7 +2725,7 @@ fn main() {
             .element(Level::NOTE.message(long_title2))
             .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
         Group::with_title(
-            Level::HELP.title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
+            Level::HELP.primary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
         )
         .element(
             Snippet::source(suggestion_source)
@@ -2704,7 +2733,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(10..19, "iter")),
         ),
-        Group::with_title(Level::HELP.title(long_title3)).element(
+        Group::with_title(Level::HELP.primary_title(long_title3)).element(
             Snippet::source(suggestion_source)
                 .path("lint_example.rs")
                 .line_start(3)
@@ -2755,7 +2784,7 @@ fn main() {
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
     let input = &[
-        Group::with_title(Level::WARNING.title(long_title1))
+        Group::with_title(Level::WARNING.primary_title(long_title1))
             .element(
                 Snippet::source(snippet_source)
                     .path("lint_example.rs")
@@ -2765,7 +2794,7 @@ fn main() {
             .element(Level::NOTE.message(long_title2))
             .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
         Group::with_title(
-            Level::HELP.title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
+            Level::HELP.primary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
         )
         .element(
             Snippet::source(suggestion_source)
@@ -2773,7 +2802,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(10..19, "iter")),
         ),
-        Group::with_title(Level::HELP.title(long_title3)).element(
+        Group::with_title(Level::HELP.primary_title(long_title3)).element(
             Snippet::source(suggestion_source)
                 .path("lint_example.rs")
                 .line_start(3)
@@ -2793,7 +2822,7 @@ fn snippet_no_path() {
     // Taken from: https://docs.python.org/3/library/typing.html#annotating-callable-objects
 
     let source = "def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...";
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source).annotation(AnnotationKind::Primary.span(4..12).label("annotation")),
     )];
 
@@ -2821,7 +2850,7 @@ fn multiple_snippet_no_path() {
     // Taken from: https://docs.python.org/3/library/typing.html#annotating-callable-objects
 
     let source = "def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...";
-    let input = &[Group::with_title(Level::ERROR.title(""))
+    let input = &[Group::with_title(Level::ERROR.primary_title(""))
         .element(
             Snippet::source(source)
                 .annotation(AnnotationKind::Primary.span(4..12).label("annotation")),
@@ -2878,17 +2907,20 @@ fn courier_to_des_moines_and_points_west(data: &[u32]) -> String {
 fn main() {}
 "#;
 
-    let input = &[
-        Group::with_title(Level::ERROR.title("type annotations needed").id("E0282"))
-            .element(
-                Snippet::source(source)
-                    .path("$DIR/issue-42234-unknown-receiver-type.rs")
-                    .annotation(AnnotationKind::Primary.span(449..452).label(
-                        "cannot infer type of the type parameter `S` declared on the method `sum`",
-                    )),
-            )
-            .element(Padding),
-    ];
+    let input =
+        &[Group::with_title(
+            Level::ERROR
+                .primary_title("type annotations needed")
+                .id("E0282"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                .annotation(AnnotationKind::Primary.span(449..452).label(
+                    "cannot infer type of the type parameter `S` declared on the method `sum`",
+                )),
+        )
+        .element(Padding)];
 
     let expected_ascii = str![[r#"
 error[E0282]: type annotations needed
@@ -2934,22 +2966,27 @@ fn main() {}
 "#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("type annotations needed").id("E0282"))
+        Group::with_title(
+            Level::ERROR
+                .primary_title("type annotations needed")
+                .id("E0282"),
+        )
+        .element(
+            Snippet::source(source)
+                .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                .annotation(AnnotationKind::Primary.span(449..452).label(
+                    "cannot infer type of the type parameter `S` declared on the method `sum`",
+                )),
+        )
+        .element(Padding),
+        Group::with_title(Level::HELP.primary_title("consider specifying the generic argument"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/issue-42234-unknown-receiver-type.rs")
-                    .annotation(AnnotationKind::Primary.span(449..452).label(
-                        "cannot infer type of the type parameter `S` declared on the method `sum`",
-                    )),
-            )
-            .element(Padding),
-        Group::with_title(Level::HELP.title("consider specifying the generic argument")).element(
-            Snippet::source(source)
-                .path("$DIR/issue-42234-unknown-receiver-type.rs")
-                .line_start(12)
-                .fold(true)
-                .patch(Patch::new(452..457, "::<GENERIC_ARG>")),
-        ),
+                    .line_start(12)
+                    .fold(true)
+                    .patch(Patch::new(452..457, "::<GENERIC_ARG>")),
+            ),
     ];
 
     let expected_ascii = str![[r#"
@@ -3006,20 +3043,26 @@ fn main() {}
 "#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("type annotations needed").id("E0282")).element(
+        Group::with_title(
+            Level::ERROR
+                .primary_title("type annotations needed")
+                .id("E0282"),
+        )
+        .element(
             Snippet::source(source)
                 .path("$DIR/issue-42234-unknown-receiver-type.rs")
                 .annotation(AnnotationKind::Primary.span(449..452).label(
                     "cannot infer type of the type parameter `S` declared on the method `sum`",
                 )),
         ),
-        Group::with_title(Level::HELP.title("consider specifying the generic argument")).element(
-            Snippet::source(source)
-                .path("$DIR/issue-42234-unknown-receiver-type.rs")
-                .line_start(12)
-                .fold(true)
-                .patch(Patch::new(452..457, "::<_>")),
-        ),
+        Group::with_title(Level::HELP.primary_title("consider specifying the generic argument"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/issue-42234-unknown-receiver-type.rs")
+                    .line_start(12)
+                    .fold(true)
+                    .patch(Patch::new(452..457, "::<_>")),
+            ),
     ];
     let expected = str![[r#"
 error[E0282]: type annotations needed
@@ -3051,7 +3094,7 @@ zappy
 
     let input_new = &[Group::with_title(
         Level::ERROR
-            .title("the size for values of type `T` cannot be known at compilation time")
+            .primary_title("the size for values of type `T` cannot be known at compilation time")
             .id("E0277"),
     )
     .element(
@@ -3086,7 +3129,7 @@ zappy
 
     let input_new = &[Group::with_title(
         Level::ERROR
-            .title("the size for values of type `T` cannot be known at compilation time")
+            .primary_title("the size for values of type `T` cannot be known at compilation time")
             .id("E0277"),
     )
     .element(
@@ -3142,7 +3185,7 @@ fn main() {}
 
     let input = &[Group::with_title(
         Level::ERROR
-            .title("no field `field` on type `Thing`")
+            .primary_title("no field `field` on type `Thing`")
             .id("E0609"),
     )
     .element(Level::NOTE.message("a `Title` then a `Message`!?!?"))

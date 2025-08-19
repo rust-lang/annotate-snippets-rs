@@ -25,7 +25,7 @@ fn simple() -> String {
         }
     }"#;
     let message = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
             Snippet::source(source)
                 .line_start(51)
                 .path("src/format.rs")
@@ -69,15 +69,17 @@ fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
             (input, span)
         })
         .bench_values(|(input, span)| {
-            let message = &[
-                Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
-                    Snippet::source(&input).path("src/format.rs").annotation(
-                        AnnotationKind::Context
-                            .span(span)
-                            .label("expected `Option<String>` because of return type"),
-                    ),
-                ),
-            ];
+            let message =
+                &[
+                    Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
+                        .element(
+                            Snippet::source(&input).path("src/format.rs").annotation(
+                                AnnotationKind::Context
+                                    .span(span)
+                                    .label("expected `Option<String>` because of return type"),
+                            ),
+                        ),
+                ];
 
             let renderer = Renderer::plain();
             let rendered = renderer.render(message);

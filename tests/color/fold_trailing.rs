@@ -18,7 +18,7 @@ edition = "2021"
 
     let input = &[Group::with_title(
         Level::ERROR
-            .title("invalid type: integer `20`, expected a lints table")
+            .primary_title("invalid type: integer `20`, expected a lints table")
             .id("E0308"),
     )
     .element(

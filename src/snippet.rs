@@ -132,7 +132,7 @@ pub struct Padding;
 
 /// A text [`Element`] to start a [`Group`]
 ///
-/// See [`Level::title`] to create this.
+/// See [`Level::primary_title`] to create this.
 #[derive(Clone, Debug)]
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
@@ -433,7 +433,7 @@ impl<'a> Patch<'a> {
 /// ```rust
 /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level, Origin};
 /// let input = &[
-///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
 ///         .element(
 ///             Origin::path("$DIR/mismatched-types.rs")
 ///         )

@@ -9,7 +9,7 @@ fn main() {
 "#;
     let message = &[Group::with_title(
         Level::ERROR
-            .title("mismatched types")
+            .primary_title("mismatched types")
             .id("E0308")
             .id_url("https://doc.rust-lang.org/error_codes/E0308.html"),
     )

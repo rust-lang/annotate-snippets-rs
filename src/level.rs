@@ -53,7 +53,9 @@ impl<'a> Level<'a> {
 }
 
 impl<'a> Level<'a> {
-    /// A text [`Element`][crate::Element] to start a [`Group`][crate::Group]
+    /// Creates a [`Title`] that has bolded text, and is
+    /// intended to be used with the "primary" (first)
+    /// [`Group`][crate::Group] in a [`Report`][crate::Report].
     ///
     /// See [`Group::with_title`][crate::Group::with_title]
     ///
@@ -70,10 +72,10 @@ impl<'a> Level<'a> {
     /// ```rust
     /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
     /// let input = &[
-    ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+    ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
     /// ];
     /// ```
-    pub fn title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
+    pub fn primary_title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
             id: None,
@@ -97,7 +99,7 @@ impl<'a> Level<'a> {
     /// ```rust
     /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
     /// let input = &[
-    ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+    ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
     ///         .element(
     ///             Level::NOTE
     ///                 .no_name()
@@ -166,7 +168,7 @@ impl<'a> Level<'a> {
     ///     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
     /// }"#;
     /// let input = &[
-    ///     Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+    ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
     ///         .element(
     ///             Snippet::source(source)
     ///                 .path("$DIR/mismatched-types.rs")

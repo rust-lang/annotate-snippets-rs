@@ -22,7 +22,7 @@
 //!
 //!  Group::with_title(
 //!      Level::ERROR
-//!          .title("unresolved import `baz::zed`")
+//!          .primary_title("unresolved import `baz::zed`")
 //!          .id("E0432")
 //!  )
 //!  .element(

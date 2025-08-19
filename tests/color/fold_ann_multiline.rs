@@ -29,7 +29,7 @@ fn case() {
 "#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
             Snippet::source(source)
                 .path("src/format.rs")
                 .line_start(51)

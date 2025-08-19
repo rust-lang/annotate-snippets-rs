@@ -10,7 +10,7 @@ fn case() {
 "#;
 
     let input = &[Group::with_title(
-        Level::ERROR.title("expected one of `.`, `;`, `?`, or an operator, found `for`"),
+        Level::ERROR.primary_title("expected one of `.`, `;`, `?`, or an operator, found `for`"),
     )
     .element(
         Snippet::source(source)
