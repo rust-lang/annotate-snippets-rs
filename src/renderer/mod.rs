@@ -48,7 +48,9 @@ use crate::renderer::source_map::{
 };
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
-use crate::{Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Snippet, Title};
+use crate::{
+    Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Report, Snippet, Title,
+};
 pub use anstyle::*;
 use margin::Margin;
 use std::borrow::Cow;
@@ -225,7 +227,7 @@ impl Renderer {
 
 impl Renderer {
     /// Render a diagnostic, a series of [`Group`]s
-    pub fn render(&self, groups: &[Group<'_>]) -> String {
+    pub fn render(&self, groups: Report<'_>) -> String {
         if self.short_message {
             self.render_short_message(groups).unwrap()
         } else {

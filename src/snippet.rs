@@ -11,6 +11,13 @@ pub(crate) const INFO_TXT: &str = "info";
 pub(crate) const NOTE_TXT: &str = "note";
 pub(crate) const WARNING_TXT: &str = "warning";
 
+/// A [diagnostic message][Title] and any associated context to help users
+/// understand it
+///
+/// The first [`Group`] is the "primary" group, ie it contains the diagnostic
+/// message. All subsequent [`Group`]s are for distinct pieces of context.
+pub type Report<'a> = &'a [Group<'a>];
+
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Id<'a> {
     pub(crate) id: Option<Cow<'a, str>>,
