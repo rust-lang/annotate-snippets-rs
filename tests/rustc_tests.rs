@@ -956,7 +956,7 @@ fn main() {
         ),
         Group::with_title(
             Level::HELP
-                .primary_title("use `break` on its own without a value inside this `while` loop"),
+                .secondary_title("use `break` on its own without a value inside this `while` loop"),
         )
         .element(
             Snippet::source(source)
@@ -1155,7 +1155,7 @@ fn nsize() {
                         .label("the size of `V0usize` is smaller than the size of `[usize; 2]`"),
                 ),
         ),
-        Group::with_title(Level::NOTE.primary_title("required by a bound in `is_transmutable`"))
+        Group::with_title(Level::NOTE.secondary_title("required by a bound in `is_transmutable`"))
             .element(
                 Snippet::source(source)
                     .line_start(1)
@@ -1416,7 +1416,7 @@ outer_macro!(FirstStruct, FirstAttrStruct);
                     Level::NOTE
                         .message("a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute")
                 ),
-            Group::with_title(Level::NOTE.primary_title("the lint level is defined here"))
+            Group::with_title(Level::NOTE.secondary_title("the lint level is defined here"))
                 .element(
                     Snippet::source(source)
                         .line_start(1)
@@ -1523,7 +1523,7 @@ macro_rules! inline {
                 .annotation(AnnotationKind::Primary.span(916..919)),
         ),
         Group::with_title(
-            Level::HELP.primary_title("you must specify a type for this binding, like `i32`"),
+            Level::HELP.secondary_title("you must specify a type for this binding, like `i32`"),
         )
         .element(
             Snippet::source(aux_source)
@@ -1695,7 +1695,7 @@ fn main() {}
                             .label("patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered")
                     ),
             ),
-            Group::with_title(Level::NOTE.primary_title("`NonEmptyEnum5` defined here"))
+            Group::with_title(Level::NOTE.secondary_title("`NonEmptyEnum5` defined here"))
                 .element(
                     Snippet::source(source)
                         .line_start(1)
@@ -1713,7 +1713,7 @@ fn main() {}
         ),
             Group::with_title(
                     Level::HELP
-                        .primary_title("ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms")
+                        .secondary_title("ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms")
                 )
                 .element(
                     Snippet::source(source)
@@ -1790,7 +1790,7 @@ fn main() {
             ),
             Group::with_title(
                     Level::NOTE
-                        .primary_title("for a trait to be dyn compatible it needs to allow building a vtable\nfor more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>"))
+                        .secondary_title("for a trait to be dyn compatible it needs to allow building a vtable\nfor more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>"))
                 .element(
                     Origin::path("$SRC_DIR/core/src/cmp.rs")
                         .line(334)
@@ -2014,7 +2014,7 @@ fn main() {
                 )
                 .element(
                     Level::NOTE.message("`Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated")),
-            Group::with_title(Level::HELP.primary_title("you might have meant to use `Iterator::for_each`"))
+            Group::with_title(Level::HELP.secondary_title("you might have meant to use `Iterator::for_each`"))
                 .element(
                     Snippet::source(source)
                         .path("$DIR/lint_map_unit_fn.rs")
@@ -2087,7 +2087,7 @@ fn main() {
                     .path("$DIR/bad-char-literals.rs")
                     .annotation(AnnotationKind::Primary.span(204..205)),
             ),
-        Group::with_title(Level::HELP.primary_title("escape the character")).element(
+        Group::with_title(Level::HELP.secondary_title("escape the character")).element(
             Snippet::source(source)
                 .path("$DIR/bad-char-literals.rs")
                 .line_start(1)
@@ -2134,7 +2134,7 @@ fn main() {}
                 .path("$DIR/unclosed-1.rs")
                 .annotation(AnnotationKind::Primary.span(0..221)),
         ),
-        Group::with_title(Level::NOTE.primary_title("frontmatter opening here was not closed"))
+        Group::with_title(Level::NOTE.secondary_title("frontmatter opening here was not closed"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/unclosed-1.rs")
@@ -2187,7 +2187,7 @@ fn foo() -> &str {
                 .path("$DIR/unclosed-2.rs")
                 .annotation(AnnotationKind::Primary.span(0..377)),
         ),
-        Group::with_title(Level::NOTE.primary_title("frontmatter opening here was not closed"))
+        Group::with_title(Level::NOTE.secondary_title("frontmatter opening here was not closed"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/unclosed-2.rs")
@@ -2246,7 +2246,7 @@ fn foo(x: i32) -> i32 {
                 .annotation(AnnotationKind::Primary.span(302..310)),
         ),
         Group::with_title(
-            Level::NOTE.primary_title("frontmatter close should not be preceded by whitespace"),
+            Level::NOTE.secondary_title("frontmatter close should not be preceded by whitespace"),
         )
         .element(
             Snippet::source(source)
@@ -2292,7 +2292,7 @@ fn main() {}
                 .path("$DIR/unclosed-4.rs")
                 .annotation(AnnotationKind::Primary.span(0..43)),
         ),
-        Group::with_title(Level::NOTE.primary_title("frontmatter opening here was not closed"))
+        Group::with_title(Level::NOTE.secondary_title("frontmatter opening here was not closed"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/unclosed-4.rs")
@@ -2340,7 +2340,7 @@ fn main() {}
                 .path("$DIR/unclosed-5.rs")
                 .annotation(AnnotationKind::Primary.span(0..176)),
         ),
-        Group::with_title(Level::NOTE.primary_title("frontmatter opening here was not closed"))
+        Group::with_title(Level::NOTE.secondary_title("frontmatter opening here was not closed"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/unclosed-5.rs")
@@ -2479,14 +2479,14 @@ pub enum E2 {
                 ),
         ),
         Group::with_title(
-            Level::HELP.primary_title("use the tuple variant pattern syntax instead"),
+            Level::HELP.secondary_title("use the tuple variant pattern syntax instead"),
         )
         .element(
             Snippet::source(source)
                 .path("$DIR/pat-tuple-field-count-cross.rs")
                 .patch(Patch::new(1760..1766, r#"E1::Z1()"#)),
         ),
-        Group::with_title(Level::HELP.primary_title("a unit variant with a similar name exists"))
+        Group::with_title(Level::HELP.secondary_title("a unit variant with a similar name exists"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/pat-tuple-field-count-cross.rs")
@@ -2719,7 +2719,7 @@ fn main() {
                         .label("arguments to this function are incorrect"),
                 ),
         ),
-        Group::with_title(Level::NOTE.primary_title("function defined here")).element(
+        Group::with_title(Level::NOTE.secondary_title("function defined here")).element(
             Snippet::source(source)
                 .path("$DIR/short-error-format.rs")
                 .annotation(AnnotationKind::Context.span(48..54).label(""))
@@ -2798,12 +2798,12 @@ pub struct Foo; //~^ ERROR
             .element(
                 Level::NOTE.message("bare URLs are not automatically turned into clickable links"),
             ),
-        Group::with_title(Level::NOTE.primary_title("the lint level is defined here")).element(
+        Group::with_title(Level::NOTE.secondary_title("the lint level is defined here")).element(
             Snippet::source(source_0)
                 .path("$DIR/diagnostic-width.rs")
                 .annotation(AnnotationKind::Primary.span(49..67)),
         ),
-        Group::with_title(Level::HELP.primary_title("use an automatic link instead")).element(
+        Group::with_title(Level::HELP.secondary_title("use an automatic link instead")).element(
             Snippet::source(source_1)
                 .path("$DIR/diagnostic-width.rs")
                 .line_start(4)
@@ -2861,7 +2861,8 @@ fn main() {
             .element(Level::NOTE.message(long_title2))
             .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
         Group::with_title(
-            Level::HELP.primary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
+            Level::HELP
+                .secondary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
         )
         .element(
             Snippet::source(source2)
@@ -2869,7 +2870,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(10..19, "iter")),
         ),
-        Group::with_title(Level::HELP.primary_title(long_title3)).element(
+        Group::with_title(Level::HELP.secondary_title(long_title3)).element(
             Snippet::source(source2)
                 .path("lint_example.rs")
                 .line_start(3)
@@ -2957,7 +2958,8 @@ fn main() {
                 .annotation(AnnotationKind::Primary.span(587..588)),
         ),
         Group::with_title(
-            Level::NOTE.primary_title("the foreign item type `Box<isize>` doesn't implement `Add`"),
+            Level::NOTE
+                .secondary_title("the foreign item type `Box<isize>` doesn't implement `Add`"),
         )
         .element(
             Origin::path("$SRC_DIR/alloc/src/boxed.rs")
@@ -3098,7 +3100,7 @@ fn main() {
             .element(
                 Level::HELP.message("items from traits can only be used if the trait is in scope"),
             ),
-        Group::with_title(Level::HELP.primary_title(title_1)).element(
+        Group::with_title(Level::HELP.secondary_title(title_1)).element(
             Snippet::source("struct MyStruct;\n")
                 .path("$DIR/dont-project-to-specializable-projection.rs")
                 .line_start(6)
@@ -3191,7 +3193,7 @@ fn main() {
                 )
                 .annotation(AnnotationKind::Primary.span(309..311)),
         ),
-        Group::with_title(Level::NOTE.primary_title(title_1))
+        Group::with_title(Level::NOTE.secondary_title(title_1))
             .element(
                 Origin::path("$SRC_DIR/std/src/io/error.rs")
                     .line(65)
@@ -3364,7 +3366,7 @@ which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`"#;
             )
             .element(Level::NOTE.message(title_1)),
         Group::with_title(
-            Level::NOTE.primary_title("the traits `Iterator` and `ToTokens` must be implemented"),
+            Level::NOTE.secondary_title("the traits `Iterator` and `ToTokens` must be implemented"),
         )
         .element(
             Origin::path("$SRC_DIR/proc_macro/src/to_tokens.rs")
@@ -3547,7 +3549,7 @@ fn main() {}
             )
             .element(Level::WARNING.message(title_0))
             .element(Level::NOTE.message(title_1)),
-        Group::with_title(Level::NOTE.primary_title("the lint level is defined here")).element(
+        Group::with_title(Level::NOTE.secondary_title("the lint level is defined here")).element(
             Snippet::source(source)
                 .path("$DIR/unsafe-extern-suggestion.rs")
                 .annotation(AnnotationKind::Primary.span(25..49)),
@@ -3630,20 +3632,20 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
             )
             .element(Level::NOTE.message(title_0)),
         Group::with_title(
-            Level::NOTE.primary_title("`core::alloc::Layout` is defined in crate `core`"),
+            Level::NOTE.secondary_title("`core::alloc::Layout` is defined in crate `core`"),
         )
         .element(
             Origin::path("$SRC_DIR/core/src/alloc/layout.rs")
                 .line(40)
                 .char_column(0),
         ),
-        Group::with_title(Level::NOTE.primary_title("`Layout` is defined in the current crate"))
+        Group::with_title(Level::NOTE.secondary_title("`Layout` is defined in the current crate"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/alloc-error-handler-bad-signature-2.rs")
                     .annotation(AnnotationKind::Primary.span(91..104)),
             ),
-        Group::with_title(Level::NOTE.primary_title("function defined here")).element(
+        Group::with_title(Level::NOTE.secondary_title("function defined here")).element(
             Snippet::source(source)
                 .path("$DIR/alloc-error-handler-bad-signature-2.rs")
                 .annotation(AnnotationKind::Context.span(142..154).label(""))
@@ -3788,7 +3790,7 @@ fn main() {
                         .label("pattern `Some(Private { misc: true, .. })` not covered"),
                 ),
         ),
-        Group::with_title(Level::NOTE.primary_title(title_1))
+        Group::with_title(Level::NOTE.secondary_title(title_1))
             .element(
                 Origin::path("$SRC_DIR/core/src/option.rs")
                     .line(593)
@@ -3802,7 +3804,7 @@ fn main() {
             .element(Padding)
             .element(Level::NOTE.message("not covered"))
             .element(Level::NOTE.message("the matched value is of type `Option<Private>`")),
-        Group::with_title(Level::HELP.primary_title(title_2)).element(
+        Group::with_title(Level::HELP.secondary_title(title_2)).element(
             Snippet::source(source)
                 .path("$DIR/match-privately-empty.rs")
                 .line_start(17)
@@ -3876,7 +3878,7 @@ for more information, visit <https://doc.rust-lang.org/reference/items/traits.ht
                         .label("`Ord` is not dyn compatible"),
                 ),
         ),
-        Group::with_title(Level::NOTE.primary_title(title_0))
+        Group::with_title(Level::NOTE.secondary_title(title_0))
             .element(
                 Origin::path("$SRC_DIR/core/src/cmp.rs")
                     .line(961)
@@ -3895,7 +3897,7 @@ for more information, visit <https://doc.rust-lang.org/reference/items/traits.ht
             .element(Level::NOTE.message(
                 "the trait is not dyn compatible because it uses `Self` as a type parameter",
             )),
-        Group::with_title(Level::HELP.primary_title("consider using an opaque type instead"))
+        Group::with_title(Level::HELP.secondary_title("consider using an opaque type instead"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/bare-trait-dont-suggest-dyn.rs")
@@ -3976,7 +3978,7 @@ fn main() {
                 )
                 .annotation(AnnotationKind::Primary.span(309..311)),
         ),
-        Group::with_title(Level::NOTE.primary_title(title_0))
+        Group::with_title(Level::NOTE.secondary_title(title_0))
             .element(
                 Origin::path("$SRC_DIR/std/src/io/error.rs")
                     .line(65)
@@ -4069,7 +4071,7 @@ fn main() {}
                         .label("use of undeclared type `IntoIter`"),
                 ),
         ),
-        Group::with_title(Level::HELP.primary_title("consider importing one of these structs"))
+        Group::with_title(Level::HELP.secondary_title("consider importing one of these structs"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/issue-82956.rs")
@@ -4190,7 +4192,7 @@ fn main() {
             .element(Padding)
             .element(Level::NOTE.message("`std::collections::HashMap` defined here"))
             .element(Padding),
-        Group::with_title(Level::HELP.primary_title(
+        Group::with_title(Level::HELP.secondary_title(
             "you might have meant to use an associated function to build this type",
         ))
         .element(
@@ -4213,15 +4215,16 @@ fn main() {
                 .path("$DIR/multi-suggestion.rs")
                 .patch(Patch::new(421..423, "::with_capacity_and_hasher(_, _)")),
         ),
-        Group::with_title(Level::HELP.primary_title("consider using the `Default` trait")).element(
-            Snippet::source(source)
-                .path("$DIR/multi-suggestion.rs")
-                .patch(Patch::new(396..396, "<"))
-                .patch(Patch::new(
-                    421..423,
-                    " as std::default::Default>::default()",
-                )),
-        ),
+        Group::with_title(Level::HELP.secondary_title("consider using the `Default` trait"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/multi-suggestion.rs")
+                    .patch(Patch::new(396..396, "<"))
+                    .patch(Patch::new(
+                        421..423,
+                        " as std::default::Default>::default()",
+                    )),
+            ),
     ];
 
     let expected_ascii = str![[r#"
@@ -4326,7 +4329,7 @@ fn main() {
                 .annotation(AnnotationKind::Primary.span(220..223)),
         ),
         Group::with_title(
-            Level::NOTE.primary_title("constructor is not visible here due to private fields"),
+            Level::NOTE.secondary_title("constructor is not visible here due to private fields"),
         )
         .element(
             Origin::path("$SRC_DIR/alloc/src/boxed.rs")
@@ -4337,7 +4340,7 @@ fn main() {
         .element(Level::NOTE.message("private field"))
         .element(Padding)
         .element(Level::NOTE.message("private field")),
-        Group::with_title(Level::HELP.primary_title(
+        Group::with_title(Level::HELP.secondary_title(
             "you might have meant to use an associated function to build this type",
         ))
         .element(
@@ -4361,15 +4364,16 @@ fn main() {
                 .patch(Patch::new(223..280, "::new_in(_, _)")),
         )
         .element(Level::NOTE.no_name().message("and 12 other candidates")),
-        Group::with_title(Level::HELP.primary_title("consider using the `Default` trait")).element(
-            Snippet::source(source)
-                .path("$DIR/suggest-box-new.rs")
-                .patch(Patch::new(220..220, "<"))
-                .patch(Patch::new(
-                    223..280,
-                    " as std::default::Default>::default()",
-                )),
-        ),
+        Group::with_title(Level::HELP.secondary_title("consider using the `Default` trait"))
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/suggest-box-new.rs")
+                    .patch(Patch::new(220..220, "<"))
+                    .patch(Patch::new(
+                        223..280,
+                        " as std::default::Default>::default()",
+                    )),
+            ),
     ];
 
     let expected_ascii = str![[r#"
@@ -4529,7 +4533,7 @@ fn main() {}
         ),
         Group::with_title(
             Level::HELP
-                .primary_title("some of the expressions' fields have a method of the same name"),
+                .secondary_title("some of the expressions' fields have a method of the same name"),
         )
         .element(
             Snippet::source(source)
@@ -4673,7 +4677,7 @@ If your compilation actually takes a long time, you can safely allow the lint.";
                     .char_column(4),
             )
             .element(Level::NOTE.message(title_0)),
-        Group::with_title(Level::HELP.primary_title("the constant being evaluated"))
+        Group::with_title(Level::HELP.secondary_title("the constant being evaluated"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/timeout.rs")

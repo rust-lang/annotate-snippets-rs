@@ -1049,7 +1049,7 @@ fn two_suggestions_same_span() {
         .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(4..5))),
         Group::with_title(
             Level::HELP
-                .primary_title("you might have meant to use one of the following enum variants"),
+                .secondary_title("you might have meant to use one of the following enum variants"),
         )
         .element(Snippet::source(source).patch(Patch::new(4..5, "(A::Tuple())")))
         .element(Snippet::source(source).patch(Patch::new(4..5, "A::Unit"))),
@@ -1112,7 +1112,7 @@ fn main() {
                                 .label("method not found in `Chaenomeles`"),
                         ),
                 ),
-                Group::with_title(Level::HELP.primary_title(
+                Group::with_title(Level::HELP.secondary_title(
                         "the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them",
                     ))
                     .element(
@@ -1160,7 +1160,7 @@ fn single_line_non_overlapping_suggestions() {
                 .line_start(1)
                 .annotation(AnnotationKind::Primary.span(4..5)),
         ),
-        Group::with_title(Level::HELP.primary_title("make these changes and things will work"))
+        Group::with_title(Level::HELP.secondary_title("make these changes and things will work"))
             .element(
                 Snippet::source(source)
                     .patch(Patch::new(4..5, "(A::Tuple())"))
@@ -1198,7 +1198,7 @@ fn single_line_non_overlapping_suggestions2() {
                 .line_start(1)
                 .annotation(AnnotationKind::Primary.span(4..18)),
         ),
-        Group::with_title(Level::HELP.primary_title("make these changes and things will work"))
+        Group::with_title(Level::HELP.secondary_title("make these changes and things will work"))
             .element(
                 Snippet::source(source)
                     .patch(Patch::new(4..18, "(A::Tuple())"))
@@ -1266,7 +1266,7 @@ fn multiple_replacements() {
         ),
         Group::with_title(
             Level::HELP
-                .primary_title("try explicitly pass `&Self` into the Closure as an argument"),
+                .secondary_title("try explicitly pass `&Self` into the Closure as an argument"),
         )
         .element(
             Snippet::source(source)
@@ -1340,7 +1340,7 @@ fn main() {
                         .label("first borrow later used here"),
                 ),
         ),
-        Group::with_title(Level::HELP.primary_title(
+        Group::with_title(Level::HELP.secondary_title(
             "if you want to call `next` on a iterator within the loop, consider using `while let`",
         ))
         .element(
@@ -1409,13 +1409,15 @@ fn main() {}"#;
             ),
         ),
         Group::with_title(
-            Level::HELP.primary_title("there is a crate or module with a similar name"),
+            Level::HELP.secondary_title("there is a crate or module with a similar name"),
         )
         .element(Snippet::source(source).patch(Patch::new(122..124, "std"))),
-        Group::with_title(Level::HELP.primary_title("consider importing this module"))
+        Group::with_title(Level::HELP.secondary_title("consider importing this module"))
             .element(Snippet::source(source).patch(Patch::new(1..1, "use std::cell;\n"))),
-        Group::with_title(Level::HELP.primary_title("if you import `cell`, refer to it directly"))
-            .element(Snippet::source(source).patch(Patch::new(122..126, ""))),
+        Group::with_title(
+            Level::HELP.secondary_title("if you import `cell`, refer to it directly"),
+        )
+        .element(Snippet::source(source).patch(Patch::new(122..126, ""))),
     ];
     let expected = str![[r#"
 error[E0433]: failed to resolve: use of undeclared crate or module `st`
@@ -1482,7 +1484,7 @@ fn main() {}"#;
                         .label("this type parameter needs to be `Sized`"),
                 ),
         ),
-        Group::with_title(Level::HELP.primary_title(
+        Group::with_title(Level::HELP.secondary_title(
             "consider removing the `?Sized` bound to make the type parameter `Sized`",
         ))
         .element(Snippet::source(source).patch(Patch::new(52..85, ""))),
@@ -1543,7 +1545,7 @@ fn main() {}"#;
             ))
         ,Group::with_title(
             Level::NOTE
-                .primary_title("required by an implicit `Sized` bound in `Wrapper`")
+                .secondary_title("required by an implicit `Sized` bound in `Wrapper`")
         ).element(
             Snippet::source(source)
                 .line_start(1)
@@ -1556,7 +1558,7 @@ fn main() {}"#;
                 )
         ), Group::with_title(
             Level::HELP
-                .primary_title("you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`")
+                .secondary_title("you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`")
             )
             .element(
             Snippet::source(source)
@@ -1576,7 +1578,7 @@ fn main() {}"#;
 
         ),Group::with_title(
             Level::HELP
-                .primary_title("consider removing the `?Sized` bound to make the type parameter `Sized`")
+                .secondary_title("consider removing the `?Sized` bound to make the type parameter `Sized`")
         ).element(
             Snippet::source(source)
 
@@ -1640,7 +1642,7 @@ zappy
                 .id("E0277"),
         ),
         // We need an empty group here to ensure the HELP line is rendered correctly
-        Group::with_title(Level::HELP.primary_title(
+        Group::with_title(Level::HELP.secondary_title(
             "consider removing the `?Sized` bound to make the type parameter `Sized`",
         ))
         .element(
@@ -1713,7 +1715,7 @@ fn main() {
                     .span(208..510)
                     .label("type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`"),
             )),Group::with_title(
-            Level::NOTE.primary_title("expected this to be `Foo`")
+            Level::NOTE.secondary_title("expected this to be `Foo`")
         ).element(
             Snippet::source(source)
                 .line_start(4)
@@ -1799,7 +1801,7 @@ fn main() {
                     .span(208..510)
                     .label("type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`"),
             )),Group::with_title(
-            Level::NOTE.primary_title("expected this to be `Foo`")
+            Level::NOTE.secondary_title("expected this to be `Foo`")
         ).element(
             Snippet::source(source)
                 .line_start(4)
@@ -2045,7 +2047,7 @@ fn main() {
                 .message("expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`\n      found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`")
                 ,
         ),Group::with_title(
-            Level::NOTE.primary_title("function defined here"),
+            Level::NOTE.secondary_title("function defined here"),
         ).element(
             Snippet::source(source)
                 .line_start(7)
@@ -2322,7 +2324,7 @@ fn main() {
             Level::NOTE.message("string concatenation requires an owned `String` on the left"),
         ),
         Group::with_title(
-            Level::HELP.primary_title("create an owned `String` from a string reference"),
+            Level::HELP.secondary_title("create an owned `String` from a string reference"),
         )
         .element(
             Snippet::source(source)
@@ -2390,7 +2392,7 @@ fn foo() {
 
                     .annotation(AnnotationKind::Primary.span(136..160)),
             ),
-            Group::with_title(Level::NOTE.primary_title("byte `193` is not valid utf-8"))
+            Group::with_title(Level::NOTE.secondary_title("byte `193` is not valid utf-8"))
                 .element(
                     Snippet::source(bin_source)
                         .path("$DIR/not-utf8.bin")
@@ -2581,7 +2583,7 @@ fn main() {
         Group::with_title(
             Level::HELP
                 .with_name(Some("suggestion"))
-                .primary_title("use `break` on its own without a value inside this `while` loop")
+                .secondary_title("use `break` on its own without a value inside this `while` loop")
                 .id("S0123"),
         )
         .element(
@@ -2725,7 +2727,8 @@ fn main() {
             .element(Level::NOTE.message(long_title2))
             .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
         Group::with_title(
-            Level::HELP.primary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
+            Level::HELP
+                .secondary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
         )
         .element(
             Snippet::source(suggestion_source)
@@ -2733,7 +2736,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(10..19, "iter")),
         ),
-        Group::with_title(Level::HELP.primary_title(long_title3)).element(
+        Group::with_title(Level::HELP.secondary_title(long_title3)).element(
             Snippet::source(suggestion_source)
                 .path("lint_example.rs")
                 .line_start(3)
@@ -2794,7 +2797,8 @@ fn main() {
             .element(Level::NOTE.message(long_title2))
             .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
         Group::with_title(
-            Level::HELP.primary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
+            Level::HELP
+                .secondary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity"),
         )
         .element(
             Snippet::source(suggestion_source)
@@ -2802,7 +2806,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(10..19, "iter")),
         ),
-        Group::with_title(Level::HELP.primary_title(long_title3)).element(
+        Group::with_title(Level::HELP.secondary_title(long_title3)).element(
             Snippet::source(suggestion_source)
                 .path("lint_example.rs")
                 .line_start(3)
@@ -2979,7 +2983,7 @@ fn main() {}
                 )),
         )
         .element(Padding),
-        Group::with_title(Level::HELP.primary_title("consider specifying the generic argument"))
+        Group::with_title(Level::HELP.secondary_title("consider specifying the generic argument"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/issue-42234-unknown-receiver-type.rs")
@@ -3055,7 +3059,7 @@ fn main() {}
                     "cannot infer type of the type parameter `S` declared on the method `sum`",
                 )),
         ),
-        Group::with_title(Level::HELP.primary_title("consider specifying the generic argument"))
+        Group::with_title(Level::HELP.secondary_title("consider specifying the generic argument"))
             .element(
                 Snippet::source(source)
                     .path("$DIR/issue-42234-unknown-receiver-type.rs")
