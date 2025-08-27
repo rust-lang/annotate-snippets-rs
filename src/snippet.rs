@@ -11,11 +11,14 @@ pub(crate) const INFO_TXT: &str = "info";
 pub(crate) const NOTE_TXT: &str = "note";
 pub(crate) const WARNING_TXT: &str = "warning";
 
-/// A [diagnostic message][Title] and any associated context to help users
+/// A [diagnostic message][Title] and any associated [context][Element] to help users
 /// understand it
 ///
-/// The first [`Group`] is the "primary" group, ie it contains the diagnostic
-/// message. All subsequent [`Group`]s are for distinct pieces of context.
+/// The first [`Group`] is the ["primary" group][Level::primary_title], ie it contains the diagnostic
+/// message.
+///
+/// All subsequent [`Group`]s are for distinct pieces of [context][Level::secondary_title].
+/// The primary group will be visually distinguished to help tell them apart.
 pub type Report<'a> = &'a [Group<'a>];
 
 #[derive(Clone, Debug, Default)]
@@ -24,11 +27,13 @@ pub(crate) struct Id<'a> {
     pub(crate) url: Option<Cow<'a, str>>,
 }
 
-/// An [`Element`] container
+/// A [`Title`] with supporting [context][Element] within a [`Report`]
 ///
-/// A [diagnostic][crate::Renderer::render] is made of several `Group`s.
-/// `Group`s are used to [annotate][AnnotationKind::Primary] [`Snippet`]s
-/// with different [semantic reasons][Title].
+/// [Decor][crate::renderer::DecorStyle] is used to visually connect [`Element`]s of a `Group`.
+///
+/// Generally, you will create separate group's for:
+/// - New [`Snippet`]s, especially if they need their own [`AnnotationKind::Primary`]
+/// - Each logically distinct set of [suggestions][Patch`]
 ///
 /// # Example
 ///
@@ -45,7 +50,7 @@ pub struct Group<'a> {
 }
 
 impl<'a> Group<'a> {
-    /// Create group with a title, deriving the primary [`Level`] for [`Annotation`]s from it
+    /// Create group with a [`Title`], deriving [`AnnotationKind::Primary`] from its [`Level`]
     pub fn with_title(title: Title<'a>) -> Self {
         let level = title.level.clone();
         let mut x = Self::with_level(level);
@@ -53,7 +58,7 @@ impl<'a> Group<'a> {
         x
     }
 
-    /// Create a title-less group with a primary [`Level`] for [`Annotation`]s
+    /// Create a title-less group with a primary [`Level`] for [`AnnotationKind::Primary`]
     ///
     /// # Example
     ///
@@ -70,11 +75,13 @@ impl<'a> Group<'a> {
         }
     }
 
+    /// Append an [`Element`] that adds context to the [`Title`]
     pub fn element(mut self, section: impl Into<Element<'a>>) -> Self {
         self.elements.push(section.into());
         self
     }
 
+    /// Append [`Element`]s that adds context to the [`Title`]
     pub fn elements(mut self, sections: impl IntoIterator<Item = impl Into<Element<'a>>>) -> Self {
         self.elements.extend(sections.into_iter().map(Into::into));
         self
@@ -130,9 +137,23 @@ impl From<Padding> for Element<'_> {
 #[derive(Clone, Debug)]
 pub struct Padding;
 
-/// A text [`Element`] to start a [`Group`]
+/// A title that introduces a [`Group`], describing the main point
 ///
-/// See [`Level::primary_title`] to create this.
+/// To create a `Title`, see [`Level::primary_title`] or [`Level::secondary_title`].
+///
+/// # Example
+///
+/// ```rust
+/// # use annotate_snippets::*;
+/// let report = &[
+///     Group::with_title(
+///         Level::ERROR.primary_title("mismatched types").id("E0308")
+///     ),
+///     Group::with_title(
+///         Level::HELP.secondary_title("function defined here")
+///     ),
+/// ];
+/// ```
 #[derive(Clone, Debug)]
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
@@ -142,15 +163,14 @@ pub struct Title<'a> {
 }
 
 impl<'a> Title<'a> {
-    /// <div class="warning">
+    /// The category for this [`Report`]
     ///
-    /// This is only relevant if the title is the first element of a group.
+    /// Useful for looking searching for more information to resolve the diagnostic.
     ///
-    /// </div>
     /// <div class="warning">
     ///
     /// Text passed to this function is considered "untrusted input", as such
-    /// all text is passed through a normalization function. Pre-styled text is
+    /// all text is passed through a normalization function. Styled text is
     /// not allowed to be passed to this function.
     ///
     /// </div>
@@ -159,10 +179,11 @@ impl<'a> Title<'a> {
         self
     }
 
+    /// Provide a URL for [`Title::id`] for more information on this diagnostic
+    ///
     /// <div class="warning">
     ///
-    /// This is only relevant if the title is the first element of a group and
-    /// `id` present
+    /// This is only relevant if `id` is present
     ///
     /// </div>
     pub fn id_url(mut self, url: impl Into<Cow<'a, str>>) -> Self {
@@ -183,6 +204,10 @@ pub struct Message<'a> {
 /// A source view [`Element`] in a [`Group`]
 ///
 /// If you do not have [source][Snippet::source] available, see instead [`Origin`]
+///
+/// `Snippet`s come in the following styles (`T`):
+/// - With [`Annotation`]s, see [`Snippet::annotation`]
+/// - With [`Patch`]s, see [`Snippet::patch`]
 #[derive(Clone, Debug)]
 pub struct Snippet<'a, T> {
     pub(crate) path: Option<Cow<'a, str>>,
@@ -233,7 +258,11 @@ impl<'a, T: Clone> Snippet<'a, T> {
         self
     }
 
-    /// Hide lines without [`Annotation`]s
+    /// Control whether lines without [`Annotation`]s are shown
+    ///
+    /// The default is `fold(true)`, collapsing uninteresting lines.
+    ///
+    /// See [`AnnotationKind::Visible`] to force specific spans to be shown.
     pub fn fold(mut self, fold: bool) -> Self {
         self.fold = fold;
         self
@@ -268,9 +297,18 @@ impl<'a> Snippet<'a, Patch<'a>> {
     }
 }
 
-/// Highlighted and describe a span of text within a [`Snippet`]
+/// Highlight and describe a span of text within a [`Snippet`]
 ///
 /// See [`AnnotationKind`] to create an annotation.
+///
+/// # Example
+///
+/// ```rust
+/// # #[allow(clippy::needless_doctest_main)]
+#[doc = include_str!("../examples/expected_type.rs")]
+/// ```
+///
+#[doc = include_str!("../examples/expected_type.svg")]
 #[derive(Clone, Debug)]
 pub struct Annotation<'a> {
     pub(crate) span: Range<usize>,
@@ -297,21 +335,23 @@ impl<'a> Annotation<'a> {
     }
 
     /// Style the source according to the [`AnnotationKind`]
+    ///
+    /// This gives extra emphasis to this annotation
     pub fn highlight_source(mut self, highlight_source: bool) -> Self {
         self.highlight_source = highlight_source;
         self
     }
 }
 
-/// The category of the [`Annotation`]
+/// The type of [`Annotation`] being applied to a [`Snippet`]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[non_exhaustive]
 pub enum AnnotationKind {
-    /// Shows the source that the [Group's Title][Group::with_title] references
+    /// For showing the source that the [Group's Title][Group::with_title] references
     ///
     /// For [`Title`]-less groups, see [`Group::with_level`]
     Primary,
-    /// Additional context to explain the [`Primary`][Self::Primary]
+    /// Additional context to better understand the [`Primary`][Self::Primary]
     /// [`Annotation`]
     ///
     /// See also [`Renderer::context`].
@@ -339,6 +379,7 @@ pub enum AnnotationKind {
 }
 
 impl AnnotationKind {
+    /// Annotate a byte span within [`Snippet`]
     pub fn span<'a>(self, span: Range<usize>) -> Annotation<'a> {
         Annotation {
             span,
@@ -354,6 +395,17 @@ impl AnnotationKind {
 }
 
 /// Suggested edit to the [`Snippet`]
+///
+/// See [`Snippet::patch`]
+///
+/// # Example
+///
+/// ```rust
+/// # #[allow(clippy::needless_doctest_main)]
+#[doc = include_str!("../examples/multi_suggestion.rs")]
+/// ```
+///
+#[doc = include_str!("../examples/multi_suggestion.svg")]
 #[derive(Clone, Debug)]
 pub struct Patch<'a> {
     pub(crate) span: Range<usize>,
@@ -361,7 +413,7 @@ pub struct Patch<'a> {
 }
 
 impl<'a> Patch<'a> {
-    /// Splice `replacement` into the [`Snippet`] at the `span`
+    /// Splice `replacement` into the [`Snippet`] at the specified byte span
     ///
     /// <div class="warning">
     ///
@@ -433,7 +485,7 @@ impl<'a> Patch<'a> {
 ///
 /// ```rust
 /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level, Origin};
-/// let input = &[
+/// let report = &[
 ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
 ///         .element(
 ///             Origin::path("$DIR/mismatched-types.rs")

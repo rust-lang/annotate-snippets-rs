@@ -23,7 +23,7 @@ fn main() {
             _ => continue,
         }
     }"#;
-    let message = &[
+    let report = &[
         Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
             Snippet::source(source)
                 .line_start(51)
@@ -43,5 +43,5 @@ fn main() {
     ];
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

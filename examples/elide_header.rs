@@ -8,7 +8,7 @@ def foobar(door, bar={}):
     """
 "#;
 
-    let message = &[Group::with_level(Level::NOTE)
+    let report = &[Group::with_level(Level::NOTE)
         .element(
             Snippet::source(source)
                 .fold(false)
@@ -17,5 +17,5 @@ def foobar(door, bar={}):
         .element(Level::HELP.message("Replace with `None`; initialize within function"))];
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

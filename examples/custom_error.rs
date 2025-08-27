@@ -15,7 +15,7 @@ fn main() {
 pub static C: u32 = 0 - 1;
 //~^ ERROR could not evaluate static initializer
 "#;
-    let message = &[Group::with_title(
+    let report = &[Group::with_title(
         Level::ERROR
             .with_name(Some("error: internal compiler error"))
             .primary_title("could not evaluate static initializer")
@@ -30,5 +30,5 @@ pub static C: u32 = 0 - 1;
     )];
 
     let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

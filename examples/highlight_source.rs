@@ -9,7 +9,7 @@ const CON: Vec<i32> = vec![1, 2, 3]; //~ ERROR E0010
 //~| ERROR cannot call non-const method
 fn main() {}
 "#;
-    let message = &[Group::with_title(Level::ERROR.primary_title("allocations are not allowed in constants")
+    let report = &[Group::with_title(Level::ERROR.primary_title("allocations are not allowed in constants")
         .id("E0010"))
         .element(
             Snippet::source(source)
@@ -27,5 +27,5 @@ fn main() {}
     )];
 
     let renderer = Renderer::styled().anonymized_line_numbers(true);
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

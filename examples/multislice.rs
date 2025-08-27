@@ -1,7 +1,7 @@
 use annotate_snippets::{Annotation, Group, Level, Renderer, Snippet};
 
 fn main() {
-    let message = &[
+    let report = &[
         Group::with_title(Level::ERROR.primary_title("mismatched types"))
             .element(
                 Snippet::<Annotation<'_>>::source("Foo")
@@ -18,5 +18,5 @@ fn main() {
     ];
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

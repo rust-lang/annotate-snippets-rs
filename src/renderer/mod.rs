@@ -1,40 +1,23 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
-//! The renderer for [`Group`]s
+//! The [Renderer] and its settings
 //!
 //! # Example
+//!
 //! ```
-//! use annotate_snippets::*;
-//! use annotate_snippets::Level;
+//! # use annotate_snippets::*;
+//! # use annotate_snippets::renderer::*;
+//! # use annotate_snippets::Level;
+//! let report = // ...
+//! # &[Group::with_title(
+//! #     Level::ERROR
+//! #         .primary_title("unresolved import `baz::zed`")
+//! #         .id("E0432")
+//! # )];
 //!
-//! let source = r#"
-//! use baz::zed::bar;
-//!
-//! mod baz {}
-//! mod zed {
-//!     pub fn bar() { println!("bar3"); }
-//! }
-//! fn main() {
-//!     bar();
-//! }
-//! "#;
-//!
-//!
-//!  Group::with_title(
-//!      Level::ERROR
-//!          .primary_title("unresolved import `baz::zed`")
-//!          .id("E0432")
-//!  )
-//!  .element(
-//!      Snippet::source(source)
-//!          .path("temp.rs")
-//!          .line_start(1)
-//!          .annotation(
-//!              AnnotationKind::Primary
-//!                  .span(10..13)
-//!                  .label("could not find `zed` in `baz`"),
-//!          )
-//!  );
+//! let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
+//! let output = renderer.render(report);
+//! anstream::println!("{output}");
 //! ```
 
 mod margin;
@@ -60,9 +43,35 @@ use std::fmt;
 use stylesheet::Stylesheet;
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
+
+/// See [`Renderer::term_width`]
 pub const DEFAULT_TERM_WIDTH: usize = 140;
 
-/// A renderer for [`Group`]s
+/// The [Renderer] for a [`Report`]
+///
+/// The caller is expected to detect any relevant terminal features and configure the renderer,
+/// including
+/// - ANSI Escape code support (always outputted with [`Renderer::styled`])
+/// - Terminal width ([`Renderer::term_width`])
+/// - Unicode support ([`Renderer::decor_style`])
+///
+/// # Example
+///
+/// ```
+/// # use annotate_snippets::*;
+/// # use annotate_snippets::renderer::*;
+/// # use annotate_snippets::Level;
+/// let report = // ...
+/// # &[Group::with_title(
+/// #     Level::ERROR
+/// #         .primary_title("unresolved import `baz::zed`")
+/// #         .id("E0432")
+/// # )];
+///
+/// let renderer = Renderer::styled();
+/// let output = renderer.render(report);
+/// anstream::println!("{output}");
+/// ```
 #[derive(Clone, Debug)]
 pub struct Renderer {
     anonymized_line_numbers: bool,
@@ -86,7 +95,12 @@ impl Renderer {
 
     /// Default terminal styling
     ///
+    /// If ANSI escape codes are not supported, either
+    /// - Call [`Renderer::plain`] instead
+    /// - Strip them after the fact, like with [`anstream`](https://docs.rs/anstream/latest/anstream/)
+    ///
     /// # Note
+    ///
     /// When testing styled terminal output, see the [`testing-colors` feature](crate#features)
     pub const fn styled() -> Self {
         const USE_WINDOWS_COLORS: bool = cfg!(windows) && !cfg!(feature = "testing-colors");
@@ -123,10 +137,29 @@ impl Renderer {
         }
     }
 
+    /// Abbreviate the message
+    pub const fn short_message(mut self, short_message: bool) -> Self {
+        self.short_message = short_message;
+        self
+    }
+
+    /// Set the width to render within
+    ///
+    /// Affects the rendering of [`Snippet`]s
+    pub const fn term_width(mut self, term_width: usize) -> Self {
+        self.term_width = term_width;
+        self
+    }
+
+    /// Set the character set used for rendering decor
+    pub const fn decor_style(mut self, decor_style: DecorStyle) -> Self {
+        self.decor_style = decor_style;
+        self
+    }
+
     /// Anonymize line numbers
     ///
-    /// This enables (or disables) line number anonymization. When enabled, line numbers are replaced
-    /// with `LL`.
+    /// When enabled, line numbers are replaced with `LL` which is useful for tests.
     ///
     /// # Example
     ///
@@ -141,92 +174,10 @@ impl Renderer {
         self.anonymized_line_numbers = anonymized_line_numbers;
         self
     }
-
-    pub const fn short_message(mut self, short_message: bool) -> Self {
-        self.short_message = short_message;
-        self
-    }
-
-    // Set the terminal width
-    pub const fn term_width(mut self, term_width: usize) -> Self {
-        self.term_width = term_width;
-        self
-    }
-
-    pub const fn decor_style(mut self, decor_style: DecorStyle) -> Self {
-        self.decor_style = decor_style;
-        self
-    }
-
-    /// Set the output style for `error`
-    pub const fn error(mut self, style: Style) -> Self {
-        self.stylesheet.error = style;
-        self
-    }
-
-    /// Set the output style for `warning`
-    pub const fn warning(mut self, style: Style) -> Self {
-        self.stylesheet.warning = style;
-        self
-    }
-
-    /// Set the output style for `info`
-    pub const fn info(mut self, style: Style) -> Self {
-        self.stylesheet.info = style;
-        self
-    }
-
-    /// Set the output style for `note`
-    pub const fn note(mut self, style: Style) -> Self {
-        self.stylesheet.note = style;
-        self
-    }
-
-    /// Set the output style for `help`
-    pub const fn help(mut self, style: Style) -> Self {
-        self.stylesheet.help = style;
-        self
-    }
-
-    /// Set the output style for line numbers
-    pub const fn line_num(mut self, style: Style) -> Self {
-        self.stylesheet.line_num = style;
-        self
-    }
-
-    /// Set the output style for emphasis
-    pub const fn emphasis(mut self, style: Style) -> Self {
-        self.stylesheet.emphasis = style;
-        self
-    }
-
-    /// Set the output style for none
-    pub const fn none(mut self, style: Style) -> Self {
-        self.stylesheet.none = style;
-        self
-    }
-
-    /// Set the output style for [`AnnotationKind::Context`]
-    pub const fn context(mut self, style: Style) -> Self {
-        self.stylesheet.context = style;
-        self
-    }
-
-    /// Set the output style for additions
-    pub const fn addition(mut self, style: Style) -> Self {
-        self.stylesheet.addition = style;
-        self
-    }
-
-    /// Set the output style for removals
-    pub const fn removal(mut self, style: Style) -> Self {
-        self.stylesheet.removal = style;
-        self
-    }
 }
 
 impl Renderer {
-    /// Render a diagnostic, a series of [`Group`]s
+    /// Render a diagnostic [`Report`]
     pub fn render(&self, groups: Report<'_>) -> String {
         if self.short_message {
             self.render_short_message(groups).unwrap()
@@ -2603,6 +2554,75 @@ impl Renderer {
     }
 }
 
+/// Customize [`Renderer::styled`]
+impl Renderer {
+    /// Override the output style for `error`
+    pub const fn error(mut self, style: Style) -> Self {
+        self.stylesheet.error = style;
+        self
+    }
+
+    /// Override the output style for `warning`
+    pub const fn warning(mut self, style: Style) -> Self {
+        self.stylesheet.warning = style;
+        self
+    }
+
+    /// Override the output style for `info`
+    pub const fn info(mut self, style: Style) -> Self {
+        self.stylesheet.info = style;
+        self
+    }
+
+    /// Override the output style for `note`
+    pub const fn note(mut self, style: Style) -> Self {
+        self.stylesheet.note = style;
+        self
+    }
+
+    /// Override the output style for `help`
+    pub const fn help(mut self, style: Style) -> Self {
+        self.stylesheet.help = style;
+        self
+    }
+
+    /// Override the output style for line numbers
+    pub const fn line_num(mut self, style: Style) -> Self {
+        self.stylesheet.line_num = style;
+        self
+    }
+
+    /// Override the output style for emphasis
+    pub const fn emphasis(mut self, style: Style) -> Self {
+        self.stylesheet.emphasis = style;
+        self
+    }
+
+    /// Override the output style for none
+    pub const fn none(mut self, style: Style) -> Self {
+        self.stylesheet.none = style;
+        self
+    }
+
+    /// Override the output style for [`AnnotationKind::Context`]
+    pub const fn context(mut self, style: Style) -> Self {
+        self.stylesheet.context = style;
+        self
+    }
+
+    /// Override the output style for additions
+    pub const fn addition(mut self, style: Style) -> Self {
+        self.stylesheet.addition = style;
+        self
+    }
+
+    /// Override the output style for removals
+    pub const fn removal(mut self, style: Style) -> Self {
+        self.stylesheet.removal = style;
+        self
+    }
+}
+
 trait MessageOrTitle {
     fn level(&self) -> &Level<'_>;
     fn id(&self) -> Option<&Id<'_>>;
@@ -2926,6 +2946,7 @@ struct UnderlineParts {
     multiline_bottom_right_with_text: char,
 }
 
+/// The character set for rendering for decor
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DecorStyle {
     Ascii,
