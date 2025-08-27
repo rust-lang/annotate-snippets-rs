@@ -67,7 +67,7 @@ pub const DEFAULT_TERM_WIDTH: usize = 140;
 pub struct Renderer {
     anonymized_line_numbers: bool,
     term_width: usize,
-    theme: OutputTheme,
+    theme: DecorStyle,
     stylesheet: Stylesheet,
     short_message: bool,
 }
@@ -78,7 +78,7 @@ impl Renderer {
         Self {
             anonymized_line_numbers: false,
             term_width: DEFAULT_TERM_WIDTH,
-            theme: OutputTheme::Ascii,
+            theme: DecorStyle::Ascii,
             stylesheet: Stylesheet::plain(),
             short_message: false,
         }
@@ -153,7 +153,7 @@ impl Renderer {
         self
     }
 
-    pub const fn theme(mut self, output_theme: OutputTheme) -> Self {
+    pub const fn theme(mut self, output_theme: DecorStyle) -> Self {
         self.theme = output_theme;
         self
     }
@@ -606,7 +606,7 @@ impl Renderer {
                 buffer.append(buffer_msg_line_offset + i, &padding, ElementStyle::NoStyle);
                 if title_style == TitleStyle::Secondary
                     && is_cont
-                    && matches!(self.theme, OutputTheme::Unicode)
+                    && matches!(self.theme, DecorStyle::Unicode)
                 {
                     // There's another note after this one, associated to the subwindow above.
                     // We write additional vertical lines to join them:
@@ -765,7 +765,7 @@ impl Renderer {
         } else {
             let buffer_msg_line_offset = buffer.num_lines();
             if is_primary {
-                if self.theme == OutputTheme::Unicode {
+                if self.theme == DecorStyle::Unicode {
                     buffer.puts(
                         buffer_msg_line_offset,
                         max_line_num_len,
@@ -2331,29 +2331,27 @@ impl Renderer {
         style: ElementStyle,
     ) {
         let chr = match (style, self.theme) {
-            (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, OutputTheme::Ascii) => {
-                '|'
-            }
-            (_, OutputTheme::Ascii) => '|',
-            (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, OutputTheme::Unicode) => {
+            (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Ascii) => '|',
+            (_, DecorStyle::Ascii) => '|',
+            (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Unicode) => {
                 '┃'
             }
-            (_, OutputTheme::Unicode) => '│',
+            (_, DecorStyle::Unicode) => '│',
         };
         buffer.putc(line, offset + depth - 1, chr, style);
     }
 
     fn col_separator(&self) -> char {
         match self.theme {
-            OutputTheme::Ascii => '|',
-            OutputTheme::Unicode => '│',
+            DecorStyle::Ascii => '|',
+            DecorStyle::Unicode => '│',
         }
     }
 
     fn multi_suggestion_separator(&self) -> &'static str {
         match self.theme {
-            OutputTheme::Ascii => "|",
-            OutputTheme::Unicode => "├╴",
+            DecorStyle::Ascii => "|",
+            DecorStyle::Unicode => "├╴",
         }
     }
 
@@ -2375,7 +2373,7 @@ impl Renderer {
 
     fn draw_col_separator_start(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
         match self.theme {
-            OutputTheme::Ascii => {
+            DecorStyle::Ascii => {
                 self.draw_col_separator_no_space_with_style(
                     buffer,
                     '|',
@@ -2384,7 +2382,7 @@ impl Renderer {
                     ElementStyle::LineNumber,
                 );
             }
-            OutputTheme::Unicode => {
+            DecorStyle::Unicode => {
                 self.draw_col_separator_no_space_with_style(
                     buffer,
                     '╭',
@@ -2405,7 +2403,7 @@ impl Renderer {
 
     fn draw_col_separator_end(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
         match self.theme {
-            OutputTheme::Ascii => {
+            DecorStyle::Ascii => {
                 self.draw_col_separator_no_space_with_style(
                     buffer,
                     '|',
@@ -2414,7 +2412,7 @@ impl Renderer {
                     ElementStyle::LineNumber,
                 );
             }
-            OutputTheme::Unicode => {
+            DecorStyle::Unicode => {
                 self.draw_col_separator_no_space_with_style(
                     buffer,
                     '╰',
@@ -2457,16 +2455,16 @@ impl Renderer {
 
     fn file_start(&self, is_first: bool) -> &'static str {
         match self.theme {
-            OutputTheme::Ascii => "--> ",
-            OutputTheme::Unicode if is_first => " ╭▸ ",
-            OutputTheme::Unicode => " ├▸ ",
+            DecorStyle::Ascii => "--> ",
+            DecorStyle::Unicode if is_first => " ╭▸ ",
+            DecorStyle::Unicode => " ├▸ ",
         }
     }
 
     fn secondary_file_start(&self) -> &'static str {
         match self.theme {
-            OutputTheme::Ascii => "::: ",
-            OutputTheme::Unicode => " ⸬  ",
+            DecorStyle::Ascii => "::: ",
+            DecorStyle::Unicode => " ⸬  ",
         }
     }
 
@@ -2478,32 +2476,32 @@ impl Renderer {
         is_cont: bool,
     ) {
         let chr = match self.theme {
-            OutputTheme::Ascii => "= ",
-            OutputTheme::Unicode if is_cont => "├ ",
-            OutputTheme::Unicode => "╰ ",
+            DecorStyle::Ascii => "= ",
+            DecorStyle::Unicode if is_cont => "├ ",
+            DecorStyle::Unicode => "╰ ",
         };
         buffer.puts(line, col, chr, ElementStyle::LineNumber);
     }
 
     fn diff(&self) -> char {
         match self.theme {
-            OutputTheme::Ascii => '~',
-            OutputTheme::Unicode => '±',
+            DecorStyle::Ascii => '~',
+            DecorStyle::Unicode => '±',
         }
     }
 
     fn draw_line_separator(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
         let (column, dots) = match self.theme {
-            OutputTheme::Ascii => (0, "..."),
-            OutputTheme::Unicode => (col - 2, "‡"),
+            DecorStyle::Ascii => (0, "..."),
+            DecorStyle::Unicode => (col - 2, "‡"),
         };
         buffer.puts(line, column, dots, ElementStyle::LineNumber);
     }
 
     fn margin(&self) -> &'static str {
         match self.theme {
-            OutputTheme::Ascii => "...",
-            OutputTheme::Unicode => "…",
+            DecorStyle::Ascii => "...",
+            DecorStyle::Unicode => "…",
         }
     }
 
@@ -2533,7 +2531,7 @@ impl Renderer {
         //                        ┗━━┛ < bottom_right
 
         match (self.theme, is_primary) {
-            (OutputTheme::Ascii, true) => UnderlineParts {
+            (DecorStyle::Ascii, true) => UnderlineParts {
                 style: ElementStyle::UnderlinePrimary,
                 underline: '^',
                 label_start: '^',
@@ -2550,7 +2548,7 @@ impl Renderer {
                 multiline_end_same_line: '^',
                 multiline_bottom_right_with_text: '|',
             },
-            (OutputTheme::Ascii, false) => UnderlineParts {
+            (DecorStyle::Ascii, false) => UnderlineParts {
                 style: ElementStyle::UnderlineSecondary,
                 underline: '-',
                 label_start: '-',
@@ -2567,7 +2565,7 @@ impl Renderer {
                 multiline_end_same_line: '-',
                 multiline_bottom_right_with_text: '|',
             },
-            (OutputTheme::Unicode, true) => UnderlineParts {
+            (DecorStyle::Unicode, true) => UnderlineParts {
                 style: ElementStyle::UnderlinePrimary,
                 underline: '━',
                 label_start: '┯',
@@ -2584,7 +2582,7 @@ impl Renderer {
                 multiline_end_same_line: '┛',
                 multiline_bottom_right_with_text: '┥',
             },
-            (OutputTheme::Unicode, false) => UnderlineParts {
+            (DecorStyle::Unicode, false) => UnderlineParts {
                 style: ElementStyle::UnderlineSecondary,
                 underline: '─',
                 label_start: '┬',
@@ -2929,7 +2927,7 @@ struct UnderlineParts {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OutputTheme {
+pub enum DecorStyle {
     Ascii,
     Unicode,
 }
