@@ -50,7 +50,7 @@ fn main() {
                     ),
             )
             .element(Level::NOTE.message(&message)),
-        Group::with_title(Level::NOTE.primary_title("function defined here")).element(
+        Group::with_title(Level::NOTE.secondary_title("function defined here")).element(
             Snippet::source(source)
                 .path("$DIR/highlighting.rs")
                 .annotation(AnnotationKind::Context.span(200..333).label(""))

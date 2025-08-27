@@ -11,7 +11,7 @@ fn main() {
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
                     )),
             ),
-            Group::with_title(Level::NOTE.primary_title(
+            Group::with_title(Level::NOTE.secondary_title(
                 "expected type: `snippet::Annotation`\n   found type: `__&__snippet::Annotation`",
             )),
         ];

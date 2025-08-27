@@ -86,13 +86,13 @@ fn main() {}
             .element(
                 Level::NOTE.message("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
             ),
-        Group::with_title(Level::NOTE.primary_title("required by a bound in `flatten`"))
+        Group::with_title(Level::NOTE.secondary_title("required by a bound in `flatten`"))
             .element(
                 Origin::path("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
                     .line(1556)
                     .char_column(4),
             ),
-        Group::with_title(Level::HELP.primary_title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds")).element(
+        Group::with_title(Level::HELP.secondary_title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds")).element(
             Snippet::source(source)
                 .path("$DIR/multiline-removal-suggestion.rs")
 
