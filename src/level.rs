@@ -37,6 +37,23 @@ pub const HELP: Level<'_> = Level {
 };
 
 /// Severity level for [`Title`]s and [`Message`]s
+///
+/// # Example
+///
+/// ```rust
+/// # use annotate_snippets::*;
+/// let report = &[
+///     Group::with_title(
+///         Level::ERROR.primary_title("mismatched types").id("E0308")
+///     )
+///         .element(
+///             Level::NOTE.message("expected reference"),
+///         ),
+///     Group::with_title(
+///         Level::HELP.secondary_title("function defined here")
+///     ),
+/// ];
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Level<'a> {
     pub(crate) name: Option<Option<Cow<'a, str>>>,
@@ -53,9 +70,7 @@ impl<'a> Level<'a> {
 }
 
 impl<'a> Level<'a> {
-    /// Creates a [`Title`] that has bolded text, and is
-    /// intended to be used with the "primary" (first)
-    /// [`Group`][crate::Group] in a [`Report`][crate::Report].
+    /// For the primary, or root cause, [`Group`][crate::Group] (the first) in a [`Report`][crate::Report]
     ///
     /// See [`Group::with_title`][crate::Group::with_title]
     ///
@@ -66,15 +81,6 @@ impl<'a> Level<'a> {
     /// not allowed to be passed to this function.
     ///
     /// </div>
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
-    /// let input = &[
-    ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
-    /// ];
-    /// ```
     pub fn primary_title(self, text: impl Into<Cow<'a, str>>) -> Title<'a> {
         Title {
             level: self,
@@ -84,8 +90,7 @@ impl<'a> Level<'a> {
         }
     }
 
-    /// Creates a [`Title`] that is allowed to be styled, for more info see the
-    /// warning below.
+    /// For any secondary, or context, [`Group`][crate::Group]s (subsequent) in a [`Report`][crate::Report]
     ///
     /// See [`Group::with_title`][crate::Group::with_title]
     ///
@@ -116,20 +121,6 @@ impl<'a> Level<'a> {
     /// used to normalize untrusted text before it is passed to this function.
     ///
     /// </div>
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level};
-    /// let input = &[
-    ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
-    ///         .element(
-    ///             Level::NOTE
-    ///                 .no_name()
-    ///                 .message("expected reference `&str`\nfound reference `&'static [u8; 0]`"),
-    ///         ),
-    /// ];
-    /// ```
     pub fn message(self, text: impl Into<Cow<'a, str>>) -> Message<'a> {
         Message {
             level: self,
@@ -182,6 +173,10 @@ impl<'a> Level<'a> {
 
     /// Do not show the [`Level`]s name
     ///
+    /// Useful for:
+    /// - Another layer of the application will include the level (e.g. when rendering errors)
+    /// - [`Message`]s that are part of a previous [`Group`][crate::Group] [`Element`][crate::Element]s
+    ///
     /// # Example
     ///
     /// ```rust
@@ -190,7 +185,7 @@ impl<'a> Level<'a> {
     ///     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
     ///     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
     /// }"#;
-    /// let input = &[
+    /// let report = &[
     ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
     ///         .element(
     ///             Snippet::source(source)

@@ -5,7 +5,7 @@ fn main() {
                 label: "expected struct `annotate_snippets::snippet::Slice`, found reference"
                     ,
                 range: <22, 25>,"#;
-    let message =
+    let report =
         &[
             Group::with_title(Level::ERROR.primary_title("expected type, found `22`")).element(
                 Snippet::source(source)
@@ -23,5 +23,5 @@ fn main() {
         ];
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

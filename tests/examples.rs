@@ -71,6 +71,13 @@ fn multislice() {
 }
 
 #[test]
+fn multi_suggestion() {
+    let target = "multi_suggestion";
+    let expected = snapbox::file!["../examples/multi_suggestion.svg": TermSvg];
+    assert_example(target, expected);
+}
+
+#[test]
 fn struct_name_as_context() {
     let target = "struct_name_as_context";
     let expected = snapbox::file!["../examples/struct_name_as_context.svg": TermSvg];
