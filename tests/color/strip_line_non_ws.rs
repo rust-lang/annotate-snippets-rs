@@ -8,7 +8,7 @@ fn case() {
 "#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308")).element(
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
             Snippet::source(source)
                 .path("$DIR/non-whitespace-trimming.rs")
                 .line_start(4)

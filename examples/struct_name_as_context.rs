@@ -9,23 +9,18 @@ fn main() {
     field6: usize,
 }
 "#;
-    let message =
-        &[
-            Group::with_title(
-                Level::ERROR.title("functions are not allowed in struct definitions"),
-            )
-            .element(
-                Snippet::source(source)
-                    .path("$DIR/struct_name_as_context.rs")
-                    .annotation(AnnotationKind::Primary.span(91..102))
-                    .annotation(AnnotationKind::Visible.span(0..8)),
-            )
-            .element(
-                Level::HELP.message(
-                    "unlike in C++, Java, and C#, functions are declared in `impl` blocks",
-                ),
-            ),
-        ];
+    let message = &[Group::with_title(
+        Level::ERROR.primary_title("functions are not allowed in struct definitions"),
+    )
+    .element(
+        Snippet::source(source)
+            .path("$DIR/struct_name_as_context.rs")
+            .annotation(AnnotationKind::Primary.span(91..102))
+            .annotation(AnnotationKind::Visible.span(0..8)),
+    )
+    .element(
+        Level::HELP.message("unlike in C++, Java, and C#, functions are declared in `impl` blocks"),
+    )];
 
     let renderer = Renderer::styled();
     anstream::println!("{}", renderer.render(message));

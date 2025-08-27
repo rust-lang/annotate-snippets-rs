@@ -19,7 +19,7 @@ workspace = 20
 
     let input = &[Group::with_title(
         Level::ERROR
-            .title("invalid type: integer `20`, expected a bool")
+            .primary_title("invalid type: integer `20`, expected a bool")
             .id("E0308"),
     )
     .element(

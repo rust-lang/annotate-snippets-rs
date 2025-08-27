@@ -32,7 +32,7 @@ fn main() {
     let message = &[
         Group::with_title(
             Level::ERROR
-                .title("`break` with value from a `while` loop")
+                .primary_title("`break` with value from a `while` loop")
                 .id("E0571"),
         )
         .element(
@@ -53,7 +53,7 @@ fn main() {
         Group::with_title(
             Level::HELP
                 .with_name(Some("suggestion"))
-                .title("use `break` on its own without a value inside this `while` loop"),
+                .primary_title("use `break` on its own without a value inside this `while` loop"),
         )
         .element(
             Snippet::source(source)

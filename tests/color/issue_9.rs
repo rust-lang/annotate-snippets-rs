@@ -12,7 +12,7 @@ let y = x;
 x;
 "#;
 
-    let input = &[Group::with_title(Level::ERROR.title("expected one of `.`, `;`, `?`, or an operator, found `for`"))
+    let input = &[Group::with_title(Level::ERROR.primary_title("expected one of `.`, `;`, `?`, or an operator, found `for`"))
         .element(
             Snippet::source(source)
                 .path("/code/rust/src/test/ui/annotate-snippet/suggestion.rs")

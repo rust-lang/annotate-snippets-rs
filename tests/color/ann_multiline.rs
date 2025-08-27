@@ -11,7 +11,7 @@ fn case() {
 
     let input = &[Group::with_title(
         Level::ERROR
-            .title("pattern does not mention fields `lineno`, `content`")
+            .primary_title("pattern does not mention fields `lineno`, `content`")
             .id("E0027"),
     )
     .element(

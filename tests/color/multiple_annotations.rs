@@ -15,7 +15,7 @@ fn case() {
 }
 "#;
 
-    let input = &[Group::with_title(Level::ERROR.title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source(source)
             .line_start(96)
             .fold(false)

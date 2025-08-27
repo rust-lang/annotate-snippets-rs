@@ -12,7 +12,7 @@ fn case() {
 }"#;
 
     let input = &[
-        Group::with_title(Level::ERROR.title("mismatched types").id("E0308"))
+        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(file_txt_source)
                     .line_start(3)
