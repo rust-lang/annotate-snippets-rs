@@ -86,6 +86,8 @@
 //!
 //! # Cargo `features`
 //!
+//! - `simd` - Speeds up folding
+//!
 //! - `testing-colors` - Makes [Renderer::styled] colors OS independent, which
 //! allows for easier testing when testing colored output. It should be added as
 //! a feature in `[dev-dependencies]`, which can be done with the following command:
