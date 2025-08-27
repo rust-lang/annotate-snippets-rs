@@ -1895,7 +1895,7 @@ LL │ …u8 = [0, 0, 0…0];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(12)
-        .theme(DecorStyle::Unicode);
+        .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected);
 }
 
@@ -1929,7 +1929,7 @@ LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, …, 0, 0, 0, 0, 0, 0, 0];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(80)
-        .theme(DecorStyle::Unicode);
+        .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected);
 }
 
@@ -3006,7 +3006,7 @@ note: the foreign item type `Box<isize>` doesn't implement `Add`
    │
    ╰ note: not implement `Add`
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3146,7 +3146,7 @@ help: trait `Future` which provides `poll` is implemented but not in scope; perh
 LL + use std::future::Future;
    ╰╴
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3246,7 +3246,7 @@ note: the foreign item types don't implement required traits for this operation 
    │
    ╰ note: not implement `PartialEq`
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3319,7 +3319,7 @@ LL │ #[derive(Eqr)]
    │
    ╰ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3426,7 +3426,7 @@ note: the traits `Iterator` and `ToTokens` must be implemented
    ╭▸ $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
    ╭▸ $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3835,7 +3835,7 @@ LL +         Some(Private { misc: true, .. }) => todo!()
 "#]];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
-        .theme(DecorStyle::Unicode);
+        .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected);
 }
 
@@ -3926,7 +3926,7 @@ LL │ fn ord_prefer_dot(s: String) -> impl Ord {
 "#]];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
-        .theme(DecorStyle::Unicode);
+        .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected);
 }
 
@@ -4012,7 +4012,7 @@ note: the foreign item types don't implement required traits for this operation 
 "#]];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
-        .theme(DecorStyle::Unicode);
+        .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected);
 }
 
@@ -4143,7 +4143,7 @@ LL + use std::collections::btree_set::IntoIter;
    │
    ╰ and 9 other candidates
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -4283,7 +4283,7 @@ help: consider using the `Default` trait
 LL │     let _ = <std::collections::HashMap as std::default::Default>::default();
    ╰╴            +                          ++++++++++++++++++++++++++++++++++
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -4467,7 +4467,7 @@ LL -         wtf: Some(Box(U {
 LL +         wtf: Some(<Box as std::default::Default>::default()),
    ╰╴
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -4601,7 +4601,7 @@ LL │     t.a3.bar();
    │       +++
    ╰ and 6 other candidates
 "#]];
-    let renderer = renderer.theme(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
