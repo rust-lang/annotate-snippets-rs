@@ -2,7 +2,7 @@ use annotate_snippets::{
     Annotation, AnnotationKind, Group, Level, Padding, Patch, Renderer, Snippet,
 };
 
-use annotate_snippets::renderer::OutputTheme;
+use annotate_snippets::renderer::DecorStyle;
 use snapbox::{assert_data_eq, str};
 
 #[test]
@@ -472,7 +472,7 @@ error: bad
   ╰╴━
 "#]];
 
-    let renderer = renderer.theme(OutputTheme::Unicode);
+    let renderer = renderer.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(message), expected_unicode);
 }
 
@@ -1747,7 +1747,7 @@ LL │     type Error = E;
 "#]];
     let renderer = Renderer::plain()
         .term_width(40)
-        .theme(OutputTheme::Unicode)
+        .theme(DecorStyle::Unicode)
         .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input_new), expected);
 }
@@ -1835,7 +1835,7 @@ LL │     type Error = E;
 "#]];
     let renderer = Renderer::plain()
         .term_width(40)
-        .theme(OutputTheme::Unicode)
+        .theme(DecorStyle::Unicode)
         .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input_new), expected);
 }
@@ -1996,7 +1996,7 @@ LL │  ┃     )))))))))))))))))))))))))))))];
 "#]];
     let renderer = Renderer::plain()
         .term_width(60)
-        .theme(OutputTheme::Unicode)
+        .theme(DecorStyle::Unicode)
         .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input_new), expected);
 }
@@ -2076,7 +2076,7 @@ LL │ ┃ )>>) {}
    ╰╴┗━━━┛
 "#]];
     let renderer = Renderer::plain()
-        .theme(OutputTheme::Unicode)
+        .theme(DecorStyle::Unicode)
         .anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input_new), expected);
 }
@@ -2122,7 +2122,7 @@ error: title
 5 │ ┃ ]
   ╰╴┗━┛ annotation
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2159,7 +2159,7 @@ error: expected item, found `?`
   │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2196,7 +2196,7 @@ error: expected item, found `?`
   │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2233,7 +2233,7 @@ error: expected item, found `?`
   │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2285,7 +2285,7 @@ LL │ …♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻�
    │                                                  │
    ╰╴                                                 expected due to this
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2368,7 +2368,7 @@ LL │     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓
    ╰╴                                                                                                                                                                                        +++++++++++
 "#]];
 
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2432,7 +2432,7 @@ LL │ �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W
    │ ━
    ╰ note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2634,7 +2634,7 @@ LL -         });
 LL +         break;
    ╰╴
 "#]];
-    let renderer_unicode = renderer_ascii.theme(OutputTheme::Unicode);
+    let renderer_unicode = renderer_ascii.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
 
@@ -2841,7 +2841,7 @@ error:
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   ╰╴    ━━━━━━━━ annotation
 "#]];
-    let renderer = Renderer::plain().theme(OutputTheme::Unicode);
+    let renderer = Renderer::plain().theme(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -2883,7 +2883,7 @@ error:
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   ╰╴    ━━━━━━━━ annotation
 "#]];
-    let renderer = Renderer::plain().theme(OutputTheme::Unicode);
+    let renderer = Renderer::plain().theme(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -2941,7 +2941,7 @@ LL │         .sum::<_>() //~ ERROR type annotations needed
    │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
    ╰╴
 "#]];
-    let renderer = renderer.theme(OutputTheme::Unicode);
+    let renderer = renderer.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3018,7 +3018,7 @@ LL -         .sum::<_>() //~ ERROR type annotations needed
 LL +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
    ╰╴
 "#]];
-    let renderer = renderer.theme(OutputTheme::Unicode);
+    let renderer = renderer.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3220,6 +3220,6 @@ error[E0609]: no field `field` on type `Thing`
 LL │     t.field;
    ╰╴      ━━━━━ unknown field
 "#]];
-    let renderer = renderer.theme(OutputTheme::Unicode);
+    let renderer = renderer.theme(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }

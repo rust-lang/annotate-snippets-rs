@@ -1,4 +1,4 @@
-use annotate_snippets::renderer::OutputTheme;
+use annotate_snippets::renderer::DecorStyle;
 use annotate_snippets::{AnnotationKind, Group, Level, Patch, Renderer, Snippet};
 
 fn main() {
@@ -63,6 +63,6 @@ fn main() {
         ),
     ];
 
-    let renderer = Renderer::styled().theme(OutputTheme::Unicode);
+    let renderer = Renderer::styled().theme(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(message));
 }
