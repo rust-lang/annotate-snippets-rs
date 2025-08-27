@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Migration
+
+Note that the top-level type changed from `Message` to `Report`.
+`Message` is now a single block of text within a `Report`.
+
+- Replace `Message::footer` with either
+  - adding a `Message` to a `Group`
+  - starting a new `Group`
+- Replace `Level::<Variant>` with `Level::<VARIANT>`, e.g. `Level::Error` -> `Level::ERROR`
+- Instead of creating `Snippet`s on a `Message` (the type returned by `Level::title`), add them to the `Group` that is created with the `Title`
+- `Snippet::origin` has been renamed to `Snippet::path`
+- Instead of creating an `Annotation` from a `Level`, create them from an `AnnotationKind`
+  - `AnnotationKind::Primary` will automatically match the `Level` of the `Group`
+  - All others existing annotations should likely be `AnnotationKind::Context`
+- `Level::title` has been replaced with `Level::primary_level` (for first `Group`) and `Level::secondary_level` (subsequent `Group`s)
+- `Message::id` has moved to `Title::id`
+- Renamed `Renderer::line_no` to `Renderer::line_num`
+- Add `snippet.fold(false)` if unspecified, removing `snippet.fold(true)` if specified
+
+### Features
+
+- Added unicode decor support, see `renderer::DecorStyle`
+- Created [`Group`] to indicate what all is included between the unicode begin and end decor
+- Added `Level::secondary_title` to allow for custom ANSI escape code styling to be applied to those `Title`s
+- Added `AnnotationKind::Visible` to force spans to be visible within a Snippet, despite code folding, without any visible marker
+- Added `Origin` for referencing code without the source
+- Added `Group::with_level` to allow `Snippet`s without a `Title`
+- Added `Level::no_name` to hide the level name
+- Added `Level::with_name` to override what is rendered for that level
+- Added `Title::id_url` to turn `Title::id` into a link
+- Added `Patch` for displaying changes to code
+
+### Fixes
+
+- Switched strings to `Cow<str>` to allow for easier management of owned data
+- `Snippet::path` now accepts `None`
+- `Annotation::label` now accepts `None`
+- Various rendering fixes
+
 ## [0.11.5] - 2024-12-09
 
 ### Added
