@@ -7,7 +7,7 @@ fn main() {
     let () = 4; //~ ERROR
 }
 "#;
-    let message = &[Group::with_title(
+    let report = &[Group::with_title(
         Level::ERROR
             .primary_title("mismatched types")
             .id("E0308")
@@ -30,5 +30,5 @@ fn main() {
     )];
 
     let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

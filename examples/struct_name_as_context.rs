@@ -9,7 +9,7 @@ fn main() {
     field6: usize,
 }
 "#;
-    let message = &[Group::with_title(
+    let report = &[Group::with_title(
         Level::ERROR.primary_title("functions are not allowed in struct definitions"),
     )
     .element(
@@ -23,5 +23,5 @@ fn main() {
     )];
 
     let renderer = Renderer::styled();
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

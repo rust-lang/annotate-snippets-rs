@@ -23,7 +23,7 @@ fn main() {
 }
 "#;
 
-    let message = &[
+    let report = &[
         Group::with_title(Level::ERROR.primary_title(
             "cannot construct `Box<_, _>` with struct literal syntax due to private fields",
         ))
@@ -70,5 +70,5 @@ fn main() {
     ];
 
     let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

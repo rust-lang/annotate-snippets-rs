@@ -33,7 +33,7 @@ fn main() {
       found fn item `fn(Box<{MAGENTA}(dyn Any + Send + 'static){MAGENTA:#}>) -> Pin<_> {MAGENTA}{{wrapped_fn}}{MAGENTA:#}`",
     );
 
-    let message = &[
+    let report = &[
         Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
             .element(
                 Snippet::source(source)
@@ -59,5 +59,5 @@ fn main() {
     ];
 
     let renderer = Renderer::styled().anonymized_line_numbers(true);
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }

@@ -29,7 +29,7 @@ fn main() {
     }
 }
 "#;
-    let message = &[
+    let report = &[
         Group::with_title(
             Level::ERROR
                 .primary_title("`break` with value from a `while` loop")
@@ -64,5 +64,5 @@ fn main() {
     ];
 
     let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
-    anstream::println!("{}", renderer.render(message));
+    anstream::println!("{}", renderer.render(report));
 }
