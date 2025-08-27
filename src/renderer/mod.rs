@@ -137,24 +137,6 @@ impl Renderer {
         }
     }
 
-    /// Anonymize line numbers
-    ///
-    /// When enabled, line numbers are replaced with `LL` which is useful for tests.
-    ///
-    /// # Example
-    ///
-    /// ```text
-    ///   --> $DIR/whitespace-trimming.rs:4:193
-    ///    |
-    /// LL | ...                   let _: () = 42;
-    ///    |                                   ^^ expected (), found integer
-    ///    |
-    /// ```
-    pub const fn anonymized_line_numbers(mut self, anonymized_line_numbers: bool) -> Self {
-        self.anonymized_line_numbers = anonymized_line_numbers;
-        self
-    }
-
     /// Abbreviate the message
     pub const fn short_message(mut self, short_message: bool) -> Self {
         self.short_message = short_message;
@@ -172,6 +154,24 @@ impl Renderer {
     /// Set the character set used for rendering decor
     pub const fn decor_style(mut self, decor_style: DecorStyle) -> Self {
         self.decor_style = decor_style;
+        self
+    }
+
+    /// Anonymize line numbers
+    ///
+    /// When enabled, line numbers are replaced with `LL` which is useful for tests.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///   --> $DIR/whitespace-trimming.rs:4:193
+    ///    |
+    /// LL | ...                   let _: () = 42;
+    ///    |                                   ^^ expected (), found integer
+    ///    |
+    /// ```
+    pub const fn anonymized_line_numbers(mut self, anonymized_line_numbers: bool) -> Self {
+        self.anonymized_line_numbers = anonymized_line_numbers;
         self
     }
 }
