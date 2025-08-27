@@ -29,6 +29,6 @@ fn main() {
             ),
     )];
 
-    let renderer = Renderer::styled().theme(DecorStyle::Unicode);
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(message));
 }

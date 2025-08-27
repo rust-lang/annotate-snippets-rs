@@ -29,6 +29,6 @@ pub static C: u32 = 0 - 1;
         ),
     )];
 
-    let renderer = Renderer::styled().theme(DecorStyle::Unicode);
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(message));
 }

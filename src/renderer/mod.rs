@@ -67,7 +67,7 @@ pub const DEFAULT_TERM_WIDTH: usize = 140;
 pub struct Renderer {
     anonymized_line_numbers: bool,
     term_width: usize,
-    theme: DecorStyle,
+    decor_style: DecorStyle,
     stylesheet: Stylesheet,
     short_message: bool,
 }
@@ -78,7 +78,7 @@ impl Renderer {
         Self {
             anonymized_line_numbers: false,
             term_width: DEFAULT_TERM_WIDTH,
-            theme: DecorStyle::Ascii,
+            decor_style: DecorStyle::Ascii,
             stylesheet: Stylesheet::plain(),
             short_message: false,
         }
@@ -153,8 +153,8 @@ impl Renderer {
         self
     }
 
-    pub const fn theme(mut self, output_theme: DecorStyle) -> Self {
-        self.theme = output_theme;
+    pub const fn decor_style(mut self, decor_style: DecorStyle) -> Self {
+        self.decor_style = decor_style;
         self
     }
 
@@ -606,7 +606,7 @@ impl Renderer {
                 buffer.append(buffer_msg_line_offset + i, &padding, ElementStyle::NoStyle);
                 if title_style == TitleStyle::Secondary
                     && is_cont
-                    && matches!(self.theme, DecorStyle::Unicode)
+                    && matches!(self.decor_style, DecorStyle::Unicode)
                 {
                     // There's another note after this one, associated to the subwindow above.
                     // We write additional vertical lines to join them:
@@ -765,7 +765,7 @@ impl Renderer {
         } else {
             let buffer_msg_line_offset = buffer.num_lines();
             if is_primary {
-                if self.theme == DecorStyle::Unicode {
+                if self.decor_style == DecorStyle::Unicode {
                     buffer.puts(
                         buffer_msg_line_offset,
                         max_line_num_len,
@@ -2330,7 +2330,7 @@ impl Renderer {
         depth: usize,
         style: ElementStyle,
     ) {
-        let chr = match (style, self.theme) {
+        let chr = match (style, self.decor_style) {
             (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Ascii) => '|',
             (_, DecorStyle::Ascii) => '|',
             (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Unicode) => {
@@ -2342,14 +2342,14 @@ impl Renderer {
     }
 
     fn col_separator(&self) -> char {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => '|',
             DecorStyle::Unicode => '│',
         }
     }
 
     fn multi_suggestion_separator(&self) -> &'static str {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => "|",
             DecorStyle::Unicode => "├╴",
         }
@@ -2372,7 +2372,7 @@ impl Renderer {
     }
 
     fn draw_col_separator_start(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => {
                 self.draw_col_separator_no_space_with_style(
                     buffer,
@@ -2402,7 +2402,7 @@ impl Renderer {
     }
 
     fn draw_col_separator_end(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => {
                 self.draw_col_separator_no_space_with_style(
                     buffer,
@@ -2454,7 +2454,7 @@ impl Renderer {
     }
 
     fn file_start(&self, is_first: bool) -> &'static str {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => "--> ",
             DecorStyle::Unicode if is_first => " ╭▸ ",
             DecorStyle::Unicode => " ├▸ ",
@@ -2462,7 +2462,7 @@ impl Renderer {
     }
 
     fn secondary_file_start(&self) -> &'static str {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => "::: ",
             DecorStyle::Unicode => " ⸬  ",
         }
@@ -2475,7 +2475,7 @@ impl Renderer {
         col: usize,
         is_cont: bool,
     ) {
-        let chr = match self.theme {
+        let chr = match self.decor_style {
             DecorStyle::Ascii => "= ",
             DecorStyle::Unicode if is_cont => "├ ",
             DecorStyle::Unicode => "╰ ",
@@ -2484,14 +2484,14 @@ impl Renderer {
     }
 
     fn diff(&self) -> char {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => '~',
             DecorStyle::Unicode => '±',
         }
     }
 
     fn draw_line_separator(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        let (column, dots) = match self.theme {
+        let (column, dots) = match self.decor_style {
             DecorStyle::Ascii => (0, "..."),
             DecorStyle::Unicode => (col - 2, "‡"),
         };
@@ -2499,7 +2499,7 @@ impl Renderer {
     }
 
     fn margin(&self) -> &'static str {
-        match self.theme {
+        match self.decor_style {
             DecorStyle::Ascii => "...",
             DecorStyle::Unicode => "…",
         }
@@ -2530,7 +2530,7 @@ impl Renderer {
         //                        ┃  ╿ < multiline_end_up
         //                        ┗━━┛ < bottom_right
 
-        match (self.theme, is_primary) {
+        match (self.decor_style, is_primary) {
             (DecorStyle::Ascii, true) => UnderlineParts {
                 style: ElementStyle::UnderlinePrimary,
                 underline: '^',
