@@ -2664,11 +2664,11 @@ fn num_decimal_digits(num: usize) -> usize {
     MAX_DIGITS
 }
 
-pub fn str_width(s: &str) -> usize {
+fn str_width(s: &str) -> usize {
     s.chars().map(char_width).sum()
 }
 
-pub fn char_width(ch: char) -> usize {
+fn char_width(ch: char) -> usize {
     // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char` is. For now,
     // just accept that sometimes the code line will be longer than desired.
     match ch {
