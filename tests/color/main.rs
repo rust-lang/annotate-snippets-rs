@@ -12,6 +12,7 @@ mod fold_trailing;
 mod issue_9;
 mod multiline_removal_suggestion;
 mod multiple_annotations;
+mod primary_title_second_group;
 mod simple;
 mod strip_line;
 mod strip_line_char;
