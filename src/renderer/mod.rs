@@ -219,10 +219,10 @@ impl Renderer {
                 let mut message_iter = group.elements.iter().enumerate().peekable();
                 if let Some(title) = &group.title {
                     let peek = message_iter.peek().map(|(_, s)| s).copied();
-                    let title_style = if g == 0 {
-                        TitleStyle::MainHeader
-                    } else {
+                    let title_style = if title.allows_styling {
                         TitleStyle::Header
+                    } else {
+                        TitleStyle::MainHeader
                     };
                     let buffer_msg_line_offset = buffer.num_lines();
                     self.render_title(
