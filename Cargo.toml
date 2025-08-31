@@ -140,7 +140,7 @@ harness = false
 
 [features]
 default = []
-simd = ["memchr"]
+simd = ["dep:memchr"]
 testing-colors = []
 
 [lints]
