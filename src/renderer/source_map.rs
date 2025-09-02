@@ -213,18 +213,18 @@ impl<'a> SourceMap<'a> {
 
         // Find overlapping multiline annotations, put them at different depths
         multiline_annotations.sort_by_key(|ml| (ml.start.line, usize::MAX - ml.end.line));
-        for ann in multiline_annotations.clone() {
+        for (outer_i, ann) in multiline_annotations.clone().into_iter().enumerate() {
             if ann.kind.is_primary() {
                 primary_spans.push((ann.start, ann.end));
             }
-            for a in &mut multiline_annotations {
+            for (inner_i, a) in &mut multiline_annotations.iter_mut().enumerate() {
                 // Move all other multiline annotations overlapping with this one
                 // one level to the right.
                 if !ann.same_span(a)
                     && num_overlap(ann.start.line, ann.end.line, a.start.line, a.end.line, true)
                 {
                     a.increase_depth();
-                } else if ann.same_span(a) && &ann != a {
+                } else if ann.same_span(a) && outer_i != inner_i {
                     a.overlaps_exactly = true;
                 } else {
                     if primary_spans
