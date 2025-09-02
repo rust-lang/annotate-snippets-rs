@@ -194,6 +194,7 @@ error:
      |
 5402 | This is line 1
 5403 | This is line 2
+     |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -203,6 +204,7 @@ error:
      ╭▸ 
 5402 │ This is line 1
 5403 │ This is line 2
+     ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -234,6 +236,7 @@ error:
     ::: file2.rs:2
      |
    2 | This is slice 2
+     |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -247,6 +250,7 @@ error:
      ⸬  file2.rs:2
      │
    2 │ This is slice 2
+     ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -340,6 +344,7 @@ error:
    |
 56 | This is an example
 57 | of content lines
+   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -349,6 +354,7 @@ error:
    ╭▸ 
 56 │ This is an example
 57 │ of content lines
+   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -427,6 +433,7 @@ error:
  --> file.rs
   |
 1 |
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -436,6 +443,7 @@ error:
   ╭▸ file.rs
   │
 1 │
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -456,6 +464,7 @@ LL | This is an example
 LL | of content lines
 LL |
 LL | abc
+   |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -467,6 +476,7 @@ LL │ This is an example
 LL │ of content lines
 LL │
 LL │ abc
+   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -561,6 +571,7 @@ error:
 3 | a
   | ^
 4 | b
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -572,6 +583,7 @@ error:
 3 │ a
   │ ━
 4 │ b
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -629,6 +641,7 @@ error:
 2 | | にちは
   | |_^
 3 |   世界
+  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -643,6 +656,7 @@ error:
 2 │ ┃ にちは
   │ ┗━┛
 3 │   世界
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -699,6 +713,7 @@ error:
 3 | a
   |  ^
 4 | b
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -710,6 +725,7 @@ error:
 3 │ a
   │  ━
 4 │ b
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -803,6 +819,7 @@ error:
 3 | a
   |  ^
 4 | b
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -814,6 +831,7 @@ error:
 3 │ a
   │  ━
 4 │ b
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -838,6 +856,7 @@ error:
 2 | | にちは
   | |_^
 3 |   世界
+  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -852,6 +871,7 @@ error:
 2 │ ┃ にちは
   │ ┗━┛
 3 │   世界
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -981,6 +1001,7 @@ error:
 2 | | にちは
   | |__^
 3 |   世界
+  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -995,6 +1016,7 @@ error:
 2 │ ┃ にちは
   │ ┗━━┛
 3 │   世界
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1057,6 +1079,7 @@ error:
 4 | | b
   | |__^
 5 |   c
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -1070,6 +1093,7 @@ error:
 4 │ ┃ b
   │ ┗━━┛
 5 │   c
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1444,6 +1468,7 @@ error: title
 3 | ccc
   | ^^^ annotation
 4 | ddd
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -1457,6 +1482,7 @@ error: title
 3 │ ccc
   │ ━━━ annotation
 4 │ ddd
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1487,6 +1513,7 @@ error: title
 3 | ccc
   |  ^^ annotation
 4 | ddd
+  |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -1500,6 +1527,7 @@ error: title
 3 │ ccc
   │  ━━ annotation
 4 │ ddd
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3467,6 +3495,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 12 | crazy
 13 | quack
 14 | zappy
+   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -3482,6 +3511,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 12 │ crazy
 13 │ quack
 14 │ zappy
+   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3505,6 +3535,7 @@ fn empty_span_start_line() {
    | ^ E112
 10 | #: E113
 11 | print()
+   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -3517,6 +3548,7 @@ fn empty_span_start_line() {
    │ ━ E112
 10 │ #: E113
 11 │ print()
+   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3973,6 +4005,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    | ^^^^^
 ...
 18 | zappy
+   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -3984,6 +4017,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    │ ━━━━━
    ‡
 18 │ zappy
+   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -4019,6 +4053,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    | ^^^^^
 13 | fuzzy
 14 | pizza
+   |
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -4030,6 +4065,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    │ ━━━━━
 13 │ fuzzy
 14 │ pizza
+   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
