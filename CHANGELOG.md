@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.1] - 2025-09-02
+
 ### Fixes
 
 - Correctly calculate line number width when feature `simd` is enabled #286
@@ -210,7 +212,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.0...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.1...HEAD
+[0.12.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.5...0.12.0
 [0.11.5]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.4...0.11.5
 [0.11.4]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.3...0.11.4
