@@ -1,6 +1,6 @@
 # annotate-snippets
 
-`annotate-snippets` is a Rust library for annotation of programming code slices.
+> Format diagnostic reports, including highlighting snippets of text
 
 [![crates.io](https://img.shields.io/crates/v/annotate-snippets.svg)](https://crates.io/crates/annotate-snippets)
 [![documentation](https://img.shields.io/badge/docs-master-blue.svg)][Documentation]
