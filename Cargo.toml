@@ -96,7 +96,7 @@ lto = true
 
 [package]
 name = "annotate-snippets"
-version = "0.12.0"
+version = "0.12.1"
 description = "Library for building code annotations"
 categories = []
 keywords = ["code", "analysis", "ascii", "errors", "debug"]
