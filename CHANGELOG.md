@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Correctly calculate line number width when feature `simd` is enabled #286
+- Close the "code window" when the last line of a `Snippet` has no annotations and nothing comes after it #288
+
 ## [0.12.0] - 2025-08-28
 
 ### Migration
