@@ -1004,6 +1004,16 @@ impl Renderer {
             margin,
         );
 
+        // If there are no annotations, we are done
+        if line_info.annotations.is_empty() {
+            // `close_window` normally gets handled later, but we are early
+            // returning, so it needs to be handled here
+            if close_window {
+                self.draw_col_separator_end(buffer, line_offset + 1, width_offset - 2);
+            }
+            return vec![];
+        }
+
         // Special case when there's only one annotation involved, it is the start of a multiline
         // span and there's no text at the beginning of the code line. Instead of doing the whole
         // graph:
