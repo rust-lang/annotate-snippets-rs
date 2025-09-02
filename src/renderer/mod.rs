@@ -3009,9 +3009,7 @@ fn max_line_number(groups: &[Group<'_>]) -> usize {
 fn newline_count(body: &str) -> usize {
     #[cfg(feature = "simd")]
     {
-        memchr::memchr_iter(b'\n', body.as_bytes())
-            .count()
-            .saturating_sub(1)
+        memchr::memchr_iter(b'\n', body.as_bytes()).count()
     }
     #[cfg(not(feature = "simd"))]
     {
@@ -3058,9 +3056,6 @@ mod test {
                 bar = { base = '^^not-valid^^', path = 'bar' }
             "#;
         let actual_count = newline_count(source);
-        #[cfg(feature = "simd")]
-        let expected_count = 9;
-        #[cfg(not(feature = "simd"))]
         let expected_count = 10;
 
         assert_eq!(expected_count, actual_count);
