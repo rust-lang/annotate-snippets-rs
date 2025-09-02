@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 use anstyle::{AnsiColor, Effects, Style};
 
 use snapbox::{assert_data_eq, file};
@@ -37,7 +37,12 @@ use c::cnb_runtime;
                 .annotation(AnnotationKind::Primary.span(31..32).label(label_4)),
         ),
     ];
-    let expected = file!["styled_title.term.svg"];
+
+    let expected_ascii = file!["styled_title.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = file!["styled_title.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }

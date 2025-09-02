@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -18,7 +18,12 @@ fn case() {
                 ),
         ),
     ];
-    let expected = file!["strip_line_char.term.svg"];
+
+    let expected_ascii = file!["strip_line_char.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = file!["strip_line_char.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }

@@ -1,4 +1,6 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Origin, Patch, Renderer, Snippet};
+use annotate_snippets::{
+    renderer::DecorStyle, AnnotationKind, Group, Level, Origin, Patch, Renderer, Snippet,
+};
 
 use snapbox::{assert_data_eq, file};
 
@@ -99,7 +101,12 @@ fn main() {}
                 .patch(Patch::new(708..768, "")),
         ),
     ];
-    let expected = file!["multiline_removal_suggestion.term.svg"];
+
+    let expected_ascii = file!["multiline_removal_suggestion.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = file!["multiline_removal_suggestion.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }

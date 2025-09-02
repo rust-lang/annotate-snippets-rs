@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -42,7 +42,12 @@ fn case() {
                     .message("expected reference `&[u8]`\n   found reference `&'static str`"),
             ),
     ];
-    let expected = file!["first_snippet_is_primary.term.svg"];
+
+    let expected_ascii = file!["first_snippet_is_primary.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = file!["first_snippet_is_primary.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
