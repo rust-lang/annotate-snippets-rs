@@ -4235,3 +4235,49 @@ error: showing how tabs are rendered
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn duplicate_annotations() {
+    let source = r#"foobar
+
+            foobar 🚀
+"#;
+    let report = &[
+        Group::with_title(Level::WARNING.primary_title("whatever")).element(
+            Snippet::source(source)
+                .path("whatever")
+                .annotation(AnnotationKind::Primary.span(0..source.len()).label("blah"))
+                .annotation(AnnotationKind::Primary.span(0..source.len()).label("blah")),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+warning: whatever
+ --> whatever:1:1
+  |
+1 | / foobar
+2 | |
+3 | |             foobar 🚀
+  | |                      ^
+  | |______________________|
+  | |______________________blah
+  |                        blah
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(report), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: whatever
+  ╭▸ whatever:1:1
+  │
+1 │ ┏ foobar
+2 │ ┃
+3 │ ┃             foobar 🚀
+  │ ┃                      ╿
+  │ ┃━━━━━━━━━━━━━━━━━━━━━━│
+  │ ┗━━━━━━━━━━━━━━━━━━━━━━blah
+  ╰╴                       blah
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(report), expected_unicode);
+}
