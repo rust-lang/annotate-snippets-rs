@@ -3009,9 +3009,7 @@ fn max_line_number(groups: &[Group<'_>]) -> usize {
 fn newline_count(body: &str) -> usize {
     #[cfg(feature = "simd")]
     {
-        memchr::memchr_iter(b'\n', body.as_bytes())
-            .count()
-            .saturating_sub(1)
+        memchr::memchr_iter(b'\n', body.as_bytes()).count()
     }
     #[cfg(not(feature = "simd"))]
     {
@@ -3021,7 +3019,7 @@ fn newline_count(body: &str) -> usize {
 
 #[cfg(test)]
 mod test {
-    use super::OUTPUT_REPLACEMENTS;
+    use super::{newline_count, OUTPUT_REPLACEMENTS};
     use snapbox::IntoData;
 
     fn format_replacements(replacements: Vec<(char, &str)>) -> String {
@@ -3042,5 +3040,24 @@ mod test {
         let expected = format_replacements(expected);
         let actual = format_replacements(OUTPUT_REPLACEMENTS.to_owned());
         snapbox::assert_data_eq!(actual, expected.into_data().raw());
+    }
+
+    #[test]
+    fn ensure_newline_count_correct() {
+        let source = r#"
+                cargo-features = ["path-bases"]
+
+                [package]
+                name = "foo"
+                version = "0.5.0"
+                authors = ["wycats@example.com"]
+
+                [dependencies]
+                bar = { base = '^^not-valid^^', path = 'bar' }
+            "#;
+        let actual_count = newline_count(source);
+        let expected_count = 10;
+
+        assert_eq!(expected_count, actual_count);
     }
 }
