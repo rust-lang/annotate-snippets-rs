@@ -3227,3 +3227,79 @@ LL │     t.field;
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn multiple_line_num_widths() {
+    let source = r#"
+                cargo-features = ["path-bases"]
+
+                [package]
+                name = "foo"
+                version = "0.5.0"
+                authors = ["wycats@example.com"]
+
+                [dependencies]
+                bar = { base = '^^not-valid^^', path = 'bar' }
+            "#;
+
+    let title = "invalid character `^` in path base name: `^^not-valid^^`, the first character must be a Unicode XID start character (most letters or `_`)";
+
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title(title)).element(
+            Snippet::source(source)
+                .path("Cargo.toml")
+                .annotation(AnnotationKind::Primary.span(243..282))
+                .annotation(AnnotationKind::Visible.span(206..219)),
+        ),
+    ];
+
+    #[cfg(feature = "simd")]
+    {
+    let expected_ascii = str![[r#"
+error: invalid character `^` in path base name: `^^not-valid^^`, the first character must be a Unicode XID start character (most letters or `_`)
+ --> Cargo.toml:10:24
+  |
+9 |                 [dependencies]
+10|                 bar = { base = '^^not-valid^^', path = 'bar' }
+  |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: invalid character `^` in path base name: `^^not-valid^^`, the first character must be a Unicode XID start character (most letters or `_`)
+  ╭▸ Cargo.toml:10:24
+  │
+9 │                 [dependencies]
+10│                 bar = { base = '^^not-valid^^', path = 'bar' }
+  ╰╴                       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+    }
+
+    #[cfg(not(feature = "simd"))]
+    {
+    let expected_ascii = str![[r#"
+error: invalid character `^` in path base name: `^^not-valid^^`, the first character must be a Unicode XID start character (most letters or `_`)
+  --> Cargo.toml:10:24
+   |
+ 9 |                 [dependencies]
+10 |                 bar = { base = '^^not-valid^^', path = 'bar' }
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: invalid character `^` in path base name: `^^not-valid^^`, the first character must be a Unicode XID start character (most letters or `_`)
+   ╭▸ Cargo.toml:10:24
+   │
+ 9 │                 [dependencies]
+10 │                 bar = { base = '^^not-valid^^', path = 'bar' }
+   ╰╴                       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+    }
+}
