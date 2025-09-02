@@ -7,14 +7,14 @@ use snapbox::{assert_data_eq, str};
 
 #[test]
 fn test_i_29() {
-    let snippets = &[
+    let input = &[
         Group::with_title(Level::ERROR.primary_title("oops")).element(
             Snippet::source("First line\r\nSecond oops line")
                 .path("<current file>")
                 .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: oops
  --> <current file>:2:8
   |
@@ -23,18 +23,28 @@ error: oops
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ <current file>:2:8
+  │
+2 │ Second oops line
+  ╰╴       ━━━━ oops
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn test_point_to_double_width_characters() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こんにちは、世界")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(18..24).label("world")),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:7
   |
@@ -43,18 +53,28 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:7
+  │
+1 │ こんにちは、世界
+  ╰╴            ━━━━ world
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn test_point_to_double_width_characters_across_lines() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("おはよう\nございます")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(6..22).label("Good morning")),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:3
   |
@@ -65,19 +85,31 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:3
+  │
+1 │   おはよう
+  │ ┏━━━━━┛
+2 │ ┃ ございます
+  ╰╴┗━━━━━━┛ Good morning
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn test_point_to_double_width_characters_multiple() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("お寿司\n食べたい🍣")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(0..9).label("Sushi1"))
             .annotation(AnnotationKind::Context.span(16..22).label("Sushi2")),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:1
   |
@@ -88,18 +120,30 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:1
+  │
+1 │ お寿司
+  │ ━━━━━━ Sushi1
+2 │ 食べたい🍣
+  ╰╴    ──── Sushi2
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn test_point_to_double_width_characters_mixed() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こんにちは、新しいWorld！")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(18..32).label("New world")),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:7
   |
@@ -108,7 +152,17 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:7
+  │
+1 │ こんにちは、新しいWorld！
+  ╰╴            ━━━━━━━━━━━ New world
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -117,9 +171,13 @@ fn test_format_title() {
         Level::ERROR.primary_title("This is a title").id("E0001"),
     )];
 
-    let expected = str![r#"error[E0001]: This is a title"#];
+    let expected_ascii = str![r#"error[E0001]: This is a title"#];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str!["error[E0001]: This is a title"];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -131,14 +189,23 @@ fn test_format_snippet_only() {
             .fold(false),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
      |
 5402 | This is line 1
 5403 | This is line 2
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+     ╭▸ 
+5402 │ This is line 1
+5403 │ This is line 2
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -158,7 +225,7 @@ fn test_format_snippets_continuation() {
                 .path("file2.rs")
                 .fold(false),
         )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
     --> file1.rs
      |
@@ -169,7 +236,20 @@ error:
    2 | This is slice 2
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+     ╭▸ file1.rs
+     │
+5402 │ This is slice 1
+     │
+     ⸬  file2.rs:2
+     │
+   2 │ This is slice 2
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -189,7 +269,7 @@ fn test_format_snippet_annotation_standalone() {
                     .label("Test annotation"),
             ),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
      |
 5402 | This is line 1
@@ -197,20 +277,38 @@ error:
      |        -- Test annotation
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+     ╭▸ 
+5402 │ This is line 1
+5403 │ This is line 2
+     ╰╴       ── Test annotation
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn test_format_footer_title() {
     let input = &[Group::with_title(Level::ERROR.primary_title(""))
         .element(Level::ERROR.message("This __is__ a title"))];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
   |
   = error: This __is__ a title
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  │
+  ╰ error: This __is__ a title
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -237,14 +335,23 @@ fn test_source_content() {
             .line_start(56)
             .fold(false),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
    |
 56 | This is an example
 57 | of content lines
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+   ╭▸ 
+56 │ This is an example
+57 │ of content lines
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -255,14 +362,23 @@ fn test_source_annotation_standalone_singleline() {
             .line_start(1)
             .annotation(AnnotationKind::Context.span(0..5).label("Example string")),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
   |
 1 | tests
   | ----- Example string
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ 
+1 │ tests
+  ╰╴───── Example string
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -274,7 +390,7 @@ fn test_source_annotation_standalone_multiline() {
             .annotation(AnnotationKind::Context.span(0..5).label("Example string"))
             .annotation(AnnotationKind::Context.span(0..5).label("Second line")),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
   |
 1 | tests
@@ -284,7 +400,19 @@ error:
   | Second line
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ 
+1 │ tests
+  │ ┬────
+  │ │
+  │ Example string
+  ╰╴Second line
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -294,14 +422,23 @@ fn test_only_source() {
             .path("file.rs")
             .fold(false),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file.rs
   |
 1 |
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file.rs
+  │
+1 │
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -312,7 +449,7 @@ fn test_anon_lines() {
             .line_start(56)
             .fold(false),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
    |
 LL | This is an example
@@ -321,7 +458,18 @@ LL |
 LL | abc
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+   ╭▸ 
+LL │ This is an example
+LL │ of content lines
+LL │
+LL │ abc
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -336,7 +484,7 @@ fn issue_130() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: dummy
  --> file/path:4:1
   |
@@ -345,7 +493,18 @@ error: dummy
   | |___^
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: dummy
+  ╭▸ file/path:4:1
+  │
+4 │ ┏ bar
+5 │ ┃ baz
+  ╰╴┗━━━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -361,7 +520,7 @@ a\"
             .annotation(AnnotationKind::Primary.span(0..10)),
         // 1..10 works
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:1
   |
@@ -369,8 +528,19 @@ error:
 4 | | // ...
   | |_______^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:1
+  │
+3 │ ┏ a"
+4 │ ┃ // ...
+  ╰╴┗━━━━━━━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -384,7 +554,7 @@ fn char_and_nl_annotate_char() {
             .annotation(AnnotationKind::Primary.span(0..2)),
         // a\r
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:1
   |
@@ -392,8 +562,19 @@ error:
   | ^
 4 | b
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:1
+  │
+3 │ a
+  │ ━
+4 │ b
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -406,7 +587,7 @@ fn char_eol_annotate_char() {
             .annotation(AnnotationKind::Primary.span(0..3)),
         // a\r\n
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:1
   |
@@ -414,13 +595,24 @@ error:
 4 | | b
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:1
+  │
+3 │ ┏ a
+4 │ ┃ b
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn char_eol_annotate_char_double_width() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こん\r\nにちは\r\n世界")
             .path("<current file>")
             .fold(false)
@@ -428,7 +620,7 @@ fn char_eol_annotate_char_double_width() {
         // ん\r\n
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:2
   |
@@ -440,12 +632,25 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:2
+  │
+1 │   こん
+  │ ┏━━━┛
+2 │ ┃ にちは
+  │ ┗━┛
+3 │   世界
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn annotate_newline_empty_span() {
-    let message = &[
+    let input = &[
         Group::with_title(Level::ERROR.primary_title("bad")).element(
             Snippet::source("\n\n\n\n\n\n\n")
                 .path("test.txt")
@@ -462,7 +667,7 @@ error: bad
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(message), expected_ascii);
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: bad
@@ -473,7 +678,7 @@ error: bad
 "#]];
 
     let renderer = renderer.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer.render(message), expected_unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -487,7 +692,7 @@ fn annotate_eol() {
             .annotation(AnnotationKind::Primary.span(1..2)),
         // \r
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -495,8 +700,19 @@ error:
   |  ^
 4 | b
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │ a
+  │  ━
+4 │ b
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -509,7 +725,7 @@ fn annotate_eol2() {
             .annotation(AnnotationKind::Primary.span(1..3)),
         // \r\n
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -518,8 +734,20 @@ error:
 4 | | b
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -532,7 +760,7 @@ fn annotate_eol3() {
             .annotation(AnnotationKind::Primary.span(2..3)),
         // \n
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:3
   |
@@ -541,8 +769,20 @@ error:
 4 | | b
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:3
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -556,7 +796,7 @@ fn annotate_eol4() {
             .annotation(AnnotationKind::Primary.span(2..2)),
         // \n
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:3
   |
@@ -564,13 +804,24 @@ error:
   |  ^
 4 | b
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:3
+  │
+3 │ a
+  │  ━
+4 │ b
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn annotate_eol_double_width() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こん\r\nにちは\r\n世界")
             .path("<current file>")
             .fold(false)
@@ -578,7 +829,7 @@ fn annotate_eol_double_width() {
         // \n
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:4
   |
@@ -590,7 +841,20 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:4
+  │
+1 │   こん
+  │ ┏━━━━━┛
+2 │ ┃ にちは
+  │ ┗━┛
+3 │   世界
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -603,7 +867,7 @@ fn multiline_eol_start() {
             .annotation(AnnotationKind::Primary.span(1..4)),
         // \r\nb
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -612,8 +876,20 @@ error:
 4 | | b
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -626,7 +902,7 @@ fn multiline_eol_start2() {
             .annotation(AnnotationKind::Primary.span(2..4)),
         // \nb
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:3
   |
@@ -635,8 +911,20 @@ error:
 4 | | b
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:3
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -649,7 +937,7 @@ fn multiline_eol_start3() {
             .annotation(AnnotationKind::Primary.span(1..3)),
         // \nb
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -658,13 +946,25 @@ error:
 4 | | b
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn multiline_eol_start_double_width() {
-    let snippets = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
         Snippet::source("こん\r\nにちは\r\n世界")
             .path("<current file>")
             .fold(false)
@@ -672,7 +972,7 @@ fn multiline_eol_start_double_width() {
         // \r\nに
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> <current file>:1:4
   |
@@ -684,7 +984,20 @@ error:
 "#]];
 
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(snippets), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ <current file>:1:4
+  │
+1 │   こん
+  │ ┏━━━━━┛
+2 │ ┃ にちは
+  │ ┗━━┛
+3 │   世界
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -697,7 +1010,7 @@ fn multiline_eol_start_eol_end() {
             .annotation(AnnotationKind::Primary.span(1..4)),
         // \nb\n
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -707,8 +1020,21 @@ error:
 5 | | c
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+5 │ ┃ c
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -722,7 +1048,7 @@ fn multiline_eol_start_eol_end2() {
             .annotation(AnnotationKind::Primary.span(2..5)),
         // \nb\r
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:3
   |
@@ -732,8 +1058,21 @@ error:
   | |__^
 5 |   c
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:3
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  │ ┗━━┛
+5 │   c
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -746,7 +1085,7 @@ fn multiline_eol_start_eol_end3() {
             .annotation(AnnotationKind::Primary.span(2..6)),
         // \nb\r\n
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:3
   |
@@ -756,8 +1095,21 @@ error:
 5 | | c
   | |_^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:3
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+5 │ ┃ c
+  ╰╴┗━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -770,7 +1122,7 @@ fn multiline_eol_start_eof_end() {
             .annotation(AnnotationKind::Primary.span(1..5)),
         // \r\nb(EOF)
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -779,8 +1131,20 @@ error:
 4 | | b
   | |__^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │   a
+  │ ┏━━┛
+4 │ ┃ b
+  ╰╴┗━━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -793,7 +1157,7 @@ fn multiline_eol_start_eof_end_double_width() {
             .annotation(AnnotationKind::Primary.span(3..9)),
         // \r\nに(EOF)
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: 
  --> file/path:3:2
   |
@@ -802,8 +1166,20 @@ error:
 4 | | に
   | |___^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+  ╭▸ file/path:3:2
+  │
+3 │   ん
+  │ ┏━━━┛
+4 │ ┃ に
+  ╰╴┗━━━┛
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -826,7 +1202,7 @@ fn two_single_line_same_line() {
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unused optional dependency
  --> Cargo.toml:4:1
   |
@@ -835,8 +1211,20 @@ error: unused optional dependency
   | |
   | I need this to be really long so I can test overlaps
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(false);
-    assert_data_eq!(renderer.render(input), expected);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unused optional dependency
+  ╭▸ Cargo.toml:4:1
+  │
+4 │ bar = { version = "0.1.0", optional = true }
+  │ ┯━━                        ─────────────── This should also be long but not too long
+  │ │
+  ╰╴I need this to be really long so I can test overlaps
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -862,7 +1250,7 @@ bar = { version = "0.1.0", optional = true }
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unused optional dependency
   |
 4 |   bar = { version = "0.1.0", optional = true }
@@ -875,7 +1263,22 @@ error: unused optional dependency
   | |__________________________________________^ I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unused optional dependency
+  ╭▸ 
+4 │   bar = { version = "0.1.0", optional = true }
+  │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━┬─────────────┛
+  │ ┃                            │
+  │ ┃                            This should also be long but not too long
+5 │ ┃ this is another line
+6 │ ┃ so is this
+7 │ ┃ bar = { version = "0.1.0", optional = true }
+  ╰╴┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ I need this to be really long so I can test overlaps
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -906,7 +1309,7 @@ bar = { version = "0.1.0", optional = true }
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unused optional dependency
   |
 4 |    bar = { version = "0.1.0", optional = true }
@@ -922,7 +1325,25 @@ error: unused optional dependency
   |                            I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unused optional dependency
+  ╭▸ 
+4 │    bar = { version = "0.1.0", optional = true }
+  │ ┏━━━━━━━━━━╿━━━━━━━━━━━━━━━━━━┬─────────────┛
+  │ ┃          │                  │
+  │ ┃┏━━━━━━━━━┙                  This should also be long but not too long
+  │ ┃┃
+5 │ ┃┃ this is another line
+6 │ ┃┃ so is this
+7 │ ┃┃ bar = { version = "0.1.0", optional = true }
+  │ ┗┃━━━━━━━━━━━━━━━━━━━━━━━━━╿━━━━━━━━━━━━━━━━┛ I need this to be really long so I can test overlaps
+  │  ┗━━━━━━━━━━━━━━━━━━━━━━━━━┥
+  ╰╴                           I need this to be really long so I can test overlaps
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -959,7 +1380,7 @@ this is another line
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unused optional dependency
   |
 4 |     bar = { version = "0.1.0", optional = true }
@@ -978,7 +1399,28 @@ error: unused optional dependency
   |   |____^ I need this to be really long so I can test overlaps
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unused optional dependency
+  ╭▸ 
+4 │     bar = { version = "0.1.0", optional = true }
+  │ ┏━━━━━━━━━━━╿━━━━━━━━━━━━━━━━━━┬─────────────┛
+  │ ┃           │                  │
+  │ ┃┏━━━━━━━━━━┙                  This should also be long but not too long
+  │ ┃┃
+5 │ ┃┃  this is another line
+  │ ┃┃┏━━━━┛
+6 │ ┃┃┃ so is this
+7 │ ┃┃┃ bar = { version = "0.1.0", optional = true }
+  │ ┗┃┃━━━━━━━━━━━━━━━━━━━━━━━━━╿━━━━━━━━━━━━━━━━┛ I need this to be really long so I can test overlaps
+  │  ┗┃━━━━━━━━━━━━━━━━━━━━━━━━━┥
+  │   ┃                         I need this to be really long so I can test overlaps
+8 │   ┃ this is another line
+  ╰╴  ┗━━━━┛ I need this to be really long so I can test overlaps
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -993,7 +1435,7 @@ fn origin_correct_start_line() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: title
  --> origin.txt:3:1
   |
@@ -1004,7 +1446,20 @@ error: title
 4 | ddd
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: title
+  ╭▸ origin.txt:3:1
+  │
+1 │ aaa
+2 │ bbb
+3 │ ccc
+  │ ━━━ annotation
+4 │ ddd
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1023,7 +1478,7 @@ fn origin_correct_mid_line() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: title
  --> origin.txt:3:2
   |
@@ -1034,13 +1489,26 @@ error: title
 4 | ddd
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: title
+  ╭▸ origin.txt:3:2
+  │
+1 │ aaa
+2 │ bbb
+3 │ ccc
+  │  ━━ annotation
+4 │ ddd
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn two_suggestions_same_span() {
     let source = r#"    A.foo();"#;
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title("expected value, found enum `A`")
@@ -1055,7 +1523,7 @@ fn two_suggestions_same_span() {
         .element(Snippet::source(source).patch(Patch::new(4..5, "A::Unit"))),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0423]: expected value, found enum `A`
    |
 LL |     A.foo();
@@ -1070,7 +1538,24 @@ LL |     A::Unit.foo();
    |      ++++++
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0423]: expected value, found enum `A`
+   ╭▸ 
+LL │     A.foo();
+   │     ━
+   ╰╴
+help: you might have meant to use one of the following enum variants
+   ╭╴
+LL -     A.foo();
+LL +     (A::Tuple()).foo();
+   ├╴
+LL │     A::Unit.foo();
+   ╰╴     ++++++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1094,7 +1579,7 @@ mod banana {
 fn main() {
     banana::Chaenomeles.pick()
 }"#;
-    let input_new =
+    let input =
         &[Group::with_title(Level::ERROR
             .primary_title("no method named `pick` found for struct `Chaenomeles` in the current scope")
             .id("E0599")).element(
@@ -1125,7 +1610,7 @@ fn main() {
 
                             .patch(Patch::new(1..1, "use banana::Peach;\n")),
                    )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0599]: no method named `pick` found for struct `Chaenomeles` in the current scope
    |
 LL |     pub struct Chaenomeles;
@@ -1142,14 +1627,33 @@ LL + use banana::Peach;
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0599]: no method named `pick` found for struct `Chaenomeles` in the current scope
+   ╭▸ 
+LL │     pub struct Chaenomeles;
+   │     ────────────────────── method `pick` not found for this struct
+   ‡
+LL │     banana::Chaenomeles.pick()
+   │                         ━━━━ method not found in `Chaenomeles`
+   ╰╴
+help: the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them
+   ╭╴
+LL + use banana::Apple;
+   ├╴
+LL + use banana::Peach;
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn single_line_non_overlapping_suggestions() {
     let source = r#"    A.foo();"#;
 
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title("expected value, found enum `A`")
@@ -1168,7 +1672,7 @@ fn single_line_non_overlapping_suggestions() {
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0423]: expected value, found enum `A`
    |
 LL |     A.foo();
@@ -1181,13 +1685,28 @@ LL +     (A::Tuple()).bar();
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0423]: expected value, found enum `A`
+   ╭▸ 
+LL │     A.foo();
+   │     ━
+   ╰╴
+help: make these changes and things will work
+   ╭╴
+LL -     A.foo();
+LL +     (A::Tuple()).bar();
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
 fn single_line_non_overlapping_suggestions2() {
     let source = r#"    ThisIsVeryLong.foo();"#;
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title("Found `ThisIsVeryLong`")
@@ -1206,7 +1725,7 @@ fn single_line_non_overlapping_suggestions2() {
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0423]: Found `ThisIsVeryLong`
    |
 LL |     ThisIsVeryLong.foo();
@@ -1219,7 +1738,22 @@ LL +     (A::Tuple()).bar();
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0423]: Found `ThisIsVeryLong`
+   ╭▸ 
+LL │     ThisIsVeryLong.foo();
+   │     ━━━━━━━━━━━━━━
+   ╰╴
+help: make these changes and things will work
+   ╭╴
+LL -     ThisIsVeryLong.foo();
+LL +     (A::Tuple()).bar();
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1232,7 +1766,7 @@ fn multiple_replacements() {
     y();
 "#;
 
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title(
@@ -1275,7 +1809,7 @@ fn multiple_replacements() {
                 .patch(Patch::new(66..68, "(self)")),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable
    |
 LL |     let y = || {
@@ -1298,7 +1832,32 @@ LL ~     y(self);
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable
+   ╭▸ 
+LL │     let y = || {
+   │             ━━ immutable borrow occurs here
+LL │         self.bar();
+   │         ━━━━ first borrow occurs due to use of `*self` in closure
+LL │     };
+LL │     self.qux();
+   │     ━━━━━━━━━━ mutable borrow occurs here
+LL │     y();
+   │     ━ immutable borrow later used here
+   ╰╴
+help: try explicitly pass `&Self` into the Closure as an argument
+   ╭╴
+LL ±     let y = |this: &Self| {
+LL ±         this.bar();
+LL │     };
+LL │     self.qux();
+LL ±     y(self);
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1315,7 +1874,7 @@ fn main() {
     test1();
 }"#;
 
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title("cannot borrow `chars` as mutable more than once at a time")
@@ -1354,7 +1913,7 @@ fn main() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0499]: cannot borrow `chars` as mutable more than once at a time
    |
 LL |     for _c in chars.by_ref() {
@@ -1373,7 +1932,28 @@ LL ~         iter.next();
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0499]: cannot borrow `chars` as mutable more than once at a time
+   ╭▸ 
+LL │     for _c in chars.by_ref() {
+   │               ┬─────────────
+   │               │
+   │               first mutable borrow occurs here
+   │               first borrow later used here
+LL │         chars.next();
+   │         ━━━━━ second mutable borrow occurs here
+   ╰╴
+help: if you want to call `next` on a iterator within the loop, consider using `while let`
+   ╭╴
+LL ±     let iter = chars.by_ref();
+LL ±     while let Some(_c) = iter.next() {
+LL ±         iter.next();
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1395,7 +1975,7 @@ struct Foo {
 
 fn main() {}"#;
 
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title("failed to resolve: use of undeclared crate or module `st`")
@@ -1419,7 +1999,7 @@ fn main() {}"#;
         )
         .element(Snippet::source(source).patch(Patch::new(122..126, ""))),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0433]: failed to resolve: use of undeclared crate or module `st`
    |
 LL |     bar: st::cell::Cell<bool>
@@ -1441,7 +2021,30 @@ LL +     bar: cell::Cell<bool>
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0433]: failed to resolve: use of undeclared crate or module `st`
+   ╭▸ 
+LL │     bar: st::cell::Cell<bool>
+   │          ━━ use of undeclared crate or module `st`
+   ╰╴
+help: there is a crate or module with a similar name
+   ╭╴
+LL │     bar: std::cell::Cell<bool>
+   ╰╴           +
+help: consider importing this module
+   ╭╴
+LL + use std::cell;
+   ╰╴
+help: if you import `cell`, refer to it directly
+   ╭╴
+LL -     bar: st::cell::Cell<bool>
+LL +     bar: cell::Cell<bool>
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1462,7 +2065,7 @@ where
 
 fn main() {}"#;
 
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title(
@@ -1489,7 +2092,7 @@ fn main() {}"#;
         ))
         .element(Snippet::source(source).patch(Patch::new(52..85, ""))),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    |
 LL | fn foo<T>(foo: Wrapper<T>)
@@ -1507,7 +2110,27 @@ LL -     Sized
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   ╭▸ 
+LL │ fn foo<T>(foo: Wrapper<T>)
+   │        ┬       ━━━━━━━━━━ doesn't have a size known at compile-time
+   │        │
+   │        this type parameter needs to be `Sized`
+   ╰╴
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+   ╭╴
+LL - where
+LL -     T
+LL -     :
+LL -     ?
+LL -     Sized
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1527,7 +2150,7 @@ and where
 }
 
 fn main() {}"#;
-    let input_new = &[Group::with_title(Level::ERROR
+    let input = &[Group::with_title(Level::ERROR
         .primary_title("the size for values of type `T` cannot be known at compilation time")
         .id("E0277")).element(Snippet::source(source)
             .line_start(1)
@@ -1586,7 +2209,7 @@ fn main() {}"#;
                 .patch(Patch::new(89..89, "+ Send"))
                 ,
         )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
   --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:4:16
    |
@@ -1618,7 +2241,41 @@ LL + and + Send
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   ╭▸ $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:4:16
+   │
+LL │ fn foo<T>(foo: Wrapper<T>)
+   │        ┬       ━━━━━━━━━━ doesn't have a size known at compile-time
+   │        │
+   │        this type parameter needs to be `Sized`
+   ╰╴
+note: required by an implicit `Sized` bound in `Wrapper`
+   ╭▸ $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
+   │
+LL │ struct Wrapper<T>(T);
+   ╰╴               ━ required by the implicit `Sized` requirement on this type parameter in `Wrapper`
+help: you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`
+   ╭▸ $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
+   │
+LL │ struct Wrapper<T>(T);
+   │                ┯  ─ ...if indirection were used here: `Box<T>`
+   │                │
+   ╰╴               this could be changed to `T: ?Sized`...
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+   ╭╴
+LL - and where
+LL -     T
+LL -     :
+LL -     ?
+LL -     Sized
+LL + and + Send
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1633,7 +2290,7 @@ quack
 zappy
 "#;
 
-    let input_new = &[
+    let input = &[
         Group::with_title(
             Level::ERROR
                 .primary_title(
@@ -1652,7 +2309,7 @@ zappy
                 .patch(Patch::new(22..40, "")),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    |
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
@@ -1665,7 +2322,22 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
    |
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   ╰╴
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+   ╭╴
+ 8 - cargo
+ 9 - fuzzy
+10 - pizza
+11 - jumps
+ 8 + campy
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1704,7 +2376,7 @@ fn main() {
 }
 "#;
 
-    let input_new = &[Group::with_title(Level::ERROR
+    let input = &[Group::with_title(Level::ERROR
         .primary_title("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")).element(Snippet::source(source)
             .line_start(4)
@@ -1728,7 +2400,31 @@ fn main() {
                 ,
         )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
+error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
+  --> $DIR/E0271.rs:20:5
+   |
+LL | /     Box::new(
+LL | |         Ok::<_, ()>(
+LL | |             Err::<(), _>(
+LL | |                 Ok::<_, ()>(
+...  |
+LL | |     )
+   | |_____^ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
+   |
+note: expected this to be `Foo`
+  --> $DIR/E0271.rs:10:18
+   |
+LL |     type Error = E;
+   |                  ^
+   = note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
+"#]];
+    let renderer = Renderer::plain()
+        .term_width(40)
+        .anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
 error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
    ╭▸ $DIR/E0271.rs:20:5
    │
@@ -1747,11 +2443,8 @@ LL │     type Error = E;
    │                  ━
    ╰ note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
 "#]];
-    let renderer = Renderer::plain()
-        .term_width(40)
-        .decor_style(DecorStyle::Unicode)
-        .anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1790,7 +2483,7 @@ fn main() {
 }
 "#;
 
-    let input_new = &[Group::with_title(Level::ERROR
+    let input = &[Group::with_title(Level::ERROR
         .primary_title("type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`")
         .id("E0271")).element(Snippet::source(source)
             .line_start(4)
@@ -1815,7 +2508,32 @@ fn main() {
             Level::NOTE.message("a second note"),
         )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
+error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
+  --> $DIR/E0271.rs:20:5
+   |
+LL | /     Box::new(
+LL | |         Ok::<_, ()>(
+LL | |             Err::<(), _>(
+LL | |                 Ok::<_, ()>(
+...  |
+LL | |     )
+   | |_____^ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
+   |
+note: expected this to be `Foo`
+  --> $DIR/E0271.rs:10:18
+   |
+LL |     type Error = E;
+   |                  ^
+   = note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
+   = note: a second note
+"#]];
+    let renderer = Renderer::plain()
+        .term_width(40)
+        .anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
 error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
    ╭▸ $DIR/E0271.rs:20:5
    │
@@ -1835,11 +2553,8 @@ LL │     type Error = E;
    ├ note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
    ╰ note: a second note
 "#]];
-    let renderer = Renderer::plain()
-        .term_width(40)
-        .decor_style(DecorStyle::Unicode)
-        .anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1941,7 +2656,7 @@ fn main() {
 }
 "#;
 
-    let input_new = &[Group::with_title(Level::ERROR
+    let input = &[Group::with_title(Level::ERROR
         .primary_title("mismatched types")
         .id("E0308")).element(
             Snippet::source(source)
@@ -1970,7 +2685,38 @@ fn main() {
                 ,
         )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/long-E0308.rs:48:9
+   |
+LL |        let x: Atype<
+   |  _____________-
+LL | |        Btype<
+LL | |          Ctype<
+LL | |            Atype<
+...  |
+LL | |        i32
+LL | |      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok...
+   | | _____-___^
+   | ||_____|
+   |  |     expected due to this
+LL |  |         Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok...
+LL |  |             Ok("")
+LL |  |         ))))))))))))))))))))))))))))))
+LL |  |     )))))))))))))))))))))))))))))];
+   |  |__________________________________^ expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
+   |
+   = note: expected struct `Atype<Btype<..., i32>, i32>`
+                found enum `Result<Result<..., _>, _>`
+   = note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
+   = note: consider using `--verbose` to print the full type name to the console
+"#]];
+    let renderer = Renderer::plain()
+        .term_width(60)
+        .anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
 error[E0308]: mismatched types
    ╭▸ $DIR/long-E0308.rs:48:9
    │
@@ -1996,11 +2742,8 @@ LL │  ┃     )))))))))))))))))))))))))))))];
    ├ note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
    ╰ note: consider using `--verbose` to print the full type name to the console
 "#]];
-    let renderer = Renderer::plain()
-        .term_width(60)
-        .decor_style(DecorStyle::Unicode)
-        .anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2025,7 +2768,7 @@ fn main() {
 }
 "#;
 
-    let input_new = &[Group::with_title(Level::ERROR
+    let input = &[Group::with_title(Level::ERROR
         .primary_title("mismatched types")
         .id("E0308")).element(
             Snippet::source(source)
@@ -2057,7 +2800,30 @@ fn main() {
                 .annotation(AnnotationKind::Context.span(71..76)),
         )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
+error[E0308]: mismatched types
+  --> $DIR/unicode-output.rs:23:11
+   |
+LL |     query(wrapped_fn);
+   |     ----- ^^^^^^^^^^ one type is more general than the other
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`
+                 found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`
+note: function defined here
+  --> $DIR/unicode-output.rs:12:10
+   |
+LL |   fn query(_: fn(Box<(dyn Any + Send + '_)>) -> Pin<Box<(
+   |  ____-----_^
+LL | |     dyn Future<Output = Result<Box<(dyn Any + 'static)>, String>> + Send + 'static
+LL | | )>>) {}
+   | |___^
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
 error[E0308]: mismatched types
    ╭▸ $DIR/unicode-output.rs:23:11
    │
@@ -2077,10 +2843,8 @@ LL │ ┃     dyn Future<Output = Result<Box<(dyn Any + 'static)>, String>> + S
 LL │ ┃ )>>) {}
    ╰╴┗━━━┛
 "#]];
-    let renderer = Renderer::plain()
-        .decor_style(DecorStyle::Unicode)
-        .anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input_new), expected);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 // This tests that an ellipsis is not inserted into Unicode text when a line
@@ -2110,8 +2874,8 @@ error: title
 5 | | ]
   | |_^ annotation
 "#]];
-    let renderer_ascii = Renderer::plain();
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: title
@@ -2124,8 +2888,8 @@ error: title
 5 │ ┃ ]
   ╰╴┗━┛ annotation
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2150,8 +2914,8 @@ error: expected item, found `?`
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
-    let renderer_ascii = Renderer::plain();
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
@@ -2161,8 +2925,8 @@ error: expected item, found `?`
   │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2187,8 +2951,8 @@ error: expected item, found `?`
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
-    let renderer_ascii = Renderer::plain().term_width(43);
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain().term_width(43);
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
@@ -2198,8 +2962,8 @@ error: expected item, found `?`
   │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2224,8 +2988,8 @@ error: expected item, found `?`
   = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
-    let renderer_ascii = Renderer::plain();
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: expected item, found `?`
@@ -2235,8 +2999,8 @@ error: expected item, found `?`
   │
   ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2275,8 +3039,8 @@ LL | ...♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾
    |                                                  expected due to this
 "#]];
 
-    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
@@ -2287,8 +3051,8 @@ LL │ …♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻�
    │                                                  │
    ╰╴                                                 expected due to this
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2350,8 +3114,8 @@ LL |     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓�
    |                                                                                                                                                                                         +++++++++++
 "#]];
 
-    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0369]: cannot add `&str` to `&str`
@@ -2370,8 +3134,8 @@ LL │     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓
    ╰╴                                                                                                                                                                                        +++++++++++
 "#]];
 
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2417,8 +3181,8 @@ LL | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�
    = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
 
-    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
@@ -2434,8 +3198,8 @@ LL │ �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W
    │ ━
    ╰ note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2468,7 +3232,7 @@ fn secondary_title_no_level_text() {
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0308]: mismatched types
   --> $DIR/mismatched-types.rs:3:19
    |
@@ -2481,7 +3245,22 @@ LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
      found reference `&'static [u8; 0]`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+   ╭▸ $DIR/mismatched-types.rs:3:19
+   │
+LL │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+   │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
+   │            │
+   │            expected due to this
+   │
+   ╰ expected reference `&str`
+     found reference `&'static [u8; 0]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2514,7 +3293,7 @@ fn secondary_title_custom_level_text() {
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0308]: mismatched types
   --> $DIR/mismatched-types.rs:3:19
    |
@@ -2527,7 +3306,22 @@ LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
              found reference `&'static [u8; 0]`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+   ╭▸ $DIR/mismatched-types.rs:3:19
+   │
+LL │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+   │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
+   │            │
+   │            expected due to this
+   │
+   ╰ custom: expected reference `&str`
+             found reference `&'static [u8; 0]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2614,8 +3408,8 @@ LL +         break;
    |
 "#]];
 
-    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0571]: `break` with value from a `while` loop
@@ -2636,8 +3430,8 @@ LL -         });
 LL +         break;
    ╰╴
 "#]];
-    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2651,7 +3445,7 @@ quack
 zappy
 "#;
 
-    let input_new = &[Group::with_title(
+    let input = &[Group::with_title(
         Level::ERROR
             .primary_title("the size for values of type `T` cannot be known at compilation time")
             .id("E0277"),
@@ -2662,7 +3456,7 @@ zappy
             .fold(false)
             .annotation(AnnotationKind::Primary.span(6..11)),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    |
  8 | cargo
@@ -2675,7 +3469,22 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 14 | zappy
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   ╭▸ 
+ 8 │ cargo
+ 9 │ fuzzy
+   │ ━━━━━
+10 │ pizza
+11 │ jumps
+12 │ crazy
+13 │ quack
+14 │ zappy
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2688,7 +3497,7 @@ fn empty_span_start_line() {
             .annotation(AnnotationKind::Primary.span(18..18).label("E112")),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
    |
  7 | #: E112
  8 | if False:
@@ -2698,7 +3507,19 @@ fn empty_span_start_line() {
 11 | print()
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+   ╭▸ 
+ 7 │ #: E112
+ 8 │ if False:
+ 9 │ print()
+   │ ━ E112
+10 │ #: E113
+11 │ print()
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2747,7 +3568,7 @@ fn main() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
  --> lint_example.rs:3:11
   |
@@ -2768,7 +3589,30 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
   |
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+  ╭▸ lint_example.rs:3:11
+  │
+3 │ [1, 2, 3].into_iter().for_each(|n| { *n; });
+  │           ━━━━━━━━━
+  │
+  ├ warning: this changes meaning in Rust 2021
+  ├ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+  ╰ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+  ╭╴
+3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+3 + [1, 2, 3].iter().for_each(|n| { *n; });
+  ╰╴
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+  ╭╴
+3 │ IntoIterator::into_iter(
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2845,7 +3689,7 @@ error:
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   ╰╴    ━━━━━━━━ annotation
 "#]];
-    let renderer = Renderer::plain().decor_style(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -2887,7 +3731,7 @@ error:
 1 │ def __call__(self, *vals: bytes, maxlen: int | None = None) -> list[bytes]: ...
   ╰╴    ━━━━━━━━ annotation
 "#]];
-    let renderer = Renderer::plain().decor_style(DecorStyle::Unicode);
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
@@ -3068,7 +3912,7 @@ fn main() {}
                     .patch(Patch::new(452..457, "::<_>")),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0282]: type annotations needed
   --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
    |
@@ -3081,7 +3925,22 @@ LL |         .sum::<_>() //~ ERROR type annotations needed
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0282]: type annotations needed
+   ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:12:10
+   │
+LL │         .sum::<_>() //~ ERROR type annotations needed
+   │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
+   ╰╴
+help: consider specifying the generic argument
+   ╭╴
+LL │         .sum::<_>() //~ ERROR type annotations needed
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3096,7 +3955,7 @@ quack
 zappy
 "#;
 
-    let input_new = &[Group::with_title(
+    let input = &[Group::with_title(
         Level::ERROR
             .primary_title("the size for values of type `T` cannot be known at compilation time")
             .id("E0277"),
@@ -3107,7 +3966,7 @@ zappy
             .annotation(AnnotationKind::Primary.span(1..6))
             .annotation(AnnotationKind::Visible.span(37..41)),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    |
 12 | cargo
@@ -3116,7 +3975,18 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 18 | zappy
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   ╭▸ 
+12 │ cargo
+   │ ━━━━━
+   ‡
+18 │ zappy
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3131,7 +4001,7 @@ quack
 zappy
 "#;
 
-    let input_new = &[Group::with_title(
+    let input = &[Group::with_title(
         Level::ERROR
             .primary_title("the size for values of type `T` cannot be known at compilation time")
             .id("E0277"),
@@ -3142,7 +4012,7 @@ zappy
             .annotation(AnnotationKind::Primary.span(1..6))
             .annotation(AnnotationKind::Visible.span(16..18)),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    |
 12 | cargo
@@ -3151,7 +4021,18 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 14 | pizza
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input_new), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: the size for values of type `T` cannot be known at compilation time
+   ╭▸ 
+12 │ cargo
+   │ ━━━━━
+13 │ fuzzy
+14 │ pizza
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]

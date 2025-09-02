@@ -22,7 +22,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:2:10
   |
@@ -32,7 +32,19 @@ error: foo
   | |_^ test
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:2:10
+  │
+2 │   fn foo() {
+  │ ┏━━━━━━━━━━┛
+3 │ ┃ }
+  ╰╴┗━┛ test
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn ends_on_col2() {
@@ -50,7 +62,7 @@ fn foo() {
                 .annotation(AnnotationKind::Primary.span(10..17).label("test")),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:2:10
   |
@@ -61,7 +73,20 @@ error: foo
   | |___^ test
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:2:10
+  │
+2 │   fn foo() {
+  │ ┏━━━━━━━━━━┛
+  ‡ ┃
+5 │ ┃   }
+  ╰╴┗━━━┛ test
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn non_nested() {
@@ -90,7 +115,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -104,7 +129,23 @@ error: foo
   |       `X` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │      X0 Y0
+  │ ┏━━━━┛  │
+  │ ┃┌──────┘
+4 │ ┃│   X1 Y1
+5 │ ┃│   X2 Y2
+  │ ┃└────╿──┘ `Y` is a good letter too
+  │ ┗━━━━━┥
+  ╰╴      `X` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn nested() {
@@ -132,7 +173,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -145,7 +186,22 @@ error: foo
   |       `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │      X0 Y0
+  │ ┏━━━━┛  │
+  │ ┃┌──────┘
+4 │ ┃│   Y1 X1
+  │ ┗│━━━━│━━┛ `X` is a good letter
+  │  └────┤
+  ╰╴      `Y` is a good letter too
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn different_overlap() {
@@ -175,7 +231,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:6
   |
@@ -189,7 +245,23 @@ error: foo
   |  |____- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:6
+  │
+3 │      X0 Y0 Z0
+  │ ┏━━━━━━━┛
+4 │ ┃    X1 Y1 Z1
+  │ ┃┌─────────┘
+5 │ ┃│   X2 Y2 Z2
+  │ ┗│━━━━┛ `X` is a good letter
+6 │  │   X3 Y3 Z3
+  ╰╴ └────┘ `Y` is a good letter too
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn triple_overlap() {
@@ -219,7 +291,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -235,7 +307,25 @@ error: foo
   |        `X` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │       X0 Y0 Z0
+  │ ┏━━━━━┛  │  │
+  │ ┃┌───────┘  │
+  │ ┃│┌─────────┘
+4 │ ┃││   X1 Y1 Z1
+5 │ ┃││   X2 Y2 Z2
+  │ ┃│└────╿──│──┘ `Z` label
+  │ ┃└─────│──┤
+  │ ┗━━━━━━┥  `Y` is a good letter too
+  ╰╴       `X` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn triple_exact_overlap() {
@@ -267,7 +357,7 @@ fn foo() {
 
     // This should have a `^` but we currently don't support the idea of a
     // "primary" annotation, which would solve this
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -281,7 +371,23 @@ error: foo
   |      `Z` label
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │ ┏   X0 Y0 Z0
+4 │ ┃   X1 Y1 Z1
+5 │ ┃   X2 Y2 Z2
+  │ ┃    ╿
+  │ ┃    │
+  │ ┃    `X` is a good letter
+  │ ┗━━━━`Y` is a good letter too
+  ╰╴     `Z` label
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn minimum_depth() {
@@ -312,7 +418,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:6
   |
@@ -330,7 +436,27 @@ error: foo
   |  |_______- `Z`
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:6
+  │
+3 │      X0 Y0 Z0
+  │ ┏━━━━━━━┛
+4 │ ┃    X1 Y1 Z1
+  │ ┃┌────╿─┘
+  │ ┗│━━━━┥
+  │  │    `X` is a good letter
+5 │  │   X2 Y2 Z2
+  │  └───│──────┘ `Y` is a good letter too
+  │  ┌───┘
+  │  │
+6 │  │   X3 Y3 Z3
+  ╰╴ └───────┘ `Z`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn non_overlapping() {
@@ -360,7 +486,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -373,7 +499,22 @@ error: foo
   | |__________- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │ ┏   X0 Y0 Z0
+4 │ ┃   X1 Y1 Z1
+  │ ┗━━━━┛ `X` is a good letter
+5 │     X2 Y2 Z2
+  │ ┌──────┘
+6 │ │   X3 Y3 Z3
+  ╰╴└──────────┘ `Y` is a good letter too
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn overlapping_start_and_end() {
@@ -403,7 +544,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:6
   |
@@ -418,7 +559,24 @@ error: foo
   |  |__________- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:6
+  │
+3 │      X0 Y0 Z0
+  │ ┏━━━━━━━┛
+4 │ ┃    X1 Y1 Z1
+  │ ┃┌────╿────┘
+  │ ┗│━━━━┥
+  │  │    `X` is a good letter
+5 │  │   X2 Y2 Z2
+6 │  │   X3 Y3 Z3
+  ╰╴ └──────────┘ `Y` is a good letter too
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_primary_without_message() {
@@ -442,7 +600,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:7
   |
@@ -450,7 +608,17 @@ error: foo
   |   ----^^^^-^^-- `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:7
+  │
+3 │   a { b { c } d }
+  ╰╴  ────━━━━─━━── `a` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_secondary_without_message() {
@@ -473,7 +641,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -481,7 +649,17 @@ error: foo
   |   ^^^^-------^^ `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a { b { c } d }
+  ╰╴  ━━━━───────━━ `a` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_primary_without_message_2() {
@@ -505,7 +683,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:7
   |
@@ -515,7 +693,19 @@ error: foo
   |       `b` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:7
+  │
+3 │   a { b { c } d }
+  │   ────┯━━━─━━──
+  │       │
+  ╰╴      `b` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_secondary_without_message_2() {
@@ -538,7 +728,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -548,7 +738,19 @@ error: foo
   |       `b` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a { b { c } d }
+  │   ━━━━┬──────━━
+  │       │
+  ╰╴      `b` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_secondary_without_message_3() {
@@ -571,7 +773,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -581,7 +783,19 @@ error: foo
   |   `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a  bc  d
+  │   ┯━━━────
+  │   │
+  ╰╴  `a` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_without_message() {
@@ -600,7 +814,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -608,7 +822,17 @@ error: foo
   |   ^^^^-------^^
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a { b { c } d }
+  ╰╴  ━━━━───────━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_without_message_2() {
@@ -628,7 +852,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:7
   |
@@ -636,7 +860,17 @@ error: foo
   |   ----^^^^-^^--
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:7
+  │
+3 │   a { b { c } d }
+  ╰╴  ────━━━━─━━──
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn multiple_labels_with_message() {
@@ -663,7 +897,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -674,7 +908,20 @@ error: foo
   |   `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a { b { c } d }
+  │   ┯━━━┬──────━━
+  │   │   │
+  │   │   `b` is a good letter
+  ╰╴  `a` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn ingle_label_with_message() {
@@ -696,7 +943,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -704,7 +951,17 @@ error: foo
   |   ^^^^^^^^^^^^^ `a` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a { b { c } d }
+  ╰╴  ━━━━━━━━━━━━━ `a` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn single_label_without_message() {
@@ -722,7 +979,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
  --> test.rs:3:3
   |
@@ -730,7 +987,17 @@ error: foo
   |   ^^^^^^^^^^^^^
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+  ╭▸ test.rs:3:3
+  │
+3 │   a { b { c } d }
+  ╰╴  ━━━━━━━━━━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn long_snippet() {
@@ -770,7 +1037,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
   --> test.rs:3:6
    |
@@ -789,7 +1056,28 @@ error: foo
    |  |__________- `Y` is a good letter too
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+   ╭▸ test.rs:3:6
+   │
+ 3 │      X0 Y0 Z0
+   │ ┏━━━━━━━┛
+ 4 │ ┃    X1 Y1 Z1
+   │ ┃┌────╿────┘
+   │ ┗│━━━━┥
+   │  │    `X` is a good letter
+ 5 │  │ 1
+ 6 │  │ 2
+ 7 │  │ 3
+   ‡  │
+15 │  │   X2 Y2 Z2
+16 │  │   X3 Y3 Z3
+   ╰╴ └──────────┘ `Y` is a good letter too
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 #[test]
 fn long_snippet_multiple_spans() {
@@ -829,7 +1117,7 @@ fn foo() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: foo
   --> test.rs:3:6
    |
@@ -851,7 +1139,31 @@ error: foo
    | |________^ `Y` is a good letter
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: foo
+   ╭▸ test.rs:3:6
+   │
+ 3 │      X0 Y0 Z0
+   │ ┏━━━━━━━┛
+ 4 │ ┃  1
+ 5 │ ┃  2
+ 6 │ ┃  3
+ 7 │ ┃    X1 Y1 Z1
+   │ ┃┌─────────┘
+ 8 │ ┃│ 4
+ 9 │ ┃│ 5
+10 │ ┃│ 6
+11 │ ┃│   X2 Y2 Z2
+   │ ┃└──────────┘ `Z` is a good letter too
+   ‡ ┃
+15 │ ┃  10
+16 │ ┃    X3 Y3 Z3
+   ╰╴┗━━━━━━━━┛ `Y` is a good letter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -888,7 +1200,7 @@ fn f(){||yield(((){),
             )
             .annotation(AnnotationKind::Primary.span(167..167)),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: this file contains an unclosed delimiter
   --> $DIR/issue-91334.rs:7:23
    |
@@ -900,7 +1212,21 @@ LL | fn f(){||yield(((){),
    |       unclosed delimiter
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: this file contains an unclosed delimiter
+   ╭▸ $DIR/issue-91334.rs:7:23
+   │
+LL │ fn f(){||yield(((){),
+   │       ┬       ┬    ┬ ━
+   │       │       │    │
+   │       │       │    missing open `(` for this delimiter
+   │       │       unclosed delimiter
+   ╰╴      unclosed delimiter
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -965,7 +1291,7 @@ fn main() {
                 .annotation(AnnotationKind::Context.span(483..581).label("break")),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0571]: `break` with value from a `while` loop
   --> $DIR/issue-114529-illegal-break-with-value.rs:22:9
    |
@@ -986,7 +1312,29 @@ LL | |         });
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0571]: `break` with value from a `while` loop
+   ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
+   │
+LL │       while true {
+   │       ────────── you can't `break` with a value in a `while` loop
+LL │ ┏         break (|| { //~ ERROR `break` with value from a `while` loop
+LL │ ┃             let local = 9;
+LL │ ┃         });
+   │ ┗━━━━━━━━━━┛ can only break with a value inside `loop` or breakable block
+   ╰╴
+help: use `break` on its own without a value inside this `while` loop
+   ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
+   │
+LL │ ┌         break (|| { //~ ERROR `break` with value from a `while` loop
+LL │ │             let local = 9;
+LL │ │         });
+   ╰╴└──────────┘ break
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1172,7 +1520,7 @@ fn nsize() {
                     ),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0277]: `V0usize` cannot be safely transmuted into `[usize; 2]`
   --> $DIR/primitive_reprs_should_have_correct_length.rs:144:44
    |
@@ -1195,7 +1543,32 @@ LL | |         }>
    | |__________^ required by this bound in `is_transmutable`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0277]: `V0usize` cannot be safely transmuted into `[usize; 2]`
+   ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:144:44
+   │
+LL │         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
+   │                                            ━━━━━━ the size of `V0usize` is smaller than the size of `[usize; 2]`
+   ╰╴
+note: required by a bound in `is_transmutable`
+   ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:12:14
+   │
+LL │       pub fn is_transmutable<Src, Dst>()
+   │              ─────────────── required by a bound in this function
+LL │       where
+LL │           Dst: TransmuteFrom<Src, {
+   │ ┏━━━━━━━━━━━━━━┛
+LL │ ┃             Assume {
+LL │ ┃                 alignment: true,
+LL │ ┃                 lifetimes: true,
+   ‡ ┃
+LL │ ┃         }>
+   ╰╴┗━━━━━━━━━━┛ required by this bound in `is_transmutable`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1237,7 +1610,7 @@ fn main() {
                             .label("the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)")
                     ),
             )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
   --> $DIR/align-fail.rs:21:55
    |
@@ -1245,7 +1618,17 @@ LL | ...ic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely 
    |                ^^^^^^^^^^^^^^^^^ the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
+   ╭▸ $DIR/align-fail.rs:21:55
+   │
+LL │ …atic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
+   ╰╴               ━━━━━━━━━━━━━━━━━ the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1316,7 +1699,7 @@ fn main() {}
             )
             .annotation(AnnotationKind::Primary.span(108..109)),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0618]: expected function, found `{integer}`
   --> $DIR/missing-semicolon.rs:5:13
    |
@@ -1331,7 +1714,23 @@ LL | |     () //~ ERROR expected `;`, found `}`
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0618]: expected function, found `{integer}`
+   ╭▸ $DIR/missing-semicolon.rs:5:13
+   │
+LL │       let x = 5;
+   │           ─ `x` has type `{integer}`
+LL │       let y = x //~ ERROR expected function
+   │               ━─ help: consider using a semicolon here to finish the statement: `;`
+   │ ┌─────────────┘
+   │ │
+LL │ │     () //~ ERROR expected `;`, found `}`
+   ╰╴└──────┘ call expression requires function
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1424,7 +1823,7 @@ outer_macro!(FirstStruct, FirstAttrStruct);
 
                         .annotation(AnnotationKind::Primary.span(224..245)),
                 )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
   --> $DIR/auxiliary/nested-macro-rules.rs:7:9
    |
@@ -1453,7 +1852,38 @@ LL | #![warn(non_local_definitions)]
    |         ^^^^^^^^^^^^^^^^^^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
+   ╭▸ $DIR/auxiliary/nested-macro-rules.rs:7:9
+   │
+LL │   macro_rules! outer_macro {
+   │   ──────────────────────── in this expansion of `nested_macro_rules::outer_macro!`
+   ‡
+LL │ ┏         macro_rules! inner_macro {
+LL │ ┃             ($bang_macro:ident, $attr_macro:ident) => {
+LL │ ┃                 $bang_macro!($name);
+LL │ ┃                 #[$attr_macro] struct $attr_struct_name {}
+LL │ ┃             }
+LL │ ┃         }
+   │ ┗━━━━━━━━━┛
+   │
+   ⸬  $DIR/nested-macro-rules.rs:23:5
+   │
+LL │       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
+   │       ──────────────────────────────────────────────────────────────── in this macro invocation
+   │
+   ├ help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
+   ╰ note: a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute
+note: the lint level is defined here
+   ╭▸ $DIR/nested-macro-rules.rs:8:9
+   │
+LL │ #![warn(non_local_definitions)]
+   ╰╴        ━━━━━━━━━━━━━━━━━━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1532,7 +1962,7 @@ macro_rules! inline {
                 .annotation(AnnotationKind::Context.span(69..69).label(": i32")),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0689]: can't call method `pow` on ambiguous numeric type `{integer}`
   --> $DIR/method-on-ambiguous-numeric-type.rs:37:9
    |
@@ -1546,7 +1976,23 @@ LL |     ($ident:ident) => { let $ident = 42; }
    |                                   - : i32
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0689]: can't call method `pow` on ambiguous numeric type `{integer}`
+   ╭▸ $DIR/method-on-ambiguous-numeric-type.rs:37:9
+   │
+LL │     bar.pow(2);
+   │         ━━━
+   ╰╴
+help: you must specify a type for this binding, like `i32`
+   ╭▸ $DIR/auxiliary/macro-in-other-crate.rs:3:35
+   │
+LL │     ($ident:ident) => { let $ident = 42; }
+   ╰╴                                  ─ : i32
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1587,7 +2033,7 @@ fn main() {}
                     "cannot infer type of the type parameter `S` declared on the method `sum`",
                 )),
         )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0282]: type annotations needed
   --> $DIR/issue-42234-unknown-receiver-type.rs:15:10
    |
@@ -1595,7 +2041,17 @@ LL |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0282]: type annotations needed
+   ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:15:10
+   │
+LL │         .sum::<_>() //~ ERROR type annotations needed
+   ╰╴         ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1723,7 +2179,7 @@ fn main() {}
                         .annotation(AnnotationKind::Context.span(485..485).label(",\n                _ => todo!()"))
 
         )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
   --> $DIR/empty-match.rs:71:24
    |
@@ -1757,7 +2213,41 @@ LL |                 _ if false => {}
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(annotate_snippets::renderer::DEFAULT_TERM_WIDTH + 4);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+   ╭▸ $DIR/empty-match.rs:71:24
+   │
+LL │     match_guarded_arm!(NonEmptyEnum5::V1); //~ ERROR `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+   │                        ━━━━━━━━━━━━━━━━━ patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+   ╰╴
+note: `NonEmptyEnum5` defined here
+   ╭▸ $DIR/empty-match.rs:38:10
+   │
+LL │     enum NonEmptyEnum5 {
+   │          ━━━━━━━━━━━━━
+LL │         V1,
+   │         ── not covered
+LL │         V2,
+   │         ── not covered
+LL │         V3,
+   │         ── not covered
+LL │         V4,
+   │         ── not covered
+LL │         V5,
+   │         ── not covered
+   ├ note: the matched value is of type `NonEmptyEnum5`
+   ╰ note: match arms with guards don't count towards exhaustivity
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms
+   ╭▸ $DIR/empty-match.rs:17:33
+   │
+LL │                 _ if false => {}
+   ╰╴                                ─ ,
+                _ => todo!()
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1809,7 +2299,7 @@ fn main() {
                                 .label("this trait is not dyn compatible..."),
                         ),
                 )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0038]: the trait alias `EqAlias` is not dyn compatible
   --> $DIR/object-fail.rs:7:17
    |
@@ -1829,7 +2319,28 @@ LL | trait EqAlias = Eq;
 "#]];
 
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0038]: the trait alias `EqAlias` is not dyn compatible
+   ╭▸ $DIR/object-fail.rs:7:17
+   │
+LL │     let _: &dyn EqAlias = &123;
+   │                 ━━━━━━━ `EqAlias` is not dyn compatible
+   ╰╴
+note: for a trait to be dyn compatible it needs to allow building a vtable
+      for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
+   ╭▸ $SRC_DIR/core/src/cmp.rs:334:14
+   │
+   ├ note: ...because it uses `Self` as a type parameter
+   │
+   ⸬  $DIR/object-fail.rs:3:7
+   │
+LL │ trait EqAlias = Eq;
+   ╰╴      ─────── this trait is not dyn compatible...
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1851,7 +2362,7 @@ fn main() {}
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0038]: mismatched types
   --> $DIR/long-span.rs:2:15
    |
@@ -1862,7 +2373,17 @@ LL | ... = [0, 0, 0...0];
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(8);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0038]: mismatched types
+   ╭▸ $DIR/long-span.rs:2:15
+   │
+LL │ …u8 = [0, 0, 0…0];
+   ╰╴      ━━━━━━━━…━━ expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1884,7 +2405,7 @@ fn main() {}
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0038]: mismatched types
    ╭▸ $DIR/long-span.rs:2:15
    │
@@ -1896,7 +2417,17 @@ LL │ …u8 = [0, 0, 0…0];
         .anonymized_line_numbers(true)
         .term_width(12)
         .decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0038]: mismatched types
+   ╭▸ $DIR/long-span.rs:2:15
+   │
+LL │ …u8 = [0, 0, 0…0];
+   ╰╴      ━━━━━━━━…━━ expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1918,7 +2449,7 @@ fn main() {}
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0038]: mismatched types
    ╭▸ $DIR/long-span.rs:2:15
    │
@@ -1930,7 +2461,17 @@ LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, …, 0, 0, 0, 0, 0, 0, 0];
         .anonymized_line_numbers(true)
         .term_width(80)
         .decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0038]: mismatched types
+   ╭▸ $DIR/long-span.rs:2:15
+   │
+LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, …, 0, 0, 0, 0, 0, 0, 0];
+   ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -1952,7 +2493,7 @@ fn main() {}
                 ),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0038]: mismatched types
   --> $DIR/long-span.rs:2:15
    |
@@ -1963,7 +2504,17 @@ LL | ... = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...0, 0, 0, 0, 0, 0, 0, 0, 0
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(120);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0038]: mismatched types
+   ╭▸ $DIR/long-span.rs:2:15
+   │
+LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+   ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2022,7 +2573,7 @@ fn main() {
                         .patch(Patch::new(267..270, r#"for_each"#)),
                 )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: `Iterator::map` call that discard the iterator's values
   --> $DIR/lint_map_unit_fn.rs:11:18
    |
@@ -2048,7 +2599,35 @@ LL +     x.iter_mut().for_each(|items| {
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: `Iterator::map` call that discard the iterator's values
+   ╭▸ $DIR/lint_map_unit_fn.rs:11:18
+   │
+LL │         x.iter_mut().map(|items| {
+   │                      ╿   │──────
+   │                      │   │
+   │ ┌────────────────────│───this function returns `()`, which is likely not what you wanted
+   │ │ ┏━━━━━━━━━━━━━━━━━━┙
+   │ │ ┃
+LL │ │ ┃     //~^ ERROR `Iterator::map` call that discard the iterator's values
+LL │ │ ┃         items.sort();
+LL │ │ ┃     });
+   │ │ ┃     │╿ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+   │ │ ┗━━━━━││
+   │ └───────┤
+   │         called `Iterator::map` with callable that returns `()`
+   │
+   ╰ note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
+help: you might have meant to use `Iterator::for_each`
+   ╭╴
+LL -     x.iter_mut().map(|items| {
+LL +     x.iter_mut().for_each(|items| {
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2094,7 +2673,7 @@ fn main() {
                 .patch(Patch::new(204..205, r#"\n"#)),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: character constant must be escaped: `/n`
   --> $DIR/bad-char-literals.rs:10:6
    |
@@ -2109,7 +2688,24 @@ LL |     '/n';
    |      ++
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: character constant must be escaped: `/n`
+   ╭▸ $DIR/bad-char-literals.rs:10:6
+   │
+LL │       '
+   │ ┏━━━━━━┛
+LL │ ┃ ';
+   │ ┗━┛
+   ╰╴
+help: escape the character
+   ╭╴
+LL │     '/n';
+   ╰╴     ++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2141,7 +2737,7 @@ fn main() {}
                     .annotation(AnnotationKind::Primary.span(0..4)),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unclosed frontmatter
   --> $DIR/unclosed-1.rs:1:1
    |
@@ -2157,7 +2753,25 @@ LL | ----cargo
    | ^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unclosed frontmatter
+   ╭▸ $DIR/unclosed-1.rs:1:1
+   │
+LL │ ┏ ----cargo
+   ‡ ┃
+LL │ ┃
+   │ ┗━┛
+   ╰╴
+note: frontmatter opening here was not closed
+   ╭▸ $DIR/unclosed-1.rs:1:1
+   │
+LL │ ----cargo
+   ╰╴━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2194,7 +2808,7 @@ fn foo() -> &str {
                     .annotation(AnnotationKind::Primary.span(0..4)),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unclosed frontmatter
   --> $DIR/unclosed-2.rs:1:1
    |
@@ -2211,7 +2825,26 @@ LL | ----cargo
    | ^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unclosed frontmatter
+   ╭▸ $DIR/unclosed-2.rs:1:1
+   │
+LL │ ┏ ----cargo
+   ‡ ┃
+LL │ ┃     "----"
+LL │ ┃ }
+   │ ┗━━┛
+   ╰╴
+note: frontmatter opening here was not closed
+   ╭▸ $DIR/unclosed-2.rs:1:1
+   │
+LL │ ----cargo
+   ╰╴━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2254,7 +2887,7 @@ fn foo(x: i32) -> i32 {
                 .annotation(AnnotationKind::Primary.span(302..306)),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: invalid preceding whitespace for frontmatter close
   --> $DIR/unclosed-3.rs:12:1
    |
@@ -2268,7 +2901,23 @@ LL |     ---x
    | ^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: invalid preceding whitespace for frontmatter close
+   ╭▸ $DIR/unclosed-3.rs:12:1
+   │
+LL │     ---x
+   │ ━━━━━━━━
+   ╰╴
+note: frontmatter close should not be preceded by whitespace
+   ╭▸ $DIR/unclosed-3.rs:12:1
+   │
+LL │     ---x
+   ╰╴━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2299,7 +2948,7 @@ fn main() {}
                     .annotation(AnnotationKind::Primary.span(0..4)),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unclosed frontmatter
   --> $DIR/unclosed-4.rs:1:1
    |
@@ -2315,7 +2964,25 @@ LL | ----cargo
    | ^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unclosed frontmatter
+   ╭▸ $DIR/unclosed-4.rs:1:1
+   │
+LL │ ┏ ----cargo
+LL │ ┃ //~^ ERROR: unclosed frontmatter
+LL │ ┃
+   │ ┗━┛
+   ╰╴
+note: frontmatter opening here was not closed
+   ╭▸ $DIR/unclosed-4.rs:1:1
+   │
+LL │ ----cargo
+   ╰╴━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2348,7 +3015,7 @@ fn main() {}
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: unclosed frontmatter
   --> $DIR/unclosed-5.rs:1:1
    |
@@ -2364,7 +3031,25 @@ LL | ----cargo
    | ^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: unclosed frontmatter
+   ╭▸ $DIR/unclosed-5.rs:1:1
+   │
+LL │ ┏ ----cargo
+   ‡ ┃
+LL │ ┃
+   │ ┗━┛
+   ╰╴
+note: frontmatter opening here was not closed
+   ╭▸ $DIR/unclosed-5.rs:1:1
+   │
+LL │ ----cargo
+   ╰╴━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2493,7 +3178,7 @@ pub enum E2 {
                     .patch(Patch::new(1764..1766, r#"Z0"#)),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0532]: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
   --> $DIR/pat-tuple-field-count-cross.rs:35:9
    |
@@ -2518,7 +3203,34 @@ LL +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or consta
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0532]: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   ╭▸ $DIR/pat-tuple-field-count-cross.rs:35:9
+   │
+LL │         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   │         ━━━━━━
+   │
+   ⸬  $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:19
+   │
+LL │ pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
+   │               ┬─  ── `E1::Z1` defined here
+   │               │
+   │               similarly named unit variant `Z0` defined here
+   ╰╴
+help: use the tuple variant pattern syntax instead
+   ╭╴
+LL │         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   ╰╴              ++
+help: a unit variant with a similar name exists
+   ╭╴
+LL -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+LL +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2555,7 +3267,7 @@ fn unterminated_nested_comment() {
             .annotation(AnnotationKind::Primary.span(0..31)),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0758]: unterminated block comment
   --> $DIR/unterminated-nested-comment.rs:1:1
    |
@@ -2575,7 +3287,29 @@ LL | | */
    |   ...and last nested comment terminates here.
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0758]: unterminated block comment
+   ╭▸ $DIR/unterminated-nested-comment.rs:1:1
+   │
+LL │   /* //~ ERROR E0758
+   │   ╿─
+   │   │
+   │ ┏━unterminated block comment
+   │ ┃
+LL │ ┃ /* */
+LL │ ┃ /*
+   │ ┃ ┬─
+   │ ┃ │
+   │ ┃ ...as last nested comment starts here, maybe you want to close this instead?
+LL │ ┃ */
+   │ ┗━┬─┛
+   │   │
+   ╰╴  ...and last nested comment terminates here.
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2621,7 +3355,7 @@ fn mismatched_types1() {
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0308]: mismatched types
   --> $DIR/file.txt:3:1
    |
@@ -2639,7 +3373,27 @@ LL |     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
               found reference `&'static str`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+   ╭▸ $DIR/file.txt:3:1
+   │
+LL │
+   │ ━ expected `&[u8]`, found `&str`
+   │
+   ⸬  $DIR/mismatched-types.rs:2:12
+   │
+LL │     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+   │            ┬────   ──────────────────────── in this macro invocation
+   │            │
+   │            expected due to this
+   │
+   ╰ note: expected reference `&[u8]`
+              found reference `&'static str`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2673,7 +3427,7 @@ fn mismatched_types2() {
             ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0308]: mismatched types
   --> $DIR/mismatched-types.rs:3:19
    |
@@ -2686,7 +3440,22 @@ LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
               found reference `&'static [u8; 0]`
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+   ╭▸ $DIR/mismatched-types.rs:3:19
+   │
+LL │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+   │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
+   │            │
+   │            expected due to this
+   │
+   ╰ note: expected reference `&str`
+              found reference `&'static [u8; 0]`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2727,13 +3496,17 @@ fn main() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 $DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`
 "#]];
     let renderer = Renderer::plain()
         .short_message(true)
         .anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str!["$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`"];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2766,13 +3539,17 @@ fn main() {
             ),
     )];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`
 "#]];
     let renderer = Renderer::plain()
         .short_message(true)
         .anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str!["$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`"];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2812,7 +3589,7 @@ pub struct Foo; //~^ ERROR
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: this URL is not a hyperlink
   --> $DIR/diagnostic-width.rs:4:41
    |
@@ -2833,7 +3610,28 @@ LL | /// This is a long line that contains a <http://link.com>
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .term_width(10);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: this URL is not a hyperlink
+   ╭▸ $DIR/diagnostic-width.rs:4:41
+   │
+LL │ …ns a http://link.com
+   │       ━━━━━━━━━━━━━━━
+   │
+   ╰ note: bare URLs are not automatically turned into clickable links
+note: the lint level is defined here
+   ╭▸ $DIR/diagnostic-width.rs:2:9
+   │
+LL │ …deny(ru…are_urls)]
+   ╰╴      ━━…━━━━━━━━
+help: use an automatic link instead
+   ╭╴
+LL │ /// This is a long line that contains a <http://link.com>
+   ╰╴                                        +               +
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -2879,7 +3677,7 @@ fn main() {
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
  --> lint_example.rs:3:11
   |
@@ -2901,7 +3699,31 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
   |
 "#]];
     let renderer = Renderer::plain();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+  ╭▸ lint_example.rs:3:11
+  │
+3 │ [1, 2, 3].into_iter().for_each(|n| { *n; });
+  │           ━━━━━━━━━
+  │
+  ├ warning: this changes meaning in Rust 2021
+  ├ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+  ╰ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+  ╭╴
+3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+3 + [1, 2, 3].iter().for_each(|n| { *n; });
+  ╰╴
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+  ╭╴
+3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+3 + IntoIterator::into_iter([1, 2, 3]).for_each(|n| { *n; });
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3490,7 +4312,7 @@ fn main() {
     )
     .element(Level::NOTE.message("the associated type was found for\n"))];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
   --> $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23
    |
@@ -3504,7 +4326,23 @@ LL |     let _: S::<bool>::Pr = ();
            
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
+   ╭▸ $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23
+   │
+LL │ struct S<T>(T);
+   │ ─────────── associated type `Pr` not found for this struct
+   ‡
+LL │     let _: S::<bool>::Pr = ();
+   │                       ━━ associated item not found in `S<bool>`
+   │
+   ╰ note: the associated type was found for
+           
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3556,7 +4394,7 @@ fn main() {}
         ),
     ];
 
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: extern blocks should be unsafe
   --> $DIR/unsafe-extern-suggestion.rs:6:1
    |
@@ -3581,7 +4419,34 @@ LL | #![deny(missing_unsafe_on_extern)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: extern blocks should be unsafe
+   ╭▸ $DIR/unsafe-extern-suggestion.rs:6:1
+   │
+LL │   extern "C" {
+   │   ╿
+   │   │
+   │ ┏━help: needs `unsafe` before the extern keyword: `unsafe`
+   │ ┃
+LL │ ┃     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
+LL │ ┃     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+LL │ ┃     static TEST1: i32;
+LL │ ┃     fn test1(i: i32);
+LL │ ┃ }
+   │ ┗━┛
+   │
+   ├ warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+   ╰ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
+note: the lint level is defined here
+   ╭▸ $DIR/unsafe-extern-suggestion.rs:3:9
+   │
+LL │ #![deny(missing_unsafe_on_extern)]
+   ╰╴        ━━━━━━━━━━━━━━━━━━━━━━━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3652,7 +4517,7 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
                 .annotation(AnnotationKind::Primary.span(133..136)),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0308]: mismatched types
   --> $DIR/alloc-error-handler-bad-signature-2.rs:10:1
    |
@@ -3683,7 +4548,40 @@ LL |     info: Layout, //~^ ERROR mismatched types
    |     ------------
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+   ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:10:1
+   │
+LL │    #[alloc_error_handler]
+   │    ────────────────────── in this procedural macro expansion
+LL │ ┏┌ fn oom(
+LL │ ┃│     info: Layout, //~^ ERROR mismatched types
+LL │ ┃│ ) { //~^^ ERROR mismatched types
+   │ ┃└─┘ arguments to this function are incorrect
+LL │ ┃      loop {}
+LL │ ┃  }
+   │ ┗━━┛ expected `Layout`, found `core::alloc::Layout`
+   │
+   ╰ note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
+note: `core::alloc::Layout` is defined in crate `core`
+   ╭▸ $SRC_DIR/core/src/alloc/layout.rs:40:0
+note: `Layout` is defined in the current crate
+   ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:7:1
+   │
+LL │ struct Layout;
+   ╰╴━━━━━━━━━━━━━
+note: function defined here
+   ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:10:4
+   │
+LL │ fn oom(
+   │    ━━━
+LL │     info: Layout, //~^ ERROR mismatched types
+   ╰╴    ────────────
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3738,7 +4636,7 @@ fn main() {
             )
             .annotation(AnnotationKind::Primary.span(199..205)),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 warning: whitespace symbol '\u{a0}' is not skipped
   --> $DIR/str-escape.rs:12:18
    |
@@ -3750,7 +4648,21 @@ LL | |              bar
    |
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected.raw());
+    assert_data_eq!(renderer.render(input), expected_ascii.raw());
+
+    let expected_unicode = str![[r#"
+warning: whitespace symbol '\u{a0}' is not skipped
+   ╭▸ $DIR/str-escape.rs:12:18
+   │
+LL │       let s = c"foo\
+   │ ┏━━━━━━━━━━━━━━━━━━┛
+LL │ ┃              bar
+   │ ┃   ╿ whitespace symbol '\u{a0}' is not skipped
+   │ ┗━━━│
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode.raw());
 }
 
 #[test]
@@ -3816,7 +4728,7 @@ fn main() {
                 )),
         ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0004]: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
    ╭▸ $DIR/match-privately-empty.rs:14:11
    │
@@ -3838,7 +4750,29 @@ LL +         Some(Private { misc: true, .. }) => todo!()
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0004]: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
+   ╭▸ $DIR/match-privately-empty.rs:14:11
+   │
+LL │     match private::DATA {
+   │           ━━━━━━━━━━━━━ pattern `Some(Private { misc: true, .. })` not covered
+   ╰╴
+note: `Option<Private>` defined here
+   ╭▸ $SRC_DIR/core/src/option.rs:593:0
+   ⸬  $SRC_DIR/core/src/option.rs:601:4
+   │
+   ├ note: not covered
+   ╰ note: the matched value is of type `Option<Private>`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+   ╭╴
+LL ±         Some(private::Private { misc: false, .. }) => {},
+LL +         Some(Private { misc: true, .. }) => todo!()
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3906,7 +4840,7 @@ for more information, visit <https://doc.rust-lang.org/reference/items/traits.ht
                     .patch(Patch::new(149..149, "impl ")),
             ),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0038]: the trait `Ord` is not dyn compatible
    ╭▸ $DIR/bare-trait-dont-suggest-dyn.rs:6:33
    │
@@ -3929,7 +4863,30 @@ LL │ fn ord_prefer_dot(s: String) -> impl Ord {
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0038]: the trait `Ord` is not dyn compatible
+   ╭▸ $DIR/bare-trait-dont-suggest-dyn.rs:6:33
+   │
+LL │ fn ord_prefer_dot(s: String) -> Ord {
+   │                                 ━━━ `Ord` is not dyn compatible
+   ╰╴
+note: for a trait to be dyn compatible it needs to allow building a vtable
+      for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
+   ╭▸ $SRC_DIR/core/src/cmp.rs:961:20
+   │
+   ├ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+   ⸬  $SRC_DIR/core/src/cmp.rs:338:14
+   │
+   ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+help: consider using an opaque type instead
+   ╭╴
+LL │ fn ord_prefer_dot(s: String) -> impl Ord {
+   ╰╴                                ++++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -3995,7 +4952,7 @@ fn main() {
             .element(Padding)
             .element(Level::NOTE.message("not implement `PartialEq`")),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
    ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
    │
@@ -4015,7 +4972,27 @@ note: the foreign item types don't implement required traits for this operation 
     let renderer = Renderer::plain()
         .anonymized_line_numbers(true)
         .decor_style(DecorStyle::Unicode);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+   ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
+   │
+LL │     (Error::new(ErrorKind::Other, "2"), thread::current())
+   │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
+LL │         == (Error::new(ErrorKind::Other, "2"), thread::current());
+   │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
+   ╰╴
+note: the foreign item types don't implement required traits for this operation to be valid
+   ╭▸ $SRC_DIR/std/src/io/error.rs:65:0
+   │
+   ╰ note: not implement `PartialEq`
+   ╭▸ $SRC_DIR/std/src/thread/mod.rs:1439:0
+   │
+   ╰ note: not implement `PartialEq`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -4623,14 +5600,23 @@ fn invalid_arguments_unterminated() {
             "visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details",
         ),
     )];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: invalid `--check-cfg` argument: `cfg(`
    |
    = note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
    = note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: invalid `--check-cfg` argument: `cfg(`
+   │
+   ├ note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
+   ╰ note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
@@ -4686,7 +5672,7 @@ If your compilation actually takes a long time, you can safely allow the lint.";
             .element(Level::NOTE.message("`#[deny(long_running_const_eval)]` on by default"))
             .element(Level::NOTE.message(title_1)),
     ];
-    let expected = str![[r#"
+    let expected_ascii = str![[r#"
 error: constant evaluation is taking a long time
   --> $SRC_DIR/core/src/num/mod.rs:1151:4
    = note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
@@ -4700,5 +5686,21 @@ LL | static ROOK_ATTACKS_TABLE: () = {
    = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
     let renderer = Renderer::plain().anonymized_line_numbers(true);
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: constant evaluation is taking a long time
+   ╭▸ $SRC_DIR/core/src/num/mod.rs:1151:4
+   ╰ note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+           If your compilation actually takes a long time, you can safely allow the lint.
+help: the constant being evaluated
+   ╭▸ $DIR/timeout.rs:7:1
+   │
+LL │ static ROOK_ATTACKS_TABLE: () = {
+   │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ├ note: `#[deny(long_running_const_eval)]` on by default
+   ╰ note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
