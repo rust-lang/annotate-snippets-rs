@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -22,7 +22,12 @@ x;
                 .annotation(AnnotationKind::Primary.span(31..32).label("value used here after move"))
         )
     ];
-    let expected = file!["issue_9.term.svg"];
+
+    let expected_ascii = file!["issue_9.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = file!["issue_9.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }

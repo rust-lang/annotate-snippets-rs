@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 use anstyle::AnsiColor;
 use anstyle::Effects;
 use anstyle::Style;
@@ -58,6 +58,8 @@ fn main() {
         ),
     ];
 
-    let renderer = Renderer::styled().anonymized_line_numbers(true);
+    let renderer = Renderer::styled()
+        .anonymized_line_numbers(true)
+        .decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
 }

@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 fn main() {
     let source = r#"# Docstring followed by a newline
@@ -16,6 +16,6 @@ def foobar(door, bar={}):
         )
         .element(Level::HELP.message("Replace with `None`; initialize within function"))];
 
-    let renderer = Renderer::styled();
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
 }

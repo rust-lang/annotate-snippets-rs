@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -19,7 +19,11 @@ fn case() {
             )),
         ];
 
-    let expected = file!["primary_title_second_group.term.svg"];
+    let expected_ascii = file!["primary_title_second_group.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
-    assert_data_eq!(renderer.render(report), expected);
+    assert_data_eq!(renderer.render(report), expected_ascii);
+
+    let expected_unicode = file!["primary_title_second_group.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(report), expected_unicode);
 }

@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -14,7 +14,12 @@ fn case() {
                 .line_start(7)
                 .annotation(AnnotationKind::Primary.span(0..35).label(""))
         )];
-    let expected = file!["ensure_emoji_highlight_width.term.svg"];
+
+    let expected_ascii = file!["ensure_emoji_highlight_width.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
-    assert_data_eq!(renderer.render(input), expected);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = file!["ensure_emoji_highlight_width.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
 }
