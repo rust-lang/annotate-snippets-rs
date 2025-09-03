@@ -23,14 +23,7 @@ use crate::{
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
 
-impl Renderer {
-    /// Render a diagnostic [`Report`]
-    pub fn render(&self, groups: Report<'_>) -> String {
-        render(self, groups)
-    }
-}
-
-fn render(renderer: &Renderer, groups: Report<'_>) -> String {
+pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
         render_short_message(renderer, groups).unwrap()
     } else {

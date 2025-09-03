@@ -25,6 +25,8 @@ pub(crate) mod stylesheet;
 mod margin;
 mod styled_buffer;
 
+use crate::Report;
+
 pub(crate) use render::normalize_whitespace;
 pub(crate) use render::ElementStyle;
 pub(crate) use render::UnderlineParts;
@@ -36,7 +38,7 @@ pub use anstyle::*;
 /// See [`Renderer::term_width`]
 pub const DEFAULT_TERM_WIDTH: usize = 140;
 
-/// The [Renderer] for a [`Report`][crate::Report]
+/// The [Renderer] for a [`Report`]
 ///
 /// The caller is expected to detect any relevant terminal features and configure the renderer,
 /// including
@@ -162,6 +164,13 @@ impl Renderer {
     pub const fn anonymized_line_numbers(mut self, anonymized_line_numbers: bool) -> Self {
         self.anonymized_line_numbers = anonymized_line_numbers;
         self
+    }
+}
+
+impl Renderer {
+    /// Render a diagnostic [`Report`]
+    pub fn render(&self, groups: Report<'_>) -> String {
+        render::render(self, groups)
     }
 }
 
