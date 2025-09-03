@@ -4310,6 +4310,8 @@ fn alignment() {
 error: ensure single line at line 0 rendered correctly with group line lined up
  --> Cargo.toml:0:8
   |
+0 | SELECT bar
+  |        ^^^ unexpected token
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -4318,6 +4320,8 @@ error: ensure single line at line 0 rendered correctly with group line lined up
 error: ensure single line at line 0 rendered correctly with group line lined up
   ╭▸ Cargo.toml:0:8
   │
+0 │ SELECT bar
+  ╰╴       ━━━ unexpected token
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);

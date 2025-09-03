@@ -985,10 +985,6 @@ impl Renderer {
         //   |  vertical divider between the column number and the code
         //   column number
 
-        if line_info.line_index == 0 {
-            return Vec::new();
-        }
-
         let source_string = normalize_whitespace(line_info.line);
 
         let line_offset = buffer.num_lines();
