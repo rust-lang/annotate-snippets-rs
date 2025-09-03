@@ -593,7 +593,7 @@ impl Renderer {
         if is_primary && !self.short_message {
             buffer.prepend(
                 buffer_msg_line_offset,
-                self.file_start(is_first),
+                self.decor_style.file_start(is_first),
                 ElementStyle::LineNumber,
             );
         } else if !self.short_message {
@@ -619,7 +619,7 @@ impl Renderer {
             // Then, the secondary file indicator
             buffer.prepend(
                 buffer_msg_line_offset,
-                self.secondary_file_start(),
+                self.decor_style.secondary_file_start(),
                 ElementStyle::LineNumber,
             );
         }
@@ -720,7 +720,7 @@ impl Renderer {
                     buffer.puts(
                         buffer_msg_line_offset,
                         max_line_num_len,
-                        self.file_start(is_first),
+                        self.decor_style.file_start(is_first),
                         ElementStyle::LineNumber,
                     );
                 } else {
@@ -750,7 +750,7 @@ impl Renderer {
                 buffer.puts(
                     buffer_msg_line_offset + 1,
                     max_line_num_len,
-                    self.secondary_file_start(),
+                    self.decor_style.secondary_file_start(),
                     ElementStyle::LineNumber,
                 );
             }
@@ -1036,7 +1036,7 @@ impl Renderer {
                     .take(ann.start.display)
                     .all(char::is_whitespace)
                 {
-                    let uline = self.underline(ann.is_primary());
+                    let uline = self.decor_style.underline(ann.is_primary());
                     let chr = uline.multiline_whole_line;
                     annotations.push((depth, uline.style));
                     buffer_ops.push((line_offset, width_offset + depth - 1, chr, uline.style));
@@ -1289,7 +1289,7 @@ impl Renderer {
         // 4 |   }
         //   |  _
         for &(pos, annotation) in &annotations_position {
-            let underline = self.underline(annotation.is_primary());
+            let underline = self.decor_style.underline(annotation.is_primary());
             let pos = pos + 1;
             match annotation.annotation_type {
                 LineAnnotationType::MultilineStart(depth)
@@ -1328,7 +1328,7 @@ impl Renderer {
         // 4 | | }
         //   | |_
         for &(pos, annotation) in &annotations_position {
-            let underline = self.underline(annotation.is_primary());
+            let underline = self.decor_style.underline(annotation.is_primary());
             let pos = pos + 1;
 
             if pos > 1 && (annotation.has_label() || annotation.takes_space()) {
@@ -1457,7 +1457,7 @@ impl Renderer {
         // 4 |   }
         //   |  _^  test
         for &(pos, annotation) in &annotations_position {
-            let uline = self.underline(annotation.is_primary());
+            let uline = self.decor_style.underline(annotation.is_primary());
             for p in annotation.start.display..annotation.end.display {
                 // The default span label underline.
                 buffer.putc(
@@ -1535,14 +1535,14 @@ impl Renderer {
                     line_offset,
                     annotation.start.display + pad,
                     annotation.end.display - pad,
-                    self.margin(),
+                    self.decor_style.margin(),
                 );
                 // Underline line
                 buffer.replace(
                     line_offset + 1,
                     annotation.start.display + pad,
                     annotation.end.display - pad,
-                    self.margin(),
+                    self.decor_style.margin(),
                 );
             }
         }
@@ -1588,7 +1588,7 @@ impl Renderer {
                 buffer.puts(
                     row_num - 1,
                     max_line_num_len + 1,
-                    self.multi_suggestion_separator(),
+                    self.decor_style.multi_suggestion_separator(),
                     ElementStyle::LineNumber,
                 );
             } else {
@@ -1600,7 +1600,7 @@ impl Renderer {
                         let (loc, _) = sm.span_to_locations(parts[0].span.clone());
                         // --> file.rs:line:col
                         //  |
-                        let arrow = self.file_start(is_first);
+                        let arrow = self.decor_style.file_start(is_first);
                         buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
                         let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
                         let col = usize::max(max_line_num_len + 1, arrow.len());
@@ -1723,7 +1723,7 @@ impl Renderer {
                             );
                         }
 
-                        let placeholder = self.margin();
+                        let placeholder = self.decor_style.margin();
                         let padding = str_width(placeholder);
                         buffer.puts(
                             row_num,
@@ -1844,7 +1844,7 @@ impl Renderer {
                                 if part.is_addition(sm) {
                                     '+'
                                 } else {
-                                    self.diff()
+                                    self.decor_style.diff()
                                 },
                                 ElementStyle::Addition,
                             );
@@ -1949,7 +1949,7 @@ impl Renderer {
 
             // if we elided some lines, add an ellipsis
             if lines.next().is_some() {
-                let placeholder = self.margin();
+                let placeholder = self.decor_style.margin();
                 let padding = str_width(placeholder);
                 buffer.puts(
                     row_num,
@@ -2087,7 +2087,7 @@ impl Renderer {
                     self.draw_col_separator_no_space(buffer, *row_num, max_line_num_len + 1);
                 }
                 _ => {
-                    let diff = self.diff();
+                    let diff = self.decor_style.diff();
                     buffer.puts(
                         *row_num,
                         max_line_num_len + 1,
@@ -2195,7 +2195,7 @@ impl Renderer {
             })
             .collect();
 
-        let placeholder = self.margin();
+        let placeholder = self.decor_style.margin();
         let padding = str_width(placeholder);
         let (width_taken, bytes_taken) = if margin.was_cut_left() {
             // We have stripped some code/whitespace from the beginning, make it clear.
@@ -2298,27 +2298,13 @@ impl Renderer {
         buffer.putc(line, offset + depth - 1, chr, style);
     }
 
-    fn col_separator(&self) -> char {
-        match self.decor_style {
-            DecorStyle::Ascii => '|',
-            DecorStyle::Unicode => '│',
-        }
-    }
-
-    fn multi_suggestion_separator(&self) -> &'static str {
-        match self.decor_style {
-            DecorStyle::Ascii => "|",
-            DecorStyle::Unicode => "├╴",
-        }
-    }
-
     fn draw_col_separator(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        let chr = self.col_separator();
+        let chr = self.decor_style.col_separator();
         buffer.puts(line, col, &format!("{chr} "), ElementStyle::LineNumber);
     }
 
     fn draw_col_separator_no_space(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        let chr = self.col_separator();
+        let chr = self.decor_style.col_separator();
         self.draw_col_separator_no_space_with_style(
             buffer,
             chr,
@@ -2410,21 +2396,6 @@ impl Renderer {
         )
     }
 
-    fn file_start(&self, is_first: bool) -> &'static str {
-        match self.decor_style {
-            DecorStyle::Ascii => "--> ",
-            DecorStyle::Unicode if is_first => " ╭▸ ",
-            DecorStyle::Unicode => " ├▸ ",
-        }
-    }
-
-    fn secondary_file_start(&self) -> &'static str {
-        match self.decor_style {
-            DecorStyle::Ascii => "::: ",
-            DecorStyle::Unicode => " ⸬  ",
-        }
-    }
-
     fn draw_note_separator(
         &self,
         buffer: &mut StyledBuffer,
@@ -2432,19 +2403,8 @@ impl Renderer {
         col: usize,
         is_cont: bool,
     ) {
-        let chr = match self.decor_style {
-            DecorStyle::Ascii => "= ",
-            DecorStyle::Unicode if is_cont => "├ ",
-            DecorStyle::Unicode => "╰ ",
-        };
+        let chr = self.decor_style.note_separator(is_cont);
         buffer.puts(line, col, chr, ElementStyle::LineNumber);
-    }
-
-    fn diff(&self) -> char {
-        match self.decor_style {
-            DecorStyle::Ascii => '~',
-            DecorStyle::Unicode => '±',
-        }
     }
 
     fn draw_line_separator(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
@@ -2453,110 +2413,6 @@ impl Renderer {
             DecorStyle::Unicode => (col - 2, "‡"),
         };
         buffer.puts(line, column, dots, ElementStyle::LineNumber);
-    }
-
-    fn margin(&self) -> &'static str {
-        match self.decor_style {
-            DecorStyle::Ascii => "...",
-            DecorStyle::Unicode => "…",
-        }
-    }
-
-    fn underline(&self, is_primary: bool) -> UnderlineParts {
-        //               X0 Y0
-        // label_start > ┯━━━━ < underline
-        //               │ < vertical_text_line
-        //               text
-
-        //    multiline_start_down ⤷ X0 Y0
-        //            top_left > ┌───╿──┘ < top_right_flat
-        //           top_left > ┏│━━━┙ < top_right
-        // multiline_vertical > ┃│
-        //                      ┃│   X1 Y1
-        //                      ┃│   X2 Y2
-        //                      ┃└────╿──┘ < multiline_end_same_line
-        //        bottom_left > ┗━━━━━┥ < bottom_right_with_text
-        //   multiline_horizontal ^   `X` is a good letter
-
-        // multiline_whole_line > ┏ X0 Y0
-        //                        ┃   X1 Y1
-        //                        ┗━━━━┛ < multiline_end_same_line
-
-        // multiline_whole_line > ┏ X0 Y0
-        //                        ┃ X1 Y1
-        //                        ┃  ╿ < multiline_end_up
-        //                        ┗━━┛ < bottom_right
-
-        match (self.decor_style, is_primary) {
-            (DecorStyle::Ascii, true) => UnderlineParts {
-                style: ElementStyle::UnderlinePrimary,
-                underline: '^',
-                label_start: '^',
-                vertical_text_line: '|',
-                multiline_vertical: '|',
-                multiline_horizontal: '_',
-                multiline_whole_line: '/',
-                multiline_start_down: '^',
-                bottom_right: '|',
-                top_left: ' ',
-                top_right_flat: '^',
-                bottom_left: '|',
-                multiline_end_up: '^',
-                multiline_end_same_line: '^',
-                multiline_bottom_right_with_text: '|',
-            },
-            (DecorStyle::Ascii, false) => UnderlineParts {
-                style: ElementStyle::UnderlineSecondary,
-                underline: '-',
-                label_start: '-',
-                vertical_text_line: '|',
-                multiline_vertical: '|',
-                multiline_horizontal: '_',
-                multiline_whole_line: '/',
-                multiline_start_down: '-',
-                bottom_right: '|',
-                top_left: ' ',
-                top_right_flat: '-',
-                bottom_left: '|',
-                multiline_end_up: '-',
-                multiline_end_same_line: '-',
-                multiline_bottom_right_with_text: '|',
-            },
-            (DecorStyle::Unicode, true) => UnderlineParts {
-                style: ElementStyle::UnderlinePrimary,
-                underline: '━',
-                label_start: '┯',
-                vertical_text_line: '│',
-                multiline_vertical: '┃',
-                multiline_horizontal: '━',
-                multiline_whole_line: '┏',
-                multiline_start_down: '╿',
-                bottom_right: '┙',
-                top_left: '┏',
-                top_right_flat: '┛',
-                bottom_left: '┗',
-                multiline_end_up: '╿',
-                multiline_end_same_line: '┛',
-                multiline_bottom_right_with_text: '┥',
-            },
-            (DecorStyle::Unicode, false) => UnderlineParts {
-                style: ElementStyle::UnderlineSecondary,
-                underline: '─',
-                label_start: '┬',
-                vertical_text_line: '│',
-                multiline_vertical: '│',
-                multiline_horizontal: '─',
-                multiline_whole_line: '┌',
-                multiline_start_down: '│',
-                bottom_right: '┘',
-                top_left: '┌',
-                top_right_flat: '┘',
-                bottom_left: '└',
-                multiline_end_up: '│',
-                multiline_end_same_line: '┘',
-                multiline_bottom_right_with_text: '┤',
-            },
-        }
     }
 }
 
@@ -2957,6 +2813,156 @@ struct UnderlineParts {
 pub enum DecorStyle {
     Ascii,
     Unicode,
+}
+
+impl DecorStyle {
+    fn col_separator(&self) -> char {
+        match self {
+            DecorStyle::Ascii => '|',
+            DecorStyle::Unicode => '│',
+        }
+    }
+
+    fn note_separator(&self, is_cont: bool) -> &str {
+        match self {
+            DecorStyle::Ascii => "= ",
+            DecorStyle::Unicode if is_cont => "├ ",
+            DecorStyle::Unicode => "╰ ",
+        }
+    }
+
+    fn multi_suggestion_separator(&self) -> &'static str {
+        match self {
+            DecorStyle::Ascii => "|",
+            DecorStyle::Unicode => "├╴",
+        }
+    }
+
+    fn file_start(&self, is_first: bool) -> &'static str {
+        match self {
+            DecorStyle::Ascii => "--> ",
+            DecorStyle::Unicode if is_first => " ╭▸ ",
+            DecorStyle::Unicode => " ├▸ ",
+        }
+    }
+
+    fn secondary_file_start(&self) -> &'static str {
+        match self {
+            DecorStyle::Ascii => "::: ",
+            DecorStyle::Unicode => " ⸬  ",
+        }
+    }
+
+    fn diff(&self) -> char {
+        match self {
+            DecorStyle::Ascii => '~',
+            DecorStyle::Unicode => '±',
+        }
+    }
+
+    fn margin(&self) -> &'static str {
+        match self {
+            DecorStyle::Ascii => "...",
+            DecorStyle::Unicode => "…",
+        }
+    }
+
+    fn underline(&self, is_primary: bool) -> UnderlineParts {
+        //               X0 Y0
+        // label_start > ┯━━━━ < underline
+        //               │ < vertical_text_line
+        //               text
+
+        //    multiline_start_down ⤷ X0 Y0
+        //            top_left > ┌───╿──┘ < top_right_flat
+        //           top_left > ┏│━━━┙ < top_right
+        // multiline_vertical > ┃│
+        //                      ┃│   X1 Y1
+        //                      ┃│   X2 Y2
+        //                      ┃└────╿──┘ < multiline_end_same_line
+        //        bottom_left > ┗━━━━━┥ < bottom_right_with_text
+        //   multiline_horizontal ^   `X` is a good letter
+
+        // multiline_whole_line > ┏ X0 Y0
+        //                        ┃   X1 Y1
+        //                        ┗━━━━┛ < multiline_end_same_line
+
+        // multiline_whole_line > ┏ X0 Y0
+        //                        ┃ X1 Y1
+        //                        ┃  ╿ < multiline_end_up
+        //                        ┗━━┛ < bottom_right
+
+        match (self, is_primary) {
+            (DecorStyle::Ascii, true) => UnderlineParts {
+                style: ElementStyle::UnderlinePrimary,
+                underline: '^',
+                label_start: '^',
+                vertical_text_line: '|',
+                multiline_vertical: '|',
+                multiline_horizontal: '_',
+                multiline_whole_line: '/',
+                multiline_start_down: '^',
+                bottom_right: '|',
+                top_left: ' ',
+                top_right_flat: '^',
+                bottom_left: '|',
+                multiline_end_up: '^',
+                multiline_end_same_line: '^',
+                multiline_bottom_right_with_text: '|',
+            },
+            (DecorStyle::Ascii, false) => UnderlineParts {
+                style: ElementStyle::UnderlineSecondary,
+                underline: '-',
+                label_start: '-',
+                vertical_text_line: '|',
+                multiline_vertical: '|',
+                multiline_horizontal: '_',
+                multiline_whole_line: '/',
+                multiline_start_down: '-',
+                bottom_right: '|',
+                top_left: ' ',
+                top_right_flat: '-',
+                bottom_left: '|',
+                multiline_end_up: '-',
+                multiline_end_same_line: '-',
+                multiline_bottom_right_with_text: '|',
+            },
+            (DecorStyle::Unicode, true) => UnderlineParts {
+                style: ElementStyle::UnderlinePrimary,
+                underline: '━',
+                label_start: '┯',
+                vertical_text_line: '│',
+                multiline_vertical: '┃',
+                multiline_horizontal: '━',
+                multiline_whole_line: '┏',
+                multiline_start_down: '╿',
+                bottom_right: '┙',
+                top_left: '┏',
+                top_right_flat: '┛',
+                bottom_left: '┗',
+                multiline_end_up: '╿',
+                multiline_end_same_line: '┛',
+                multiline_bottom_right_with_text: '┥',
+            },
+            (DecorStyle::Unicode, false) => UnderlineParts {
+                style: ElementStyle::UnderlineSecondary,
+                underline: '─',
+                label_start: '┬',
+                vertical_text_line: '│',
+                multiline_vertical: '│',
+                multiline_horizontal: '─',
+                multiline_whole_line: '┌',
+                multiline_start_down: '│',
+                bottom_right: '┘',
+                top_left: '┌',
+                top_right_flat: '┘',
+                bottom_left: '└',
+                multiline_end_up: '│',
+                multiline_end_same_line: '┘',
+                multiline_bottom_right_with_text: '┤',
+            },
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
