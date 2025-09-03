@@ -2403,11 +2403,7 @@ impl Renderer {
         col: usize,
         is_cont: bool,
     ) {
-        let chr = match self.decor_style {
-            DecorStyle::Ascii => "= ",
-            DecorStyle::Unicode if is_cont => "├ ",
-            DecorStyle::Unicode => "╰ ",
-        };
+        let chr = self.decor_style.note_separator(is_cont);
         buffer.puts(line, col, chr, ElementStyle::LineNumber);
     }
 
@@ -2824,6 +2820,14 @@ impl DecorStyle {
         match self {
             DecorStyle::Ascii => '|',
             DecorStyle::Unicode => '│',
+        }
+    }
+
+    fn note_separator(&self, is_cont: bool) -> &str {
+        match self {
+            DecorStyle::Ascii => "= ",
+            DecorStyle::Unicode if is_cont => "├ ",
+            DecorStyle::Unicode => "╰ ",
         }
     }
 
