@@ -26,1018 +26,1046 @@ const ANONYMIZED_LINE_NUM: &str = "LL";
 impl Renderer {
     /// Render a diagnostic [`Report`]
     pub fn render(&self, groups: Report<'_>) -> String {
-        if self.short_message {
-            self.render_short_message(groups).unwrap()
+        render(self, groups)
+    }
+}
+
+fn render(renderer: &Renderer, groups: Report<'_>) -> String {
+    if renderer.short_message {
+        render_short_message(renderer, groups).unwrap()
+    } else {
+        let max_line_num_len = if renderer.anonymized_line_numbers {
+            ANONYMIZED_LINE_NUM.len()
         } else {
-            let max_line_num_len = if self.anonymized_line_numbers {
-                ANONYMIZED_LINE_NUM.len()
-            } else {
-                num_decimal_digits(max_line_number(groups))
-            };
-            let mut out_string = String::new();
-            let group_len = groups.len();
-            let mut og_primary_path = None;
-            for (g, group) in groups.iter().enumerate() {
-                let mut buffer = StyledBuffer::new();
-                let primary_path = group
-                    .elements
-                    .iter()
-                    .find_map(|s| match &s {
-                        Element::Cause(cause) => Some(cause.path.as_ref()),
-                        Element::Origin(origin) => Some(Some(&origin.path)),
-                        _ => None,
-                    })
-                    .unwrap_or_default();
-                if og_primary_path.is_none() && primary_path.is_some() {
-                    og_primary_path = primary_path;
+            num_decimal_digits(max_line_number(groups))
+        };
+        let mut out_string = String::new();
+        let group_len = groups.len();
+        let mut og_primary_path = None;
+        for (g, group) in groups.iter().enumerate() {
+            let mut buffer = StyledBuffer::new();
+            let primary_path = group
+                .elements
+                .iter()
+                .find_map(|s| match &s {
+                    Element::Cause(cause) => Some(cause.path.as_ref()),
+                    Element::Origin(origin) => Some(Some(&origin.path)),
+                    _ => None,
+                })
+                .unwrap_or_default();
+            if og_primary_path.is_none() && primary_path.is_some() {
+                og_primary_path = primary_path;
+            }
+            let level = group.primary_level.clone();
+            let mut source_map_annotated_lines = VecDeque::new();
+            let mut max_depth = 0;
+            for e in &group.elements {
+                if let Element::Cause(cause) = e {
+                    let source_map = SourceMap::new(&cause.source, cause.line_start);
+                    let (depth, annotated_lines) =
+                        source_map.annotated_lines(cause.markers.clone(), cause.fold);
+                    max_depth = max(max_depth, depth);
+                    source_map_annotated_lines.push_back((source_map, annotated_lines));
                 }
-                let level = group.primary_level.clone();
-                let mut source_map_annotated_lines = VecDeque::new();
-                let mut max_depth = 0;
-                for e in &group.elements {
-                    if let Element::Cause(cause) = e {
-                        let source_map = SourceMap::new(&cause.source, cause.line_start);
-                        let (depth, annotated_lines) =
-                            source_map.annotated_lines(cause.markers.clone(), cause.fold);
-                        max_depth = max(max_depth, depth);
-                        source_map_annotated_lines.push_back((source_map, annotated_lines));
-                    }
-                }
-                let mut message_iter = group.elements.iter().enumerate().peekable();
-                if let Some(title) = &group.title {
-                    let peek = message_iter.peek().map(|(_, s)| s).copied();
-                    let title_style = if title.allows_styling {
-                        TitleStyle::Header
-                    } else {
-                        TitleStyle::MainHeader
-                    };
-                    let buffer_msg_line_offset = buffer.num_lines();
-                    self.render_title(
+            }
+            let mut message_iter = group.elements.iter().enumerate().peekable();
+            if let Some(title) = &group.title {
+                let peek = message_iter.peek().map(|(_, s)| s).copied();
+                let title_style = if title.allows_styling {
+                    TitleStyle::Header
+                } else {
+                    TitleStyle::MainHeader
+                };
+                let buffer_msg_line_offset = buffer.num_lines();
+                render_title(
+                    renderer,
+                    &mut buffer,
+                    title,
+                    max_line_num_len,
+                    title_style,
+                    matches!(peek, Some(Element::Message(_))),
+                    buffer_msg_line_offset,
+                );
+                let buffer_msg_line_offset = buffer.num_lines();
+
+                if matches!(peek, Some(Element::Message(_))) {
+                    draw_col_separator_no_space(
+                        renderer,
                         &mut buffer,
-                        title,
-                        max_line_num_len,
-                        title_style,
-                        matches!(peek, Some(Element::Message(_))),
                         buffer_msg_line_offset,
+                        max_line_num_len + 1,
                     );
-                    let buffer_msg_line_offset = buffer.num_lines();
-
-                    if matches!(peek, Some(Element::Message(_))) {
-                        self.draw_col_separator_no_space(
-                            &mut buffer,
-                            buffer_msg_line_offset,
-                            max_line_num_len + 1,
-                        );
-                    }
-                    if peek.is_none() && g == 0 && group_len > 1 {
-                        self.draw_col_separator_end(
-                            &mut buffer,
-                            buffer_msg_line_offset,
-                            max_line_num_len + 1,
-                        );
-                    }
                 }
-                let mut seen_primary = false;
-                let mut last_suggestion_path = None;
-                while let Some((i, section)) = message_iter.next() {
-                    let peek = message_iter.peek().map(|(_, s)| s).copied();
-                    let is_first = i == 0;
-                    match &section {
-                        Element::Message(title) => {
-                            let title_style = TitleStyle::Secondary;
-                            let buffer_msg_line_offset = buffer.num_lines();
-                            self.render_title(
+                if peek.is_none() && g == 0 && group_len > 1 {
+                    draw_col_separator_end(
+                        renderer,
+                        &mut buffer,
+                        buffer_msg_line_offset,
+                        max_line_num_len + 1,
+                    );
+                }
+            }
+            let mut seen_primary = false;
+            let mut last_suggestion_path = None;
+            while let Some((i, section)) = message_iter.next() {
+                let peek = message_iter.peek().map(|(_, s)| s).copied();
+                let is_first = i == 0;
+                match &section {
+                    Element::Message(title) => {
+                        let title_style = TitleStyle::Secondary;
+                        let buffer_msg_line_offset = buffer.num_lines();
+                        render_title(
+                            renderer,
+                            &mut buffer,
+                            title,
+                            max_line_num_len,
+                            title_style,
+                            peek.is_some(),
+                            buffer_msg_line_offset,
+                        );
+                    }
+                    Element::Cause(cause) => {
+                        if let Some((source_map, annotated_lines)) =
+                            source_map_annotated_lines.pop_front()
+                        {
+                            let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
+                            seen_primary |= is_primary;
+                            render_snippet_annotations(
+                                renderer,
                                 &mut buffer,
-                                title,
                                 max_line_num_len,
-                                title_style,
-                                peek.is_some(),
-                                buffer_msg_line_offset,
+                                cause,
+                                is_primary,
+                                &source_map,
+                                &annotated_lines,
+                                max_depth,
+                                peek.is_some() || (g == 0 && group_len > 1),
+                                is_first,
                             );
-                        }
-                        Element::Cause(cause) => {
-                            if let Some((source_map, annotated_lines)) =
-                                source_map_annotated_lines.pop_front()
-                            {
-                                let is_primary =
-                                    primary_path == cause.path.as_ref() && !seen_primary;
-                                seen_primary |= is_primary;
-                                self.render_snippet_annotations(
-                                    &mut buffer,
-                                    max_line_num_len,
-                                    cause,
-                                    is_primary,
-                                    &source_map,
-                                    &annotated_lines,
-                                    max_depth,
-                                    peek.is_some() || (g == 0 && group_len > 1),
-                                    is_first,
-                                );
 
-                                if g == 0 {
-                                    let current_line = buffer.num_lines();
-                                    match peek {
-                                        Some(Element::Message(_)) => {
-                                            self.draw_col_separator_no_space(
-                                                &mut buffer,
-                                                current_line,
-                                                max_line_num_len + 1,
-                                            );
-                                        }
-                                        None if group_len > 1 => self.draw_col_separator_end(
+                            if g == 0 {
+                                let current_line = buffer.num_lines();
+                                match peek {
+                                    Some(Element::Message(_)) => {
+                                        draw_col_separator_no_space(
+                                            renderer,
                                             &mut buffer,
                                             current_line,
                                             max_line_num_len + 1,
-                                        ),
-                                        _ => {}
+                                        );
                                     }
+                                    None if group_len > 1 => draw_col_separator_end(
+                                        renderer,
+                                        &mut buffer,
+                                        current_line,
+                                        max_line_num_len + 1,
+                                    ),
+                                    _ => {}
                                 }
                             }
                         }
-                        Element::Suggestion(suggestion) => {
-                            let source_map =
-                                SourceMap::new(&suggestion.source, suggestion.line_start);
-                            let matches_previous_suggestion =
-                                last_suggestion_path == Some(suggestion.path.as_ref());
-                            self.emit_suggestion_default(
-                                &mut buffer,
-                                suggestion,
-                                max_line_num_len,
-                                &source_map,
-                                primary_path.or(og_primary_path),
-                                matches_previous_suggestion,
-                                is_first,
-                                //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
-                                peek.is_some(),
-                            );
-
-                            if matches!(peek, Some(Element::Suggestion(_))) {
-                                last_suggestion_path = Some(suggestion.path.as_ref());
-                            } else {
-                                last_suggestion_path = None;
-                            }
-                        }
-
-                        Element::Origin(origin) => {
-                            let buffer_msg_line_offset = buffer.num_lines();
-                            let is_primary = primary_path == Some(&origin.path) && !seen_primary;
-                            seen_primary |= is_primary;
-                            self.render_origin(
-                                &mut buffer,
-                                max_line_num_len,
-                                origin,
-                                is_primary,
-                                is_first,
-                                buffer_msg_line_offset,
-                            );
-                            let current_line = buffer.num_lines();
-                            if g == 0 && peek.is_none() && group_len > 1 {
-                                self.draw_col_separator_end(
-                                    &mut buffer,
-                                    current_line,
-                                    max_line_num_len + 1,
-                                );
-                            }
-                        }
-                        Element::Padding(_) => {
-                            let current_line = buffer.num_lines();
-                            if peek.is_none() {
-                                self.draw_col_separator_end(
-                                    &mut buffer,
-                                    current_line,
-                                    max_line_num_len + 1,
-                                );
-                            } else {
-                                self.draw_col_separator_no_space(
-                                    &mut buffer,
-                                    current_line,
-                                    max_line_num_len + 1,
-                                );
-                            }
-                        }
                     }
-                }
-                buffer
-                    .render(&level, &self.stylesheet, &mut out_string)
-                    .unwrap();
-                if g != group_len - 1 {
-                    use std::fmt::Write;
+                    Element::Suggestion(suggestion) => {
+                        let source_map = SourceMap::new(&suggestion.source, suggestion.line_start);
+                        let matches_previous_suggestion =
+                            last_suggestion_path == Some(suggestion.path.as_ref());
+                        emit_suggestion_default(
+                            renderer,
+                            &mut buffer,
+                            suggestion,
+                            max_line_num_len,
+                            &source_map,
+                            primary_path.or(og_primary_path),
+                            matches_previous_suggestion,
+                            is_first,
+                            //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
+                            peek.is_some(),
+                        );
 
-                    writeln!(out_string).unwrap();
-                }
-            }
-            out_string
-        }
-    }
-
-    fn render_short_message(&self, groups: &[Group<'_>]) -> Result<String, fmt::Error> {
-        let mut buffer = StyledBuffer::new();
-        let mut labels = None;
-        let group = groups.first().expect("Expected at least one group");
-
-        let Some(title) = &group.title else {
-            panic!("Expected a Title");
-        };
-
-        if let Some(Element::Cause(cause)) = group
-            .elements
-            .iter()
-            .find(|e| matches!(e, Element::Cause(_)))
-        {
-            let labels_inner = cause
-                .markers
-                .iter()
-                .filter_map(|ann| match &ann.label {
-                    Some(msg) if ann.kind.is_primary() => {
-                        if !msg.trim().is_empty() {
-                            Some(msg.to_string())
+                        if matches!(peek, Some(Element::Suggestion(_))) {
+                            last_suggestion_path = Some(suggestion.path.as_ref());
                         } else {
-                            None
+                            last_suggestion_path = None;
                         }
                     }
-                    _ => None,
-                })
-                .collect::<Vec<_>>()
-                .join(", ");
-            if !labels_inner.is_empty() {
-                labels = Some(labels_inner);
-            }
 
-            if let Some(path) = &cause.path {
-                let mut origin = Origin::path(path.as_ref());
-
-                let source_map = SourceMap::new(&cause.source, cause.line_start);
-                let (_depth, annotated_lines) =
-                    source_map.annotated_lines(cause.markers.clone(), cause.fold);
-
-                if let Some(primary_line) = annotated_lines
-                    .iter()
-                    .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
-                    .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
-                {
-                    origin.line = Some(primary_line.line_index);
-                    if let Some(first_annotation) = primary_line
-                        .annotations
-                        .iter()
-                        .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
-                    {
-                        origin.char_column = Some(first_annotation.start.char + 1);
+                    Element::Origin(origin) => {
+                        let buffer_msg_line_offset = buffer.num_lines();
+                        let is_primary = primary_path == Some(&origin.path) && !seen_primary;
+                        seen_primary |= is_primary;
+                        render_origin(
+                            renderer,
+                            &mut buffer,
+                            max_line_num_len,
+                            origin,
+                            is_primary,
+                            is_first,
+                            buffer_msg_line_offset,
+                        );
+                        let current_line = buffer.num_lines();
+                        if g == 0 && peek.is_none() && group_len > 1 {
+                            draw_col_separator_end(
+                                renderer,
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        }
+                    }
+                    Element::Padding(_) => {
+                        let current_line = buffer.num_lines();
+                        if peek.is_none() {
+                            draw_col_separator_end(
+                                renderer,
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        } else {
+                            draw_col_separator_no_space(
+                                renderer,
+                                &mut buffer,
+                                current_line,
+                                max_line_num_len + 1,
+                            );
+                        }
                     }
                 }
+            }
+            buffer
+                .render(&level, &renderer.stylesheet, &mut out_string)
+                .unwrap();
+            if g != group_len - 1 {
+                use std::fmt::Write;
 
-                self.render_origin(&mut buffer, 0, &origin, true, true, 0);
-                buffer.append(0, ": ", ElementStyle::LineAndColumn);
+                writeln!(out_string).unwrap();
             }
         }
-
-        self.render_title(
-            &mut buffer,
-            title,
-            0, // No line numbers in short messages
-            TitleStyle::MainHeader,
-            false,
-            0,
-        );
-
-        if let Some(labels) = labels {
-            buffer.append(0, &format!(": {labels}"), ElementStyle::NoStyle);
-        }
-
-        let mut out_string = String::new();
-        buffer.render(&title.level, &self.stylesheet, &mut out_string)?;
-
-        Ok(out_string)
+        out_string
     }
+}
 
-    #[allow(clippy::too_many_arguments)]
-    fn render_title(
-        &self,
-        buffer: &mut StyledBuffer,
-        title: &dyn MessageOrTitle,
-        max_line_num_len: usize,
-        title_style: TitleStyle,
-        is_cont: bool,
-        buffer_msg_line_offset: usize,
-    ) {
-        let (label_style, title_element_style) = match title_style {
-            TitleStyle::MainHeader => (
-                ElementStyle::Level(title.level().level),
-                if self.short_message {
-                    ElementStyle::NoStyle
-                } else {
-                    ElementStyle::MainHeaderMsg
-                },
-            ),
-            TitleStyle::Header => (
-                ElementStyle::Level(title.level().level),
-                ElementStyle::HeaderMsg,
-            ),
-            TitleStyle::Secondary => {
-                for _ in 0..max_line_num_len {
-                    buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
-                }
+fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<String, fmt::Error> {
+    let mut buffer = StyledBuffer::new();
+    let mut labels = None;
+    let group = groups.first().expect("Expected at least one group");
 
-                self.draw_note_separator(
-                    buffer,
-                    buffer_msg_line_offset,
-                    max_line_num_len + 1,
-                    is_cont,
-                );
-                (ElementStyle::MainHeaderMsg, ElementStyle::NoStyle)
-            }
-        };
-        let mut label_width = 0;
+    let Some(title) = &group.title else {
+        panic!("Expected a Title");
+    };
 
-        if title.level().name != Some(None) {
-            buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
-            label_width += title.level().as_str().len();
-            if let Some(Id { id: Some(id), url }) = &title.id() {
-                buffer.append(buffer_msg_line_offset, "[", label_style);
-                if let Some(url) = url.as_ref() {
-                    buffer.append(
-                        buffer_msg_line_offset,
-                        &format!("\x1B]8;;{url}\x1B\\"),
-                        label_style,
-                    );
+    if let Some(Element::Cause(cause)) = group
+        .elements
+        .iter()
+        .find(|e| matches!(e, Element::Cause(_)))
+    {
+        let labels_inner = cause
+            .markers
+            .iter()
+            .filter_map(|ann| match &ann.label {
+                Some(msg) if ann.kind.is_primary() => {
+                    if !msg.trim().is_empty() {
+                        Some(msg.to_string())
+                    } else {
+                        None
+                    }
                 }
-                buffer.append(buffer_msg_line_offset, id, label_style);
-                if url.is_some() {
-                    buffer.append(buffer_msg_line_offset, "\x1B]8;;\x1B\\", label_style);
-                }
-                buffer.append(buffer_msg_line_offset, "]", label_style);
-                label_width += 2 + id.len();
-            }
-            buffer.append(buffer_msg_line_offset, ": ", title_element_style);
-            label_width += 2;
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        if !labels_inner.is_empty() {
+            labels = Some(labels_inner);
         }
 
-        let padding = " ".repeat(if title_style == TitleStyle::Secondary {
-            // The extra 3 ` ` is padding that's always needed to align to the
-            // label i.e. `note: `:
-            //
-            //   error: message
-            //     --> file.rs:13:20
-            //      |
-            //   13 |     <CODE>
-            //      |      ^^^^
-            //      |
-            //      = note: multiline
-            //              message
-            //   ++^^^------
-            //    |  |     |
-            //    |  |     |
-            //    |  |     width of label
-            //    |  magic `3`
-            //    `max_line_num_len`
-            max_line_num_len + 3 + label_width
-        } else {
-            label_width
-        });
+        if let Some(path) = &cause.path {
+            let mut origin = Origin::path(path.as_ref());
 
-        let (title_str, style) = if title.allows_styling() {
-            (title.text().to_owned(), ElementStyle::NoStyle)
-        } else {
-            (normalize_whitespace(title.text()), title_element_style)
-        };
-        for (i, text) in title_str.split('\n').enumerate() {
-            if i != 0 {
-                buffer.append(buffer_msg_line_offset + i, &padding, ElementStyle::NoStyle);
-                if title_style == TitleStyle::Secondary
-                    && is_cont
-                    && matches!(self.decor_style, DecorStyle::Unicode)
+            let source_map = SourceMap::new(&cause.source, cause.line_start);
+            let (_depth, annotated_lines) =
+                source_map.annotated_lines(cause.markers.clone(), cause.fold);
+
+            if let Some(primary_line) = annotated_lines
+                .iter()
+                .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
+                .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
+            {
+                origin.line = Some(primary_line.line_index);
+                if let Some(first_annotation) = primary_line
+                    .annotations
+                    .iter()
+                    .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
                 {
-                    // There's another note after this one, associated to the subwindow above.
-                    // We write additional vertical lines to join them:
-                    //   ╭▸ test.rs:3:3
-                    //   │
-                    // 3 │   code
-                    //   │   ━━━━
-                    //   │
-                    //   ├ note: foo
-                    //   │       bar
-                    //   ╰ note: foo
-                    //           bar
-                    self.draw_col_separator_no_space(
-                        buffer,
-                        buffer_msg_line_offset + i,
-                        max_line_num_len + 1,
-                    );
+                    origin.char_column = Some(first_annotation.start.char + 1);
                 }
             }
-            buffer.append(buffer_msg_line_offset + i, text, style);
+
+            render_origin(renderer, &mut buffer, 0, &origin, true, true, 0);
+            buffer.append(0, ": ", ElementStyle::LineAndColumn);
         }
     }
 
-    fn render_origin(
-        &self,
-        buffer: &mut StyledBuffer,
-        max_line_num_len: usize,
-        origin: &Origin<'_>,
-        is_primary: bool,
-        is_first: bool,
-        buffer_msg_line_offset: usize,
-    ) {
-        if is_primary && !self.short_message {
-            buffer.prepend(
-                buffer_msg_line_offset,
-                self.decor_style.file_start(is_first),
-                ElementStyle::LineNumber,
-            );
-        } else if !self.short_message {
-            // if !origin.standalone {
-            //     // Add spacing line, as shown:
-            //     //   --> $DIR/file:54:15
-            //     //    |
-            //     // LL |         code
-            //     //    |         ^^^^
-            //     //    | (<- It prints *this* line)
-            //     //   ::: $DIR/other_file.rs:15:5
-            //     //    |
-            //     // LL |     code
-            //     //    |     ----
-            //     self.draw_col_separator_no_space(
-            //         buffer,
-            //         buffer_msg_line_offset,
-            //         max_line_num_len + 1,
-            //     );
-            //
-            //     buffer_msg_line_offset += 1;
-            // }
-            // Then, the secondary file indicator
-            buffer.prepend(
-                buffer_msg_line_offset,
-                self.decor_style.secondary_file_start(),
-                ElementStyle::LineNumber,
-            );
-        }
+    render_title(
+        renderer,
+        &mut buffer,
+        title,
+        0, // No line numbers in short messages
+        TitleStyle::MainHeader,
+        false,
+        0,
+    );
 
-        let str = match (&origin.line, &origin.char_column) {
-            (Some(line), Some(col)) => {
-                format!("{}:{}:{}", origin.path, line, col)
-            }
-            (Some(line), None) => format!("{}:{}", origin.path, line),
-            _ => origin.path.to_string(),
-        };
+    if let Some(labels) = labels {
+        buffer.append(0, &format!(": {labels}"), ElementStyle::NoStyle);
+    }
 
-        buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
-        if !self.short_message {
+    let mut out_string = String::new();
+    buffer.render(&title.level, &renderer.stylesheet, &mut out_string)?;
+
+    Ok(out_string)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_title(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    title: &dyn MessageOrTitle,
+    max_line_num_len: usize,
+    title_style: TitleStyle,
+    is_cont: bool,
+    buffer_msg_line_offset: usize,
+) {
+    let (label_style, title_element_style) = match title_style {
+        TitleStyle::MainHeader => (
+            ElementStyle::Level(title.level().level),
+            if renderer.short_message {
+                ElementStyle::NoStyle
+            } else {
+                ElementStyle::MainHeaderMsg
+            },
+        ),
+        TitleStyle::Header => (
+            ElementStyle::Level(title.level().level),
+            ElementStyle::HeaderMsg,
+        ),
+        TitleStyle::Secondary => {
             for _ in 0..max_line_num_len {
                 buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
             }
+
+            draw_note_separator(
+                renderer,
+                buffer,
+                buffer_msg_line_offset,
+                max_line_num_len + 1,
+                is_cont,
+            );
+            (ElementStyle::MainHeaderMsg, ElementStyle::NoStyle)
         }
+    };
+    let mut label_width = 0;
+
+    if title.level().name != Some(None) {
+        buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
+        label_width += title.level().as_str().len();
+        if let Some(Id { id: Some(id), url }) = &title.id() {
+            buffer.append(buffer_msg_line_offset, "[", label_style);
+            if let Some(url) = url.as_ref() {
+                buffer.append(
+                    buffer_msg_line_offset,
+                    &format!("\x1B]8;;{url}\x1B\\"),
+                    label_style,
+                );
+            }
+            buffer.append(buffer_msg_line_offset, id, label_style);
+            if url.is_some() {
+                buffer.append(buffer_msg_line_offset, "\x1B]8;;\x1B\\", label_style);
+            }
+            buffer.append(buffer_msg_line_offset, "]", label_style);
+            label_width += 2 + id.len();
+        }
+        buffer.append(buffer_msg_line_offset, ": ", title_element_style);
+        label_width += 2;
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn render_snippet_annotations(
-        &self,
-        buffer: &mut StyledBuffer,
-        max_line_num_len: usize,
-        snippet: &Snippet<'_, Annotation<'_>>,
-        is_primary: bool,
-        sm: &SourceMap<'_>,
-        annotated_lines: &[AnnotatedLineInfo<'_>],
-        multiline_depth: usize,
-        is_cont: bool,
-        is_first: bool,
-    ) {
-        if let Some(path) = &snippet.path {
-            let mut origin = Origin::path(path.as_ref());
-            // print out the span location and spacer before we print the annotated source
-            // to do this, we need to know if this span will be primary
-            //let is_primary = primary_path == Some(&origin.path);
+    let padding = " ".repeat(if title_style == TitleStyle::Secondary {
+        // The extra 3 ` ` is padding that's always needed to align to the
+        // label i.e. `note: `:
+        //
+        //   error: message
+        //     --> file.rs:13:20
+        //      |
+        //   13 |     <CODE>
+        //      |      ^^^^
+        //      |
+        //      = note: multiline
+        //              message
+        //   ++^^^------
+        //    |  |     |
+        //    |  |     |
+        //    |  |     width of label
+        //    |  magic `3`
+        //    `max_line_num_len`
+        max_line_num_len + 3 + label_width
+    } else {
+        label_width
+    });
 
-            if is_primary {
-                if let Some(primary_line) = annotated_lines
-                    .iter()
-                    .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
-                    .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
-                {
-                    origin.line = Some(primary_line.line_index);
-                    if let Some(first_annotation) = primary_line
-                        .annotations
-                        .iter()
-                        .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
-                    {
-                        origin.char_column = Some(first_annotation.start.char + 1);
-                    }
-                }
-            } else {
-                let buffer_msg_line_offset = buffer.num_lines();
-                // Add spacing line, as shown:
-                //   --> $DIR/file:54:15
-                //    |
-                // LL |         code
-                //    |         ^^^^
-                //    | (<- It prints *this* line)
-                //   ::: $DIR/other_file.rs:15:5
-                //    |
-                // LL |     code
-                //    |     ----
-                self.draw_col_separator_no_space(
+    let (title_str, style) = if title.allows_styling() {
+        (title.text().to_owned(), ElementStyle::NoStyle)
+    } else {
+        (normalize_whitespace(title.text()), title_element_style)
+    };
+    for (i, text) in title_str.split('\n').enumerate() {
+        if i != 0 {
+            buffer.append(buffer_msg_line_offset + i, &padding, ElementStyle::NoStyle);
+            if title_style == TitleStyle::Secondary
+                && is_cont
+                && matches!(renderer.decor_style, DecorStyle::Unicode)
+            {
+                // There's another note after this one, associated to the subwindow above.
+                // We write additional vertical lines to join them:
+                //   ╭▸ test.rs:3:3
+                //   │
+                // 3 │   code
+                //   │   ━━━━
+                //   │
+                //   ├ note: foo
+                //   │       bar
+                //   ╰ note: foo
+                //           bar
+                draw_col_separator_no_space(
+                    renderer,
                     buffer,
-                    buffer_msg_line_offset,
+                    buffer_msg_line_offset + i,
                     max_line_num_len + 1,
                 );
-                if let Some(first_line) = annotated_lines.first() {
-                    origin.line = Some(first_line.line_index);
-                    if let Some(first_annotation) = first_line.annotations.first() {
-                        origin.char_column = Some(first_annotation.start.char + 1);
-                    }
+            }
+        }
+        buffer.append(buffer_msg_line_offset + i, text, style);
+    }
+}
+
+fn render_origin(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    max_line_num_len: usize,
+    origin: &Origin<'_>,
+    is_primary: bool,
+    is_first: bool,
+    buffer_msg_line_offset: usize,
+) {
+    if is_primary && !renderer.short_message {
+        buffer.prepend(
+            buffer_msg_line_offset,
+            renderer.decor_style.file_start(is_first),
+            ElementStyle::LineNumber,
+        );
+    } else if !renderer.short_message {
+        // if !origin.standalone {
+        //     // Add spacing line, as shown:
+        //     //   --> $DIR/file:54:15
+        //     //    |
+        //     // LL |         code
+        //     //    |         ^^^^
+        //     //    | (<- It prints *this* line)
+        //     //   ::: $DIR/other_file.rs:15:5
+        //     //    |
+        //     // LL |     code
+        //     //    |     ----
+        //     draw_col_separator_no_space(renderer,
+        //         buffer,
+        //         buffer_msg_line_offset,
+        //         max_line_num_len + 1,
+        //     );
+        //
+        //     buffer_msg_line_offset += 1;
+        // }
+        // Then, the secondary file indicator
+        buffer.prepend(
+            buffer_msg_line_offset,
+            renderer.decor_style.secondary_file_start(),
+            ElementStyle::LineNumber,
+        );
+    }
+
+    let str = match (&origin.line, &origin.char_column) {
+        (Some(line), Some(col)) => {
+            format!("{}:{}:{}", origin.path, line, col)
+        }
+        (Some(line), None) => format!("{}:{}", origin.path, line),
+        _ => origin.path.to_string(),
+    };
+
+    buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
+    if !renderer.short_message {
+        for _ in 0..max_line_num_len {
+            buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_snippet_annotations(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    max_line_num_len: usize,
+    snippet: &Snippet<'_, Annotation<'_>>,
+    is_primary: bool,
+    sm: &SourceMap<'_>,
+    annotated_lines: &[AnnotatedLineInfo<'_>],
+    multiline_depth: usize,
+    is_cont: bool,
+    is_first: bool,
+) {
+    if let Some(path) = &snippet.path {
+        let mut origin = Origin::path(path.as_ref());
+        // print out the span location and spacer before we print the annotated source
+        // to do this, we need to know if this span will be primary
+        //let is_primary = primary_path == Some(&origin.path);
+
+        if is_primary {
+            if let Some(primary_line) = annotated_lines
+                .iter()
+                .find(|l| l.annotations.iter().any(LineAnnotation::is_primary))
+                .or(annotated_lines.iter().find(|l| !l.annotations.is_empty()))
+            {
+                origin.line = Some(primary_line.line_index);
+                if let Some(first_annotation) = primary_line
+                    .annotations
+                    .iter()
+                    .min_by_key(|a| (Reverse(a.is_primary()), a.start.char))
+                {
+                    origin.char_column = Some(first_annotation.start.char + 1);
                 }
             }
+        } else {
             let buffer_msg_line_offset = buffer.num_lines();
-            self.render_origin(
+            // Add spacing line, as shown:
+            //   --> $DIR/file:54:15
+            //    |
+            // LL |         code
+            //    |         ^^^^
+            //    | (<- It prints *this* line)
+            //   ::: $DIR/other_file.rs:15:5
+            //    |
+            // LL |     code
+            //    |     ----
+            draw_col_separator_no_space(
+                renderer,
                 buffer,
-                max_line_num_len,
-                &origin,
-                is_primary,
-                is_first,
                 buffer_msg_line_offset,
-            );
-            // Put in the spacer between the location and annotated source
-            self.draw_col_separator_no_space(
-                buffer,
-                buffer_msg_line_offset + 1,
                 max_line_num_len + 1,
             );
-        } else {
-            let buffer_msg_line_offset = buffer.num_lines();
-            if is_primary {
-                if self.decor_style == DecorStyle::Unicode {
-                    buffer.puts(
-                        buffer_msg_line_offset,
-                        max_line_num_len,
-                        self.decor_style.file_start(is_first),
-                        ElementStyle::LineNumber,
-                    );
-                } else {
-                    self.draw_col_separator_no_space(
-                        buffer,
-                        buffer_msg_line_offset,
-                        max_line_num_len + 1,
-                    );
+            if let Some(first_line) = annotated_lines.first() {
+                origin.line = Some(first_line.line_index);
+                if let Some(first_annotation) = first_line.annotations.first() {
+                    origin.char_column = Some(first_annotation.start.char + 1);
                 }
+            }
+        }
+        let buffer_msg_line_offset = buffer.num_lines();
+        render_origin(
+            renderer,
+            buffer,
+            max_line_num_len,
+            &origin,
+            is_primary,
+            is_first,
+            buffer_msg_line_offset,
+        );
+        // Put in the spacer between the location and annotated source
+        draw_col_separator_no_space(
+            renderer,
+            buffer,
+            buffer_msg_line_offset + 1,
+            max_line_num_len + 1,
+        );
+    } else {
+        let buffer_msg_line_offset = buffer.num_lines();
+        if is_primary {
+            if renderer.decor_style == DecorStyle::Unicode {
+                buffer.puts(
+                    buffer_msg_line_offset,
+                    max_line_num_len,
+                    renderer.decor_style.file_start(is_first),
+                    ElementStyle::LineNumber,
+                );
             } else {
-                // Add spacing line, as shown:
-                //   --> $DIR/file:54:15
-                //    |
-                // LL |         code
-                //    |         ^^^^
-                //    | (<- It prints *this* line)
-                //   ::: $DIR/other_file.rs:15:5
-                //    |
-                // LL |     code
-                //    |     ----
-                self.draw_col_separator_no_space(
+                draw_col_separator_no_space(
+                    renderer,
                     buffer,
                     buffer_msg_line_offset,
                     max_line_num_len + 1,
                 );
-
-                buffer.puts(
-                    buffer_msg_line_offset + 1,
-                    max_line_num_len,
-                    self.decor_style.secondary_file_start(),
-                    ElementStyle::LineNumber,
-                );
             }
-        }
-
-        // Contains the vertical lines' positions for active multiline annotations
-        let mut multilines = Vec::new();
-
-        // Get the left-side margin to remove it
-        let mut whitespace_margin = usize::MAX;
-        for line_info in annotated_lines {
-            // Whitespace can only be removed (aka considered leading)
-            // if the lexer considers it whitespace.
-            // non-rustc_lexer::is_whitespace() chars are reported as an
-            // error (ex. no-break-spaces \u{a0}), and thus can't be considered
-            // for removal during error reporting.
-            let leading_whitespace = line_info
-                .line
-                .chars()
-                .take_while(|c| c.is_whitespace())
-                .map(|c| {
-                    match c {
-                        // Tabs are displayed as 4 spaces
-                        '\t' => 4,
-                        _ => 1,
-                    }
-                })
-                .sum();
-            if line_info.line.chars().any(|c| !c.is_whitespace()) {
-                whitespace_margin = min(whitespace_margin, leading_whitespace);
-            }
-        }
-        if whitespace_margin == usize::MAX {
-            whitespace_margin = 0;
-        }
-
-        // Left-most column any visible span points at.
-        let mut span_left_margin = usize::MAX;
-        for line_info in annotated_lines {
-            for ann in &line_info.annotations {
-                span_left_margin = min(span_left_margin, ann.start.display);
-                span_left_margin = min(span_left_margin, ann.end.display);
-            }
-        }
-        if span_left_margin == usize::MAX {
-            span_left_margin = 0;
-        }
-
-        // Right-most column any visible span points at.
-        let mut span_right_margin = 0;
-        let mut label_right_margin = 0;
-        let mut max_line_len = 0;
-        for line_info in annotated_lines {
-            max_line_len = max(max_line_len, line_info.line.len());
-            for ann in &line_info.annotations {
-                span_right_margin = max(span_right_margin, ann.start.display);
-                span_right_margin = max(span_right_margin, ann.end.display);
-                // FIXME: account for labels not in the same line
-                let label_right = ann.label.as_ref().map_or(0, |l| l.len() + 1);
-                label_right_margin = max(label_right_margin, ann.end.display + label_right);
-            }
-        }
-        let width_offset = 3 + max_line_num_len;
-        let code_offset = if multiline_depth == 0 {
-            width_offset
         } else {
-            width_offset + multiline_depth + 1
-        };
-
-        let column_width = self.term_width.saturating_sub(code_offset);
-
-        let margin = Margin::new(
-            whitespace_margin,
-            span_left_margin,
-            span_right_margin,
-            label_right_margin,
-            column_width,
-            max_line_len,
-        );
-
-        // Next, output the annotate source for this file
-        for annotated_line_idx in 0..annotated_lines.len() {
-            let previous_buffer_line = buffer.num_lines();
-
-            let depths = self.render_source_line(
-                &annotated_lines[annotated_line_idx],
+            // Add spacing line, as shown:
+            //   --> $DIR/file:54:15
+            //    |
+            // LL |         code
+            //    |         ^^^^
+            //    | (<- It prints *this* line)
+            //   ::: $DIR/other_file.rs:15:5
+            //    |
+            // LL |     code
+            //    |     ----
+            draw_col_separator_no_space(
+                renderer,
                 buffer,
-                width_offset,
-                code_offset,
-                max_line_num_len,
-                margin,
-                !is_cont && annotated_line_idx + 1 == annotated_lines.len(),
+                buffer_msg_line_offset,
+                max_line_num_len + 1,
             );
 
-            let mut to_add = HashMap::new();
-
-            for (depth, style) in depths {
-                if let Some(index) = multilines.iter().position(|(d, _)| d == &depth) {
-                    multilines.swap_remove(index);
-                } else {
-                    to_add.insert(depth, style);
-                }
-            }
-
-            // Set the multiline annotation vertical lines to the left of
-            // the code in this line.
-            for (depth, style) in &multilines {
-                for line in previous_buffer_line..buffer.num_lines() {
-                    self.draw_multiline_line(buffer, line, width_offset, *depth, *style);
-                }
-            }
-            // check to see if we need to print out or elide lines that come between
-            // this annotated line and the next one.
-            if annotated_line_idx < (annotated_lines.len() - 1) {
-                let line_idx_delta = annotated_lines[annotated_line_idx + 1].line_index
-                    - annotated_lines[annotated_line_idx].line_index;
-                match line_idx_delta.cmp(&2) {
-                    Ordering::Greater => {
-                        let last_buffer_line_num = buffer.num_lines();
-
-                        self.draw_line_separator(buffer, last_buffer_line_num, width_offset);
-
-                        // Set the multiline annotation vertical lines on `...` bridging line.
-                        for (depth, style) in &multilines {
-                            self.draw_multiline_line(
-                                buffer,
-                                last_buffer_line_num,
-                                width_offset,
-                                *depth,
-                                *style,
-                            );
-                        }
-                        if let Some(line) = annotated_lines.get(annotated_line_idx) {
-                            for ann in &line.annotations {
-                                if let LineAnnotationType::MultilineStart(pos) = ann.annotation_type
-                                {
-                                    // In the case where we have elided the entire start of the
-                                    // multispan because those lines were empty, we still need
-                                    // to draw the `|`s across the `...`.
-                                    self.draw_multiline_line(
-                                        buffer,
-                                        last_buffer_line_num,
-                                        width_offset,
-                                        pos,
-                                        if ann.is_primary() {
-                                            ElementStyle::UnderlinePrimary
-                                        } else {
-                                            ElementStyle::UnderlineSecondary
-                                        },
-                                    );
-                                }
-                            }
-                        }
-                    }
-
-                    Ordering::Equal => {
-                        let unannotated_line = sm
-                            .get_line(annotated_lines[annotated_line_idx].line_index + 1)
-                            .unwrap_or("");
-
-                        let last_buffer_line_num = buffer.num_lines();
-
-                        self.draw_line(
-                            buffer,
-                            &normalize_whitespace(unannotated_line),
-                            annotated_lines[annotated_line_idx + 1].line_index - 1,
-                            last_buffer_line_num,
-                            width_offset,
-                            code_offset,
-                            max_line_num_len,
-                            margin,
-                        );
-
-                        for (depth, style) in &multilines {
-                            self.draw_multiline_line(
-                                buffer,
-                                last_buffer_line_num,
-                                width_offset,
-                                *depth,
-                                *style,
-                            );
-                        }
-                        if let Some(line) = annotated_lines.get(annotated_line_idx) {
-                            for ann in &line.annotations {
-                                if let LineAnnotationType::MultilineStart(pos) = ann.annotation_type
-                                {
-                                    self.draw_multiline_line(
-                                        buffer,
-                                        last_buffer_line_num,
-                                        width_offset,
-                                        pos,
-                                        if ann.is_primary() {
-                                            ElementStyle::UnderlinePrimary
-                                        } else {
-                                            ElementStyle::UnderlineSecondary
-                                        },
-                                    );
-                                }
-                            }
-                        }
-                    }
-                    Ordering::Less => {}
-                }
-            }
-
-            multilines.extend(to_add);
+            buffer.puts(
+                buffer_msg_line_offset + 1,
+                max_line_num_len,
+                renderer.decor_style.secondary_file_start(),
+                ElementStyle::LineNumber,
+            );
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn render_source_line(
-        &self,
-        line_info: &AnnotatedLineInfo<'_>,
-        buffer: &mut StyledBuffer,
-        width_offset: usize,
-        code_offset: usize,
-        max_line_num_len: usize,
-        margin: Margin,
-        close_window: bool,
-    ) -> Vec<(usize, ElementStyle)> {
-        // Draw:
-        //
-        //   LL | ... code ...
-        //      |     ^^-^ span label
-        //      |       |
-        //      |       secondary span label
-        //
-        //   ^^ ^ ^^^ ^^^^ ^^^ we don't care about code too far to the right of a span, we trim it
-        //   |  | |   |
-        //   |  | |   actual code found in your source code and the spans we use to mark it
-        //   |  | when there's too much wasted space to the left, trim it
-        //   |  vertical divider between the column number and the code
-        //   column number
+    // Contains the vertical lines' positions for active multiline annotations
+    let mut multilines = Vec::new();
 
-        let source_string = normalize_whitespace(line_info.line);
+    // Get the left-side margin to remove it
+    let mut whitespace_margin = usize::MAX;
+    for line_info in annotated_lines {
+        // Whitespace can only be removed (aka considered leading)
+        // if the lexer considers it whitespace.
+        // non-rustc_lexer::is_whitespace() chars are reported as an
+        // error (ex. no-break-spaces \u{a0}), and thus can't be considered
+        // for removal during error reporting.
+        let leading_whitespace = line_info
+            .line
+            .chars()
+            .take_while(|c| c.is_whitespace())
+            .map(|c| {
+                match c {
+                    // Tabs are displayed as 4 spaces
+                    '\t' => 4,
+                    _ => 1,
+                }
+            })
+            .sum();
+        if line_info.line.chars().any(|c| !c.is_whitespace()) {
+            whitespace_margin = min(whitespace_margin, leading_whitespace);
+        }
+    }
+    if whitespace_margin == usize::MAX {
+        whitespace_margin = 0;
+    }
 
-        let line_offset = buffer.num_lines();
+    // Left-most column any visible span points at.
+    let mut span_left_margin = usize::MAX;
+    for line_info in annotated_lines {
+        for ann in &line_info.annotations {
+            span_left_margin = min(span_left_margin, ann.start.display);
+            span_left_margin = min(span_left_margin, ann.end.display);
+        }
+    }
+    if span_left_margin == usize::MAX {
+        span_left_margin = 0;
+    }
 
-        let left = self.draw_line(
+    // Right-most column any visible span points at.
+    let mut span_right_margin = 0;
+    let mut label_right_margin = 0;
+    let mut max_line_len = 0;
+    for line_info in annotated_lines {
+        max_line_len = max(max_line_len, line_info.line.len());
+        for ann in &line_info.annotations {
+            span_right_margin = max(span_right_margin, ann.start.display);
+            span_right_margin = max(span_right_margin, ann.end.display);
+            // FIXME: account for labels not in the same line
+            let label_right = ann.label.as_ref().map_or(0, |l| l.len() + 1);
+            label_right_margin = max(label_right_margin, ann.end.display + label_right);
+        }
+    }
+    let width_offset = 3 + max_line_num_len;
+    let code_offset = if multiline_depth == 0 {
+        width_offset
+    } else {
+        width_offset + multiline_depth + 1
+    };
+
+    let column_width = renderer.term_width.saturating_sub(code_offset);
+
+    let margin = Margin::new(
+        whitespace_margin,
+        span_left_margin,
+        span_right_margin,
+        label_right_margin,
+        column_width,
+        max_line_len,
+    );
+
+    // Next, output the annotate source for this file
+    for annotated_line_idx in 0..annotated_lines.len() {
+        let previous_buffer_line = buffer.num_lines();
+
+        let depths = render_source_line(
+            renderer,
+            &annotated_lines[annotated_line_idx],
             buffer,
-            &source_string,
-            line_info.line_index,
-            line_offset,
             width_offset,
             code_offset,
             max_line_num_len,
             margin,
+            !is_cont && annotated_line_idx + 1 == annotated_lines.len(),
         );
 
-        // If there are no annotations, we are done
-        if line_info.annotations.is_empty() {
-            // `close_window` normally gets handled later, but we are early
-            // returning, so it needs to be handled here
-            if close_window {
-                self.draw_col_separator_end(buffer, line_offset + 1, width_offset - 2);
+        let mut to_add = HashMap::new();
+
+        for (depth, style) in depths {
+            if let Some(index) = multilines.iter().position(|(d, _)| d == &depth) {
+                multilines.swap_remove(index);
+            } else {
+                to_add.insert(depth, style);
             }
-            return vec![];
         }
 
-        // Special case when there's only one annotation involved, it is the start of a multiline
-        // span and there's no text at the beginning of the code line. Instead of doing the whole
-        // graph:
-        //
-        // 2 |   fn foo() {
-        //   |  _^
-        // 3 | |
-        // 4 | | }
-        //   | |_^ test
-        //
-        // we simplify the output to:
-        //
-        // 2 | / fn foo() {
-        // 3 | |
-        // 4 | | }
-        //   | |_^ test
-        let mut buffer_ops = vec![];
-        let mut annotations = vec![];
-        let mut short_start = true;
-        for ann in &line_info.annotations {
-            if let LineAnnotationType::MultilineStart(depth) = ann.annotation_type {
-                if source_string
-                    .chars()
-                    .take(ann.start.display)
-                    .all(char::is_whitespace)
-                {
-                    let uline = self.decor_style.underline(ann.is_primary());
-                    let chr = uline.multiline_whole_line;
-                    annotations.push((depth, uline.style));
-                    buffer_ops.push((line_offset, width_offset + depth - 1, chr, uline.style));
-                } else {
-                    short_start = false;
-                    break;
+        // Set the multiline annotation vertical lines to the left of
+        // the code in this line.
+        for (depth, style) in &multilines {
+            for line in previous_buffer_line..buffer.num_lines() {
+                draw_multiline_line(renderer, buffer, line, width_offset, *depth, *style);
+            }
+        }
+        // check to see if we need to print out or elide lines that come between
+        // this annotated line and the next one.
+        if annotated_line_idx < (annotated_lines.len() - 1) {
+            let line_idx_delta = annotated_lines[annotated_line_idx + 1].line_index
+                - annotated_lines[annotated_line_idx].line_index;
+            match line_idx_delta.cmp(&2) {
+                Ordering::Greater => {
+                    let last_buffer_line_num = buffer.num_lines();
+
+                    draw_line_separator(renderer, buffer, last_buffer_line_num, width_offset);
+
+                    // Set the multiline annotation vertical lines on `...` bridging line.
+                    for (depth, style) in &multilines {
+                        draw_multiline_line(
+                            renderer,
+                            buffer,
+                            last_buffer_line_num,
+                            width_offset,
+                            *depth,
+                            *style,
+                        );
+                    }
+                    if let Some(line) = annotated_lines.get(annotated_line_idx) {
+                        for ann in &line.annotations {
+                            if let LineAnnotationType::MultilineStart(pos) = ann.annotation_type {
+                                // In the case where we have elided the entire start of the
+                                // multispan because those lines were empty, we still need
+                                // to draw the `|`s across the `...`.
+                                draw_multiline_line(
+                                    renderer,
+                                    buffer,
+                                    last_buffer_line_num,
+                                    width_offset,
+                                    pos,
+                                    if ann.is_primary() {
+                                        ElementStyle::UnderlinePrimary
+                                    } else {
+                                        ElementStyle::UnderlineSecondary
+                                    },
+                                );
+                            }
+                        }
+                    }
                 }
-            } else if let LineAnnotationType::MultilineLine(_) = ann.annotation_type {
+
+                Ordering::Equal => {
+                    let unannotated_line = sm
+                        .get_line(annotated_lines[annotated_line_idx].line_index + 1)
+                        .unwrap_or("");
+
+                    let last_buffer_line_num = buffer.num_lines();
+
+                    draw_line(
+                        renderer,
+                        buffer,
+                        &normalize_whitespace(unannotated_line),
+                        annotated_lines[annotated_line_idx + 1].line_index - 1,
+                        last_buffer_line_num,
+                        width_offset,
+                        code_offset,
+                        max_line_num_len,
+                        margin,
+                    );
+
+                    for (depth, style) in &multilines {
+                        draw_multiline_line(
+                            renderer,
+                            buffer,
+                            last_buffer_line_num,
+                            width_offset,
+                            *depth,
+                            *style,
+                        );
+                    }
+                    if let Some(line) = annotated_lines.get(annotated_line_idx) {
+                        for ann in &line.annotations {
+                            if let LineAnnotationType::MultilineStart(pos) = ann.annotation_type {
+                                draw_multiline_line(
+                                    renderer,
+                                    buffer,
+                                    last_buffer_line_num,
+                                    width_offset,
+                                    pos,
+                                    if ann.is_primary() {
+                                        ElementStyle::UnderlinePrimary
+                                    } else {
+                                        ElementStyle::UnderlineSecondary
+                                    },
+                                );
+                            }
+                        }
+                    }
+                }
+                Ordering::Less => {}
+            }
+        }
+
+        multilines.extend(to_add);
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_source_line(
+    renderer: &Renderer,
+    line_info: &AnnotatedLineInfo<'_>,
+    buffer: &mut StyledBuffer,
+    width_offset: usize,
+    code_offset: usize,
+    max_line_num_len: usize,
+    margin: Margin,
+    close_window: bool,
+) -> Vec<(usize, ElementStyle)> {
+    // Draw:
+    //
+    //   LL | ... code ...
+    //      |     ^^-^ span label
+    //      |       |
+    //      |       secondary span label
+    //
+    //   ^^ ^ ^^^ ^^^^ ^^^ we don't care about code too far to the right of a span, we trim it
+    //   |  | |   |
+    //   |  | |   actual code found in your source code and the spans we use to mark it
+    //   |  | when there's too much wasted space to the left, trim it
+    //   |  vertical divider between the column number and the code
+    //   column number
+
+    let source_string = normalize_whitespace(line_info.line);
+
+    let line_offset = buffer.num_lines();
+
+    let left = draw_line(
+        renderer,
+        buffer,
+        &source_string,
+        line_info.line_index,
+        line_offset,
+        width_offset,
+        code_offset,
+        max_line_num_len,
+        margin,
+    );
+
+    // If there are no annotations, we are done
+    if line_info.annotations.is_empty() {
+        // `close_window` normally gets handled later, but we are early
+        // returning, so it needs to be handled here
+        if close_window {
+            draw_col_separator_end(renderer, buffer, line_offset + 1, width_offset - 2);
+        }
+        return vec![];
+    }
+
+    // Special case when there's only one annotation involved, it is the start of a multiline
+    // span and there's no text at the beginning of the code line. Instead of doing the whole
+    // graph:
+    //
+    // 2 |   fn foo() {
+    //   |  _^
+    // 3 | |
+    // 4 | | }
+    //   | |_^ test
+    //
+    // we simplify the output to:
+    //
+    // 2 | / fn foo() {
+    // 3 | |
+    // 4 | | }
+    //   | |_^ test
+    let mut buffer_ops = vec![];
+    let mut annotations = vec![];
+    let mut short_start = true;
+    for ann in &line_info.annotations {
+        if let LineAnnotationType::MultilineStart(depth) = ann.annotation_type {
+            if source_string
+                .chars()
+                .take(ann.start.display)
+                .all(char::is_whitespace)
+            {
+                let uline = renderer.decor_style.underline(ann.is_primary());
+                let chr = uline.multiline_whole_line;
+                annotations.push((depth, uline.style));
+                buffer_ops.push((line_offset, width_offset + depth - 1, chr, uline.style));
             } else {
                 short_start = false;
                 break;
             }
+        } else if let LineAnnotationType::MultilineLine(_) = ann.annotation_type {
+        } else {
+            short_start = false;
+            break;
         }
-        if short_start {
-            for (y, x, c, s) in buffer_ops {
-                buffer.putc(y, x, c, s);
+    }
+    if short_start {
+        for (y, x, c, s) in buffer_ops {
+            buffer.putc(y, x, c, s);
+        }
+        return annotations;
+    }
+
+    // We want to display like this:
+    //
+    //      vec.push(vec.pop().unwrap());
+    //      ---      ^^^               - previous borrow ends here
+    //      |        |
+    //      |        error occurs here
+    //      previous borrow of `vec` occurs here
+    //
+    // But there are some weird edge cases to be aware of:
+    //
+    //      vec.push(vec.pop().unwrap());
+    //      --------                    - previous borrow ends here
+    //      ||
+    //      |this makes no sense
+    //      previous borrow of `vec` occurs here
+    //
+    // For this reason, we group the lines into "highlight lines"
+    // and "annotations lines", where the highlight lines have the `^`.
+
+    // Sort the annotations by (start, end col)
+    // The labels are reversed, sort and then reversed again.
+    // Consider a list of annotations (A1, A2, C1, C2, B1, B2) where
+    // the letter signifies the span. Here we are only sorting by the
+    // span and hence, the order of the elements with the same span will
+    // not change. On reversing the ordering (|a, b| but b.cmp(a)), you get
+    // (C1, C2, B1, B2, A1, A2). All the elements with the same span are
+    // still ordered first to last, but all the elements with different
+    // spans are ordered by their spans in last to first order. Last to
+    // first order is important, because the jiggly lines and | are on
+    // the left, so the rightmost span needs to be rendered first,
+    // otherwise the lines would end up needing to go over a message.
+
+    let mut annotations = line_info.annotations.clone();
+    annotations.sort_by_key(|a| Reverse((a.start.display, a.start.char)));
+
+    // First, figure out where each label will be positioned.
+    //
+    // In the case where you have the following annotations:
+    //
+    //      vec.push(vec.pop().unwrap());
+    //      --------                    - previous borrow ends here [C]
+    //      ||
+    //      |this makes no sense [B]
+    //      previous borrow of `vec` occurs here [A]
+    //
+    // `annotations_position` will hold [(2, A), (1, B), (0, C)].
+    //
+    // We try, when possible, to stick the rightmost annotation at the end
+    // of the highlight line:
+    //
+    //      vec.push(vec.pop().unwrap());
+    //      ---      ---               - previous borrow ends here
+    //
+    // But sometimes that's not possible because one of the other
+    // annotations overlaps it. For example, from the test
+    // `span_overlap_label`, we have the following annotations
+    // (written on distinct lines for clarity):
+    //
+    //      fn foo(x: u32) {
+    //      --------------
+    //             -
+    //
+    // In this case, we can't stick the rightmost-most label on
+    // the highlight line, or we would get:
+    //
+    //      fn foo(x: u32) {
+    //      -------- x_span
+    //      |
+    //      fn_span
+    //
+    // which is totally weird. Instead we want:
+    //
+    //      fn foo(x: u32) {
+    //      --------------
+    //      |      |
+    //      |      x_span
+    //      fn_span
+    //
+    // which is...less weird, at least. In fact, in general, if
+    // the rightmost span overlaps with any other span, we should
+    // use the "hang below" version, so we can at least make it
+    // clear where the span *starts*. There's an exception for this
+    // logic, when the labels do not have a message:
+    //
+    //      fn foo(x: u32) {
+    //      --------------
+    //             |
+    //             x_span
+    //
+    // instead of:
+    //
+    //      fn foo(x: u32) {
+    //      --------------
+    //      |      |
+    //      |      x_span
+    //      <EMPTY LINE>
+    //
+    let mut overlap = vec![false; annotations.len()];
+    let mut annotations_position = vec![];
+    let mut line_len: usize = 0;
+    let mut p = 0;
+    for (i, annotation) in annotations.iter().enumerate() {
+        for (j, next) in annotations.iter().enumerate() {
+            if overlaps(next, annotation, 0) && j > 1 {
+                overlap[i] = true;
+                overlap[j] = true;
             }
-            return annotations;
-        }
-
-        // We want to display like this:
-        //
-        //      vec.push(vec.pop().unwrap());
-        //      ---      ^^^               - previous borrow ends here
-        //      |        |
-        //      |        error occurs here
-        //      previous borrow of `vec` occurs here
-        //
-        // But there are some weird edge cases to be aware of:
-        //
-        //      vec.push(vec.pop().unwrap());
-        //      --------                    - previous borrow ends here
-        //      ||
-        //      |this makes no sense
-        //      previous borrow of `vec` occurs here
-        //
-        // For this reason, we group the lines into "highlight lines"
-        // and "annotations lines", where the highlight lines have the `^`.
-
-        // Sort the annotations by (start, end col)
-        // The labels are reversed, sort and then reversed again.
-        // Consider a list of annotations (A1, A2, C1, C2, B1, B2) where
-        // the letter signifies the span. Here we are only sorting by the
-        // span and hence, the order of the elements with the same span will
-        // not change. On reversing the ordering (|a, b| but b.cmp(a)), you get
-        // (C1, C2, B1, B2, A1, A2). All the elements with the same span are
-        // still ordered first to last, but all the elements with different
-        // spans are ordered by their spans in last to first order. Last to
-        // first order is important, because the jiggly lines and | are on
-        // the left, so the rightmost span needs to be rendered first,
-        // otherwise the lines would end up needing to go over a message.
-
-        let mut annotations = line_info.annotations.clone();
-        annotations.sort_by_key(|a| Reverse((a.start.display, a.start.char)));
-
-        // First, figure out where each label will be positioned.
-        //
-        // In the case where you have the following annotations:
-        //
-        //      vec.push(vec.pop().unwrap());
-        //      --------                    - previous borrow ends here [C]
-        //      ||
-        //      |this makes no sense [B]
-        //      previous borrow of `vec` occurs here [A]
-        //
-        // `annotations_position` will hold [(2, A), (1, B), (0, C)].
-        //
-        // We try, when possible, to stick the rightmost annotation at the end
-        // of the highlight line:
-        //
-        //      vec.push(vec.pop().unwrap());
-        //      ---      ---               - previous borrow ends here
-        //
-        // But sometimes that's not possible because one of the other
-        // annotations overlaps it. For example, from the test
-        // `span_overlap_label`, we have the following annotations
-        // (written on distinct lines for clarity):
-        //
-        //      fn foo(x: u32) {
-        //      --------------
-        //             -
-        //
-        // In this case, we can't stick the rightmost-most label on
-        // the highlight line, or we would get:
-        //
-        //      fn foo(x: u32) {
-        //      -------- x_span
-        //      |
-        //      fn_span
-        //
-        // which is totally weird. Instead we want:
-        //
-        //      fn foo(x: u32) {
-        //      --------------
-        //      |      |
-        //      |      x_span
-        //      fn_span
-        //
-        // which is...less weird, at least. In fact, in general, if
-        // the rightmost span overlaps with any other span, we should
-        // use the "hang below" version, so we can at least make it
-        // clear where the span *starts*. There's an exception for this
-        // logic, when the labels do not have a message:
-        //
-        //      fn foo(x: u32) {
-        //      --------------
-        //             |
-        //             x_span
-        //
-        // instead of:
-        //
-        //      fn foo(x: u32) {
-        //      --------------
-        //      |      |
-        //      |      x_span
-        //      <EMPTY LINE>
-        //
-        let mut overlap = vec![false; annotations.len()];
-        let mut annotations_position = vec![];
-        let mut line_len: usize = 0;
-        let mut p = 0;
-        for (i, annotation) in annotations.iter().enumerate() {
-            for (j, next) in annotations.iter().enumerate() {
-                if overlaps(next, annotation, 0) && j > 1 {
-                    overlap[i] = true;
-                    overlap[j] = true;
-                }
-                if overlaps(next, annotation, 0)  // This label overlaps with another one and both
+            if overlaps(next, annotation, 0)  // This label overlaps with another one and both
                     && annotation.has_label()     // take space (they have text and are not
                     && j > i                      // multiline lines).
                     && p == 0
-                // We're currently on the first line, move the label one line down
+            // We're currently on the first line, move the label one line down
+            {
+                // If we're overlapping with an un-labelled annotation with the same span
+                // we can just merge them in the output
+                if next.start.display == annotation.start.display
+                    && next.start.char == annotation.start.char
+                    && next.end.display == annotation.end.display
+                    && next.end.char == annotation.end.char
+                    && !next.has_label()
                 {
-                    // If we're overlapping with an un-labelled annotation with the same span
-                    // we can just merge them in the output
-                    if next.start.display == annotation.start.display
-                        && next.start.char == annotation.start.char
-                        && next.end.display == annotation.end.display
-                        && next.end.char == annotation.end.char
-                        && !next.has_label()
-                    {
-                        continue;
-                    }
-
-                    // This annotation needs a new line in the output.
-                    p += 1;
-                    break;
+                    continue;
                 }
+
+                // This annotation needs a new line in the output.
+                p += 1;
+                break;
             }
-            annotations_position.push((p, annotation));
-            for (j, next) in annotations.iter().enumerate() {
-                if j > i {
-                    let l = next.label.as_ref().map_or(0, |label| label.len() + 2);
-                    if (overlaps(next, annotation, l) // Do not allow two labels to be in the same
+        }
+        annotations_position.push((p, annotation));
+        for (j, next) in annotations.iter().enumerate() {
+            if j > i {
+                let l = next.label.as_ref().map_or(0, |label| label.len() + 2);
+                if (overlaps(next, annotation, l) // Do not allow two labels to be in the same
                         // line if they overlap including padding, to
                         // avoid situations like:
                         //
@@ -1059,481 +1087,511 @@ impl Renderer {
                         && (next.end.display, next.end.char) <= (annotation.end.display, annotation.end.char)
                         && next.has_label()
                         && p == 0)
-                    // Avoid #42595.
-                    {
-                        // This annotation needs a new line in the output.
-                        p += 1;
-                        break;
-                    }
-                }
-            }
-            line_len = max(line_len, p);
-        }
-
-        if line_len != 0 {
-            line_len += 1;
-        }
-
-        // If there are no annotations or the only annotations on this line are
-        // MultilineLine, then there's only code being shown, stop processing.
-        if line_info.annotations.iter().all(LineAnnotation::is_line) {
-            return vec![];
-        }
-
-        if annotations_position
-            .iter()
-            .all(|(_, ann)| matches!(ann.annotation_type, LineAnnotationType::MultilineStart(_)))
-        {
-            if let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max() {
-                // Special case the following, so that we minimize overlapping multiline spans.
-                //
-                // 3 │       X0 Y0 Z0
-                //   │ ┏━━━━━┛  │  │     < We are writing these lines
-                //   │ ┃┌───────┘  │     < by reverting the "depth" of
-                //   │ ┃│┌─────────┘     < their multiline spans.
-                // 4 │ ┃││   X1 Y1 Z1
-                // 5 │ ┃││   X2 Y2 Z2
-                //   │ ┃│└────╿──│──┘ `Z` label
-                //   │ ┃└─────│──┤
-                //   │ ┗━━━━━━┥  `Y` is a good letter too
-                //   ╰╴       `X` is a good letter
-                for (pos, _) in &mut annotations_position {
-                    *pos = max_pos - *pos;
-                }
-                // We know then that we don't need an additional line for the span label, saving us
-                // one line of vertical space.
-                line_len = line_len.saturating_sub(1);
-            }
-        }
-
-        // Write the column separator.
-        //
-        // After this we will have:
-        //
-        // 2 |   fn foo() {
-        //   |
-        //   |
-        //   |
-        // 3 |
-        // 4 |   }
-        //   |
-        for pos in 0..=line_len {
-            self.draw_col_separator_no_space(buffer, line_offset + pos + 1, width_offset - 2);
-        }
-        if close_window {
-            self.draw_col_separator_end(buffer, line_offset + line_len + 1, width_offset - 2);
-        }
-        // Write the horizontal lines for multiline annotations
-        // (only the first and last lines need this).
-        //
-        // After this we will have:
-        //
-        // 2 |   fn foo() {
-        //   |  __________
-        //   |
-        //   |
-        // 3 |
-        // 4 |   }
-        //   |  _
-        for &(pos, annotation) in &annotations_position {
-            let underline = self.decor_style.underline(annotation.is_primary());
-            let pos = pos + 1;
-            match annotation.annotation_type {
-                LineAnnotationType::MultilineStart(depth)
-                | LineAnnotationType::MultilineEnd(depth) => {
-                    self.draw_range(
-                        buffer,
-                        underline.multiline_horizontal,
-                        line_offset + pos,
-                        width_offset + depth,
-                        (code_offset + annotation.start.display).saturating_sub(left),
-                        underline.style,
-                    );
-                }
-                _ if annotation.highlight_source => {
-                    buffer.set_style_range(
-                        line_offset,
-                        (code_offset + annotation.start.display).saturating_sub(left),
-                        (code_offset + annotation.end.display).saturating_sub(left),
-                        underline.style,
-                        annotation.is_primary(),
-                    );
-                }
-                _ => {}
-            }
-        }
-
-        // Write the vertical lines for labels that are on a different line as the underline.
-        //
-        // After this we will have:
-        //
-        // 2 |   fn foo() {
-        //   |  __________
-        //   | |    |
-        //   | |
-        // 3 | |
-        // 4 | | }
-        //   | |_
-        for &(pos, annotation) in &annotations_position {
-            let underline = self.decor_style.underline(annotation.is_primary());
-            let pos = pos + 1;
-
-            if pos > 1 && (annotation.has_label() || annotation.takes_space()) {
-                for p in line_offset + 1..=line_offset + pos {
-                    buffer.putc(
-                        p,
-                        (code_offset + annotation.start.display).saturating_sub(left),
-                        match annotation.annotation_type {
-                            LineAnnotationType::MultilineLine(_) => underline.multiline_vertical,
-                            _ => underline.vertical_text_line,
-                        },
-                        underline.style,
-                    );
-                }
-                if let LineAnnotationType::MultilineStart(_) = annotation.annotation_type {
-                    buffer.putc(
-                        line_offset + pos,
-                        (code_offset + annotation.start.display).saturating_sub(left),
-                        underline.bottom_right,
-                        underline.style,
-                    );
-                }
-                if matches!(
-                    annotation.annotation_type,
-                    LineAnnotationType::MultilineEnd(_)
-                ) && annotation.has_label()
+                // Avoid #42595.
                 {
-                    buffer.putc(
-                        line_offset + pos,
-                        (code_offset + annotation.start.display).saturating_sub(left),
-                        underline.multiline_bottom_right_with_text,
-                        underline.style,
-                    );
+                    // This annotation needs a new line in the output.
+                    p += 1;
+                    break;
                 }
-            }
-            match annotation.annotation_type {
-                LineAnnotationType::MultilineStart(depth) => {
-                    buffer.putc(
-                        line_offset + pos,
-                        width_offset + depth - 1,
-                        underline.top_left,
-                        underline.style,
-                    );
-                    for p in line_offset + pos + 1..line_offset + line_len + 2 {
-                        buffer.putc(
-                            p,
-                            width_offset + depth - 1,
-                            underline.multiline_vertical,
-                            underline.style,
-                        );
-                    }
-                }
-                LineAnnotationType::MultilineEnd(depth) => {
-                    for p in line_offset..line_offset + pos {
-                        buffer.putc(
-                            p,
-                            width_offset + depth - 1,
-                            underline.multiline_vertical,
-                            underline.style,
-                        );
-                    }
-                    buffer.putc(
-                        line_offset + pos,
-                        width_offset + depth - 1,
-                        underline.bottom_left,
-                        underline.style,
-                    );
-                }
-                _ => (),
             }
         }
-
-        // Write the labels on the annotations that actually have a label.
-        //
-        // After this we will have:
-        //
-        // 2 |   fn foo() {
-        //   |  __________
-        //   |      |
-        //   |      something about `foo`
-        // 3 |
-        // 4 |   }
-        //   |  _  test
-        for &(pos, annotation) in &annotations_position {
-            let style = if annotation.is_primary() {
-                ElementStyle::LabelPrimary
-            } else {
-                ElementStyle::LabelSecondary
-            };
-            let (pos, col) = if pos == 0 {
-                if annotation.end.display == 0 {
-                    (pos + 1, (annotation.end.display + 2).saturating_sub(left))
-                } else {
-                    (pos + 1, (annotation.end.display + 1).saturating_sub(left))
-                }
-            } else {
-                (pos + 2, annotation.start.display.saturating_sub(left))
-            };
-            if let Some(label) = &annotation.label {
-                buffer.puts(line_offset + pos, code_offset + col, label, style);
-            }
-        }
-
-        // Sort from biggest span to smallest span so that smaller spans are
-        // represented in the output:
-        //
-        // x | fn foo()
-        //   | ^^^---^^
-        //   | |  |
-        //   | |  something about `foo`
-        //   | something about `fn foo()`
-        annotations_position.sort_by_key(|(_, ann)| {
-            // Decreasing order. When annotations share the same length, prefer `Primary`.
-            (Reverse(ann.len()), ann.is_primary())
-        });
-
-        // Write the underlines.
-        //
-        // After this we will have:
-        //
-        // 2 |   fn foo() {
-        //   |  ____-_____^
-        //   |      |
-        //   |      something about `foo`
-        // 3 |
-        // 4 |   }
-        //   |  _^  test
-        for &(pos, annotation) in &annotations_position {
-            let uline = self.decor_style.underline(annotation.is_primary());
-            for p in annotation.start.display..annotation.end.display {
-                // The default span label underline.
-                buffer.putc(
-                    line_offset + 1,
-                    (code_offset + p).saturating_sub(left),
-                    uline.underline,
-                    uline.style,
-                );
-            }
-
-            if pos == 0
-                && matches!(
-                    annotation.annotation_type,
-                    LineAnnotationType::MultilineStart(_) | LineAnnotationType::MultilineEnd(_)
-                )
-            {
-                // The beginning of a multiline span with its leftward moving line on the same line.
-                buffer.putc(
-                    line_offset + 1,
-                    (code_offset + annotation.start.display).saturating_sub(left),
-                    match annotation.annotation_type {
-                        LineAnnotationType::MultilineStart(_) => uline.top_right_flat,
-                        LineAnnotationType::MultilineEnd(_) => uline.multiline_end_same_line,
-                        _ => panic!("unexpected annotation type: {annotation:?}"),
-                    },
-                    uline.style,
-                );
-            } else if pos != 0
-                && matches!(
-                    annotation.annotation_type,
-                    LineAnnotationType::MultilineStart(_) | LineAnnotationType::MultilineEnd(_)
-                )
-            {
-                // The beginning of a multiline span with its leftward moving line on another line,
-                // so we start going down first.
-                buffer.putc(
-                    line_offset + 1,
-                    (code_offset + annotation.start.display).saturating_sub(left),
-                    match annotation.annotation_type {
-                        LineAnnotationType::MultilineStart(_) => uline.multiline_start_down,
-                        LineAnnotationType::MultilineEnd(_) => uline.multiline_end_up,
-                        _ => panic!("unexpected annotation type: {annotation:?}"),
-                    },
-                    uline.style,
-                );
-            } else if pos != 0 && annotation.has_label() {
-                // The beginning of a span label with an actual label, we'll point down.
-                buffer.putc(
-                    line_offset + 1,
-                    (code_offset + annotation.start.display).saturating_sub(left),
-                    uline.label_start,
-                    uline.style,
-                );
-            }
-        }
-
-        // We look for individual *long* spans, and we trim the *middle*, so that we render
-        // LL | ...= [0, 0, 0, ..., 0, 0];
-        //    |      ^^^^^^^^^^...^^^^^^^ expected `&[u8]`, found `[{integer}; 1680]`
-        for (i, (_pos, annotation)) in annotations_position.iter().enumerate() {
-            // Skip cases where multiple spans overlap eachother.
-            if overlap[i] {
-                continue;
-            };
-            let LineAnnotationType::Singleline = annotation.annotation_type else {
-                continue;
-            };
-            let width = annotation.end.display - annotation.start.display;
-            if width > margin.term_width * 2 && width > 10 {
-                // If the terminal is *too* small, we keep at least a tiny bit of the span for
-                // display.
-                let pad = max(margin.term_width / 3, 5);
-                // Code line
-                buffer.replace(
-                    line_offset,
-                    annotation.start.display + pad,
-                    annotation.end.display - pad,
-                    self.decor_style.margin(),
-                );
-                // Underline line
-                buffer.replace(
-                    line_offset + 1,
-                    annotation.start.display + pad,
-                    annotation.end.display - pad,
-                    self.decor_style.margin(),
-                );
-            }
-        }
-        annotations_position
-            .iter()
-            .filter_map(|&(_, annotation)| match annotation.annotation_type {
-                LineAnnotationType::MultilineStart(p) | LineAnnotationType::MultilineEnd(p) => {
-                    let style = if annotation.is_primary() {
-                        ElementStyle::LabelPrimary
-                    } else {
-                        ElementStyle::LabelSecondary
-                    };
-                    Some((p, style))
-                }
-                _ => None,
-            })
-            .collect::<Vec<_>>()
+        line_len = max(line_len, p);
     }
 
-    #[allow(clippy::too_many_arguments)]
-    fn emit_suggestion_default(
-        &self,
-        buffer: &mut StyledBuffer,
-        suggestion: &Snippet<'_, Patch<'_>>,
-        max_line_num_len: usize,
-        sm: &SourceMap<'_>,
-        primary_path: Option<&Cow<'_, str>>,
-        matches_previous_suggestion: bool,
-        is_first: bool,
-        is_cont: bool,
-    ) {
-        let suggestions = sm.splice_lines(suggestion.markers.clone());
+    if line_len != 0 {
+        line_len += 1;
+    }
 
-        let buffer_offset = buffer.num_lines();
-        let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-        for (complete, parts, highlights) in &suggestions {
-            let has_deletion = parts
-                .iter()
-                .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
-            let is_multiline = complete.lines().count() > 1;
+    // If there are no annotations or the only annotations on this line are
+    // MultilineLine, then there's only code being shown, stop processing.
+    if line_info.annotations.iter().all(LineAnnotation::is_line) {
+        return vec![];
+    }
 
-            if matches_previous_suggestion {
+    if annotations_position
+        .iter()
+        .all(|(_, ann)| matches!(ann.annotation_type, LineAnnotationType::MultilineStart(_)))
+    {
+        if let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max() {
+            // Special case the following, so that we minimize overlapping multiline spans.
+            //
+            // 3 │       X0 Y0 Z0
+            //   │ ┏━━━━━┛  │  │     < We are writing these lines
+            //   │ ┃┌───────┘  │     < by reverting the "depth" of
+            //   │ ┃│┌─────────┘     < their multiline spans.
+            // 4 │ ┃││   X1 Y1 Z1
+            // 5 │ ┃││   X2 Y2 Z2
+            //   │ ┃│└────╿──│──┘ `Z` label
+            //   │ ┃└─────│──┤
+            //   │ ┗━━━━━━┥  `Y` is a good letter too
+            //   ╰╴       `X` is a good letter
+            for (pos, _) in &mut annotations_position {
+                *pos = max_pos - *pos;
+            }
+            // We know then that we don't need an additional line for the span label, saving us
+            // one line of vertical space.
+            line_len = line_len.saturating_sub(1);
+        }
+    }
+
+    // Write the column separator.
+    //
+    // After this we will have:
+    //
+    // 2 |   fn foo() {
+    //   |
+    //   |
+    //   |
+    // 3 |
+    // 4 |   }
+    //   |
+    for pos in 0..=line_len {
+        draw_col_separator_no_space(renderer, buffer, line_offset + pos + 1, width_offset - 2);
+    }
+    if close_window {
+        draw_col_separator_end(
+            renderer,
+            buffer,
+            line_offset + line_len + 1,
+            width_offset - 2,
+        );
+    }
+    // Write the horizontal lines for multiline annotations
+    // (only the first and last lines need this).
+    //
+    // After this we will have:
+    //
+    // 2 |   fn foo() {
+    //   |  __________
+    //   |
+    //   |
+    // 3 |
+    // 4 |   }
+    //   |  _
+    for &(pos, annotation) in &annotations_position {
+        let underline = renderer.decor_style.underline(annotation.is_primary());
+        let pos = pos + 1;
+        match annotation.annotation_type {
+            LineAnnotationType::MultilineStart(depth) | LineAnnotationType::MultilineEnd(depth) => {
+                draw_range(
+                    buffer,
+                    underline.multiline_horizontal,
+                    line_offset + pos,
+                    width_offset + depth,
+                    (code_offset + annotation.start.display).saturating_sub(left),
+                    underline.style,
+                );
+            }
+            _ if annotation.highlight_source => {
+                buffer.set_style_range(
+                    line_offset,
+                    (code_offset + annotation.start.display).saturating_sub(left),
+                    (code_offset + annotation.end.display).saturating_sub(left),
+                    underline.style,
+                    annotation.is_primary(),
+                );
+            }
+            _ => {}
+        }
+    }
+
+    // Write the vertical lines for labels that are on a different line as the underline.
+    //
+    // After this we will have:
+    //
+    // 2 |   fn foo() {
+    //   |  __________
+    //   | |    |
+    //   | |
+    // 3 | |
+    // 4 | | }
+    //   | |_
+    for &(pos, annotation) in &annotations_position {
+        let underline = renderer.decor_style.underline(annotation.is_primary());
+        let pos = pos + 1;
+
+        if pos > 1 && (annotation.has_label() || annotation.takes_space()) {
+            for p in line_offset + 1..=line_offset + pos {
+                buffer.putc(
+                    p,
+                    (code_offset + annotation.start.display).saturating_sub(left),
+                    match annotation.annotation_type {
+                        LineAnnotationType::MultilineLine(_) => underline.multiline_vertical,
+                        _ => underline.vertical_text_line,
+                    },
+                    underline.style,
+                );
+            }
+            if let LineAnnotationType::MultilineStart(_) = annotation.annotation_type {
+                buffer.putc(
+                    line_offset + pos,
+                    (code_offset + annotation.start.display).saturating_sub(left),
+                    underline.bottom_right,
+                    underline.style,
+                );
+            }
+            if matches!(
+                annotation.annotation_type,
+                LineAnnotationType::MultilineEnd(_)
+            ) && annotation.has_label()
+            {
+                buffer.putc(
+                    line_offset + pos,
+                    (code_offset + annotation.start.display).saturating_sub(left),
+                    underline.multiline_bottom_right_with_text,
+                    underline.style,
+                );
+            }
+        }
+        match annotation.annotation_type {
+            LineAnnotationType::MultilineStart(depth) => {
+                buffer.putc(
+                    line_offset + pos,
+                    width_offset + depth - 1,
+                    underline.top_left,
+                    underline.style,
+                );
+                for p in line_offset + pos + 1..line_offset + line_len + 2 {
+                    buffer.putc(
+                        p,
+                        width_offset + depth - 1,
+                        underline.multiline_vertical,
+                        underline.style,
+                    );
+                }
+            }
+            LineAnnotationType::MultilineEnd(depth) => {
+                for p in line_offset..line_offset + pos {
+                    buffer.putc(
+                        p,
+                        width_offset + depth - 1,
+                        underline.multiline_vertical,
+                        underline.style,
+                    );
+                }
+                buffer.putc(
+                    line_offset + pos,
+                    width_offset + depth - 1,
+                    underline.bottom_left,
+                    underline.style,
+                );
+            }
+            _ => (),
+        }
+    }
+
+    // Write the labels on the annotations that actually have a label.
+    //
+    // After this we will have:
+    //
+    // 2 |   fn foo() {
+    //   |  __________
+    //   |      |
+    //   |      something about `foo`
+    // 3 |
+    // 4 |   }
+    //   |  _  test
+    for &(pos, annotation) in &annotations_position {
+        let style = if annotation.is_primary() {
+            ElementStyle::LabelPrimary
+        } else {
+            ElementStyle::LabelSecondary
+        };
+        let (pos, col) = if pos == 0 {
+            if annotation.end.display == 0 {
+                (pos + 1, (annotation.end.display + 2).saturating_sub(left))
+            } else {
+                (pos + 1, (annotation.end.display + 1).saturating_sub(left))
+            }
+        } else {
+            (pos + 2, annotation.start.display.saturating_sub(left))
+        };
+        if let Some(label) = &annotation.label {
+            buffer.puts(line_offset + pos, code_offset + col, label, style);
+        }
+    }
+
+    // Sort from biggest span to smallest span so that smaller spans are
+    // represented in the output:
+    //
+    // x | fn foo()
+    //   | ^^^---^^
+    //   | |  |
+    //   | |  something about `foo`
+    //   | something about `fn foo()`
+    annotations_position.sort_by_key(|(_, ann)| {
+        // Decreasing order. When annotations share the same length, prefer `Primary`.
+        (Reverse(ann.len()), ann.is_primary())
+    });
+
+    // Write the underlines.
+    //
+    // After this we will have:
+    //
+    // 2 |   fn foo() {
+    //   |  ____-_____^
+    //   |      |
+    //   |      something about `foo`
+    // 3 |
+    // 4 |   }
+    //   |  _^  test
+    for &(pos, annotation) in &annotations_position {
+        let uline = renderer.decor_style.underline(annotation.is_primary());
+        for p in annotation.start.display..annotation.end.display {
+            // The default span label underline.
+            buffer.putc(
+                line_offset + 1,
+                (code_offset + p).saturating_sub(left),
+                uline.underline,
+                uline.style,
+            );
+        }
+
+        if pos == 0
+            && matches!(
+                annotation.annotation_type,
+                LineAnnotationType::MultilineStart(_) | LineAnnotationType::MultilineEnd(_)
+            )
+        {
+            // The beginning of a multiline span with its leftward moving line on the same line.
+            buffer.putc(
+                line_offset + 1,
+                (code_offset + annotation.start.display).saturating_sub(left),
+                match annotation.annotation_type {
+                    LineAnnotationType::MultilineStart(_) => uline.top_right_flat,
+                    LineAnnotationType::MultilineEnd(_) => uline.multiline_end_same_line,
+                    _ => panic!("unexpected annotation type: {annotation:?}"),
+                },
+                uline.style,
+            );
+        } else if pos != 0
+            && matches!(
+                annotation.annotation_type,
+                LineAnnotationType::MultilineStart(_) | LineAnnotationType::MultilineEnd(_)
+            )
+        {
+            // The beginning of a multiline span with its leftward moving line on another line,
+            // so we start going down first.
+            buffer.putc(
+                line_offset + 1,
+                (code_offset + annotation.start.display).saturating_sub(left),
+                match annotation.annotation_type {
+                    LineAnnotationType::MultilineStart(_) => uline.multiline_start_down,
+                    LineAnnotationType::MultilineEnd(_) => uline.multiline_end_up,
+                    _ => panic!("unexpected annotation type: {annotation:?}"),
+                },
+                uline.style,
+            );
+        } else if pos != 0 && annotation.has_label() {
+            // The beginning of a span label with an actual label, we'll point down.
+            buffer.putc(
+                line_offset + 1,
+                (code_offset + annotation.start.display).saturating_sub(left),
+                uline.label_start,
+                uline.style,
+            );
+        }
+    }
+
+    // We look for individual *long* spans, and we trim the *middle*, so that we render
+    // LL | ...= [0, 0, 0, ..., 0, 0];
+    //    |      ^^^^^^^^^^...^^^^^^^ expected `&[u8]`, found `[{integer}; 1680]`
+    for (i, (_pos, annotation)) in annotations_position.iter().enumerate() {
+        // Skip cases where multiple spans overlap eachother.
+        if overlap[i] {
+            continue;
+        };
+        let LineAnnotationType::Singleline = annotation.annotation_type else {
+            continue;
+        };
+        let width = annotation.end.display - annotation.start.display;
+        if width > margin.term_width * 2 && width > 10 {
+            // If the terminal is *too* small, we keep at least a tiny bit of the span for
+            // display.
+            let pad = max(margin.term_width / 3, 5);
+            // Code line
+            buffer.replace(
+                line_offset,
+                annotation.start.display + pad,
+                annotation.end.display - pad,
+                renderer.decor_style.margin(),
+            );
+            // Underline line
+            buffer.replace(
+                line_offset + 1,
+                annotation.start.display + pad,
+                annotation.end.display - pad,
+                renderer.decor_style.margin(),
+            );
+        }
+    }
+    annotations_position
+        .iter()
+        .filter_map(|&(_, annotation)| match annotation.annotation_type {
+            LineAnnotationType::MultilineStart(p) | LineAnnotationType::MultilineEnd(p) => {
+                let style = if annotation.is_primary() {
+                    ElementStyle::LabelPrimary
+                } else {
+                    ElementStyle::LabelSecondary
+                };
+                Some((p, style))
+            }
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+}
+
+#[allow(clippy::too_many_arguments)]
+fn emit_suggestion_default(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    suggestion: &Snippet<'_, Patch<'_>>,
+    max_line_num_len: usize,
+    sm: &SourceMap<'_>,
+    primary_path: Option<&Cow<'_, str>>,
+    matches_previous_suggestion: bool,
+    is_first: bool,
+    is_cont: bool,
+) {
+    let suggestions = sm.splice_lines(suggestion.markers.clone());
+
+    let buffer_offset = buffer.num_lines();
+    let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
+    for (complete, parts, highlights) in &suggestions {
+        let has_deletion = parts
+            .iter()
+            .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
+        let is_multiline = complete.lines().count() > 1;
+
+        if matches_previous_suggestion {
+            buffer.puts(
+                row_num - 1,
+                max_line_num_len + 1,
+                renderer.decor_style.multi_suggestion_separator(),
+                ElementStyle::LineNumber,
+            );
+        } else {
+            draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
+        }
+        if suggestion.path.as_ref() != primary_path {
+            if let Some(path) = suggestion.path.as_ref() {
+                if !matches_previous_suggestion {
+                    let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+                    // --> file.rs:line:col
+                    //  |
+                    let arrow = renderer.decor_style.file_start(is_first);
+                    buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
+                    let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
+                    let col = usize::max(max_line_num_len + 1, arrow.len());
+                    buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
+                    for _ in 0..max_line_num_len {
+                        buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
+                    }
+                    draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
+                    row_num += 1;
+                }
+            }
+        }
+        let show_code_change = if has_deletion && !is_multiline {
+            DisplaySuggestion::Diff
+        } else if parts.len() == 1
+            && parts.first().map_or(false, |p| {
+                p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
+            })
+        {
+            // We are adding a line(s) of code before code that was already there.
+            DisplaySuggestion::Add
+        } else if (parts.len() != 1 || parts[0].replacement.trim() != complete.trim())
+            && !is_multiline
+        {
+            DisplaySuggestion::Underline
+        } else {
+            DisplaySuggestion::None
+        };
+
+        if let DisplaySuggestion::Diff = show_code_change {
+            row_num += 1;
+        }
+
+        let file_lines = sm.span_to_lines(parts[0].span.clone());
+        let (line_start, line_end) = sm.span_to_locations(parts[0].span.clone());
+        let mut lines = complete.lines();
+        if lines.clone().next().is_none() {
+            // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
+            for line in line_start.line..=line_end.line {
                 buffer.puts(
-                    row_num - 1,
-                    max_line_num_len + 1,
-                    self.decor_style.multi_suggestion_separator(),
+                    row_num - 1 + line - line_start.line,
+                    0,
+                    &maybe_anonymized(renderer, line, max_line_num_len),
                     ElementStyle::LineNumber,
                 );
-            } else {
-                self.draw_col_separator_start(buffer, row_num - 1, max_line_num_len + 1);
+                buffer.puts(
+                    row_num - 1 + line - line_start.line,
+                    max_line_num_len + 1,
+                    "- ",
+                    ElementStyle::Removal,
+                );
+                buffer.puts(
+                    row_num - 1 + line - line_start.line,
+                    max_line_num_len + 3,
+                    &normalize_whitespace(sm.get_line(line).unwrap()),
+                    ElementStyle::Removal,
+                );
             }
-            if suggestion.path.as_ref() != primary_path {
-                if let Some(path) = suggestion.path.as_ref() {
-                    if !matches_previous_suggestion {
-                        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-                        // --> file.rs:line:col
-                        //  |
-                        let arrow = self.decor_style.file_start(is_first);
-                        buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                        let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                        let col = usize::max(max_line_num_len + 1, arrow.len());
-                        buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
-                        for _ in 0..max_line_num_len {
-                            buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
-                        }
-                        self.draw_col_separator_no_space(buffer, row_num, max_line_num_len + 1);
-                        row_num += 1;
-                    }
-                }
+            row_num += line_end.line - line_start.line;
+        }
+        let mut last_pos = 0;
+        let mut is_item_attribute = false;
+        let mut unhighlighted_lines = Vec::new();
+        for (line_pos, (line, highlight_parts)) in lines.by_ref().zip(highlights).enumerate() {
+            last_pos = line_pos;
+
+            // Remember lines that are not highlighted to hide them if needed
+            if highlight_parts.is_empty() {
+                unhighlighted_lines.push((line_pos, line));
+                continue;
             }
-            let show_code_change = if has_deletion && !is_multiline {
-                DisplaySuggestion::Diff
-            } else if parts.len() == 1
-                && parts.first().map_or(false, |p| {
-                    p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
-                })
+            if highlight_parts.len() == 1
+                && line.trim().starts_with("#[")
+                && line.trim().ends_with(']')
             {
-                // We are adding a line(s) of code before code that was already there.
-                DisplaySuggestion::Add
-            } else if (parts.len() != 1 || parts[0].replacement.trim() != complete.trim())
-                && !is_multiline
-            {
-                DisplaySuggestion::Underline
-            } else {
-                DisplaySuggestion::None
-            };
-
-            if let DisplaySuggestion::Diff = show_code_change {
-                row_num += 1;
+                is_item_attribute = true;
             }
 
-            let file_lines = sm.span_to_lines(parts[0].span.clone());
-            let (line_start, line_end) = sm.span_to_locations(parts[0].span.clone());
-            let mut lines = complete.lines();
-            if lines.clone().next().is_none() {
-                // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
-                for line in line_start.line..=line_end.line {
-                    buffer.puts(
-                        row_num - 1 + line - line_start.line,
-                        0,
-                        &self.maybe_anonymized(line, max_line_num_len),
-                        ElementStyle::LineNumber,
+            match unhighlighted_lines.len() {
+                0 => (),
+                // Since we show first line, "..." line and last line,
+                // There is no reason to hide if there are 3 or less lines
+                // (because then we just replace a line with ... which is
+                // not helpful)
+                n if n <= 3 => unhighlighted_lines.drain(..).for_each(|(p, l)| {
+                    draw_code_line(
+                        renderer,
+                        buffer,
+                        &mut row_num,
+                        &[],
+                        p + line_start.line,
+                        l,
+                        show_code_change,
+                        max_line_num_len,
+                        &file_lines,
+                        is_multiline,
                     );
-                    buffer.puts(
-                        row_num - 1 + line - line_start.line,
-                        max_line_num_len + 1,
-                        "- ",
-                        ElementStyle::Removal,
-                    );
-                    buffer.puts(
-                        row_num - 1 + line - line_start.line,
-                        max_line_num_len + 3,
-                        &normalize_whitespace(sm.get_line(line).unwrap()),
-                        ElementStyle::Removal,
-                    );
-                }
-                row_num += line_end.line - line_start.line;
-            }
-            let mut last_pos = 0;
-            let mut is_item_attribute = false;
-            let mut unhighlighted_lines = Vec::new();
-            for (line_pos, (line, highlight_parts)) in lines.by_ref().zip(highlights).enumerate() {
-                last_pos = line_pos;
+                }),
+                // Print first unhighlighted line, "..." and last unhighlighted line, like so:
+                //
+                // LL | this line was highlighted
+                // LL | this line is just for context
+                // ...
+                // LL | this line is just for context
+                // LL | this line was highlighted
+                _ => {
+                    let last_line = unhighlighted_lines.pop();
+                    let first_line = unhighlighted_lines.drain(..).next();
 
-                // Remember lines that are not highlighted to hide them if needed
-                if highlight_parts.is_empty() {
-                    unhighlighted_lines.push((line_pos, line));
-                    continue;
-                }
-                if highlight_parts.len() == 1
-                    && line.trim().starts_with("#[")
-                    && line.trim().ends_with(']')
-                {
-                    is_item_attribute = true;
-                }
-
-                match unhighlighted_lines.len() {
-                    0 => (),
-                    // Since we show first line, "..." line and last line,
-                    // There is no reason to hide if there are 3 or less lines
-                    // (because then we just replace a line with ... which is
-                    // not helpful)
-                    n if n <= 3 => unhighlighted_lines.drain(..).for_each(|(p, l)| {
-                        self.draw_code_line(
+                    if let Some((p, l)) = first_line {
+                        draw_code_line(
+                            renderer,
                             buffer,
                             &mut row_num,
                             &[],
@@ -1544,723 +1602,693 @@ impl Renderer {
                             &file_lines,
                             is_multiline,
                         );
-                    }),
-                    // Print first unhighlighted line, "..." and last unhighlighted line, like so:
-                    //
-                    // LL | this line was highlighted
-                    // LL | this line is just for context
-                    // ...
-                    // LL | this line is just for context
-                    // LL | this line was highlighted
-                    _ => {
-                        let last_line = unhighlighted_lines.pop();
-                        let first_line = unhighlighted_lines.drain(..).next();
+                    }
 
-                        if let Some((p, l)) = first_line {
-                            self.draw_code_line(
-                                buffer,
-                                &mut row_num,
-                                &[],
-                                p + line_start.line,
-                                l,
-                                show_code_change,
-                                max_line_num_len,
-                                &file_lines,
-                                is_multiline,
-                            );
-                        }
+                    let placeholder = renderer.decor_style.margin();
+                    let padding = str_width(placeholder);
+                    buffer.puts(
+                        row_num,
+                        max_line_num_len.saturating_sub(padding),
+                        placeholder,
+                        ElementStyle::LineNumber,
+                    );
+                    row_num += 1;
 
-                        let placeholder = self.decor_style.margin();
-                        let padding = str_width(placeholder);
-                        buffer.puts(
-                            row_num,
-                            max_line_num_len.saturating_sub(padding),
-                            placeholder,
-                            ElementStyle::LineNumber,
+                    if let Some((p, l)) = last_line {
+                        draw_code_line(
+                            renderer,
+                            buffer,
+                            &mut row_num,
+                            &[],
+                            p + line_start.line,
+                            l,
+                            show_code_change,
+                            max_line_num_len,
+                            &file_lines,
+                            is_multiline,
                         );
-                        row_num += 1;
-
-                        if let Some((p, l)) = last_line {
-                            self.draw_code_line(
-                                buffer,
-                                &mut row_num,
-                                &[],
-                                p + line_start.line,
-                                l,
-                                show_code_change,
-                                max_line_num_len,
-                                &file_lines,
-                                is_multiline,
-                            );
-                        }
                     }
                 }
-                self.draw_code_line(
+            }
+            draw_code_line(
+                renderer,
+                buffer,
+                &mut row_num,
+                highlight_parts,
+                line_pos + line_start.line,
+                line,
+                show_code_change,
+                max_line_num_len,
+                &file_lines,
+                is_multiline,
+            );
+        }
+
+        if matches!(show_code_change, DisplaySuggestion::Add) && is_item_attribute {
+            // The suggestion adds an entire line of code, ending on a newline, so we'll also
+            // print the *following* line, to provide context of what we're advising people to
+            // do. Otherwise you would only see contextless code that can be confused for
+            // already existing code, despite the colors and UI elements.
+            // We special case `#[derive(_)]\n` and other attribute suggestions, because those
+            // are the ones where context is most useful.
+            let file_lines = sm.span_to_lines(parts[0].span.end..parts[0].span.end);
+            let (lo, _) = sm.span_to_locations(parts[0].span.clone());
+            let line_num = lo.line;
+            if let Some(line) = sm.get_line(line_num) {
+                let line = normalize_whitespace(line);
+                draw_code_line(
+                    renderer,
                     buffer,
                     &mut row_num,
-                    highlight_parts,
-                    line_pos + line_start.line,
-                    line,
-                    show_code_change,
+                    &[],
+                    line_num + last_pos + 1,
+                    &line,
+                    DisplaySuggestion::None,
                     max_line_num_len,
                     &file_lines,
                     is_multiline,
                 );
             }
+        }
+        // This offset and the ones below need to be signed to account for replacement code
+        // that is shorter than the original code.
+        let mut offsets: Vec<(usize, isize)> = Vec::new();
+        // Only show an underline in the suggestions if the suggestion is not the
+        // entirety of the code being shown and the displayed code is not multiline.
+        if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
+            show_code_change
+        {
+            for part in parts {
+                let snippet = sm.span_to_snippet(part.span.clone()).unwrap_or_default();
+                let (span_start, span_end) = sm.span_to_locations(part.span.clone());
+                let span_start_pos = span_start.display;
+                let span_end_pos = span_end.display;
 
-            if matches!(show_code_change, DisplaySuggestion::Add) && is_item_attribute {
-                // The suggestion adds an entire line of code, ending on a newline, so we'll also
-                // print the *following* line, to provide context of what we're advising people to
-                // do. Otherwise you would only see contextless code that can be confused for
-                // already existing code, despite the colors and UI elements.
-                // We special case `#[derive(_)]\n` and other attribute suggestions, because those
-                // are the ones where context is most useful.
-                let file_lines = sm.span_to_lines(parts[0].span.end..parts[0].span.end);
-                let (lo, _) = sm.span_to_locations(parts[0].span.clone());
-                let line_num = lo.line;
-                if let Some(line) = sm.get_line(line_num) {
-                    let line = normalize_whitespace(line);
-                    self.draw_code_line(
-                        buffer,
-                        &mut row_num,
-                        &[],
-                        line_num + last_pos + 1,
-                        &line,
-                        DisplaySuggestion::None,
-                        max_line_num_len,
-                        &file_lines,
-                        is_multiline,
-                    );
-                }
-            }
-            // This offset and the ones below need to be signed to account for replacement code
-            // that is shorter than the original code.
-            let mut offsets: Vec<(usize, isize)> = Vec::new();
-            // Only show an underline in the suggestions if the suggestion is not the
-            // entirety of the code being shown and the displayed code is not multiline.
-            if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
-                show_code_change
-            {
-                for part in parts {
-                    let snippet = sm.span_to_snippet(part.span.clone()).unwrap_or_default();
-                    let (span_start, span_end) = sm.span_to_locations(part.span.clone());
-                    let span_start_pos = span_start.display;
-                    let span_end_pos = span_end.display;
+                // If this addition is _only_ whitespace, then don't trim it,
+                // or else we're just not rendering anything.
+                let is_whitespace_addition = part.replacement.trim().is_empty();
 
-                    // If this addition is _only_ whitespace, then don't trim it,
-                    // or else we're just not rendering anything.
-                    let is_whitespace_addition = part.replacement.trim().is_empty();
-
-                    // Do not underline the leading...
-                    let start = if is_whitespace_addition {
-                        0
-                    } else {
-                        part.replacement
-                            .len()
-                            .saturating_sub(part.replacement.trim_start().len())
-                    };
-                    // ...or trailing spaces. Account for substitutions containing unicode
-                    // characters.
-                    let sub_len: usize = str_width(if is_whitespace_addition {
-                        &part.replacement
-                    } else {
-                        part.replacement.trim()
-                    });
-
-                    let offset: isize = offsets
-                        .iter()
-                        .filter_map(|(start, v)| {
-                            if span_start_pos < *start {
-                                None
-                            } else {
-                                Some(v)
-                            }
-                        })
-                        .sum();
-                    let underline_start = (span_start_pos + start) as isize + offset;
-                    let underline_end = (span_start_pos + start + sub_len) as isize + offset;
-                    assert!(underline_start >= 0 && underline_end >= 0);
-                    let padding: usize = max_line_num_len + 3;
-                    for p in underline_start..underline_end {
-                        if matches!(show_code_change, DisplaySuggestion::Underline) {
-                            // If this is a replacement, underline with `~`, if this is an addition
-                            // underline with `+`.
-                            buffer.putc(
-                                row_num,
-                                (padding as isize + p) as usize,
-                                if part.is_addition(sm) {
-                                    '+'
-                                } else {
-                                    self.decor_style.diff()
-                                },
-                                ElementStyle::Addition,
-                            );
-                        }
-                    }
-                    if let DisplaySuggestion::Diff = show_code_change {
-                        // Colorize removal with red in diff format.
-
-                        // Below, there's some tricky buffer indexing going on. `row_num` at this
-                        // point corresponds to:
-                        //
-                        //    |
-                        // LL | CODE
-                        //    | ++++  <- `row_num`
-                        //
-                        // in the buffer. When we have a diff format output, we end up with
-                        //
-                        //    |
-                        // LL - OLDER   <- row_num - 2
-                        // LL + NEWER
-                        //    |         <- row_num
-                        //
-                        // The `row_num - 2` is to select the buffer line that has the "old version
-                        // of the diff" at that point. When the removal is a single line, `i` is
-                        // `0`, `newlines` is `1` so `(newlines - i - 1)` ends up being `0`, so row
-                        // points at `LL - OLDER`. When the removal corresponds to multiple lines,
-                        // we end up with `newlines > 1` and `i` being `0..newlines - 1`.
-                        //
-                        //    |
-                        // LL - OLDER   <- row_num - 2 - (newlines - last_i - 1)
-                        // LL - CODE
-                        // LL - BEING
-                        // LL - REMOVED <- row_num - 2 - (newlines - first_i - 1)
-                        // LL + NEWER
-                        //    |         <- row_num
-
-                        let newlines = snippet.lines().count();
-                        if newlines > 0 && row_num > newlines {
-                            // Account for removals where the part being removed spans multiple
-                            // lines.
-                            // FIXME: We check the number of rows because in some cases, like in
-                            // `tests/ui/lint/invalid-nan-comparison-suggestion.rs`, the rendered
-                            // suggestion will only show the first line of code being replaced. The
-                            // proper way of doing this would be to change the suggestion rendering
-                            // logic to show the whole prior snippet, but the current output is not
-                            // too bad to begin with, so we side-step that issue here.
-                            for (i, line) in snippet.lines().enumerate() {
-                                let line = normalize_whitespace(line);
-                                let row = row_num - 2 - (newlines - i - 1);
-                                // On the first line, we highlight between the start of the part
-                                // span, and the end of that line.
-                                // On the last line, we highlight between the start of the line, and
-                                // the column of the part span end.
-                                // On all others, we highlight the whole line.
-                                let start = if i == 0 {
-                                    (padding as isize + span_start_pos as isize) as usize
-                                } else {
-                                    padding
-                                };
-                                let end = if i == 0 {
-                                    (padding as isize
-                                        + span_start_pos as isize
-                                        + line.len() as isize)
-                                        as usize
-                                } else if i == newlines - 1 {
-                                    (padding as isize + span_end_pos as isize) as usize
-                                } else {
-                                    (padding as isize + line.len() as isize) as usize
-                                };
-                                buffer.set_style_range(
-                                    row,
-                                    start,
-                                    end,
-                                    ElementStyle::Removal,
-                                    true,
-                                );
-                            }
-                        } else {
-                            // The removed code fits all in one line.
-                            buffer.set_style_range(
-                                row_num - 2,
-                                (padding as isize + span_start_pos as isize) as usize,
-                                (padding as isize + span_end_pos as isize) as usize,
-                                ElementStyle::Removal,
-                                true,
-                            );
-                        }
-                    }
-
-                    // length of the code after substitution
-                    let full_sub_len = str_width(&part.replacement) as isize;
-
-                    // length of the code to be substituted
-                    let snippet_len = span_end_pos as isize - span_start_pos as isize;
-                    // For multiple substitutions, use the position *after* the previous
-                    // substitutions have happened, only when further substitutions are
-                    // located strictly after.
-                    offsets.push((span_end_pos, full_sub_len - snippet_len));
-                }
-                row_num += 1;
-            }
-
-            // if we elided some lines, add an ellipsis
-            if lines.next().is_some() {
-                let placeholder = self.decor_style.margin();
-                let padding = str_width(placeholder);
-                buffer.puts(
-                    row_num,
-                    max_line_num_len.saturating_sub(padding),
-                    placeholder,
-                    ElementStyle::LineNumber,
-                );
-            } else {
-                let row = match show_code_change {
-                    DisplaySuggestion::Diff
-                    | DisplaySuggestion::Add
-                    | DisplaySuggestion::Underline => row_num - 1,
-                    DisplaySuggestion::None => row_num,
+                // Do not underline the leading...
+                let start = if is_whitespace_addition {
+                    0
+                } else {
+                    part.replacement
+                        .len()
+                        .saturating_sub(part.replacement.trim_start().len())
                 };
-                if is_cont {
-                    self.draw_col_separator_no_space(buffer, row, max_line_num_len + 1);
+                // ...or trailing spaces. Account for substitutions containing unicode
+                // characters.
+                let sub_len: usize = str_width(if is_whitespace_addition {
+                    &part.replacement
                 } else {
-                    self.draw_col_separator_end(buffer, row, max_line_num_len + 1);
-                }
-                row_num = row + 1;
-            }
-        }
-    }
+                    part.replacement.trim()
+                });
 
-    #[allow(clippy::too_many_arguments)]
-    fn draw_code_line(
-        &self,
-        buffer: &mut StyledBuffer,
-        row_num: &mut usize,
-        highlight_parts: &[SubstitutionHighlight],
-        line_num: usize,
-        line_to_add: &str,
-        show_code_change: DisplaySuggestion,
-        max_line_num_len: usize,
-        file_lines: &[&LineInfo<'_>],
-        is_multiline: bool,
-    ) {
-        if let DisplaySuggestion::Diff = show_code_change {
-            // We need to print more than one line if the span we need to remove is multiline.
-            // For more info: https://github.com/rust-lang/rust/issues/92741
-            let lines_to_remove = file_lines.iter().take(file_lines.len() - 1);
-            for (index, line_to_remove) in lines_to_remove.enumerate() {
-                buffer.puts(
-                    *row_num - 1,
-                    0,
-                    &self.maybe_anonymized(line_num + index, max_line_num_len),
-                    ElementStyle::LineNumber,
-                );
-                buffer.puts(
-                    *row_num - 1,
-                    max_line_num_len + 1,
-                    "- ",
-                    ElementStyle::Removal,
-                );
-                let line = normalize_whitespace(line_to_remove.line);
-                buffer.puts(
-                    *row_num - 1,
-                    max_line_num_len + 3,
-                    &line,
-                    ElementStyle::NoStyle,
-                );
-                *row_num += 1;
-            }
-            // If the last line is exactly equal to the line we need to add, we can skip both of
-            // them. This allows us to avoid output like the following:
-            // 2 - &
-            // 2 + if true { true } else { false }
-            // 3 - if true { true } else { false }
-            // If those lines aren't equal, we print their diff
-            let last_line = &file_lines.last().unwrap();
-            if last_line.line == line_to_add {
-                *row_num -= 2;
-            } else {
-                buffer.puts(
-                    *row_num - 1,
-                    0,
-                    &self.maybe_anonymized(line_num + file_lines.len() - 1, max_line_num_len),
-                    ElementStyle::LineNumber,
-                );
-                buffer.puts(
-                    *row_num - 1,
-                    max_line_num_len + 1,
-                    "- ",
-                    ElementStyle::Removal,
-                );
-                buffer.puts(
-                    *row_num - 1,
-                    max_line_num_len + 3,
-                    &normalize_whitespace(last_line.line),
-                    ElementStyle::NoStyle,
-                );
-                if line_to_add.trim().is_empty() {
-                    *row_num -= 1;
-                } else {
-                    // Check if after the removal, the line is left with only whitespace. If so, we
-                    // will not show an "addition" line, as removing the whole line is what the user
-                    // would really want.
-                    // For example, for the following:
-                    //   |
-                    // 2 -     .await
-                    // 2 +     (note the left over whitespace)
-                    //   |
-                    // We really want
-                    //   |
-                    // 2 -     .await
-                    //   |
-                    // *row_num -= 1;
-                    buffer.puts(
-                        *row_num,
-                        0,
-                        &self.maybe_anonymized(line_num, max_line_num_len),
-                        ElementStyle::LineNumber,
-                    );
-                    buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
-                    buffer.append(
-                        *row_num,
-                        &normalize_whitespace(line_to_add),
-                        ElementStyle::NoStyle,
-                    );
-                }
-            }
-        } else if is_multiline {
-            buffer.puts(
-                *row_num,
-                0,
-                &self.maybe_anonymized(line_num, max_line_num_len),
-                ElementStyle::LineNumber,
-            );
-            match &highlight_parts {
-                [SubstitutionHighlight { start: 0, end }] if *end == line_to_add.len() => {
-                    buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
-                }
-                [] => {
-                    // FIXME: needed? Doesn't get exercised in any test.
-                    self.draw_col_separator_no_space(buffer, *row_num, max_line_num_len + 1);
-                }
-                _ => {
-                    let diff = self.decor_style.diff();
-                    buffer.puts(
-                        *row_num,
-                        max_line_num_len + 1,
-                        &format!("{diff} "),
-                        ElementStyle::Addition,
-                    );
-                }
-            }
-            //   LL | line_to_add
-            //   ++^^^
-            //    |  |
-            //    |  magic `3`
-            //    `max_line_num_len`
-            buffer.puts(
-                *row_num,
-                max_line_num_len + 3,
-                &normalize_whitespace(line_to_add),
-                ElementStyle::NoStyle,
-            );
-        } else if let DisplaySuggestion::Add = show_code_change {
-            buffer.puts(
-                *row_num,
-                0,
-                &self.maybe_anonymized(line_num, max_line_num_len),
-                ElementStyle::LineNumber,
-            );
-            buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
-            buffer.append(
-                *row_num,
-                &normalize_whitespace(line_to_add),
-                ElementStyle::NoStyle,
-            );
-        } else {
-            buffer.puts(
-                *row_num,
-                0,
-                &self.maybe_anonymized(line_num, max_line_num_len),
-                ElementStyle::LineNumber,
-            );
-            self.draw_col_separator(buffer, *row_num, max_line_num_len + 1);
-            buffer.append(
-                *row_num,
-                &normalize_whitespace(line_to_add),
-                ElementStyle::NoStyle,
-            );
-        }
-
-        // Colorize addition/replacements with green.
-        for &SubstitutionHighlight { start, end } in highlight_parts {
-            // This is a no-op for empty ranges
-            if start != end {
-                // Account for tabs when highlighting (#87972).
-                let tabs: usize = line_to_add
-                    .chars()
-                    .take(start)
-                    .map(|ch| match ch {
-                        '\t' => 3,
-                        _ => 0,
+                let offset: isize = offsets
+                    .iter()
+                    .filter_map(|(start, v)| {
+                        if span_start_pos < *start {
+                            None
+                        } else {
+                            Some(v)
+                        }
                     })
                     .sum();
-                buffer.set_style_range(
-                    *row_num,
-                    max_line_num_len + 3 + start + tabs,
-                    max_line_num_len + 3 + end + tabs,
-                    ElementStyle::Addition,
-                    true,
-                );
-            }
-        }
-        *row_num += 1;
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    fn draw_line(
-        &self,
-        buffer: &mut StyledBuffer,
-        source_string: &str,
-        line_index: usize,
-        line_offset: usize,
-        width_offset: usize,
-        code_offset: usize,
-        max_line_num_len: usize,
-        margin: Margin,
-    ) -> usize {
-        // Tabs are assumed to have been replaced by spaces in calling code.
-        debug_assert!(!source_string.contains('\t'));
-        let line_len = str_width(source_string);
-        // Create the source line we will highlight.
-        let mut left = margin.left(line_len);
-        let right = margin.right(line_len);
-        // FIXME: The following code looks fishy. See #132860.
-        // On long lines, we strip the source line, accounting for unicode.
-        let mut taken = 0;
-        let mut skipped = 0;
-        let code: String = source_string
-            .chars()
-            .skip_while(|ch| {
-                skipped += char_width(*ch);
-                skipped <= left
-            })
-            .take_while(|ch| {
-                // Make sure that the trimming on the right will fall within the terminal width.
-                taken += char_width(*ch);
-                taken <= (right - left)
-            })
-            .collect();
-
-        let placeholder = self.decor_style.margin();
-        let padding = str_width(placeholder);
-        let (width_taken, bytes_taken) = if margin.was_cut_left() {
-            // We have stripped some code/whitespace from the beginning, make it clear.
-            let mut bytes_taken = 0;
-            let mut width_taken = 0;
-            for ch in code.chars() {
-                width_taken += char_width(ch);
-                bytes_taken += ch.len_utf8();
-
-                if width_taken >= padding {
-                    break;
+                let underline_start = (span_start_pos + start) as isize + offset;
+                let underline_end = (span_start_pos + start + sub_len) as isize + offset;
+                assert!(underline_start >= 0 && underline_end >= 0);
+                let padding: usize = max_line_num_len + 3;
+                for p in underline_start..underline_end {
+                    if matches!(show_code_change, DisplaySuggestion::Underline) {
+                        // If this is a replacement, underline with `~`, if this is an addition
+                        // underline with `+`.
+                        buffer.putc(
+                            row_num,
+                            (padding as isize + p) as usize,
+                            if part.is_addition(sm) {
+                                '+'
+                            } else {
+                                renderer.decor_style.diff()
+                            },
+                            ElementStyle::Addition,
+                        );
+                    }
                 }
-            }
+                if let DisplaySuggestion::Diff = show_code_change {
+                    // Colorize removal with red in diff format.
 
-            if width_taken > padding {
-                left -= width_taken - padding;
-            }
+                    // Below, there's some tricky buffer indexing going on. `row_num` at this
+                    // point corresponds to:
+                    //
+                    //    |
+                    // LL | CODE
+                    //    | ++++  <- `row_num`
+                    //
+                    // in the buffer. When we have a diff format output, we end up with
+                    //
+                    //    |
+                    // LL - OLDER   <- row_num - 2
+                    // LL + NEWER
+                    //    |         <- row_num
+                    //
+                    // The `row_num - 2` is to select the buffer line that has the "old version
+                    // of the diff" at that point. When the removal is a single line, `i` is
+                    // `0`, `newlines` is `1` so `(newlines - i - 1)` ends up being `0`, so row
+                    // points at `LL - OLDER`. When the removal corresponds to multiple lines,
+                    // we end up with `newlines > 1` and `i` being `0..newlines - 1`.
+                    //
+                    //    |
+                    // LL - OLDER   <- row_num - 2 - (newlines - last_i - 1)
+                    // LL - CODE
+                    // LL - BEING
+                    // LL - REMOVED <- row_num - 2 - (newlines - first_i - 1)
+                    // LL + NEWER
+                    //    |         <- row_num
 
+                    let newlines = snippet.lines().count();
+                    if newlines > 0 && row_num > newlines {
+                        // Account for removals where the part being removed spans multiple
+                        // lines.
+                        // FIXME: We check the number of rows because in some cases, like in
+                        // `tests/ui/lint/invalid-nan-comparison-suggestion.rs`, the rendered
+                        // suggestion will only show the first line of code being replaced. The
+                        // proper way of doing this would be to change the suggestion rendering
+                        // logic to show the whole prior snippet, but the current output is not
+                        // too bad to begin with, so we side-step that issue here.
+                        for (i, line) in snippet.lines().enumerate() {
+                            let line = normalize_whitespace(line);
+                            let row = row_num - 2 - (newlines - i - 1);
+                            // On the first line, we highlight between the start of the part
+                            // span, and the end of that line.
+                            // On the last line, we highlight between the start of the line, and
+                            // the column of the part span end.
+                            // On all others, we highlight the whole line.
+                            let start = if i == 0 {
+                                (padding as isize + span_start_pos as isize) as usize
+                            } else {
+                                padding
+                            };
+                            let end = if i == 0 {
+                                (padding as isize + span_start_pos as isize + line.len() as isize)
+                                    as usize
+                            } else if i == newlines - 1 {
+                                (padding as isize + span_end_pos as isize) as usize
+                            } else {
+                                (padding as isize + line.len() as isize) as usize
+                            };
+                            buffer.set_style_range(row, start, end, ElementStyle::Removal, true);
+                        }
+                    } else {
+                        // The removed code fits all in one line.
+                        buffer.set_style_range(
+                            row_num - 2,
+                            (padding as isize + span_start_pos as isize) as usize,
+                            (padding as isize + span_end_pos as isize) as usize,
+                            ElementStyle::Removal,
+                            true,
+                        );
+                    }
+                }
+
+                // length of the code after substitution
+                let full_sub_len = str_width(&part.replacement) as isize;
+
+                // length of the code to be substituted
+                let snippet_len = span_end_pos as isize - span_start_pos as isize;
+                // For multiple substitutions, use the position *after* the previous
+                // substitutions have happened, only when further substitutions are
+                // located strictly after.
+                offsets.push((span_end_pos, full_sub_len - snippet_len));
+            }
+            row_num += 1;
+        }
+
+        // if we elided some lines, add an ellipsis
+        if lines.next().is_some() {
+            let placeholder = renderer.decor_style.margin();
+            let padding = str_width(placeholder);
             buffer.puts(
-                line_offset,
-                code_offset,
+                row_num,
+                max_line_num_len.saturating_sub(padding),
                 placeholder,
                 ElementStyle::LineNumber,
             );
-            (width_taken, bytes_taken)
         } else {
-            (0, 0)
-        };
+            let row = match show_code_change {
+                DisplaySuggestion::Diff | DisplaySuggestion::Add | DisplaySuggestion::Underline => {
+                    row_num - 1
+                }
+                DisplaySuggestion::None => row_num,
+            };
+            if is_cont {
+                draw_col_separator_no_space(renderer, buffer, row, max_line_num_len + 1);
+            } else {
+                draw_col_separator_end(renderer, buffer, row, max_line_num_len + 1);
+            }
+            row_num = row + 1;
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn draw_code_line(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    row_num: &mut usize,
+    highlight_parts: &[SubstitutionHighlight],
+    line_num: usize,
+    line_to_add: &str,
+    show_code_change: DisplaySuggestion,
+    max_line_num_len: usize,
+    file_lines: &[&LineInfo<'_>],
+    is_multiline: bool,
+) {
+    if let DisplaySuggestion::Diff = show_code_change {
+        // We need to print more than one line if the span we need to remove is multiline.
+        // For more info: https://github.com/rust-lang/rust/issues/92741
+        let lines_to_remove = file_lines.iter().take(file_lines.len() - 1);
+        for (index, line_to_remove) in lines_to_remove.enumerate() {
+            buffer.puts(
+                *row_num - 1,
+                0,
+                &maybe_anonymized(renderer, line_num + index, max_line_num_len),
+                ElementStyle::LineNumber,
+            );
+            buffer.puts(
+                *row_num - 1,
+                max_line_num_len + 1,
+                "- ",
+                ElementStyle::Removal,
+            );
+            let line = normalize_whitespace(line_to_remove.line);
+            buffer.puts(
+                *row_num - 1,
+                max_line_num_len + 3,
+                &line,
+                ElementStyle::NoStyle,
+            );
+            *row_num += 1;
+        }
+        // If the last line is exactly equal to the line we need to add, we can skip both of
+        // them. This allows us to avoid output like the following:
+        // 2 - &
+        // 2 + if true { true } else { false }
+        // 3 - if true { true } else { false }
+        // If those lines aren't equal, we print their diff
+        let last_line = &file_lines.last().unwrap();
+        if last_line.line == line_to_add {
+            *row_num -= 2;
+        } else {
+            buffer.puts(
+                *row_num - 1,
+                0,
+                &maybe_anonymized(renderer, line_num + file_lines.len() - 1, max_line_num_len),
+                ElementStyle::LineNumber,
+            );
+            buffer.puts(
+                *row_num - 1,
+                max_line_num_len + 1,
+                "- ",
+                ElementStyle::Removal,
+            );
+            buffer.puts(
+                *row_num - 1,
+                max_line_num_len + 3,
+                &normalize_whitespace(last_line.line),
+                ElementStyle::NoStyle,
+            );
+            if line_to_add.trim().is_empty() {
+                *row_num -= 1;
+            } else {
+                // Check if after the removal, the line is left with only whitespace. If so, we
+                // will not show an "addition" line, as removing the whole line is what the user
+                // would really want.
+                // For example, for the following:
+                //   |
+                // 2 -     .await
+                // 2 +     (note the left over whitespace)
+                //   |
+                // We really want
+                //   |
+                // 2 -     .await
+                //   |
+                // *row_num -= 1;
+                buffer.puts(
+                    *row_num,
+                    0,
+                    &maybe_anonymized(renderer, line_num, max_line_num_len),
+                    ElementStyle::LineNumber,
+                );
+                buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
+                buffer.append(
+                    *row_num,
+                    &normalize_whitespace(line_to_add),
+                    ElementStyle::NoStyle,
+                );
+            }
+        }
+    } else if is_multiline {
+        buffer.puts(
+            *row_num,
+            0,
+            &maybe_anonymized(renderer, line_num, max_line_num_len),
+            ElementStyle::LineNumber,
+        );
+        match &highlight_parts {
+            [SubstitutionHighlight { start: 0, end }] if *end == line_to_add.len() => {
+                buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
+            }
+            [] => {
+                // FIXME: needed? Doesn't get exercised in any test.
+                draw_col_separator_no_space(renderer, buffer, *row_num, max_line_num_len + 1);
+            }
+            _ => {
+                let diff = renderer.decor_style.diff();
+                buffer.puts(
+                    *row_num,
+                    max_line_num_len + 1,
+                    &format!("{diff} "),
+                    ElementStyle::Addition,
+                );
+            }
+        }
+        //   LL | line_to_add
+        //   ++^^^
+        //    |  |
+        //    |  magic `3`
+        //    `max_line_num_len`
+        buffer.puts(
+            *row_num,
+            max_line_num_len + 3,
+            &normalize_whitespace(line_to_add),
+            ElementStyle::NoStyle,
+        );
+    } else if let DisplaySuggestion::Add = show_code_change {
+        buffer.puts(
+            *row_num,
+            0,
+            &maybe_anonymized(renderer, line_num, max_line_num_len),
+            ElementStyle::LineNumber,
+        );
+        buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
+        buffer.append(
+            *row_num,
+            &normalize_whitespace(line_to_add),
+            ElementStyle::NoStyle,
+        );
+    } else {
+        buffer.puts(
+            *row_num,
+            0,
+            &maybe_anonymized(renderer, line_num, max_line_num_len),
+            ElementStyle::LineNumber,
+        );
+        draw_col_separator(renderer, buffer, *row_num, max_line_num_len + 1);
+        buffer.append(
+            *row_num,
+            &normalize_whitespace(line_to_add),
+            ElementStyle::NoStyle,
+        );
+    }
+
+    // Colorize addition/replacements with green.
+    for &SubstitutionHighlight { start, end } in highlight_parts {
+        // This is a no-op for empty ranges
+        if start != end {
+            // Account for tabs when highlighting (#87972).
+            let tabs: usize = line_to_add
+                .chars()
+                .take(start)
+                .map(|ch| match ch {
+                    '\t' => 3,
+                    _ => 0,
+                })
+                .sum();
+            buffer.set_style_range(
+                *row_num,
+                max_line_num_len + 3 + start + tabs,
+                max_line_num_len + 3 + end + tabs,
+                ElementStyle::Addition,
+                true,
+            );
+        }
+    }
+    *row_num += 1;
+}
+
+#[allow(clippy::too_many_arguments)]
+fn draw_line(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    source_string: &str,
+    line_index: usize,
+    line_offset: usize,
+    width_offset: usize,
+    code_offset: usize,
+    max_line_num_len: usize,
+    margin: Margin,
+) -> usize {
+    // Tabs are assumed to have been replaced by spaces in calling code.
+    debug_assert!(!source_string.contains('\t'));
+    let line_len = str_width(source_string);
+    // Create the source line we will highlight.
+    let mut left = margin.left(line_len);
+    let right = margin.right(line_len);
+    // FIXME: The following code looks fishy. See #132860.
+    // On long lines, we strip the source line, accounting for unicode.
+    let mut taken = 0;
+    let mut skipped = 0;
+    let code: String = source_string
+        .chars()
+        .skip_while(|ch| {
+            skipped += char_width(*ch);
+            skipped <= left
+        })
+        .take_while(|ch| {
+            // Make sure that the trimming on the right will fall within the terminal width.
+            taken += char_width(*ch);
+            taken <= (right - left)
+        })
+        .collect();
+
+    let placeholder = renderer.decor_style.margin();
+    let padding = str_width(placeholder);
+    let (width_taken, bytes_taken) = if margin.was_cut_left() {
+        // We have stripped some code/whitespace from the beginning, make it clear.
+        let mut bytes_taken = 0;
+        let mut width_taken = 0;
+        for ch in code.chars() {
+            width_taken += char_width(ch);
+            bytes_taken += ch.len_utf8();
+
+            if width_taken >= padding {
+                break;
+            }
+        }
+
+        if width_taken > padding {
+            left -= width_taken - padding;
+        }
 
         buffer.puts(
             line_offset,
-            code_offset + width_taken,
-            &code[bytes_taken..],
-            ElementStyle::Quotation,
+            code_offset,
+            placeholder,
+            ElementStyle::LineNumber,
         );
+        (width_taken, bytes_taken)
+    } else {
+        (0, 0)
+    };
 
-        if line_len > right {
-            // We have stripped some code/whitespace from the beginning, make it clear.
-            let mut char_taken = 0;
-            let mut width_taken_inner = 0;
-            for ch in code.chars().rev() {
-                width_taken_inner += char_width(ch);
-                char_taken += 1;
+    buffer.puts(
+        line_offset,
+        code_offset + width_taken,
+        &code[bytes_taken..],
+        ElementStyle::Quotation,
+    );
 
-                if width_taken_inner >= padding {
-                    break;
-                }
+    if line_len > right {
+        // We have stripped some code/whitespace from the beginning, make it clear.
+        let mut char_taken = 0;
+        let mut width_taken_inner = 0;
+        for ch in code.chars().rev() {
+            width_taken_inner += char_width(ch);
+            char_taken += 1;
+
+            if width_taken_inner >= padding {
+                break;
             }
+        }
 
-            buffer.puts(
-                line_offset,
-                code_offset + width_taken + code[bytes_taken..].chars().count() - char_taken,
-                placeholder,
+        buffer.puts(
+            line_offset,
+            code_offset + width_taken + code[bytes_taken..].chars().count() - char_taken,
+            placeholder,
+            ElementStyle::LineNumber,
+        );
+    }
+
+    buffer.puts(
+        line_offset,
+        0,
+        &maybe_anonymized(renderer, line_index, max_line_num_len),
+        ElementStyle::LineNumber,
+    );
+
+    draw_col_separator_no_space(renderer, buffer, line_offset, width_offset - 2);
+
+    left
+}
+
+fn draw_range(
+    buffer: &mut StyledBuffer,
+    symbol: char,
+    line: usize,
+    col_from: usize,
+    col_to: usize,
+    style: ElementStyle,
+) {
+    for col in col_from..col_to {
+        buffer.putc(line, col, symbol, style);
+    }
+}
+
+fn draw_multiline_line(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    line: usize,
+    offset: usize,
+    depth: usize,
+    style: ElementStyle,
+) {
+    let chr = match (style, renderer.decor_style) {
+        (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Ascii) => '|',
+        (_, DecorStyle::Ascii) => '|',
+        (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Unicode) => '┃',
+        (_, DecorStyle::Unicode) => '│',
+    };
+    buffer.putc(line, offset + depth - 1, chr, style);
+}
+
+fn draw_col_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usize, col: usize) {
+    let chr = renderer.decor_style.col_separator();
+    buffer.puts(line, col, &format!("{chr} "), ElementStyle::LineNumber);
+}
+
+fn draw_col_separator_no_space(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    line: usize,
+    col: usize,
+) {
+    let chr = renderer.decor_style.col_separator();
+    draw_col_separator_no_space_with_style(buffer, chr, line, col, ElementStyle::LineNumber);
+}
+
+fn draw_col_separator_start(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    line: usize,
+    col: usize,
+) {
+    match renderer.decor_style {
+        DecorStyle::Ascii => {
+            draw_col_separator_no_space_with_style(
+                buffer,
+                '|',
+                line,
+                col,
                 ElementStyle::LineNumber,
             );
         }
-
-        buffer.puts(
-            line_offset,
-            0,
-            &self.maybe_anonymized(line_index, max_line_num_len),
-            ElementStyle::LineNumber,
-        );
-
-        self.draw_col_separator_no_space(buffer, line_offset, width_offset - 2);
-
-        left
-    }
-
-    fn draw_range(
-        &self,
-        buffer: &mut StyledBuffer,
-        symbol: char,
-        line: usize,
-        col_from: usize,
-        col_to: usize,
-        style: ElementStyle,
-    ) {
-        for col in col_from..col_to {
-            buffer.putc(line, col, symbol, style);
+        DecorStyle::Unicode => {
+            draw_col_separator_no_space_with_style(
+                buffer,
+                '╭',
+                line,
+                col,
+                ElementStyle::LineNumber,
+            );
+            draw_col_separator_no_space_with_style(
+                buffer,
+                '╴',
+                line,
+                col + 1,
+                ElementStyle::LineNumber,
+            );
         }
     }
+}
 
-    fn draw_multiline_line(
-        &self,
-        buffer: &mut StyledBuffer,
-        line: usize,
-        offset: usize,
-        depth: usize,
-        style: ElementStyle,
-    ) {
-        let chr = match (style, self.decor_style) {
-            (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Ascii) => '|',
-            (_, DecorStyle::Ascii) => '|',
-            (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Unicode) => {
-                '┃'
-            }
-            (_, DecorStyle::Unicode) => '│',
-        };
-        buffer.putc(line, offset + depth - 1, chr, style);
-    }
-
-    fn draw_col_separator(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        let chr = self.decor_style.col_separator();
-        buffer.puts(line, col, &format!("{chr} "), ElementStyle::LineNumber);
-    }
-
-    fn draw_col_separator_no_space(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        let chr = self.decor_style.col_separator();
-        self.draw_col_separator_no_space_with_style(
-            buffer,
-            chr,
-            line,
-            col,
-            ElementStyle::LineNumber,
-        );
-    }
-
-    fn draw_col_separator_start(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        match self.decor_style {
-            DecorStyle::Ascii => {
-                self.draw_col_separator_no_space_with_style(
-                    buffer,
-                    '|',
-                    line,
-                    col,
-                    ElementStyle::LineNumber,
-                );
-            }
-            DecorStyle::Unicode => {
-                self.draw_col_separator_no_space_with_style(
-                    buffer,
-                    '╭',
-                    line,
-                    col,
-                    ElementStyle::LineNumber,
-                );
-                self.draw_col_separator_no_space_with_style(
-                    buffer,
-                    '╴',
-                    line,
-                    col + 1,
-                    ElementStyle::LineNumber,
-                );
-            }
+fn draw_col_separator_end(renderer: &Renderer, buffer: &mut StyledBuffer, line: usize, col: usize) {
+    match renderer.decor_style {
+        DecorStyle::Ascii => {
+            draw_col_separator_no_space_with_style(
+                buffer,
+                '|',
+                line,
+                col,
+                ElementStyle::LineNumber,
+            );
+        }
+        DecorStyle::Unicode => {
+            draw_col_separator_no_space_with_style(
+                buffer,
+                '╰',
+                line,
+                col,
+                ElementStyle::LineNumber,
+            );
+            draw_col_separator_no_space_with_style(
+                buffer,
+                '╴',
+                line,
+                col + 1,
+                ElementStyle::LineNumber,
+            );
         }
     }
+}
 
-    fn draw_col_separator_end(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        match self.decor_style {
-            DecorStyle::Ascii => {
-                self.draw_col_separator_no_space_with_style(
-                    buffer,
-                    '|',
-                    line,
-                    col,
-                    ElementStyle::LineNumber,
-                );
-            }
-            DecorStyle::Unicode => {
-                self.draw_col_separator_no_space_with_style(
-                    buffer,
-                    '╰',
-                    line,
-                    col,
-                    ElementStyle::LineNumber,
-                );
-                self.draw_col_separator_no_space_with_style(
-                    buffer,
-                    '╴',
-                    line,
-                    col + 1,
-                    ElementStyle::LineNumber,
-                );
-            }
+fn draw_col_separator_no_space_with_style(
+    buffer: &mut StyledBuffer,
+    chr: char,
+    line: usize,
+    col: usize,
+    style: ElementStyle,
+) {
+    buffer.putc(line, col, chr, style);
+}
+
+fn maybe_anonymized(renderer: &Renderer, line_num: usize, max_line_num_len: usize) -> String {
+    format!(
+        "{:>max_line_num_len$}",
+        if renderer.anonymized_line_numbers {
+            Cow::Borrowed(ANONYMIZED_LINE_NUM)
+        } else {
+            Cow::Owned(line_num.to_string())
         }
-    }
+    )
+}
 
-    fn draw_col_separator_no_space_with_style(
-        &self,
-        buffer: &mut StyledBuffer,
-        chr: char,
-        line: usize,
-        col: usize,
-        style: ElementStyle,
-    ) {
-        buffer.putc(line, col, chr, style);
-    }
+fn draw_note_separator(
+    renderer: &Renderer,
+    buffer: &mut StyledBuffer,
+    line: usize,
+    col: usize,
+    is_cont: bool,
+) {
+    let chr = renderer.decor_style.note_separator(is_cont);
+    buffer.puts(line, col, chr, ElementStyle::LineNumber);
+}
 
-    fn maybe_anonymized(&self, line_num: usize, max_line_num_len: usize) -> String {
-        format!(
-            "{:>max_line_num_len$}",
-            if self.anonymized_line_numbers {
-                Cow::Borrowed(ANONYMIZED_LINE_NUM)
-            } else {
-                Cow::Owned(line_num.to_string())
-            }
-        )
-    }
-
-    fn draw_note_separator(
-        &self,
-        buffer: &mut StyledBuffer,
-        line: usize,
-        col: usize,
-        is_cont: bool,
-    ) {
-        let chr = self.decor_style.note_separator(is_cont);
-        buffer.puts(line, col, chr, ElementStyle::LineNumber);
-    }
-
-    fn draw_line_separator(&self, buffer: &mut StyledBuffer, line: usize, col: usize) {
-        let (column, dots) = match self.decor_style {
-            DecorStyle::Ascii => (0, "..."),
-            DecorStyle::Unicode => (col - 2, "‡"),
-        };
-        buffer.puts(line, column, dots, ElementStyle::LineNumber);
-    }
+fn draw_line_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usize, col: usize) {
+    let (column, dots) = match renderer.decor_style {
+        DecorStyle::Ascii => (0, "..."),
+        DecorStyle::Unicode => (col - 2, "‡"),
+    };
+    buffer.puts(line, column, dots, ElementStyle::LineNumber);
 }
 
 trait MessageOrTitle {
