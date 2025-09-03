@@ -4192,3 +4192,46 @@ error: invalid character `^` in path base name: `^^not-valid^^`, the first chara
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn tab() {
+    let source = "
+ t
+\tt
+";
+
+    let title = "showing how tabs are rendered";
+
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title(title)).element(
+            Snippet::source(source)
+                .path("tabbed.txt")
+                .annotation(AnnotationKind::Primary.span(2..3))
+                .annotation(AnnotationKind::Context.span(5..6)),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: showing how tabs are rendered
+ --> tabbed.txt:2:2
+  |
+2 |  t
+  |  ^
+3 |     t
+  |     -
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: showing how tabs are rendered
+  ╭▸ tabbed.txt:2:2
+  │
+2 │  t
+  │  ━
+3 │     t
+  ╰╴    ─
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
