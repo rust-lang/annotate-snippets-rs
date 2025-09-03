@@ -20,10 +20,16 @@
 //! anstream::println!("{output}");
 //! ```
 
-mod margin;
 pub(crate) mod source_map;
-mod styled_buffer;
 pub(crate) mod stylesheet;
+
+mod margin;
+mod styled_buffer;
+
+use std::borrow::Cow;
+use std::cmp::{max, min, Ordering, Reverse};
+use std::collections::{HashMap, VecDeque};
+use std::fmt;
 
 use crate::level::{Level, LevelInner};
 use crate::renderer::source_map::{
@@ -34,13 +40,10 @@ use crate::snippet::Id;
 use crate::{
     Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Report, Snippet, Title,
 };
-pub use anstyle::*;
 use margin::Margin;
-use std::borrow::Cow;
-use std::cmp::{max, min, Ordering, Reverse};
-use std::collections::{HashMap, VecDeque};
-use std::fmt;
 use stylesheet::Stylesheet;
+
+pub use anstyle::*;
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
 
