@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 
 fn main() {
     let source = r#"                annotations: vec![SourceAnnotation {
@@ -22,6 +22,6 @@ fn main() {
             ),
         ];
 
-    let renderer = Renderer::styled();
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
 }

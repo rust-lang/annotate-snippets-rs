@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
 fn main() {
     let source = r#"struct S {
     field1: usize,
@@ -22,6 +22,6 @@ fn main() {
         Level::HELP.message("unlike in C++, Java, and C#, functions are declared in `impl` blocks"),
     )];
 
-    let renderer = Renderer::styled();
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
 }

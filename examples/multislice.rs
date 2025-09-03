@@ -1,4 +1,4 @@
-use annotate_snippets::{Annotation, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, Annotation, Group, Level, Renderer, Snippet};
 
 fn main() {
     let report = &[
@@ -17,6 +17,6 @@ fn main() {
             ),
     ];
 
-    let renderer = Renderer::styled();
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
 }
