@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Duplicate multi-line annotations get treated like the are distinct #293
+- Allow passing `0` to `Snippet::line_start` #294
+
 ## [0.12.1] - 2025-09-02
 
 ### Fixes
