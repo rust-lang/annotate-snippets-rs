@@ -4281,3 +4281,48 @@ warning: whatever
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
 }
+
+#[test]
+fn alignment() {
+    let source = "SELECT bar";
+
+    let title = "ensure single line at line 0 rendered correctly with group line lined up";
+
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title(title)).element(
+            Snippet::source(source)
+                .path("Cargo.toml")
+                .line_start(0)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(7..10)
+                        .label("unexpected token"),
+                )
+                .annotation(
+                    AnnotationKind::Visible
+                        .span(0..10)
+                        .label("while parsing statement"),
+                ),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: ensure single line at line 0 rendered correctly with group line lined up
+ --> Cargo.toml:0:8
+  |
+0 | SELECT bar
+  |        ^^^ unexpected token
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: ensure single line at line 0 rendered correctly with group line lined up
+  ╭▸ Cargo.toml:0:8
+  │
+0 │ SELECT bar
+  ╰╴       ━━━ unexpected token
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
