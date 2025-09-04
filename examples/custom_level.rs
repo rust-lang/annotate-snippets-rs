@@ -1,5 +1,5 @@
 use annotate_snippets::renderer::DecorStyle;
-use annotate_snippets::{AnnotationKind, Group, Level, Patch, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Level, Patch, Renderer, Snippet};
 
 fn main() {
     let source = r#"// Regression test for issue #114529
@@ -29,13 +29,10 @@ fn main() {
     }
 }
 "#;
-    let report =
-        &[
-            Group::with_title(
-                Level::ERROR
-                    .primary_title("`break` with value from a `while` loop")
-                    .id("E0571"),
-            )
+    let report = &[
+        Level::ERROR
+            .primary_title("`break` with value from a `while` loop")
+            .id("E0571")
             .element(
                 Snippet::source(source)
                     .line_start(1)
@@ -51,16 +48,16 @@ fn main() {
                             .label("you can't `break` with a value in a `while` loop"),
                     ),
             ),
-            Group::with_title(Level::HELP.with_name(Some("suggestion")).secondary_title(
-                "use `break` on its own without a value inside this `while` loop",
-            ))
+        Level::HELP
+            .with_name(Some("suggestion"))
+            .secondary_title("use `break` on its own without a value inside this `while` loop")
             .element(
                 Snippet::source(source)
                     .line_start(1)
                     .path("$DIR/issue-114529-illegal-break-with-value.rs")
                     .patch(Patch::new(483..581, "break")),
             ),
-        ];
+    ];
 
     let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));

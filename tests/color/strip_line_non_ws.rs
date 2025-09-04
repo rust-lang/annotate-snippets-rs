@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -7,8 +7,10 @@ fn case() {
     let source = r#"	let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = 42; let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = (); let _: () = ();
 "#;
 
-    let input = &[
-        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
+    let input = &[Level::ERROR
+        .primary_title("mismatched types")
+        .id("E0308")
+        .element(
             Snippet::source(source)
                 .path("$DIR/non-whitespace-trimming.rs")
                 .line_start(4)
@@ -22,8 +24,7 @@ fn case() {
                         .span(232..234)
                         .label("expected due to this"),
                 ),
-        ),
-    ];
+        )];
 
     let expected_ascii = file!["strip_line_non_ws.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled().anonymized_line_numbers(true);

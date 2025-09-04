@@ -496,7 +496,7 @@ impl<'a> Patch<'a> {
 /// ```rust
 /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level, Origin};
 /// let report = &[
-///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
+///     Level::ERROR.primary_title("mismatched types").id("E0308")
 ///         .element(
 ///             Origin::path("$DIR/mismatched-types.rs")
 ///         )

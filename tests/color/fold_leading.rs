@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -17,17 +17,15 @@ edition = "2021"
 workspace = 20
 "#;
 
-    let input = &[Group::with_title(
-        Level::ERROR
-            .primary_title("invalid type: integer `20`, expected a bool")
-            .id("E0308"),
-    )
-    .element(
-        Snippet::source(source)
-            .path("Cargo.toml")
-            .line_start(1)
-            .annotation(AnnotationKind::Primary.span(132..134).label("")),
-    )];
+    let input = &[Level::ERROR
+        .primary_title("invalid type: integer `20`, expected a bool")
+        .id("E0308")
+        .element(
+            Snippet::source(source)
+                .path("Cargo.toml")
+                .line_start(1)
+                .annotation(AnnotationKind::Primary.span(132..134).label("")),
+        )];
 
     let expected_ascii = file!["fold_leading.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();

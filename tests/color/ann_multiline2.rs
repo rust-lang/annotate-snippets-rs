@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -9,22 +9,20 @@ of an edge case of an annotation overflowing
 to exactly one character on next line.
 "#;
 
-    let input = &[Group::with_title(
-        Level::ERROR
-            .primary_title("spacing error found")
-            .id("E####"),
-    )
-    .element(
-        Snippet::source(source)
-            .path("foo.txt")
-            .line_start(26)
-            .fold(false)
-            .annotation(
-                AnnotationKind::Primary
-                    .span(11..19)
-                    .label("this should not be on separate lines"),
-            ),
-    )];
+    let input = &[Level::ERROR
+        .primary_title("spacing error found")
+        .id("E####")
+        .element(
+            Snippet::source(source)
+                .path("foo.txt")
+                .line_start(26)
+                .fold(false)
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(11..19)
+                        .label("this should not be on separate lines"),
+                ),
+        )];
 
     let expected_ascii = file!["ann_multiline2.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();

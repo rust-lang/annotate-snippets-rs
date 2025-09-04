@@ -1,17 +1,15 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
 #[test]
 fn case() {
-    let input = &[
-        Group::with_title(Level::ERROR.primary_title("expected `.`, `=`")).element(
-            Snippet::source("asdf")
-                .path("Cargo.toml")
-                .line_start(1)
-                .annotation(AnnotationKind::Primary.span(4..5).label("")),
-        ),
-    ];
+    let input = &[Level::ERROR.primary_title("expected `.`, `=`").element(
+        Snippet::source("asdf")
+            .path("Cargo.toml")
+            .line_start(1)
+            .annotation(AnnotationKind::Primary.span(4..5).label("")),
+    )];
 
     let expected_ascii = file!["ann_removed_nl.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();

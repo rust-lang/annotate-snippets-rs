@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -12,7 +12,7 @@ let y = x;
 x;
 "#;
 
-    let input = &[Group::with_title(Level::ERROR.primary_title("expected one of `.`, `;`, `?`, or an operator, found `for`"))
+    let input = &[Level::ERROR.primary_title("expected one of `.`, `;`, `?`, or an operator, found `for`")
         .element(
             Snippet::source(source)
                 .path("/code/rust/src/test/ui/annotate-snippet/suggestion.rs")

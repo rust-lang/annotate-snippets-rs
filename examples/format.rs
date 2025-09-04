@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 fn main() {
     let source = r#") -> Option<String> {
@@ -23,8 +23,10 @@ fn main() {
             _ => continue,
         }
     }"#;
-    let report = &[
-        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
+    let report = &[Level::ERROR
+        .primary_title("mismatched types")
+        .id("E0308")
+        .element(
             Snippet::source(source)
                 .line_start(51)
                 .path("src/format.rs")
@@ -39,8 +41,7 @@ fn main() {
                         .span(26..724)
                         .label("expected enum `std::option::Option`"),
                 ),
-        ),
-    ];
+        )];
 
     let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
