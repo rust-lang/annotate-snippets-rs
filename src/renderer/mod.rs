@@ -176,49 +176,50 @@ impl Renderer {
 
 /// Customize [`Renderer::styled`]
 impl Renderer {
-    /// Override the output style for `error`
+    /// Override the output style for [error][crate::Level::ERROR]
     pub const fn error(mut self, style: Style) -> Self {
         self.stylesheet.error = style;
         self
     }
 
-    /// Override the output style for `warning`
+    /// Override the output style for [warnings][crate::Level::WARNING]
     pub const fn warning(mut self, style: Style) -> Self {
         self.stylesheet.warning = style;
         self
     }
 
-    /// Override the output style for `info`
+    /// Override the output style for [info][crate::Level::INFO]
     pub const fn info(mut self, style: Style) -> Self {
         self.stylesheet.info = style;
         self
     }
 
-    /// Override the output style for `note`
+    /// Override the output style for [notes][crate::Level::NOTE]
     pub const fn note(mut self, style: Style) -> Self {
         self.stylesheet.note = style;
         self
     }
 
-    /// Override the output style for `help`
+    /// Override the output style for [help][crate::Level::HELP]
     pub const fn help(mut self, style: Style) -> Self {
         self.stylesheet.help = style;
         self
     }
 
-    /// Override the output style for line numbers
+    /// Override the output style for line numbers in the [`Snippet`][crate::Snippet] gutter
     pub const fn line_num(mut self, style: Style) -> Self {
         self.stylesheet.line_num = style;
         self
     }
 
-    /// Override the output style for emphasis
+    /// Override the output style for emphasis for the
+    /// [`primary_title`][crate::Level::primary_title]
     pub const fn emphasis(mut self, style: Style) -> Self {
         self.stylesheet.emphasis = style;
         self
     }
 
-    /// Override the output style for none
+    /// Override the output style for all other text
     pub const fn none(mut self, style: Style) -> Self {
         self.stylesheet.none = style;
         self
@@ -230,13 +231,13 @@ impl Renderer {
         self
     }
 
-    /// Override the output style for additions
+    /// Override the output style for [`Patch`][crate::Patch] additions
     pub const fn addition(mut self, style: Style) -> Self {
         self.stylesheet.addition = style;
         self
     }
 
-    /// Override the output style for removals
+    /// Override the output style for [`Patch`][crate::Patch] removals
     pub const fn removal(mut self, style: Style) -> Self {
         self.stylesheet.removal = style;
         self
