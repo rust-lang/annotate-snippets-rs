@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -9,7 +9,7 @@ fn case() {
 invalid syntax
 "#;
 
-    let input = &[Group::with_title(Level::ERROR.primary_title("")).element(
+    let input = &[Level::ERROR.primary_title("").element(
         Snippet::source(source)
             .path("path/to/error.rs")
             .line_start(1)

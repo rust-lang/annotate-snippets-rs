@@ -190,6 +190,16 @@ impl<'a> Title<'a> {
         self.id.get_or_insert(Id::default()).url = Some(url.into());
         self
     }
+
+    /// Append an [`Element`] that adds context to the [`Title`]
+    pub fn element(self, section: impl Into<Element<'a>>) -> Group<'a> {
+        Group::with_title(self).element(section)
+    }
+
+    /// Append [`Element`]s that adds context to the [`Title`]
+    pub fn elements(self, sections: impl IntoIterator<Item = impl Into<Element<'a>>>) -> Group<'a> {
+        Group::with_title(self).elements(sections)
+    }
 }
 
 /// A text [`Element`] in a [`Group`]
@@ -486,7 +496,7 @@ impl<'a> Patch<'a> {
 /// ```rust
 /// # use annotate_snippets::{Group, Snippet, AnnotationKind, Level, Origin};
 /// let report = &[
-///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
+///     Level::ERROR.primary_title("mismatched types").id("E0308")
 ///         .element(
 ///             Origin::path("$DIR/mismatched-types.rs")
 ///         )

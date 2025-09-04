@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -6,8 +6,10 @@ use snapbox::{assert_data_eq, file};
 fn case() {
     let source = r#"                                                                                                                                                                                    let _: () = 42ñ"#;
 
-    let input = &[
-        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
+    let input = &[Level::ERROR
+        .primary_title("mismatched types")
+        .id("E0308")
+        .element(
             Snippet::source(source)
                 .path("$DIR/whitespace-trimming.rs")
                 .line_start(4)
@@ -16,8 +18,7 @@ fn case() {
                         .span(192..194)
                         .label("expected (), found integer"),
                 ),
-        ),
-    ];
+        )];
 
     let expected_ascii = file!["strip_line_char.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled().anonymized_line_numbers(true);

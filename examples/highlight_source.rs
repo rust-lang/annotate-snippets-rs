@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 fn main() {
     let source = r#"//@ compile-flags: -Z teach
@@ -9,8 +9,8 @@ const CON: Vec<i32> = vec![1, 2, 3]; //~ ERROR E0010
 //~| ERROR cannot call non-const method
 fn main() {}
 "#;
-    let report = &[Group::with_title(Level::ERROR.primary_title("allocations are not allowed in constants")
-        .id("E0010"))
+    let report = &[Level::ERROR.primary_title("allocations are not allowed in constants")
+        .id("E0010")
         .element(
             Snippet::source(source)
                 .path("$DIR/E0010-teach.rs")

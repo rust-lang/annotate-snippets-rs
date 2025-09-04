@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 use anstyle::{AnsiColor, Effects, Style};
 
 use snapbox::{assert_data_eq, file};
@@ -24,13 +24,13 @@ use c::cnb_runtime;
         "one version of crate `c` is used here, as a direct dependency of the current crate";
 
     let input = &[
-        Group::with_title(Level::ERROR.primary_title(title_1).id("E0277")).element(
+        Level::ERROR.primary_title(title_1).id("E0277").element(
             Snippet::source(source)
                 .path("src/main.rs")
                 .annotation(AnnotationKind::Primary.span(65..86).label(label_1))
                 .annotation(AnnotationKind::Context.span(53..64).label(label_2)),
         ),
-        Group::with_title(Level::HELP.secondary_title(title_2)).element(
+        Level::HELP.secondary_title(title_2).element(
             Snippet::source(source)
                 .path("src/main.rs")
                 .annotation(AnnotationKind::Primary.span(4..5).label(label_3))

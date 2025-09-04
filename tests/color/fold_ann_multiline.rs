@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -28,8 +28,10 @@ fn case() {
     }
 "#;
 
-    let input = &[
-        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
+    let input = &[Level::ERROR
+        .primary_title("mismatched types")
+        .id("E0308")
+        .element(
             Snippet::source(source)
                 .path("src/format.rs")
                 .line_start(51)
@@ -41,8 +43,7 @@ fn case() {
                         .span(22..766)
                         .label("expected enum `std::option::Option`, found ()"),
                 ),
-        ),
-    ];
+        )];
 
     let expected_ascii = file!["fold_ann_multiline.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();

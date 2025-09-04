@@ -43,12 +43,8 @@ pub const HELP: Level<'_> = Level {
 /// ```rust
 /// # use annotate_snippets::*;
 /// let report = &[
-///     Group::with_title(
-///         Level::ERROR.primary_title("mismatched types").id("E0308")
-///     )
-///         .element(
-///             Level::NOTE.message("expected reference"),
-///         ),
+///     Level::ERROR.primary_title("mismatched types").id("E0308")
+///         .element(Level::NOTE.message("expected reference")),
 ///     Group::with_title(
 ///         Level::HELP.secondary_title("function defined here")
 ///     ),
@@ -186,7 +182,7 @@ impl<'a> Level<'a> {
     ///     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
     /// }"#;
     /// let report = &[
-    ///     Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
+    ///     Level::ERROR.primary_title("mismatched types").id("E0308")
     ///         .element(
     ///             Snippet::source(source)
     ///                 .path("$DIR/mismatched-types.rs")

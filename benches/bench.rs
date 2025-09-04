@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Level, Renderer, Snippet};
 
 #[divan::bench]
 fn simple() -> String {
@@ -24,8 +24,10 @@ fn simple() -> String {
             _ => continue,
         }
     }"#;
-    let message = &[
-        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308")).element(
+    let message = &[Level::ERROR
+        .primary_title("mismatched types")
+        .id("E0308")
+        .element(
             Snippet::source(source)
                 .line_start(51)
                 .path("src/format.rs")
@@ -39,8 +41,7 @@ fn simple() -> String {
                         .span(26..724)
                         .label("expected enum `std::option::Option`"),
                 ),
-        ),
-    ];
+        )];
 
     let renderer = Renderer::plain();
     let rendered = renderer.render(message);
@@ -69,17 +70,16 @@ fn fold(bencher: divan::Bencher<'_, '_>, context: usize) {
             (input, span)
         })
         .bench_values(|(input, span)| {
-            let message =
-                &[
-                    Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
-                        .element(
-                            Snippet::source(&input).path("src/format.rs").annotation(
-                                AnnotationKind::Context
-                                    .span(span)
-                                    .label("expected `Option<String>` because of return type"),
-                            ),
-                        ),
-                ];
+            let message = &[Level::ERROR
+                .primary_title("mismatched types")
+                .id("E0308")
+                .element(
+                    Snippet::source(&input).path("src/format.rs").annotation(
+                        AnnotationKind::Context
+                            .span(span)
+                            .label("expected `Option<String>` because of return type"),
+                    ),
+                )];
 
             let renderer = Renderer::plain();
             let rendered = renderer.render(message);

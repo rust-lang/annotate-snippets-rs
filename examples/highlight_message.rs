@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 use anstyle::AnsiColor;
 use anstyle::Effects;
 use anstyle::Style;
@@ -34,7 +34,9 @@ fn main() {
     );
 
     let report = &[
-        Group::with_title(Level::ERROR.primary_title("mismatched types").id("E0308"))
+        Level::ERROR
+            .primary_title("mismatched types")
+            .id("E0308")
             .element(
                 Snippet::source(source)
                     .path("$DIR/highlighting.rs")
@@ -50,12 +52,14 @@ fn main() {
                     ),
             )
             .element(Level::NOTE.message(&message)),
-        Group::with_title(Level::NOTE.secondary_title("function defined here")).element(
-            Snippet::source(source)
-                .path("$DIR/highlighting.rs")
-                .annotation(AnnotationKind::Context.span(200..333).label(""))
-                .annotation(AnnotationKind::Primary.span(194..199)),
-        ),
+        Level::NOTE
+            .secondary_title("function defined here")
+            .element(
+                Snippet::source(source)
+                    .path("$DIR/highlighting.rs")
+                    .annotation(AnnotationKind::Context.span(200..333).label(""))
+                    .annotation(AnnotationKind::Primary.span(194..199)),
+            ),
     ];
 
     let renderer = Renderer::styled()

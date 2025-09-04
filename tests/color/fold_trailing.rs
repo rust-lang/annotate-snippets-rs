@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
 
 use snapbox::{assert_data_eq, file};
 
@@ -16,17 +16,15 @@ rust-version = "1.70"
 edition = "2021"
 "#;
 
-    let input = &[Group::with_title(
-        Level::ERROR
-            .primary_title("invalid type: integer `20`, expected a lints table")
-            .id("E0308"),
-    )
-    .element(
-        Snippet::source(source)
-            .path("Cargo.toml")
-            .line_start(1)
-            .annotation(AnnotationKind::Primary.span(8..10).label("")),
-    )];
+    let input = &[Level::ERROR
+        .primary_title("invalid type: integer `20`, expected a lints table")
+        .id("E0308")
+        .element(
+            Snippet::source(source)
+                .path("Cargo.toml")
+                .line_start(1)
+                .annotation(AnnotationKind::Primary.span(8..10).label("")),
+        )];
 
     let expected_ascii = file!["fold_trailing.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();

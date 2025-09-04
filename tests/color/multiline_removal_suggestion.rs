@@ -1,5 +1,5 @@
 use annotate_snippets::{
-    renderer::DecorStyle, AnnotationKind, Group, Level, Origin, Patch, Renderer, Snippet,
+    renderer::DecorStyle, AnnotationKind, Level, Origin, Patch, Renderer, Snippet,
 };
 
 use snapbox::{assert_data_eq, file};
@@ -67,11 +67,9 @@ fn main() {}
 "#;
 
     let input = &[
-        Group::with_title(
                 Level::ERROR
                     .primary_title("`(bool, HashSet<u8>)` is not an iterator")
-                    .id("E0277"),
-            )
+                    .id("E0277")
             .element(
                 Snippet::source(source)
                     .path("$DIR/multiline-removal-suggestion.rs")
@@ -88,13 +86,13 @@ fn main() {}
             .element(
                 Level::NOTE.message("required for `(bool, HashSet<u8>)` to implement `IntoIterator`"),
             ),
-        Group::with_title(Level::NOTE.secondary_title("required by a bound in `flatten`"))
+        Level::NOTE.secondary_title("required by a bound in `flatten`")
             .element(
                 Origin::path("/rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs")
                     .line(1556)
                     .char_column(4),
             ),
-        Group::with_title(Level::HELP.secondary_title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds")).element(
+        Level::HELP.secondary_title("consider removing this method call, as the receiver has type `std::vec::IntoIter<HashSet<u8>>` and `std::vec::IntoIter<HashSet<u8>>: Iterator` trivially holds").element(
             Snippet::source(source)
                 .path("$DIR/multiline-removal-suggestion.rs")
 
