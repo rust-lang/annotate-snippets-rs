@@ -38,6 +38,45 @@ pub use anstyle::*;
 /// See [`Renderer::term_width`]
 pub const DEFAULT_TERM_WIDTH: usize = 140;
 
+const USE_WINDOWS_COLORS: bool = cfg!(windows) && !cfg!(feature = "testing-colors");
+const BRIGHT_BLUE: Style = if USE_WINDOWS_COLORS {
+    AnsiColor::BrightCyan.on_default()
+} else {
+    AnsiColor::BrightBlue.on_default()
+};
+/// [`Renderer::error`] applied by [`Renderer::styled`]
+pub const DEFAULT_ERROR_STYLE: Style = AnsiColor::BrightRed.on_default().effects(Effects::BOLD);
+/// [`Renderer::warning`] applied by [`Renderer::styled`]
+pub const DEFAULT_WARNING_STYLE: Style = if USE_WINDOWS_COLORS {
+    AnsiColor::BrightYellow.on_default()
+} else {
+    AnsiColor::Yellow.on_default()
+}
+.effects(Effects::BOLD);
+/// [`Renderer::info`] applied by [`Renderer::styled`]
+pub const DEFAULT_INFO_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
+/// [`Renderer::note`] applied by [`Renderer::styled`]
+pub const DEFAULT_NOTE_STYLE: Style = AnsiColor::BrightGreen.on_default().effects(Effects::BOLD);
+/// [`Renderer::help`] applied by [`Renderer::styled`]
+pub const DEFAULT_HELP_STYLE: Style = AnsiColor::BrightCyan.on_default().effects(Effects::BOLD);
+/// [`Renderer::line_num`] applied by [`Renderer::styled`]
+pub const DEFAULT_LINE_NUM_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
+/// [`Renderer::emphasis`] applied by [`Renderer::styled`]
+pub const DEFAULT_EMPHASIS_STYLE: Style = if USE_WINDOWS_COLORS {
+    AnsiColor::BrightWhite.on_default()
+} else {
+    Style::new()
+}
+.effects(Effects::BOLD);
+/// [`Renderer::none`] applied by [`Renderer::styled`]
+pub const DEFAULT_NONE_STYLE: Style = Style::new();
+/// [`Renderer::context`] applied by [`Renderer::styled`]
+pub const DEFAULT_CONTEXT_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
+/// [`Renderer::addition`] applied by [`Renderer::styled`]
+pub const DEFAULT_ADDITION_STYLE: Style = AnsiColor::BrightGreen.on_default();
+/// [`Renderer::removal`] applied by [`Renderer::styled`]
+pub const DEFAULT_REMOVAL_STYLE: Style = AnsiColor::BrightRed.on_default();
+
 /// The [Renderer] for a [`Report`]
 ///
 /// The caller is expected to detect any relevant terminal features and configure the renderer,
@@ -94,35 +133,19 @@ impl Renderer {
     ///
     /// When testing styled terminal output, see the [`testing-colors` feature](crate#features)
     pub const fn styled() -> Self {
-        const USE_WINDOWS_COLORS: bool = cfg!(windows) && !cfg!(feature = "testing-colors");
-        const BRIGHT_BLUE: Style = if USE_WINDOWS_COLORS {
-            AnsiColor::BrightCyan.on_default()
-        } else {
-            AnsiColor::BrightBlue.on_default()
-        };
         Self {
             stylesheet: Stylesheet {
-                error: AnsiColor::BrightRed.on_default().effects(Effects::BOLD),
-                warning: if USE_WINDOWS_COLORS {
-                    AnsiColor::BrightYellow.on_default()
-                } else {
-                    AnsiColor::Yellow.on_default()
-                }
-                .effects(Effects::BOLD),
-                info: BRIGHT_BLUE.effects(Effects::BOLD),
-                note: AnsiColor::BrightGreen.on_default().effects(Effects::BOLD),
-                help: AnsiColor::BrightCyan.on_default().effects(Effects::BOLD),
-                line_num: BRIGHT_BLUE.effects(Effects::BOLD),
-                emphasis: if USE_WINDOWS_COLORS {
-                    AnsiColor::BrightWhite.on_default()
-                } else {
-                    Style::new()
-                }
-                .effects(Effects::BOLD),
-                none: Style::new(),
-                context: BRIGHT_BLUE.effects(Effects::BOLD),
-                addition: AnsiColor::BrightGreen.on_default(),
-                removal: AnsiColor::BrightRed.on_default(),
+                error: DEFAULT_ERROR_STYLE,
+                warning: DEFAULT_WARNING_STYLE,
+                info: DEFAULT_INFO_STYLE,
+                note: DEFAULT_NOTE_STYLE,
+                help: DEFAULT_HELP_STYLE,
+                line_num: DEFAULT_LINE_NUM_STYLE,
+                emphasis: DEFAULT_EMPHASIS_STYLE,
+                none: DEFAULT_NONE_STYLE,
+                context: DEFAULT_CONTEXT_STYLE,
+                addition: DEFAULT_ADDITION_STYLE,
+                removal: DEFAULT_REMOVAL_STYLE,
             },
             ..Self::plain()
         }
