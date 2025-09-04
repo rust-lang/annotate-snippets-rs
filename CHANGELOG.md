@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Features
+
+- Add `Title::element` for less boilerplate
+- Add `renderer::DEFAULT_*_STYLE` to expose default styles
+
+### Documentation
+
+- Clarify role of `Renderer::<style>` methods
+
 ## [0.12.2] - 2025-09-03
 
 ### Fixes
