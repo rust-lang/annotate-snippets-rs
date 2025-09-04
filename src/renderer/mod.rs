@@ -44,27 +44,38 @@ const BRIGHT_BLUE: Style = if USE_WINDOWS_COLORS {
 } else {
     AnsiColor::BrightBlue.on_default()
 };
-const DEFAULT_ERROR_STYLE: Style = AnsiColor::BrightRed.on_default().effects(Effects::BOLD);
-const DEFAULT_WARNING_STYLE: Style = if USE_WINDOWS_COLORS {
+/// [`Renderer::error`] applied by [`Renderer::styled`]
+pub const DEFAULT_ERROR_STYLE: Style = AnsiColor::BrightRed.on_default().effects(Effects::BOLD);
+/// [`Renderer::warning`] applied by [`Renderer::styled`]
+pub const DEFAULT_WARNING_STYLE: Style = if USE_WINDOWS_COLORS {
     AnsiColor::BrightYellow.on_default()
 } else {
     AnsiColor::Yellow.on_default()
 }
 .effects(Effects::BOLD);
-const DEFAULT_INFO_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
-const DEFAULT_NOTE_STYLE: Style = AnsiColor::BrightGreen.on_default().effects(Effects::BOLD);
-const DEFAULT_HELP_STYLE: Style = AnsiColor::BrightCyan.on_default().effects(Effects::BOLD);
-const DEFAULT_LINE_NUM_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
-const DEFAULT_EMPHASIS_STYLE: Style = if USE_WINDOWS_COLORS {
+/// [`Renderer::info`] applied by [`Renderer::styled`]
+pub const DEFAULT_INFO_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
+/// [`Renderer::note`] applied by [`Renderer::styled`]
+pub const DEFAULT_NOTE_STYLE: Style = AnsiColor::BrightGreen.on_default().effects(Effects::BOLD);
+/// [`Renderer::help`] applied by [`Renderer::styled`]
+pub const DEFAULT_HELP_STYLE: Style = AnsiColor::BrightCyan.on_default().effects(Effects::BOLD);
+/// [`Renderer::line_num`] applied by [`Renderer::styled`]
+pub const DEFAULT_LINE_NUM_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
+/// [`Renderer::emphasis`] applied by [`Renderer::styled`]
+pub const DEFAULT_EMPHASIS_STYLE: Style = if USE_WINDOWS_COLORS {
     AnsiColor::BrightWhite.on_default()
 } else {
     Style::new()
 }
 .effects(Effects::BOLD);
-const DEFAULT_NONE_STYLE: Style = Style::new();
-const DEFAULT_CONTEXT_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
-const DEFAULT_ADDITION_STYLE: Style = AnsiColor::BrightGreen.on_default();
-const DEFAULT_REMOVAL_STYLE: Style = AnsiColor::BrightRed.on_default();
+/// [`Renderer::none`] applied by [`Renderer::styled`]
+pub const DEFAULT_NONE_STYLE: Style = Style::new();
+/// [`Renderer::context`] applied by [`Renderer::styled`]
+pub const DEFAULT_CONTEXT_STYLE: Style = BRIGHT_BLUE.effects(Effects::BOLD);
+/// [`Renderer::addition`] applied by [`Renderer::styled`]
+pub const DEFAULT_ADDITION_STYLE: Style = AnsiColor::BrightGreen.on_default();
+/// [`Renderer::removal`] applied by [`Renderer::styled`]
+pub const DEFAULT_REMOVAL_STYLE: Style = AnsiColor::BrightRed.on_default();
 
 /// The [Renderer] for a [`Report`]
 ///
