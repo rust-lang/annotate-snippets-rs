@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.3] - 2025-09-04
+
 ### Features
 
 - Add `Title::element` for less boilerplate
@@ -228,7 +230,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.2...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.3...HEAD
+[0.12.3]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.2...0.12.3
 [0.12.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.1...0.12.2
 [0.12.1]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.11.5...0.12.0
