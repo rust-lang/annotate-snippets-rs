@@ -219,12 +219,6 @@ impl Renderer {
         self
     }
 
-    /// Override the output style for all other text
-    pub const fn none(mut self, style: Style) -> Self {
-        self.stylesheet.none = style;
-        self
-    }
-
     /// Override the output style for [`AnnotationKind::Context`][crate::AnnotationKind::Context]
     pub const fn context(mut self, style: Style) -> Self {
         self.stylesheet.context = style;
@@ -240,6 +234,12 @@ impl Renderer {
     /// Override the output style for [`Patch`][crate::Patch] removals
     pub const fn removal(mut self, style: Style) -> Self {
         self.stylesheet.removal = style;
+        self
+    }
+
+    /// Override the output style for all other text
+    pub const fn none(mut self, style: Style) -> Self {
+        self.stylesheet.none = style;
         self
     }
 }
