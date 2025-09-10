@@ -350,7 +350,6 @@ fn test_multi_secondary_group_no_snippet() {
     ];
     let expected_ascii = str![[r#"
 error: the core problem
-  |
 note: more information
 help: a way to fix this
 "#]];
@@ -359,7 +358,6 @@ help: a way to fix this
 
     let expected_unicode = str![[r#"
 error: the core problem
-  ╰╴
 note: more information
 help: a way to fix this
 "#]];
