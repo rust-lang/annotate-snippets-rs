@@ -316,6 +316,56 @@ error:
 }
 
 #[test]
+fn test_multi_group_no_snippet() {
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title("the core problem")),
+        Group::with_title(Level::NOTE.secondary_title("more information")),
+        Group::with_title(Level::HELP.secondary_title("a way to fix this")),
+    ];
+    let expected_ascii = str![[r#"
+error: the core problem
+  |
+note: more information
+help: a way to fix this
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: the core problem
+  ╰╴
+note: more information
+help: a way to fix this
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn test_multi_secondary_group_no_snippet() {
+    let input = &[
+        Group::with_title(Level::ERROR.secondary_title("the core problem")),
+        Group::with_title(Level::NOTE.secondary_title("more information")),
+        Group::with_title(Level::HELP.secondary_title("a way to fix this")),
+    ];
+    let expected_ascii = str![[r#"
+error: the core problem
+note: more information
+help: a way to fix this
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: the core problem
+note: more information
+help: a way to fix this
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
 #[should_panic]
 fn test_i26() {
     let source = "short";

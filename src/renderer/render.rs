@@ -89,7 +89,11 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                         max_line_num_len + 1,
                     );
                 }
-                if peek.is_none() && g == 0 && group_len > 1 {
+                if peek.is_none()
+                    && title_style == TitleStyle::MainHeader
+                    && g == 0
+                    && group_len > 1
+                {
                     draw_col_separator_end(
                         renderer,
                         &mut buffer,
