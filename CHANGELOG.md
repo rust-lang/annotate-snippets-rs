@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Removed implicit padding with report starting with secondary title #310
+
+
 ## [0.12.3] - 2025-09-04
 
 ### Features
