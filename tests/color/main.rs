@@ -9,6 +9,7 @@ mod fold_ann_multiline;
 mod fold_bad_origin_line;
 mod fold_leading;
 mod fold_trailing;
+mod highlight_source;
 mod issue_9;
 mod multiline_removal_suggestion;
 mod multiple_annotations;
