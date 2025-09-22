@@ -4329,3 +4329,215 @@ error: ensure single line at line 0 rendered correctly with group line lined up
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn trimmed_multiline_suggestion() {
+    let source = r#"fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
+
+fn main() {
+    let variable_name = 42;
+    function_with_lots_of_arguments(
+        variable_name,
+        variable_name,
+        variable_name,
+        variable_name,
+        variable_name,
+    );
+    //~^^^^^^^ ERROR this function takes 6 arguments but 5 arguments were supplied [E0061]
+}
+"#;
+    let path = "$DIR/trimmed_multiline_suggestion.rs";
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .primary_title("this function takes 6 arguments but 5 arguments were supplied")
+                .id("E0061"),
+        )
+        .element(
+            Snippet::source(source)
+                .path(path)
+                .annotation(
+                    AnnotationKind::Context
+                        .span(196..209)
+                        .label("argument #2 of type `char` is missing"),
+                )
+                .annotation(AnnotationKind::Primary.span(132..163)),
+        ),
+        Group::with_title(Level::NOTE.secondary_title("function defined here")).element(
+            Snippet::source(source)
+                .path(path)
+                .annotation(AnnotationKind::Context.span(43..50).label(""))
+                .annotation(AnnotationKind::Primary.span(3..34)),
+        ),
+        Group::with_title(Level::HELP.secondary_title("provide the argument")).element(
+            Snippet::source(source).path(path).patch(Patch::new(
+                163..285,
+                "(
+        variable_name,
+        /* char */,
+        variable_name,
+        variable_name,
+        variable_name,
+        variable_name,
+    )",
+            )),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0061]: this function takes 6 arguments but 5 arguments were supplied
+  --> $DIR/trimmed_multiline_suggestion.rs:5:5
+   |
+ 5 |     function_with_lots_of_arguments(
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 6 |         variable_name,
+ 7 |         variable_name,
+   |         ------------- argument #2 of type `char` is missing
+   |
+note: function defined here
+  --> $DIR/trimmed_multiline_suggestion.rs:1:4
+   |
+ 1 | fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^         -------
+help: provide the argument
+   |
+ 7 |     function_with_lots_of_arguments(
+ 8 |         variable_name,
+ 9 ~         /* char */,
+10 ~         variable_name,
+   |
+"#]];
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0061]: this function takes 6 arguments but 5 arguments were supplied
+   ╭▸ $DIR/trimmed_multiline_suggestion.rs:5:5
+   │
+ 5 │     function_with_lots_of_arguments(
+   │     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6 │         variable_name,
+ 7 │         variable_name,
+   │         ───────────── argument #2 of type `char` is missing
+   ╰╴
+note: function defined here
+   ╭▸ $DIR/trimmed_multiline_suggestion.rs:1:4
+   │
+ 1 │ fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
+   ╰╴   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━         ───────
+help: provide the argument
+   ╭╴
+ 7 │     function_with_lots_of_arguments(
+ 8 │         variable_name,
+ 9 ±         /* char */,
+10 ±         variable_name,
+   ╰╴
+"#]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+}
+
+#[test]
+fn trimmed_multiline_suggestion_elided_lines() {
+    let source_0 = r#"    nums.iter().for_each(|x| {
+        if *x > 0 {
+            println!("Positive number");
+        } else {
+            println!("Negative number");
+        }
+    })
+"#;
+    let source_1 = r#"#![deny(clippy::semicolon_if_nothing_returned)]
+"#;
+
+    let input = &[
+        Group::with_title(Level::ERROR.primary_title(
+            "consider adding a `;` to the last statement for consistent formatting",
+        ))
+        .element(
+            Snippet::source(source_0)
+                .path("tests/ui/semicolon_if_nothing_returned_testing.rs")
+                .line_start(4)
+                .annotation(AnnotationKind::Primary.span(4..166)),
+        ),
+        Group::with_title(Level::NOTE.secondary_title("the lint level is defined here")).element(
+            Snippet::source(source_1)
+                .path("tests/ui/semicolon_if_nothing_returned_testing.rs")
+                .line_start(2)
+                .annotation(AnnotationKind::Primary.span(8..45)),
+        ),
+        Group::with_title(Level::HELP.secondary_title("add a `;` here")).element(
+            Snippet::source(source_0)
+                .path("tests/ui/semicolon_if_nothing_returned_testing.rs")
+                .line_start(4)
+                .fold(true)
+                .patch(Patch::new(
+                    4..166,
+                    r#"nums.iter().for_each(|x| {
+        if *x > 0 {
+            println!("Positive number");
+        } else {
+            println!("Negative number");
+        }
+    });"#,
+                )),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: consider adding a `;` to the last statement for consistent formatting
+  --> tests/ui/semicolon_if_nothing_returned_testing.rs:4:5
+   |
+ 4 | /     nums.iter().for_each(|x| {
+ 5 | |         if *x > 0 {
+ 6 | |             println!("Positive number");
+ 7 | |         } else {
+...  |
+10 | |     })
+   | |______^
+   |
+note: the lint level is defined here
+  --> tests/ui/semicolon_if_nothing_returned_testing.rs:2:9
+   |
+ 2 | #![deny(clippy::semicolon_if_nothing_returned)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: add a `;` here
+   |
+10 |     nums.iter().for_each(|x| {
+...
+15 |         }
+16 ~     });
+   |
+"#]];
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: consider adding a `;` to the last statement for consistent formatting
+   ╭▸ tests/ui/semicolon_if_nothing_returned_testing.rs:4:5
+   │
+ 4 │ ┏     nums.iter().for_each(|x| {
+ 5 │ ┃         if *x > 0 {
+ 6 │ ┃             println!("Positive number");
+ 7 │ ┃         } else {
+   ‡ ┃
+10 │ ┃     })
+   │ ┗━━━━━━┛
+   ╰╴
+note: the lint level is defined here
+   ╭▸ tests/ui/semicolon_if_nothing_returned_testing.rs:2:9
+   │
+ 2 │ #![deny(clippy::semicolon_if_nothing_returned)]
+   ╰╴        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+help: add a `;` here
+   ╭╴
+10 │     nums.iter().for_each(|x| {
+ …
+15 │         }
+16 ±     });
+   ╰╴
+"#]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+}
