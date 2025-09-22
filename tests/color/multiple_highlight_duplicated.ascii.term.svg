@@ -49,27 +49,27 @@
 </tspan>
     <tspan x="10px" y="262px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan><tspan>                   </tspan><tspan class="fg-bright-green bold">^^^</tspan>
 </tspan>
-    <tspan x="10px" y="280px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: remove the extra argume</tspan><tspan class="fg-bright-red">n</tspan><tspan>t</tspan>
+    <tspan x="10px" y="280px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: remove the extra argument</tspan>
 </tspan>
     <tspan x="10px" y="298px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="316px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan> </tspan><tspan class="fg-bright-red">       String::from(""),</tspan>
+    <tspan x="10px" y="316px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">-         String::from(""),</tspan>
 </tspan>
     <tspan x="10px" y="334px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="352px"><tspan class="fg-bright-blue bold">18</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        String::from("")</tspan><tspan class="fg-bright-red">,</tspan>
+    <tspan x="10px" y="352px"><tspan class="fg-bright-blue bold">18</tspan><tspan> </tspan><tspan class="fg-bright-red">-         String::from(""),</tspan>
 </tspan>
     <tspan x="10px" y="370px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="388px"><tspan class="fg-bright-blue bold">18</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        String::from(""),</tspan>
+    <tspan x="10px" y="388px"><tspan class="fg-bright-blue bold">18</tspan><tspan> </tspan><tspan class="fg-bright-red">-         String::from(""),</tspan>
 </tspan>
     <tspan x="10px" y="406px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="424px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        String::from("")</tspan><tspan class="fg-bright-red">,</tspan>
+    <tspan x="10px" y="424px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        </tspan><tspan class="fg-bright-red">String::from(""),</tspan>
 </tspan>
     <tspan x="10px" y="442px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="460px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        String::from(""),</tspan>
+    <tspan x="10px" y="460px"><tspan class="fg-bright-blue bold">23</tspan><tspan> </tspan><tspan class="fg-bright-red">-         String::from(""),</tspan>
 </tspan>
     <tspan x="10px" y="478px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
