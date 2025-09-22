@@ -1511,7 +1511,8 @@ fn emit_suggestion_default(
         }
 
         let file_lines = sm.span_to_lines(parts[0].span.clone());
-        let (line_start, line_end) = sm.span_to_locations(parts[0].span.clone());
+        // We use the original span to get original line_start
+        let (line_start, line_end) = sm.span_to_locations(parts[0].original_span.clone());
         let mut lines = complete.lines();
         if lines.clone().next().is_none() {
             // Account for a suggestion to completely remove a line(s) with whitespace (#94192).

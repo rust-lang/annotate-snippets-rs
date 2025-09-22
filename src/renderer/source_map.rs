@@ -370,7 +370,11 @@ impl<'a> SourceMap<'a> {
     pub(crate) fn splice_lines<'b>(
         &'b self,
         mut patches: Vec<Patch<'b>>,
-    ) -> Vec<(String, Vec<Patch<'b>>, Vec<Vec<SubstitutionHighlight>>)> {
+    ) -> Vec<(
+        String,
+        Vec<TrimmedPatch<'b>>,
+        Vec<Vec<SubstitutionHighlight>>,
+    )> {
         fn push_trailing(
             buf: &mut String,
             line_opt: Option<&str>,
@@ -450,15 +454,18 @@ impl<'a> SourceMap<'a> {
         let mut prev_line = lines.first().map(|line| line.line);
         let mut buf = String::new();
 
+        let trimmed_patches = patches
+            .into_iter()
+            // If this is a replacement of, e.g. `"a"` into `"ab"`, adjust the
+            // suggestion and snippet to look as if we just suggested to add
+            // `"b"`, which is typically much easier for the user to understand.
+            .map(|part| part.trim_trivial_replacements(self))
+            .collect::<Vec<_>>();
         let mut line_highlight = vec![];
         // We need to keep track of the difference between the existing code and the added
         // or deleted code in order to point at the correct column *after* substitution.
         let mut acc = 0;
-        for part in &mut patches {
-            // If this is a replacement of, e.g. `"a"` into `"ab"`, adjust the
-            // suggestion and snippet to look as if we just suggested to add
-            // `"b"`, which is typically much easier for the user to understand.
-            part.trim_trivial_replacements(self);
+        for part in &trimmed_patches {
             let (cur_lo, cur_hi) = self.span_to_locations(part.span.clone());
             if prev_hi.line == cur_lo.line {
                 let mut count = push_trailing(&mut buf, prev_line, &prev_hi, Some(&cur_lo));
@@ -540,7 +547,7 @@ impl<'a> SourceMap<'a> {
         if highlights.iter().all(|parts| parts.is_empty()) {
             Vec::new()
         } else {
-            vec![(buf, patches, highlights)]
+            vec![(buf, trimmed_patches, highlights)]
         }
     }
 }
@@ -703,4 +710,68 @@ impl<'a> Iterator for CursorLines<'a> {
 pub(crate) struct SubstitutionHighlight {
     pub(crate) start: usize,
     pub(crate) end: usize,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct TrimmedPatch<'a> {
+    pub(crate) original_span: Range<usize>,
+    pub(crate) span: Range<usize>,
+    pub(crate) replacement: Cow<'a, str>,
+}
+
+impl<'a> TrimmedPatch<'a> {
+    pub(crate) fn is_addition(&self, sm: &SourceMap<'_>) -> bool {
+        !self.replacement.is_empty() && !self.replaces_meaningful_content(sm)
+    }
+
+    pub(crate) fn is_deletion(&self, sm: &SourceMap<'_>) -> bool {
+        self.replacement.trim().is_empty() && self.replaces_meaningful_content(sm)
+    }
+
+    pub(crate) fn is_replacement(&self, sm: &SourceMap<'_>) -> bool {
+        !self.replacement.is_empty() && self.replaces_meaningful_content(sm)
+    }
+
+    /// Whether this is a replacement that overwrites source with a snippet
+    /// in a way that isn't a superset of the original string. For example,
+    /// replacing "abc" with "abcde" is not destructive, but replacing it
+    /// it with "abx" is, since the "c" character is lost.
+    pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
+        self.is_replacement(sm)
+            && !sm
+                .span_to_snippet(self.span.clone())
+                // This should use `is_some_and` when our MSRV is >= 1.70
+                .map_or(false, |s| {
+                    as_substr(s.trim(), self.replacement.trim()).is_some()
+                })
+    }
+
+    fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
+        sm.span_to_snippet(self.span.clone())
+            .map_or(!self.span.is_empty(), |snippet| !snippet.trim().is_empty())
+    }
+}
+
+/// Given an original string like `AACC`, and a suggestion like `AABBCC`, try to detect
+/// the case where a substring of the suggestion is "sandwiched" in the original, like
+/// `BB` is. Return the length of the prefix, the "trimmed" suggestion, and the length
+/// of the suffix.
+pub(crate) fn as_substr<'a>(
+    original: &'a str,
+    suggestion: &'a str,
+) -> Option<(usize, &'a str, usize)> {
+    let common_prefix = original
+        .chars()
+        .zip(suggestion.chars())
+        .take_while(|(c1, c2)| c1 == c2)
+        .map(|(c, _)| c.len_utf8())
+        .sum();
+    let original = &original[common_prefix..];
+    let suggestion = &suggestion[common_prefix..];
+    if let Some(stripped) = suggestion.strip_suffix(original) {
+        let common_suffix = original.len();
+        Some((common_prefix, stripped, common_suffix))
+    } else {
+        None
+    }
 }

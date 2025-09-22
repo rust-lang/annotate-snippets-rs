@@ -4402,10 +4402,10 @@ note: function defined here
    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^         -------
 help: provide the argument
    |
- 7 |     function_with_lots_of_arguments(
- 8 |         variable_name,
- 9 ~         /* char */,
-10 ~         variable_name,
+ 5 |     function_with_lots_of_arguments(
+ 6 |         variable_name,
+ 7 ~         /* char */,
+ 8 ~         variable_name,
    |
 "#]];
     let renderer_ascii = Renderer::plain();
@@ -4428,10 +4428,10 @@ note: function defined here
    ╰╴   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━         ───────
 help: provide the argument
    ╭╴
- 7 │     function_with_lots_of_arguments(
- 8 │         variable_name,
- 9 ±         /* char */,
-10 ±         variable_name,
+ 5 │     function_with_lots_of_arguments(
+ 6 │         variable_name,
+ 7 ±         /* char */,
+ 8 ±         variable_name,
    ╰╴
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
@@ -4504,10 +4504,10 @@ note: the lint level is defined here
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 help: add a `;` here
    |
-10 |     nums.iter().for_each(|x| {
+ 4 |     nums.iter().for_each(|x| {
 ...
-15 |         }
-16 ~     });
+ 9 |         }
+10 ~     });
    |
 "#]];
     let renderer_ascii = Renderer::plain();
@@ -4532,10 +4532,10 @@ note: the lint level is defined here
    ╰╴        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 help: add a `;` here
    ╭╴
-10 │     nums.iter().for_each(|x| {
+ 4 │     nums.iter().for_each(|x| {
  …
-15 │         }
-16 ±     });
+ 9 │         }
+10 ±     });
    ╰╴
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
