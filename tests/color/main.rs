@@ -13,6 +13,7 @@ mod highlight_source;
 mod issue_9;
 mod multiline_removal_suggestion;
 mod multiple_annotations;
+mod multiple_multiline_removal;
 mod primary_title_second_group;
 mod simple;
 mod strip_line;
