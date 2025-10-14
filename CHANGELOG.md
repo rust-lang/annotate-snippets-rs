@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Highlight the correct span for duplicated diff lines #318
+
 ## [0.12.4] - 2025-09-11
 
 ### Fixes
