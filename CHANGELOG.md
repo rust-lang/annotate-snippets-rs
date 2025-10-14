@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.5] - 2025-10-14
+
 ### Fixes
 
 - Highlight the correct span for duplicated diff lines #318
@@ -241,7 +243,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.4...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.5...HEAD
+[0.12.5]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.4...0.12.5
 [0.12.4]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.3...0.12.4
 [0.12.3]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.2...0.12.3
 [0.12.2]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.1...0.12.2
