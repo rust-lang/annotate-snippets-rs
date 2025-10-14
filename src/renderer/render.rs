@@ -1774,7 +1774,10 @@ fn emit_suggestion_default(
                         // too bad to begin with, so we side-step that issue here.
                         for (i, line) in snippet.lines().enumerate() {
                             let line = normalize_whitespace(line);
-                            let row = row_num - 2 - (newlines - i - 1);
+                            // Going lower than buffer_offset (+ 1) would mean
+                            // overwriting existing content in the buffer
+                            let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
+                            let row = (row_num - 2 - (newlines - i - 1)).max(min_row);
                             // On the first line, we highlight between the start of the part
                             // span, and the end of that line.
                             // On the last line, we highlight between the start of the line, and
