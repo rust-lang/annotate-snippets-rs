@@ -371,11 +371,7 @@ impl<'a> SourceMap<'a> {
         &'b self,
         mut patches: Vec<Patch<'b>>,
         fold: bool,
-    ) -> Vec<(
-        String,
-        Vec<TrimmedPatch<'b>>,
-        Vec<Vec<SubstitutionHighlight>>,
-    )> {
+    ) -> Option<SplicedLines<'b>> {
         fn push_trailing(
             buf: &mut String,
             line_opt: Option<&str>,
@@ -432,12 +428,8 @@ impl<'a> SourceMap<'a> {
 
         // Find the bounding span.
         let (lo, hi) = if fold {
-            let Some(lo) = patches.iter().map(|p| p.span.start).min() else {
-                return Vec::new();
-            };
-            let Some(hi) = patches.iter().map(|p| p.span.end).max() else {
-                return Vec::new();
-            };
+            let lo = patches.iter().map(|p| p.span.start).min()?;
+            let hi = patches.iter().map(|p| p.span.end).max()?;
             (lo, hi)
         } else {
             (0, source_len)
@@ -561,9 +553,9 @@ impl<'a> SourceMap<'a> {
             buf.pop();
         }
         if highlights.iter().all(|parts| parts.is_empty()) {
-            Vec::new()
+            None
         } else {
-            vec![(buf, trimmed_patches, highlights)]
+            Some((buf, trimmed_patches, highlights))
         }
     }
 }
@@ -719,6 +711,12 @@ impl<'a> Iterator for CursorLines<'a> {
         }
     }
 }
+
+pub(crate) type SplicedLines<'a> = (
+    String,
+    Vec<TrimmedPatch<'a>>,
+    Vec<Vec<SubstitutionHighlight>>,
+);
 
 /// Used to translate between `Span`s and byte positions within a single output line in highlighted
 /// code of structured suggestions.

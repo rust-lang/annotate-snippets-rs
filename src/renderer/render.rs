@@ -1454,7 +1454,7 @@ fn emit_suggestion_default(
 
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-    for (complete, parts, highlights) in &suggestions {
+    if let Some((complete, parts, highlights)) = suggestions {
         let has_deletion = parts
             .iter()
             .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
@@ -1636,7 +1636,7 @@ fn emit_suggestion_default(
                 renderer,
                 buffer,
                 &mut row_num,
-                highlight_parts,
+                &highlight_parts,
                 line_pos + line_start.line,
                 line,
                 show_code_change,
@@ -1850,7 +1850,6 @@ fn emit_suggestion_default(
             } else {
                 draw_col_separator_end(renderer, buffer, row, max_line_num_len + 1);
             }
-            row_num = row + 1;
         }
     }
 }
