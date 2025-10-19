@@ -1,6 +1,6 @@
 //! Structures used as an input for the library.
 
-use crate::renderer::source_map::SourceMap;
+use crate::renderer::source_map::{as_substr, SourceMap, TrimmedPatch};
 use crate::Level;
 use std::borrow::Cow;
 use std::ops::Range;
@@ -439,51 +439,28 @@ impl<'a> Patch<'a> {
         }
     }
 
-    pub(crate) fn is_addition(&self, sm: &SourceMap<'_>) -> bool {
-        !self.replacement.is_empty() && !self.replaces_meaningful_content(sm)
-    }
-
-    pub(crate) fn is_deletion(&self, sm: &SourceMap<'_>) -> bool {
-        self.replacement.trim().is_empty() && self.replaces_meaningful_content(sm)
-    }
-
-    pub(crate) fn is_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        !self.replacement.is_empty() && self.replaces_meaningful_content(sm)
-    }
-
-    /// Whether this is a replacement that overwrites source with a snippet
-    /// in a way that isn't a superset of the original string. For example,
-    /// replacing "abc" with "abcde" is not destructive, but replacing it
-    /// it with "abx" is, since the "c" character is lost.
-    pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        self.is_replacement(sm)
-            && !sm
-                .span_to_snippet(self.span.clone())
-                // This should use `is_some_and` when our MSRV is >= 1.70
-                .map_or(false, |s| {
-                    as_substr(s.trim(), self.replacement.trim()).is_some()
-                })
-    }
-
-    fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
-        sm.span_to_snippet(self.span.clone())
-            .map_or(!self.span.is_empty(), |snippet| !snippet.trim().is_empty())
-    }
-
     /// Try to turn a replacement into an addition when the span that is being
     /// overwritten matches either the prefix or suffix of the replacement.
-    pub(crate) fn trim_trivial_replacements(&mut self, sm: &'a SourceMap<'a>) {
-        if self.replacement.is_empty() {
-            return;
-        }
-        let Some(snippet) = sm.span_to_snippet(self.span.clone()) else {
-            return;
+    pub(crate) fn trim_trivial_replacements(self, sm: &'a SourceMap<'a>) -> TrimmedPatch<'a> {
+        let mut trimmed = TrimmedPatch {
+            original_span: self.span.clone(),
+            span: self.span,
+            replacement: self.replacement,
         };
 
-        if let Some((prefix, substr, suffix)) = as_substr(snippet, &self.replacement) {
-            self.span = self.span.start + prefix..self.span.end.saturating_sub(suffix);
-            self.replacement = Cow::Owned(substr.to_owned());
+        if trimmed.replacement.is_empty() {
+            return trimmed;
         }
+        let Some(snippet) = sm.span_to_snippet(trimmed.original_span.clone()) else {
+            return trimmed;
+        };
+
+        if let Some((prefix, substr, suffix)) = as_substr(snippet, &trimmed.replacement) {
+            trimmed.span = trimmed.original_span.start + prefix
+                ..trimmed.original_span.end.saturating_sub(suffix);
+            trimmed.replacement = Cow::Owned(substr.to_owned());
+        }
+        trimmed
     }
 }
 
@@ -585,26 +562,5 @@ impl<'a> From<String> for OptionCow<'a> {
 impl<'a> From<&'a String> for OptionCow<'a> {
     fn from(value: &'a String) -> Self {
         Self(Some(Cow::Borrowed(value.as_str())))
-    }
-}
-
-/// Given an original string like `AACC`, and a suggestion like `AABBCC`, try to detect
-/// the case where a substring of the suggestion is "sandwiched" in the original, like
-/// `BB` is. Return the length of the prefix, the "trimmed" suggestion, and the length
-/// of the suffix.
-fn as_substr<'a>(original: &'a str, suggestion: &'a str) -> Option<(usize, &'a str, usize)> {
-    let common_prefix = original
-        .chars()
-        .zip(suggestion.chars())
-        .take_while(|(c1, c2)| c1 == c2)
-        .map(|(c, _)| c.len_utf8())
-        .sum();
-    let original = &original[common_prefix..];
-    let suggestion = &suggestion[common_prefix..];
-    if let Some(stripped) = suggestion.strip_suffix(original) {
-        let common_suffix = original.len();
-        Some((common_prefix, stripped, common_suffix))
-    } else {
-        None
     }
 }
