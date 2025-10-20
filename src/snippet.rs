@@ -1,6 +1,6 @@
 //! Structures used as an input for the library.
 
-use crate::renderer::source_map::{as_substr, SourceMap, TrimmedPatch};
+use crate::renderer::source_map::{as_substr, TrimmedPatch};
 use crate::Level;
 use std::borrow::Cow;
 use std::ops::Range;
@@ -441,7 +441,7 @@ impl<'a> Patch<'a> {
 
     /// Try to turn a replacement into an addition when the span that is being
     /// overwritten matches either the prefix or suffix of the replacement.
-    pub(crate) fn trim_trivial_replacements(self, sm: &'a SourceMap<'a>) -> TrimmedPatch<'a> {
+    pub(crate) fn trim_trivial_replacements(self, source: &str) -> TrimmedPatch<'a> {
         let mut trimmed = TrimmedPatch {
             original_span: self.span.clone(),
             span: self.span,
@@ -451,7 +451,7 @@ impl<'a> Patch<'a> {
         if trimmed.replacement.is_empty() {
             return trimmed;
         }
-        let Some(snippet) = sm.span_to_snippet(trimmed.original_span.clone()) else {
+        let Some(snippet) = source.get(trimmed.original_span.clone()) else {
             return trimmed;
         };
 

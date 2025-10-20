@@ -4387,52 +4387,52 @@ fn main() {
 
     let expected_ascii = str![[r#"
 error[E0061]: this function takes 6 arguments but 5 arguments were supplied
-  --> $DIR/trimmed_multiline_suggestion.rs:5:5
-   |
- 5 |     function_with_lots_of_arguments(
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 6 |         variable_name,
- 7 |         variable_name,
-   |         ------------- argument #2 of type `char` is missing
-   |
+ --> $DIR/trimmed_multiline_suggestion.rs:5:5
+  |
+5 |     function_with_lots_of_arguments(
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 |         variable_name,
+7 |         variable_name,
+  |         ------------- argument #2 of type `char` is missing
+  |
 note: function defined here
-  --> $DIR/trimmed_multiline_suggestion.rs:1:4
-   |
- 1 | fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
-   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^         -------
+ --> $DIR/trimmed_multiline_suggestion.rs:1:4
+  |
+1 | fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
+  |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^         -------
 help: provide the argument
-   |
- 5 |     function_with_lots_of_arguments(
- 6 |         variable_name,
- 7 ~         /* char */,
- 8 ~         variable_name,
-   |
+  |
+5 |     function_with_lots_of_arguments(
+6 |         variable_name,
+7 ~         /* char */,
+8 ~         variable_name,
+  |
 "#]];
     let renderer_ascii = Renderer::plain();
     assert_data_eq!(renderer_ascii.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0061]: this function takes 6 arguments but 5 arguments were supplied
-   ╭▸ $DIR/trimmed_multiline_suggestion.rs:5:5
-   │
- 5 │     function_with_lots_of_arguments(
-   │     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 6 │         variable_name,
- 7 │         variable_name,
-   │         ───────────── argument #2 of type `char` is missing
-   ╰╴
+  ╭▸ $DIR/trimmed_multiline_suggestion.rs:5:5
+  │
+5 │     function_with_lots_of_arguments(
+  │     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6 │         variable_name,
+7 │         variable_name,
+  │         ───────────── argument #2 of type `char` is missing
+  ╰╴
 note: function defined here
-   ╭▸ $DIR/trimmed_multiline_suggestion.rs:1:4
-   │
- 1 │ fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
-   ╰╴   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━         ───────
+  ╭▸ $DIR/trimmed_multiline_suggestion.rs:1:4
+  │
+1 │ fn function_with_lots_of_arguments(a: i32, b: char, c: i32, d: i32, e: i32, f: i32) {}
+  ╰╴   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━         ───────
 help: provide the argument
-   ╭╴
- 5 │     function_with_lots_of_arguments(
- 6 │         variable_name,
- 7 ±         /* char */,
- 8 ±         variable_name,
-   ╰╴
+  ╭╴
+5 │     function_with_lots_of_arguments(
+6 │         variable_name,
+7 ±         /* char */,
+8 ±         variable_name,
+  ╰╴
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
@@ -4590,54 +4590,54 @@ fn suggestion_no_fold() {
 
     let expected_ascii = str![[r#"
 error[E0061]: this function takes 6 arguments but 5 arguments were supplied
- --> $DIR/trimmed_multiline_suggestion.rs:3:5
-  |
-3 |     function_with_lots_of_arguments(
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-4 |         variable_name,
-5 |         variable_name,
-  |         ------------- argument #2 of type `char` is missing
-  |
+  --> $DIR/trimmed_multiline_suggestion.rs:3:5
+   |
+ 3 |     function_with_lots_of_arguments(
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 4 |         variable_name,
+ 5 |         variable_name,
+   |         ------------- argument #2 of type `char` is missing
+   |
 help: provide the argument
-  |
-1 | fn main() {
-2 |     let variable_name = 42;
-3 |     function_with_lots_of_arguments(
-4 |         variable_name,
-5 ~         /* char */,
-6 ~         variable_name,
-7 |         variable_name,
-8 |         variable_name,
-9 |     );
-10| }
-  |
+   |
+ 1 | fn main() {
+ 2 |     let variable_name = 42;
+ 3 |     function_with_lots_of_arguments(
+ 4 |         variable_name,
+ 5 ~         /* char */,
+ 6 ~         variable_name,
+ 7 |         variable_name,
+ 8 |         variable_name,
+ 9 |     );
+10 | }
+   |
 "#]];
     let renderer_ascii = Renderer::plain();
     assert_data_eq!(renderer_ascii.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0061]: this function takes 6 arguments but 5 arguments were supplied
-  ╭▸ $DIR/trimmed_multiline_suggestion.rs:3:5
-  │
-3 │     function_with_lots_of_arguments(
-  │     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-4 │         variable_name,
-5 │         variable_name,
-  │         ───────────── argument #2 of type `char` is missing
-  ╰╴
+   ╭▸ $DIR/trimmed_multiline_suggestion.rs:3:5
+   │
+ 3 │     function_with_lots_of_arguments(
+   │     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4 │         variable_name,
+ 5 │         variable_name,
+   │         ───────────── argument #2 of type `char` is missing
+   ╰╴
 help: provide the argument
-  ╭╴
-1 │ fn main() {
-2 │     let variable_name = 42;
-3 │     function_with_lots_of_arguments(
-4 │         variable_name,
-5 ±         /* char */,
-6 ±         variable_name,
-7 │         variable_name,
-8 │         variable_name,
-9 │     );
-10│ }
-  ╰╴
+   ╭╴
+ 1 │ fn main() {
+ 2 │     let variable_name = 42;
+ 3 │     function_with_lots_of_arguments(
+ 4 │         variable_name,
+ 5 ±         /* char */,
+ 6 ±         variable_name,
+ 7 │         variable_name,
+ 8 │         variable_name,
+ 9 │     );
+10 │ }
+   ╰╴
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
