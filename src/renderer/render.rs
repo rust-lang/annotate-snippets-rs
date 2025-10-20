@@ -2,7 +2,7 @@
 
 use std::borrow::Cow;
 use std::cmp::{max, min, Ordering, Reverse};
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::fmt;
 
 use anstyle::Style;
@@ -18,7 +18,8 @@ use crate::renderer::source_map::{
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
 use crate::{
-    Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Report, Snippet, Title,
+    Annotation, AnnotationKind, Element, Group, Message, Origin, Padding, Patch, Report, Snippet,
+    Title,
 };
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
@@ -27,43 +28,29 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
         render_short_message(renderer, groups).unwrap()
     } else {
+        let (max_line_num, og_primary_path, groups) = pre_process(groups);
         let max_line_num_len = if renderer.anonymized_line_numbers {
             ANONYMIZED_LINE_NUM.len()
         } else {
-            num_decimal_digits(max_line_number(groups))
+            num_decimal_digits(max_line_num)
         };
         let mut out_string = String::new();
         let group_len = groups.len();
-        let mut og_primary_path = None;
-        for (g, group) in groups.iter().enumerate() {
+        for (
+            g,
+            PreProcessedGroup {
+                group,
+                elements,
+                primary_path,
+                max_depth,
+            },
+        ) in groups.into_iter().enumerate()
+        {
             let mut buffer = StyledBuffer::new();
-            let primary_path = group
-                .elements
-                .iter()
-                .find_map(|s| match &s {
-                    Element::Cause(cause) => Some(cause.path.as_ref()),
-                    Element::Origin(origin) => Some(Some(&origin.path)),
-                    _ => None,
-                })
-                .unwrap_or_default();
-            if og_primary_path.is_none() && primary_path.is_some() {
-                og_primary_path = primary_path;
-            }
             let level = group.primary_level.clone();
-            let mut source_map_annotated_lines = VecDeque::new();
-            let mut max_depth = 0;
-            for e in &group.elements {
-                if let Element::Cause(cause) = e {
-                    let source_map = SourceMap::new(&cause.source, cause.line_start);
-                    let (depth, annotated_lines) =
-                        source_map.annotated_lines(cause.markers.clone(), cause.fold);
-                    max_depth = max(max_depth, depth);
-                    source_map_annotated_lines.push_back((source_map, annotated_lines));
-                }
-            }
-            let mut message_iter = group.elements.iter().enumerate().peekable();
+            let mut message_iter = elements.into_iter().enumerate().peekable();
             if let Some(title) = &group.title {
-                let peek = message_iter.peek().map(|(_, s)| s).copied();
+                let peek = message_iter.peek().map(|(_, s)| s);
                 let title_style = if title.allows_styling {
                     TitleStyle::Header
                 } else {
@@ -76,12 +63,12 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                     title,
                     max_line_num_len,
                     title_style,
-                    matches!(peek, Some(Element::Message(_))),
+                    matches!(peek, Some(PreProcessedElement::Message(_))),
                     buffer_msg_line_offset,
                 );
                 let buffer_msg_line_offset = buffer.num_lines();
 
-                if matches!(peek, Some(Element::Message(_))) {
+                if matches!(peek, Some(PreProcessedElement::Message(_))) {
                     draw_col_separator_no_space(
                         renderer,
                         &mut buffer,
@@ -105,10 +92,10 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
             let mut seen_primary = false;
             let mut last_suggestion_path = None;
             while let Some((i, section)) = message_iter.next() {
-                let peek = message_iter.peek().map(|(_, s)| s).copied();
+                let peek = message_iter.peek().map(|(_, s)| s);
                 let is_first = i == 0;
-                match &section {
-                    Element::Message(title) => {
+                match section {
+                    PreProcessedElement::Message(title) => {
                         let title_style = TitleStyle::Secondary;
                         let buffer_msg_line_offset = buffer.num_lines();
                         render_title(
@@ -121,49 +108,44 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             buffer_msg_line_offset,
                         );
                     }
-                    Element::Cause(cause) => {
-                        if let Some((source_map, annotated_lines)) =
-                            source_map_annotated_lines.pop_front()
-                        {
-                            let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
-                            seen_primary |= is_primary;
-                            render_snippet_annotations(
-                                renderer,
-                                &mut buffer,
-                                max_line_num_len,
-                                cause,
-                                is_primary,
-                                &source_map,
-                                &annotated_lines,
-                                max_depth,
-                                peek.is_some() || (g == 0 && group_len > 1),
-                                is_first,
-                            );
+                    PreProcessedElement::Cause((cause, source_map, annotated_lines)) => {
+                        let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
+                        seen_primary |= is_primary;
+                        render_snippet_annotations(
+                            renderer,
+                            &mut buffer,
+                            max_line_num_len,
+                            cause,
+                            is_primary,
+                            &source_map,
+                            &annotated_lines,
+                            max_depth,
+                            peek.is_some() || (g == 0 && group_len > 1),
+                            is_first,
+                        );
 
-                            if g == 0 {
-                                let current_line = buffer.num_lines();
-                                match peek {
-                                    Some(Element::Message(_)) => {
-                                        draw_col_separator_no_space(
-                                            renderer,
-                                            &mut buffer,
-                                            current_line,
-                                            max_line_num_len + 1,
-                                        );
-                                    }
-                                    None if group_len > 1 => draw_col_separator_end(
+                        if g == 0 {
+                            let current_line = buffer.num_lines();
+                            match peek {
+                                Some(PreProcessedElement::Message(_)) => {
+                                    draw_col_separator_no_space(
                                         renderer,
                                         &mut buffer,
                                         current_line,
                                         max_line_num_len + 1,
-                                    ),
-                                    _ => {}
+                                    );
                                 }
+                                None if group_len > 1 => draw_col_separator_end(
+                                    renderer,
+                                    &mut buffer,
+                                    current_line,
+                                    max_line_num_len + 1,
+                                ),
+                                _ => {}
                             }
                         }
                     }
-                    Element::Suggestion(suggestion) => {
-                        let source_map = SourceMap::new(&suggestion.source, suggestion.line_start);
+                    PreProcessedElement::Suggestion((suggestion, source_map)) => {
                         let matches_previous_suggestion =
                             last_suggestion_path == Some(suggestion.path.as_ref());
                         emit_suggestion_default(
@@ -179,14 +161,14 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             peek.is_some(),
                         );
 
-                        if matches!(peek, Some(Element::Suggestion(_))) {
+                        if matches!(peek, Some(PreProcessedElement::Suggestion(_))) {
                             last_suggestion_path = Some(suggestion.path.as_ref());
                         } else {
                             last_suggestion_path = None;
                         }
                     }
 
-                    Element::Origin(origin) => {
+                    PreProcessedElement::Origin(origin) => {
                         let buffer_msg_line_offset = buffer.num_lines();
                         let is_primary = primary_path == Some(&origin.path) && !seen_primary;
                         seen_primary |= is_primary;
@@ -209,7 +191,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             );
                         }
                     }
-                    Element::Padding(_) => {
+                    PreProcessedElement::Padding(_) => {
                         let current_line = buffer.num_lines();
                         if peek.is_none() {
                             draw_col_separator_end(
@@ -2625,50 +2607,122 @@ enum TitleStyle {
     Secondary,
 }
 
-fn max_line_number(groups: &[Group<'_>]) -> usize {
-    groups
-        .iter()
-        .map(|v| {
-            v.elements
-                .iter()
-                .map(|s| match s {
-                    Element::Message(_) | Element::Origin(_) | Element::Padding(_) => 0,
-                    Element::Cause(cause) => {
-                        if cause.fold {
-                            let end = cause
-                                .markers
-                                .iter()
-                                .map(|a| a.span.end)
-                                .max()
-                                .unwrap_or(cause.source.len())
-                                .min(cause.source.len());
+struct PreProcessedGroup<'a> {
+    group: &'a Group<'a>,
+    elements: Vec<PreProcessedElement<'a>>,
+    primary_path: Option<&'a Cow<'a, str>>,
+    max_depth: usize,
+}
 
-                            cause.line_start + newline_count(&cause.source[..end])
-                        } else {
-                            cause.line_start + newline_count(&cause.source)
-                        }
-                    }
-                    Element::Suggestion(suggestion) => {
-                        if suggestion.fold {
-                            let end = suggestion
-                                .markers
-                                .iter()
-                                .map(|a| a.span.end)
-                                .max()
-                                .unwrap_or(suggestion.source.len())
-                                .min(suggestion.source.len());
+enum PreProcessedElement<'a> {
+    Message(&'a Message<'a>),
+    Cause(
+        (
+            &'a Snippet<'a, Annotation<'a>>,
+            SourceMap<'a>,
+            Vec<AnnotatedLineInfo<'a>>,
+        ),
+    ),
+    Suggestion((&'a Snippet<'a, Patch<'a>>, SourceMap<'a>)),
+    Origin(&'a Origin<'a>),
+    Padding(Padding),
+}
 
-                            suggestion.line_start + newline_count(&suggestion.source[..end])
-                        } else {
-                            suggestion.line_start + newline_count(&suggestion.source)
-                        }
+fn pre_process<'a>(
+    groups: &'a [Group<'a>],
+) -> (usize, Option<&'a Cow<'a, str>>, Vec<PreProcessedGroup<'a>>) {
+    let mut max_line_num = 0;
+    let mut og_primary_path = None;
+    let mut out = Vec::with_capacity(groups.len());
+    for group in groups {
+        let mut elements = Vec::with_capacity(group.elements.len());
+        let mut primary_path = None;
+        let mut max_depth = 0;
+        for element in &group.elements {
+            match element {
+                Element::Message(message) => {
+                    elements.push(PreProcessedElement::Message(message));
+                }
+                Element::Cause(cause) => {
+                    let sm = SourceMap::new(&cause.source, cause.line_start);
+                    let (depth, annotated_lines) =
+                        sm.annotated_lines(cause.markers.clone(), cause.fold);
+
+                    if cause.fold {
+                        let end = cause
+                            .markers
+                            .iter()
+                            .map(|a| a.span.end)
+                            .max()
+                            .unwrap_or(cause.source.len())
+                            .min(cause.source.len());
+
+                        max_line_num = max(
+                            cause.line_start + newline_count(&cause.source[..end]),
+                            max_line_num,
+                        );
+                    } else {
+                        max_line_num = max(
+                            cause.line_start + newline_count(&cause.source),
+                            max_line_num,
+                        );
                     }
-                })
-                .max()
-                .unwrap_or(1)
-        })
-        .max()
-        .unwrap_or(1)
+
+                    if primary_path.is_none() {
+                        primary_path = Some(cause.path.as_ref());
+                    }
+                    max_depth = max(depth, max_depth);
+                    elements.push(PreProcessedElement::Cause((cause, sm, annotated_lines)));
+                }
+                Element::Suggestion(suggestion) => {
+                    let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
+
+                    if suggestion.fold {
+                        let end = suggestion
+                            .markers
+                            .iter()
+                            .map(|a| a.span.end)
+                            .max()
+                            .unwrap_or(suggestion.source.len())
+                            .min(suggestion.source.len());
+
+                        max_line_num = max(
+                            suggestion.line_start + newline_count(&suggestion.source[..end]),
+                            max_line_num,
+                        );
+                    } else {
+                        max_line_num = max(
+                            suggestion.line_start + newline_count(&suggestion.source),
+                            max_line_num,
+                        );
+                    }
+
+                    elements.push(PreProcessedElement::Suggestion((suggestion, sm)));
+                }
+                Element::Origin(origin) => {
+                    if primary_path.is_none() {
+                        primary_path = Some(Some(&origin.path));
+                    }
+                    elements.push(PreProcessedElement::Origin(origin));
+                }
+                Element::Padding(padding) => {
+                    elements.push(PreProcessedElement::Padding(padding.clone()));
+                }
+            }
+        }
+        let group = PreProcessedGroup {
+            group,
+            elements,
+            primary_path: primary_path.unwrap_or_default(),
+            max_depth,
+        };
+        if og_primary_path.is_none() && group.primary_path.is_some() {
+            og_primary_path = group.primary_path;
+        }
+        out.push(group);
+    }
+
+    (max_line_num, og_primary_path, out)
 }
 
 fn newline_count(body: &str) -> usize {
