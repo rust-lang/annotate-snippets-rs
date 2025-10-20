@@ -2699,21 +2699,26 @@ fn pre_process<'a>(
                         let display_suggestion = DisplaySuggestion::new(&complete, &patches, &sm);
 
                         if suggestion.fold {
-                            let end = suggestion
-                                .markers
-                                .iter()
-                                .map(|a| a.span.end)
-                                .max()
-                                .unwrap_or(suggestion.source.len())
-                                .min(suggestion.source.len());
-
-                            max_line_num = max(
-                                suggestion.line_start + newline_count(&suggestion.source[..end]),
-                                max_line_num,
-                            );
+                            if let Some(first) = patches.first() {
+                                let (l_start, _) =
+                                    sm.span_to_locations(first.original_span.clone());
+                                let nc = newline_count(&complete);
+                                let sugg_max_line_num = match display_suggestion {
+                                    DisplaySuggestion::Underline => l_start.line,
+                                    DisplaySuggestion::Diff => {
+                                        let file_lines = sm.span_to_lines(first.span.clone());
+                                        file_lines
+                                            .last()
+                                            .map_or(l_start.line + nc, |line| line.line_index)
+                                    }
+                                    DisplaySuggestion::None => l_start.line + nc,
+                                    DisplaySuggestion::Add => l_start.line + nc,
+                                };
+                                max_line_num = max(sugg_max_line_num, max_line_num);
+                            }
                         } else {
                             max_line_num = max(
-                                suggestion.line_start + newline_count(&suggestion.source),
+                                suggestion.line_start + newline_count(&complete),
                                 max_line_num,
                             );
                         }
