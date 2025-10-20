@@ -1479,7 +1479,10 @@ fn emit_suggestion_default(
         row_num += 1;
     }
 
-    let file_lines = sm.span_to_lines(parts[0].span.clone());
+    let lo = parts.iter().map(|p| p.span.start).min().unwrap();
+    let hi = parts.iter().map(|p| p.span.end).max().unwrap();
+
+    let file_lines = sm.span_to_lines(lo..hi);
     let (line_start, line_end) = if suggestion.fold {
         // We use the original span to get original line_start
         sm.span_to_locations(parts[0].original_span.clone())
@@ -1613,6 +1616,7 @@ fn emit_suggestion_default(
     if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
         show_code_change
     {
+        let mut prev_lines: Option<(usize, usize)> = None;
         for part in parts {
             let snippet = sm.span_to_snippet(part.span.clone()).unwrap_or_default();
             let (span_start, span_end) = sm.span_to_locations(part.span.clone());
@@ -1702,6 +1706,12 @@ fn emit_suggestion_default(
 
                 let newlines = snippet.lines().count();
                 if newlines > 0 && row_num > newlines {
+                    let offset = match prev_lines {
+                        Some((start, end)) => {
+                            file_lines.len().saturating_sub(end.saturating_sub(start))
+                        }
+                        None => file_lines.len(),
+                    };
                     // Account for removals where the part being removed spans multiple
                     // lines.
                     // FIXME: We check the number of rows because in some cases, like in
@@ -1715,7 +1725,7 @@ fn emit_suggestion_default(
                         // Going lower than buffer_offset (+ 1) would mean
                         // overwriting existing content in the buffer
                         let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
-                        let row = (row_num - 2 - (newlines - i - 1)).max(min_row);
+                        let row = (row_num - 2 - (offset - i - 1)).max(min_row);
                         // On the first line, we highlight between the start of the part
                         // span, and the end of that line.
                         // On the last line, we highlight between the start of the line, and
@@ -1746,6 +1756,7 @@ fn emit_suggestion_default(
                         true,
                     );
                 }
+                prev_lines = Some((span_start.line, span_end.line));
             }
 
             // length of the code after substitution

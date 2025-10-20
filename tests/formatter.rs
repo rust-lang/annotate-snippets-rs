@@ -2371,6 +2371,9 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
  9 - fuzzy
 10 - pizza
 11 - jumps
+12 - crazy
+13 - quack
+14 - zappy
  8 + campy
    |
 "#]];
@@ -2386,6 +2389,9 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
  9 - fuzzy
 10 - pizza
 11 - jumps
+12 - crazy
+13 - quack
+14 - zappy
  8 + campy
    ╰╴
 "#]];

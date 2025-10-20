@@ -1,4 +1,4 @@
-<svg width="740px" height="812px" xmlns="http://www.w3.org/2000/svg">
+<svg width="740px" height="866px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { background: #000000 }
@@ -103,11 +103,17 @@
 </tspan>
     <tspan x="10px" y="748px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="766px"><tspan class="fg-bright-blue bold"> 8</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        wtf: Some(Box(U {</tspan>
+    <tspan x="10px" y="766px"><tspan class="fg-bright-blue bold"> 8</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>        wtf: Some(Box</tspan><tspan class="fg-bright-red">(U {</tspan>
 </tspan>
-    <tspan x="10px" y="784px"><tspan class="fg-bright-blue bold"> 8</tspan><tspan> </tspan><tspan class="fg-bright-green">+ </tspan><tspan>        wtf: Some(</tspan><tspan class="fg-bright-green">&lt;</tspan><tspan>Box</tspan><tspan class="fg-bright-green"> as std::default::Default&gt;::default()</tspan><tspan>),</tspan>
+    <tspan x="10px" y="784px"><tspan class="fg-bright-blue bold"> 9</tspan><tspan> </tspan><tspan class="fg-bright-red">-             wtf: None,</tspan>
 </tspan>
-    <tspan x="10px" y="802px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
+    <tspan x="10px" y="802px"><tspan class="fg-bright-blue bold">10</tspan><tspan> </tspan><tspan class="fg-bright-red">-             x: (),</tspan>
+</tspan>
+    <tspan x="10px" y="820px"><tspan class="fg-bright-blue bold">11</tspan><tspan> </tspan><tspan class="fg-bright-red">-         })</tspan><tspan>),</tspan>
+</tspan>
+    <tspan x="10px" y="838px"><tspan class="fg-bright-blue bold"> 8</tspan><tspan> </tspan><tspan class="fg-bright-green">+ </tspan><tspan>        wtf: Some(</tspan><tspan class="fg-bright-green">&lt;</tspan><tspan>Box</tspan><tspan class="fg-bright-green"> as std::default::Default&gt;::default()</tspan><tspan>),</tspan>
+</tspan>
+    <tspan x="10px" y="856px"><tspan>   </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
   </text>
 

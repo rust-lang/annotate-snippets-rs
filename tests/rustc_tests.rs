@@ -5325,6 +5325,9 @@ help: you might have meant to use an associated function to build this type
 help: consider using the `Default` trait
    |
 11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
 11 +         wtf: Some(<Box as std::default::Default>::default()),
    |
 "#]];
@@ -5374,6 +5377,9 @@ help: you might have meant to use an associated function to build this type
 help: consider using the `Default` trait
    ╭╴
 11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
 11 +         wtf: Some(<Box as std::default::Default>::default()),
    ╰╴
 "#]];
@@ -5775,6 +5781,10 @@ note: associated function defined here
 help: remove the extra arguments
   |
 4 -     generate_setter,
+5 -     r#"
+6 - pub(crate) struct Person<T: Clone> {}
+7 - "#,
+8 -      r#""#,
 4 +     /* usize */,
   |
 "##]];
@@ -5807,6 +5817,10 @@ note: associated function defined here
 help: remove the extra arguments
   ╭╴
 4 -     generate_setter,
+5 -     r#"
+6 - pub(crate) struct Person<T: Clone> {}
+7 - "#,
+8 -      r#""#,
 4 +     /* usize */,
   ╰╴
 "##]];
@@ -5867,7 +5881,6 @@ help: otherwise remove the non-wildcard arms
    |
 20 -         2 => 'b',
 21 -         3 => 'b',
-20 +         _ => 'b',
    |
 "#]];
     let renderer_ascii = Renderer::plain();
@@ -5889,7 +5902,6 @@ help: otherwise remove the non-wildcard arms
    ╭╴
 20 -         2 => 'b',
 21 -         3 => 'b',
-20 +         _ => 'b',
    ╰╴
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
