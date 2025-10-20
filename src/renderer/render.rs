@@ -13,7 +13,7 @@ use super::DecorStyle;
 use super::Renderer;
 use crate::level::{Level, LevelInner};
 use crate::renderer::source_map::{
-    AnnotatedLineInfo, LineInfo, Loc, SourceMap, SplicedLines, SubstitutionHighlight,
+    AnnotatedLineInfo, LineInfo, Loc, SourceMap, SplicedLines, SubstitutionHighlight, TrimmedPatch,
 };
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
@@ -145,7 +145,12 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             }
                         }
                     }
-                    PreProcessedElement::Suggestion((suggestion, source_map, spliced_lines)) => {
+                    PreProcessedElement::Suggestion((
+                        suggestion,
+                        source_map,
+                        spliced_lines,
+                        display_suggestion,
+                    )) => {
                         let matches_previous_suggestion =
                             last_suggestion_path == Some(suggestion.path.as_ref());
                         emit_suggestion_default(
@@ -153,6 +158,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             &mut buffer,
                             suggestion,
                             spliced_lines,
+                            display_suggestion,
                             max_line_num_len,
                             &source_map,
                             primary_path.or(og_primary_path),
@@ -1427,6 +1433,7 @@ fn emit_suggestion_default(
     buffer: &mut StyledBuffer,
     suggestion: &Snippet<'_, Patch<'_>>,
     spliced_lines: SplicedLines<'_>,
+    show_code_change: DisplaySuggestion,
     max_line_num_len: usize,
     sm: &SourceMap<'_>,
     primary_path: Option<&Cow<'_, str>>,
@@ -1437,9 +1444,6 @@ fn emit_suggestion_default(
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
     let (complete, parts, highlights) = spliced_lines;
-    let has_deletion = parts
-        .iter()
-        .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
     let is_multiline = complete.lines().count() > 1;
 
     if matches_previous_suggestion {
@@ -1471,21 +1475,6 @@ fn emit_suggestion_default(
             }
         }
     }
-    let show_code_change = if has_deletion && !is_multiline {
-        DisplaySuggestion::Diff
-    } else if parts.len() == 1
-        && parts.first().map_or(false, |p| {
-            p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
-        })
-    {
-        // We are adding a line(s) of code before code that was already there.
-        DisplaySuggestion::Add
-    } else if (parts.len() != 1 || parts[0].replacement.trim() != complete.trim()) && !is_multiline
-    {
-        DisplaySuggestion::Underline
-    } else {
-        DisplaySuggestion::None
-    };
 
     if let DisplaySuggestion::Diff = show_code_change {
         row_num += 1;
@@ -2480,6 +2469,31 @@ pub(crate) enum DisplaySuggestion {
     Add,
 }
 
+impl DisplaySuggestion {
+    fn new(complete: &str, patches: &[TrimmedPatch<'_>], sm: &SourceMap<'_>) -> Self {
+        let has_deletion = patches
+            .iter()
+            .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
+        let is_multiline = complete.lines().count() > 1;
+        if has_deletion && !is_multiline {
+            DisplaySuggestion::Diff
+        } else if patches.len() == 1
+            && patches.first().map_or(false, |p| {
+                p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
+            })
+        {
+            // We are adding a line(s) of code before code that was already there.
+            DisplaySuggestion::Add
+        } else if (patches.len() != 1 || patches[0].replacement.trim() != complete.trim())
+            && !is_multiline
+        {
+            DisplaySuggestion::Underline
+        } else {
+            DisplaySuggestion::None
+        }
+    }
+}
+
 // We replace some characters so the CLI output is always consistent and underlines aligned.
 // Keep the following list in sync with `rustc_span::char_width`.
 const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
@@ -2619,7 +2633,14 @@ enum PreProcessedElement<'a> {
             Vec<AnnotatedLineInfo<'a>>,
         ),
     ),
-    Suggestion((&'a Snippet<'a, Patch<'a>>, SourceMap<'a>, SplicedLines<'a>)),
+    Suggestion(
+        (
+            &'a Snippet<'a, Patch<'a>>,
+            SourceMap<'a>,
+            SplicedLines<'a>,
+            DisplaySuggestion,
+        ),
+    ),
     Origin(&'a Origin<'a>),
     Padding(Padding),
 }
@@ -2672,9 +2693,11 @@ fn pre_process<'a>(
                 }
                 Element::Suggestion(suggestion) => {
                     let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
-                    if let Some(spliced_lines) =
+                    if let Some((complete, patches, highlights)) =
                         sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
                     {
+                        let display_suggestion = DisplaySuggestion::new(&complete, &patches, &sm);
+
                         if suggestion.fold {
                             let end = suggestion
                                 .markers
@@ -2698,7 +2721,8 @@ fn pre_process<'a>(
                         elements.push(PreProcessedElement::Suggestion((
                             suggestion,
                             sm,
-                            spliced_lines,
+                            (complete, patches, highlights),
+                            display_suggestion,
                         )));
                     }
                 }
