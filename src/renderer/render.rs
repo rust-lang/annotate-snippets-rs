@@ -1450,7 +1450,7 @@ fn emit_suggestion_default(
     is_first: bool,
     is_cont: bool,
 ) {
-    let suggestions = sm.splice_lines(suggestion.markers.clone());
+    let suggestions = sm.splice_lines(suggestion.markers.clone(), suggestion.fold);
 
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
@@ -1511,8 +1511,12 @@ fn emit_suggestion_default(
         }
 
         let file_lines = sm.span_to_lines(parts[0].span.clone());
-        // We use the original span to get original line_start
-        let (line_start, line_end) = sm.span_to_locations(parts[0].original_span.clone());
+        let (line_start, line_end) = if suggestion.fold {
+            // We use the original span to get original line_start
+            sm.span_to_locations(parts[0].original_span.clone())
+        } else {
+            sm.span_to_locations(0..sm.source.len())
+        };
         let mut lines = complete.lines();
         if lines.clone().next().is_none() {
             // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
@@ -1545,7 +1549,7 @@ fn emit_suggestion_default(
             last_pos = line_pos;
 
             // Remember lines that are not highlighted to hide them if needed
-            if highlight_parts.is_empty() {
+            if highlight_parts.is_empty() && suggestion.fold {
                 unhighlighted_lines.push((line_pos, line));
                 continue;
             }

@@ -4600,10 +4600,16 @@ error[E0061]: this function takes 6 arguments but 5 arguments were supplied
   |
 help: provide the argument
   |
+1 | fn main() {
+2 |     let variable_name = 42;
 3 |     function_with_lots_of_arguments(
 4 |         variable_name,
 5 ~         /* char */,
 6 ~         variable_name,
+7 |         variable_name,
+8 |         variable_name,
+9 |     );
+10| }
   |
 "#]];
     let renderer_ascii = Renderer::plain();
@@ -4621,10 +4627,16 @@ error[E0061]: this function takes 6 arguments but 5 arguments were supplied
   ╰╴
 help: provide the argument
   ╭╴
+1 │ fn main() {
+2 │     let variable_name = 42;
 3 │     function_with_lots_of_arguments(
 4 │         variable_name,
 5 ±         /* char */,
 6 ±         variable_name,
+7 │         variable_name,
+8 │         variable_name,
+9 │     );
+10│ }
   ╰╴
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
@@ -4677,7 +4689,23 @@ error[E0433]: failed to resolve: use of undeclared crate or module `st`
    |
 help: consider importing this module
    |
+ 1 |
  2 + use std::cell;
+ 3 ~ use st::cell::Cell;
+ 4 |
+ 5 | mod bar {
+ 6 |     pub fn bar() { bar::baz(); }
+ 7 |
+ 8 |     fn baz() {}
+ 9 | }
+10 |
+11 | use bas::bar;
+12 |
+13 | struct Foo {
+14 |     bar: st::cell::Cell<bool>
+15 | }
+16 |
+17 | fn main() {}
    |
 "#]];
 
@@ -4692,7 +4720,23 @@ error[E0433]: failed to resolve: use of undeclared crate or module `st`
    ╰╴
 help: consider importing this module
    ╭╴
+ 1 │
  2 + use std::cell;
+ 3 ± use st::cell::Cell;
+ 4 │
+ 5 │ mod bar {
+ 6 │     pub fn bar() { bar::baz(); }
+ 7 │
+ 8 │     fn baz() {}
+ 9 │ }
+10 │
+11 │ use bas::bar;
+12 │
+13 │ struct Foo {
+14 │     bar: st::cell::Cell<bool>
+15 │ }
+16 │
+17 │ fn main() {}
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);

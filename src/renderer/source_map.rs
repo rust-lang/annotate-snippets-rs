@@ -370,6 +370,7 @@ impl<'a> SourceMap<'a> {
     pub(crate) fn splice_lines<'b>(
         &'b self,
         mut patches: Vec<Patch<'b>>,
+        fold: bool,
     ) -> Vec<(
         String,
         Vec<TrimmedPatch<'b>>,
@@ -430,11 +431,16 @@ impl<'a> SourceMap<'a> {
         patches.sort_by_key(|p| p.span.start);
 
         // Find the bounding span.
-        let Some(lo) = patches.iter().map(|p| p.span.start).min() else {
-            return Vec::new();
-        };
-        let Some(hi) = patches.iter().map(|p| p.span.end).max() else {
-            return Vec::new();
+        let (lo, hi) = if fold {
+            let Some(lo) = patches.iter().map(|p| p.span.start).min() else {
+                return Vec::new();
+            };
+            let Some(hi) = patches.iter().map(|p| p.span.end).max() else {
+                return Vec::new();
+            };
+            (lo, hi)
+        } else {
+            (0, source_len)
         };
 
         let lines = self.span_to_lines(lo..hi);
@@ -536,9 +542,19 @@ impl<'a> SourceMap<'a> {
             }
         }
         highlights.push(std::mem::take(&mut line_highlight));
-        // if the replacement already ends with a newline, don't print the next line
-        if !buf.ends_with('\n') {
-            push_trailing(&mut buf, prev_line, &prev_hi, None);
+        if fold {
+            // if the replacement already ends with a newline, don't print the next line
+            if !buf.ends_with('\n') {
+                push_trailing(&mut buf, prev_line, &prev_hi, None);
+            }
+        } else {
+            // Add the trailing part of the source after the last patch
+            if let Some(snippet) = self.span_to_snippet(prev_hi.byte..source_len) {
+                buf.push_str(snippet);
+                for _ in snippet.matches('\n') {
+                    highlights.push(std::mem::take(&mut line_highlight));
+                }
+            }
         }
         // remove trailing newlines
         while buf.ends_with('\n') {
