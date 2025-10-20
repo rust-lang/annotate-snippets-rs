@@ -4541,3 +4541,160 @@ help: add a `;` here
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
 }
+
+#[test]
+fn suggestion_no_fold() {
+    let source = r#"fn main() {
+    let variable_name = 42;
+    function_with_lots_of_arguments(
+        variable_name,
+        variable_name,
+        variable_name,
+        variable_name,
+    );
+}"#;
+    let path = "$DIR/trimmed_multiline_suggestion.rs";
+
+    let input = &[
+        Group::with_title(
+            Level::ERROR
+                .primary_title("this function takes 6 arguments but 5 arguments were supplied")
+                .id("E0061"),
+        )
+        .element(
+            Snippet::source(source)
+                .path(path)
+                .annotation(
+                    AnnotationKind::Context
+                        .span(108..121)
+                        .label("argument #2 of type `char` is missing"),
+                )
+                .annotation(AnnotationKind::Primary.span(44..75)),
+        ),
+        Group::with_title(Level::HELP.secondary_title("provide the argument")).element(
+            Snippet::source(source)
+                .path(path)
+                .fold(false)
+                .patch(Patch::new(
+                    75..174,
+                    "(
+        variable_name,
+        /* char */,
+        variable_name,
+        variable_name,
+        variable_name,
+    )",
+                )),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0061]: this function takes 6 arguments but 5 arguments were supplied
+ --> $DIR/trimmed_multiline_suggestion.rs:3:5
+  |
+3 |     function_with_lots_of_arguments(
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |         variable_name,
+5 |         variable_name,
+  |         ------------- argument #2 of type `char` is missing
+  |
+help: provide the argument
+  |
+3 |     function_with_lots_of_arguments(
+4 |         variable_name,
+5 ~         /* char */,
+6 ~         variable_name,
+  |
+"#]];
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0061]: this function takes 6 arguments but 5 arguments were supplied
+  ╭▸ $DIR/trimmed_multiline_suggestion.rs:3:5
+  │
+3 │     function_with_lots_of_arguments(
+  │     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4 │         variable_name,
+5 │         variable_name,
+  │         ───────────── argument #2 of type `char` is missing
+  ╰╴
+help: provide the argument
+  ╭╴
+3 │     function_with_lots_of_arguments(
+4 │         variable_name,
+5 ±         /* char */,
+6 ±         variable_name,
+  ╰╴
+"#]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+}
+
+#[test]
+fn suggestion_no_fold_replacement_ends_with_newline() {
+    let source = r#"
+use st::cell::Cell;
+
+mod bar {
+    pub fn bar() { bar::baz(); }
+
+    fn baz() {}
+}
+
+use bas::bar;
+
+struct Foo {
+    bar: st::cell::Cell<bool>
+}
+
+fn main() {}"#;
+
+    let input = &[
+        Level::ERROR
+            .primary_title("failed to resolve: use of undeclared crate or module `st`")
+            .id("E0433")
+            .element(
+                Snippet::source(source).line_start(1).annotation(
+                    AnnotationKind::Primary
+                        .span(122..124)
+                        .label("use of undeclared crate or module `st`"),
+                ),
+            ),
+        Level::HELP
+            .secondary_title("consider importing this module")
+            .element(
+                Snippet::source(source)
+                    .fold(false)
+                    .patch(Patch::new(1..1, "use std::cell;\n")),
+            ),
+    ];
+    let expected_ascii = str![[r#"
+error[E0433]: failed to resolve: use of undeclared crate or module `st`
+   |
+13 |     bar: st::cell::Cell<bool>
+   |          ^^ use of undeclared crate or module `st`
+   |
+help: consider importing this module
+   |
+ 2 + use std::cell;
+   |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0433]: failed to resolve: use of undeclared crate or module `st`
+   ╭▸ 
+13 │     bar: st::cell::Cell<bool>
+   │          ━━ use of undeclared crate or module `st`
+   ╰╴
+help: consider importing this module
+   ╭╴
+ 2 + use std::cell;
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
