@@ -368,7 +368,7 @@ impl<'a> SourceMap<'a> {
     }
 
     pub(crate) fn splice_lines<'b>(
-        &'b self,
+        &'a self,
         mut patches: Vec<Patch<'b>>,
         fold: bool,
     ) -> Option<SplicedLines<'b>> {
@@ -457,7 +457,7 @@ impl<'a> SourceMap<'a> {
             // If this is a replacement of, e.g. `"a"` into `"ab"`, adjust the
             // suggestion and snippet to look as if we just suggested to add
             // `"b"`, which is typically much easier for the user to understand.
-            .map(|part| part.trim_trivial_replacements(self))
+            .map(|part| part.trim_trivial_replacements(self.source))
             .collect::<Vec<_>>();
         let mut line_highlight = vec![];
         // We need to keep track of the difference between the existing code and the added
