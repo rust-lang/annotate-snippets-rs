@@ -2965,7 +2965,7 @@ fn trim_unicode_annotate_ascii_end_with_label() {
     let expected_ascii = str![[r#"
   |
 1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
-  |                                                              ^ expected item
+  |                                                             ^ expected item
 "#]];
 
     let renderer = Renderer::plain();
@@ -2974,7 +2974,7 @@ fn trim_unicode_annotate_ascii_end_with_label() {
     let expected_unicode = str![[r#"
   ╭▸ 
 1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
-  ╰╴                                                             ━ expected item
+  ╰╴                                                            ━ expected item
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2988,8 +2988,8 @@ fn trim_unicode_annotate_ascii_end_no_label() {
 
     let expected_ascii = str![[r#"
   |
-1 | ... 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
-  |                                                                     ^
+1 | ... 这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  |                                                                   ^
 "#]];
 
     let renderer = Renderer::plain();
@@ -2997,8 +2997,8 @@ fn trim_unicode_annotate_ascii_end_no_label() {
 
     let expected_unicode = str![[r#"
   ╭▸ 
-1 │ … 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
-  ╰╴                                                                    ━
+1 │ … 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  ╰╴                                                                  ━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3018,7 +3018,7 @@ fn trim_unicode_annotate_unicode_end_with_label() {
     let expected_ascii = str![[r#"
   |
 1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
-  |                                                              ^^ expected item
+  |                                                             ^^ expected item
 "#]];
 
     let renderer = Renderer::plain();
@@ -3027,7 +3027,7 @@ fn trim_unicode_annotate_unicode_end_with_label() {
     let expected_unicode = str![[r#"
   ╭▸ 
 1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
-  ╰╴                                                             ━━ expected item
+  ╰╴                                                            ━━ expected item
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3041,8 +3041,8 @@ fn trim_unicode_annotate_unicode_end_no_label() {
 
     let expected_ascii = str![[r#"
   |
-1 | ... 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
-  |                                                                     ^^
+1 | ... 这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  |                                                                   ^^
 "#]];
 
     let renderer = Renderer::plain();
@@ -3050,8 +3050,8 @@ fn trim_unicode_annotate_unicode_end_no_label() {
 
     let expected_unicode = str![[r#"
   ╭▸ 
-1 │ … 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
-  ╰╴                                                                    ━━
+1 │ … 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  ╰╴                                                                  ━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3070,8 +3070,8 @@ fn trim_unicode_annotate_unicode_middle_with_label() {
 
     let expected_ascii = str![[r#"
   |
-1 | ... 。这是宽的。这是宽的。这是宽的...
-  |             ^^ expected item
+1 | ... 这是宽的。这是宽的。这是宽的。...
+  |           ^^ expected item
 "#]];
 
     let renderer = Renderer::plain().term_width(43);
@@ -3079,8 +3079,8 @@ fn trim_unicode_annotate_unicode_middle_with_label() {
 
     let expected_unicode = str![[r#"
   ╭▸ 
-1 │ … 的。这是宽的。这是宽的。这是宽的。…
-  ╰╴            ━━ expected item
+1 │ … 。这是宽的。这是宽的。这是宽的。这…
+  ╰╴          ━━ expected item
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3095,7 +3095,7 @@ fn trim_unicode_annotate_unicode_middle_no_label() {
     let expected_ascii = str![[r#"
   |
 1 | ... 是宽的。这是宽的。这是宽的。这...
-  |                    ^^
+  |                   ^^
 "#]];
 
     let renderer = Renderer::plain().term_width(43);
@@ -3104,7 +3104,7 @@ fn trim_unicode_annotate_unicode_middle_no_label() {
     let expected_unicode = str![[r#"
   ╭▸ 
 1 │ … 这是宽的。这是宽的。这是宽的。这是…
-  ╰╴                   ━━
+  ╰╴                  ━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
