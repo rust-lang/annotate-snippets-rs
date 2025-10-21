@@ -3725,8 +3725,8 @@ help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
   |
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
   |
-3 |  // Span after line end
-  |
+3 | [1, 2, 3].into_iter().for_each(|n| { *n; }); // Span after line end
+  |                                              ++++++++++++++++++++++
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -3748,8 +3748,8 @@ help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
   ╰╴
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
   ╭╴
-3 │  // Span after line end
-  ╰╴
+3 │ [1, 2, 3].into_iter().for_each(|n| { *n; }); // Span after line end
+  ╰╴                                             ++++++++++++++++++++++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3817,8 +3817,8 @@ help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
   |
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
   |
-3 |  // Span after line end
-  |
+3 | [1, 2, 3].into_iter().for_each(|n| { *n; }); // Span after line end
+  |                                              ++++++++++++++++++++++
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -3840,8 +3840,8 @@ help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
   ╰╴
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
   ╭╴
-3 │  // Span after line end
-  ╰╴
+3 │ [1, 2, 3].into_iter().for_each(|n| { *n; }); // Span after line end
+  ╰╴                                             ++++++++++++++++++++++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);

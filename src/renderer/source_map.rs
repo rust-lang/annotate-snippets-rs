@@ -130,6 +130,11 @@ impl<'a> SourceMap<'a> {
             }
             lines.push(line_info);
         }
+
+        if lines.is_empty() && !self.lines.is_empty() {
+            lines.push(self.lines.last().unwrap());
+        }
+
         lines
     }
 
