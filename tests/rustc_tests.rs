@@ -4189,8 +4189,8 @@ LL │     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` ex
            `&mut Ipv4Addr: Iterator`
            which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`
 note: the traits `Iterator` and `ToTokens` must be implemented
-   ╭▸ $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
-   ╭▸ $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
+   ─▸ $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
+   ─▸ $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -4513,7 +4513,7 @@ LL │ ┃  }
    │
    ╰ note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
 note: `core::alloc::Layout` is defined in crate `core`
-   ╭▸ $SRC_DIR/core/src/alloc/layout.rs:40:0
+   ─▸ $SRC_DIR/core/src/alloc/layout.rs:40:0
 note: `Layout` is defined in the current crate
    ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:7:1
    │

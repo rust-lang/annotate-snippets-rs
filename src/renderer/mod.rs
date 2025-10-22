@@ -297,9 +297,10 @@ impl DecorStyle {
         }
     }
 
-    fn file_start(&self, is_first: bool) -> &'static str {
+    fn file_start(&self, is_first: bool, alone: bool) -> &'static str {
         match self {
             DecorStyle::Ascii => "--> ",
+            DecorStyle::Unicode if is_first && alone => " ─▸ ",
             DecorStyle::Unicode if is_first => " ╭▸ ",
             DecorStyle::Unicode => " ├▸ ",
         }
