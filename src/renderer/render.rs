@@ -186,6 +186,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             origin,
                             is_primary,
                             is_first,
+                            peek.is_none(),
                             buffer_msg_line_offset,
                         );
                         let current_line = buffer.num_lines();
@@ -286,7 +287,7 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
                 }
             }
 
-            render_origin(renderer, &mut buffer, 0, &origin, true, true, 0);
+            render_origin(renderer, &mut buffer, 0, &origin, true, true, true, 0);
             buffer.append(0, ": ", ElementStyle::LineAndColumn);
         }
     }
@@ -432,6 +433,7 @@ fn render_title(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_origin(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -439,12 +441,13 @@ fn render_origin(
     origin: &Origin<'_>,
     is_primary: bool,
     is_first: bool,
+    alone: bool,
     buffer_msg_line_offset: usize,
 ) {
     if is_primary && !renderer.short_message {
         buffer.prepend(
             buffer_msg_line_offset,
-            renderer.decor_style.file_start(is_first),
+            renderer.decor_style.file_start(is_first, alone),
             ElementStyle::LineNumber,
         );
     } else if !renderer.short_message {
@@ -558,6 +561,7 @@ fn render_snippet_annotations(
             &origin,
             is_primary,
             is_first,
+            false,
             buffer_msg_line_offset,
         );
         // Put in the spacer between the location and annotated source
@@ -574,7 +578,7 @@ fn render_snippet_annotations(
                 buffer.puts(
                     buffer_msg_line_offset,
                     max_line_num_len,
-                    renderer.decor_style.file_start(is_first),
+                    renderer.decor_style.file_start(is_first, false),
                     ElementStyle::LineNumber,
                 );
             } else {
@@ -1462,7 +1466,7 @@ fn emit_suggestion_default(
                 let (loc, _) = sm.span_to_locations(parts[0].span.clone());
                 // --> file.rs:line:col
                 //  |
-                let arrow = renderer.decor_style.file_start(is_first);
+                let arrow = renderer.decor_style.file_start(is_first, false);
                 buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
                 let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
                 let col = usize::max(max_line_num_len + 1, arrow.len());
