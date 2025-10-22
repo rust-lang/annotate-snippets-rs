@@ -5015,3 +5015,52 @@ help: consider importing this module
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn original_matches_replacement_suffix() {
+    let source = r#"use sync;"#;
+    let input = &[
+        Group::with_level(Level::ERROR).element(
+            Snippet::source(source).path("/tmp/test.rs").annotation(
+                AnnotationKind::Primary
+                    .span(4..8)
+                    .label("no `sync` in the root"),
+            ),
+        ),
+        Level::HELP
+            .secondary_title("consider importing this module instead")
+            .element(
+                Snippet::source(source)
+                    .path("/tmp/test.rs")
+                    .patch(Patch::new(4..8, "std::sync")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+ --> /tmp/test.rs:1:5
+  |
+1 | use sync;
+  |     ^^^^ no `sync` in the root
+  |
+help: consider importing this module instead
+  |
+1 | use std::sync;
+  |      +++++
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ /tmp/test.rs:1:5
+  │
+1 │ use sync;
+  │     ━━━━ no `sync` in the root
+  ╰╴
+help: consider importing this module instead
+  ╭╴
+1 │ use std::sync;
+  ╰╴     +++++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
