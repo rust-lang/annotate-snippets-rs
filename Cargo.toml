@@ -126,7 +126,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 anstyle = "1.0.4"
 memchr = { version = "2.7.4", optional = true }
-unicode-width = "0.2.0"
+unicode-width = "0.2.2"
 
 [dev-dependencies]
 annotate-snippets = { path = ".", features = ["testing-colors"] }
