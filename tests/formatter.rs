@@ -5045,7 +5045,7 @@ fn original_matches_replacement_suffix() {
 help: consider importing this module instead
   |
 1 | use std::sync;
-  |      +++++
+  |     +++++
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -5059,7 +5059,7 @@ help: consider importing this module instead
 help: consider importing this module instead
   ╭╴
 1 │ use std::sync;
-  ╰╴     +++++
+  ╰╴    +++++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
