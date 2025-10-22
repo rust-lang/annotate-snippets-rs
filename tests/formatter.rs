@@ -3617,7 +3617,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(
                     suggestion_source.len() + 1..suggestion_source.len() + 1,
-                    "IntoIterator::into_iter(",
+                    " // Span after line end",
                 )),
         ),
     ];
@@ -3639,7 +3639,7 @@ help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
   |
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
   |
-3 | IntoIterator::into_iter(
+3 |  // Span after line end
   |
 "#]];
     let renderer = Renderer::plain();
@@ -3662,7 +3662,7 @@ help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
   ╰╴
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
   ╭╴
-3 │ IntoIterator::into_iter(
+3 │  // Span after line end
   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -3709,7 +3709,7 @@ fn main() {
                 .line_start(3)
                 .patch(Patch::new(
                     suggestion_source.len() + 2..suggestion_source.len() + 2,
-                    "IntoIterator::into_iter(",
+                    " // Span after line end",
                 )),
         ),
     ];
