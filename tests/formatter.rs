@@ -3578,6 +3578,184 @@ fn empty_span_start_line() {
 }
 
 #[test]
+fn suggestion_span_line_end() {
+    let source = r#"#![allow(unused)]
+fn main() {
+[1, 2, 3].into_iter().for_each(|n| { *n; });
+}
+"#;
+
+    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
+    let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
+
+    let input = &[
+        Level::WARNING
+            .primary_title(long_title1)
+            .element(
+                Snippet::source(source)
+                    .path("lint_example.rs")
+                    .annotation(AnnotationKind::Primary.span(40..49)),
+            )
+            .element(Level::WARNING.message("this changes meaning in Rust 2021"))
+            .element(Level::NOTE.message(long_title2))
+            .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
+        Level::HELP
+            .secondary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity")
+            .element(
+                Snippet::source(source)
+                    .path("lint_example.rs")
+                    .line_start(3)
+                    .patch(Patch::new(40..49, "iter")),
+            ),
+        Level::HELP.secondary_title(long_title3).element(
+            Snippet::source(source)
+                .path("lint_example.rs")
+                .line_start(3)
+                .patch(Patch::new(74..74, " // Span after line end")),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+ --> lint_example.rs:3:11
+  |
+3 | [1, 2, 3].into_iter().for_each(|n| { *n; });
+  |           ^^^^^^^^^
+  |
+  = warning: this changes meaning in Rust 2021
+  = note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+  = note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+  |
+5 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+5 + [1, 2, 3].iter().for_each(|n| { *n; });
+  |
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+  |
+5 | [1, 2, 3].into_iter().for_each(|n| { *n; }); // Span after line end
+  |                                              ++++++++++++++++++++++
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+  ╭▸ lint_example.rs:3:11
+  │
+3 │ [1, 2, 3].into_iter().for_each(|n| { *n; });
+  │           ━━━━━━━━━
+  │
+  ├ warning: this changes meaning in Rust 2021
+  ├ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+  ╰ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+  ╭╴
+5 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+5 + [1, 2, 3].iter().for_each(|n| { *n; });
+  ╰╴
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+  ╭╴
+5 │ [1, 2, 3].into_iter().for_each(|n| { *n; }); // Span after line end
+  ╰╴                                             ++++++++++++++++++++++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn suggestion_span_source_end() {
+    let snippet_source = r#"#![allow(unused)]
+fn main() {
+[1, 2, 3].into_iter().for_each(|n| { *n; });
+}
+"#;
+
+    let suggestion_source = r#"[1, 2, 3].into_iter().for_each(|n| { *n; });
+"#;
+
+    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
+    let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
+
+    let input = &[
+        Level::WARNING
+            .primary_title(long_title1)
+            .element(
+                Snippet::source(snippet_source)
+                    .path("lint_example.rs")
+                    .annotation(AnnotationKind::Primary.span(40..49)),
+            )
+            .element(Level::WARNING.message("this changes meaning in Rust 2021"))
+            .element(Level::NOTE.message(long_title2))
+            .element(Level::NOTE.message("`#[warn(array_into_iter)]` on by default")),
+        Level::HELP
+            .secondary_title("use `.iter()` instead of `.into_iter()` to avoid ambiguity")
+            .element(
+                Snippet::source(suggestion_source)
+                    .path("lint_example.rs")
+                    .line_start(3)
+                    .patch(Patch::new(10..19, "iter")),
+            ),
+        Level::HELP.secondary_title(long_title3).element(
+            Snippet::source(suggestion_source)
+                .path("lint_example.rs")
+                .line_start(3)
+                .patch(Patch::new(
+                    suggestion_source.len()..suggestion_source.len(),
+                    " // Span after line end",
+                )),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+ --> lint_example.rs:3:11
+  |
+3 | [1, 2, 3].into_iter().for_each(|n| { *n; });
+  |           ^^^^^^^^^
+  |
+  = warning: this changes meaning in Rust 2021
+  = note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+  = note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+  |
+3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+3 + [1, 2, 3].iter().for_each(|n| { *n; });
+  |
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+  |
+3 |  // Span after line end
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+  ╭▸ lint_example.rs:3:11
+  │
+3 │ [1, 2, 3].into_iter().for_each(|n| { *n; });
+  │           ━━━━━━━━━
+  │
+  ├ warning: this changes meaning in Rust 2021
+  ├ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+  ╰ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+  ╭╴
+3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
+3 + [1, 2, 3].iter().for_each(|n| { *n; });
+  ╰╴
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+  ╭╴
+3 │  // Span after line end
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
 fn suggestion_span_one_bigger_than_source() {
     let snippet_source = r#"#![allow(unused)]
 fn main() {
