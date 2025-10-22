@@ -1512,20 +1512,12 @@ fn emit_suggestion_default(
         }
         row_num += line_end.line - line_start.line;
     }
-    let mut last_pos = 0;
-    let mut is_item_attribute = false;
     let mut unhighlighted_lines = Vec::new();
     for (line_pos, (line, highlight_parts)) in lines.by_ref().zip(highlights).enumerate() {
-        last_pos = line_pos;
-
         // Remember lines that are not highlighted to hide them if needed
         if highlight_parts.is_empty() && suggestion.fold {
             unhighlighted_lines.push((line_pos, line));
             continue;
-        }
-        if highlight_parts.len() == 1 && line.trim().starts_with("#[") && line.trim().ends_with(']')
-        {
-            is_item_attribute = true;
         }
 
         match unhighlighted_lines.len() {
@@ -1614,32 +1606,6 @@ fn emit_suggestion_default(
         );
     }
 
-    if matches!(show_code_change, DisplaySuggestion::Add) && is_item_attribute {
-        // The suggestion adds an entire line of code, ending on a newline, so we'll also
-        // print the *following* line, to provide context of what we're advising people to
-        // do. Otherwise you would only see contextless code that can be confused for
-        // already existing code, despite the colors and UI elements.
-        // We special case `#[derive(_)]\n` and other attribute suggestions, because those
-        // are the ones where context is most useful.
-        let file_lines = sm.span_to_lines(parts[0].span.end..parts[0].span.end);
-        let (lo, _) = sm.span_to_locations(parts[0].span.clone());
-        let line_num = lo.line;
-        if let Some(line) = sm.get_line(line_num) {
-            let line = normalize_whitespace(line);
-            draw_code_line(
-                renderer,
-                buffer,
-                &mut row_num,
-                &[],
-                line_num + last_pos + 1,
-                &line,
-                DisplaySuggestion::None,
-                max_line_num_len,
-                &file_lines,
-                is_multiline,
-            );
-        }
-    }
     // This offset and the ones below need to be signed to account for replacement code
     // that is shorter than the original code.
     let mut offsets: Vec<(usize, isize)> = Vec::new();
@@ -1929,7 +1895,7 @@ fn draw_code_line(
             [SubstitutionHighlight { start: 0, end }] if *end == line_to_add.len() => {
                 buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
             }
-            [] => {
+            [] | [SubstitutionHighlight { start: 0, end: 0 }] => {
                 // FIXME: needed? Doesn't get exercised in any test.
                 draw_col_separator_no_space(renderer, buffer, *row_num, max_line_num_len + 1);
             }

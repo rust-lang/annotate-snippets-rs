@@ -4869,7 +4869,7 @@ help: consider importing this module
    |
  1 |
  2 + use std::cell;
- 3 ~ use st::cell::Cell;
+ 3 | use st::cell::Cell;
  4 |
  5 | mod bar {
  6 |     pub fn bar() { bar::baz(); }
@@ -4900,7 +4900,7 @@ help: consider importing this module
    ╭╴
  1 │
  2 + use std::cell;
- 3 ± use st::cell::Cell;
+ 3 │ use st::cell::Cell;
  4 │
  5 │ mod bar {
  6 │     pub fn bar() { bar::baz(); }
