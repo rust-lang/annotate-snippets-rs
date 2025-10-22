@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- Upgraded `unicode-width` to `0.2.2` [#326](https://github.com/rust-lang/annotate-snippets-rs/pull/326)
+  - This update adds support for Unicode 16 and 17, and can affect character width calculations
+- Use straight arrows for standalone `Origin` [#327](https://github.com/rust-lang/annotate-snippets-rs/pull/327)
+
+### Fixes
+
+- Correctly calculate line numbers for trimmed multi-line suggestions [#321](https://github.com/rust-lang/annotate-snippets-rs/pull/321)
+- Respect `.fold(false)` when set on suggestions [#322](https://github.com/rust-lang/annotate-snippets-rs/pull/322)
+- Properly calculate the max line number width for suggestions [#323](https://github.com/rust-lang/annotate-snippets-rs/pull/323)
+- Show full line when `Patch` span points to line end [#324](https://github.com/rust-lang/annotate-snippets-rs/pull/324) 
+
 ## [0.12.5] - 2025-10-14
 
 ### Fixes
