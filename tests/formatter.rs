@@ -3005,6 +3005,59 @@ fn trim_unicode_annotate_ascii_end_no_label() {
 }
 
 #[test]
+fn trim_unicode_annotate_unicode_end_with_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好";
+    let input = &[Group::with_level(Level::ERROR).element(
+        Snippet::source(source).annotation(
+            AnnotationKind::Primary
+                .span(499..502)
+                .label("expected item"),
+        ),
+    )];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  |                                                              ^^ expected item
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  ╰╴                                                             ━━ expected item
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_unicode_annotate_unicode_end_no_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(499..502)))];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ... 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
+  |                                                                     ^^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
+  ╰╴                                                                    ━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
 fn trim_unicode_annotate_unicode_middle_with_label() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
     let input = &[Group::with_level(Level::ERROR).element(
