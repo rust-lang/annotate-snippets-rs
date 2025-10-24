@@ -664,12 +664,12 @@ fn render_snippet_annotations(
     let mut label_right_margin = 0;
     let mut max_line_len = 0;
     for line_info in annotated_lines {
-        max_line_len = max(max_line_len, line_info.line.len());
+        max_line_len = max(max_line_len, str_width(line_info.line));
         for ann in &line_info.annotations {
             span_right_margin = max(span_right_margin, ann.start.display);
             span_right_margin = max(span_right_margin, ann.end.display);
             // FIXME: account for labels not in the same line
-            let label_right = ann.label.as_ref().map_or(0, |l| l.len() + 1);
+            let label_right = ann.label.as_ref().map_or(0, |l| str_width(l) + 1);
             label_right_margin = max(label_right_margin, ann.end.display + label_right);
         }
     }
@@ -1995,15 +1995,23 @@ fn draw_line(
     // Create the source line we will highlight.
     let mut left = margin.left(line_len);
     let right = margin.right(line_len);
-    // FIXME: The following code looks fishy. See #132860.
-    // On long lines, we strip the source line, accounting for unicode.
+
     let mut taken = 0;
     let mut skipped = 0;
     let code: String = source_string
         .chars()
         .skip_while(|ch| {
-            skipped += char_width(*ch);
-            skipped <= left
+            let w = char_width(*ch);
+            // If `skipped` is less than `left`, always skip the next `ch`,
+            // even if `ch` is a multi-width char that would make `skipped`
+            // exceed `left`. This ensures that we do not exceed term width on
+            // source lines.
+            if skipped < left {
+                skipped += w;
+                true
+            } else {
+                false
+            }
         })
         .take_while(|ch| {
             // Make sure that the trimming on the right will fall within the terminal width.
@@ -2011,7 +2019,10 @@ fn draw_line(
             taken <= (right - left)
         })
         .collect();
-
+    // If we skipped more than `left`, adjust `left` to account for it.
+    if skipped > left {
+        left += skipped - left;
+    }
     let placeholder = renderer.decor_style.margin();
     let padding = str_width(placeholder);
     let (width_taken, bytes_taken) = if margin.was_cut_left() {
@@ -2025,10 +2036,6 @@ fn draw_line(
             if width_taken >= padding {
                 break;
             }
-        }
-
-        if width_taken > padding {
-            left -= width_taken - padding;
         }
 
         buffer.puts(

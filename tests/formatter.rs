@@ -2952,111 +2952,212 @@ error: title
 }
 
 #[test]
-fn unicode_cut_handling2() {
+fn trim_unicode_annotate_ascii_end_with_label() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
-    let input = &[Level::ERROR
-        .primary_title("expected item, found `?`").element(
-                Snippet::source(source)
-                    .fold(false)
-                    .annotation(AnnotationKind::Primary.span(499..500).label("expected item"))
-            ).element(
-                Level::NOTE.message("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
-
-       )];
+    let input = &[Group::with_level(Level::ERROR).element(
+        Snippet::source(source).annotation(
+            AnnotationKind::Primary
+                .span(499..500)
+                .label("expected item"),
+        ),
+    )];
 
     let expected_ascii = str![[r#"
-error: expected item, found `?`
   |
 1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
-  |                                                              ^ expected item
-  |
-  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+  |                                                             ^ expected item
 "#]];
 
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
-error: expected item, found `?`
   ╭▸ 
 1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
-  │                                                              ━ expected item
-  │
-  ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+  ╰╴                                                            ━ expected item
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
-fn unicode_cut_handling3() {
+fn trim_unicode_annotate_ascii_end_no_label() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
-    let input = &[Level::ERROR
-        .primary_title("expected item, found `?`").element(
-                Snippet::source(source)
-                    .fold(false)
-                    .annotation(AnnotationKind::Primary.span(251..254).label("expected item"))
-            ).element(
-                Level::NOTE.message("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
-
-       )];
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(499..500)))];
 
     let expected_ascii = str![[r#"
-error: expected item, found `?`
   |
-1 | ... 。这是宽的。这是宽的。这是宽的...
-  |             ^^ expected item
+1 | ... 这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  |                                                                   ^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?
+  ╰╴                                                                  ━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_unicode_annotate_unicode_end_with_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好";
+    let input = &[Group::with_level(Level::ERROR).element(
+        Snippet::source(source).annotation(
+            AnnotationKind::Primary
+                .span(499..502)
+                .label("expected item"),
+        ),
+    )];
+
+    let expected_ascii = str![[r#"
   |
-  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+1 | ... 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  |                                                             ^^ expected item
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  ╰╴                                                            ━━ expected item
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_unicode_annotate_unicode_end_no_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(499..502)))];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ... 这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  |                                                                   ^^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/好
+  ╰╴                                                                  ━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_unicode_annotate_unicode_middle_with_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
+    let input = &[Group::with_level(Level::ERROR).element(
+        Snippet::source(source).annotation(
+            AnnotationKind::Primary
+                .span(251..254)
+                .label("expected item"),
+        ),
+    )];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ... 这是宽的。这是宽的。这是宽的。...
+  |           ^^ expected item
 "#]];
 
     let renderer = Renderer::plain().term_width(43);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
-error: expected item, found `?`
   ╭▸ 
-1 │ … 的。这是宽的。这是宽的。这是宽的。…
-  │             ━━ expected item
-  │
-  ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+1 │ … 。这是宽的。这是宽的。这是宽的。这…
+  ╰╴          ━━ expected item
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
 
 #[test]
-fn unicode_cut_handling4() {
-    let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
-    let input = &[Level::ERROR
-        .primary_title("expected item, found `?`").element(
-                Snippet::source(source)
-                    .fold(false)
-                    .annotation(AnnotationKind::Primary.span(334..335).label("expected item"))
-            ).element(
-                Level::NOTE.message("for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>")
-
-       )];
+fn trim_unicode_annotate_unicode_middle_no_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(251..254)))];
 
     let expected_ascii = str![[r#"
-error: expected item, found `?`
+  |
+1 | ... 是宽的。这是宽的。这是宽的。这...
+  |                   ^^
+"#]];
+
+    let renderer = Renderer::plain().term_width(43);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 这是宽的。这是宽的。这是宽的。这是…
+  ╰╴                  ━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_ascii_annotate_ascii_end_with_label() {
+    let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
+    let input = &[Group::with_level(Level::ERROR).element(
+        Snippet::source(source).annotation(
+            AnnotationKind::Primary
+                .span(334..335)
+                .label("expected item"),
+        ),
+    )];
+
+    let expected_ascii = str![[r#"
   |
 1 | ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
   |                                                             ^ expected item
-  |
-  = note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
 "#]];
 
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
-error: expected item, found `?`
   ╭▸ 
 1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
-  │                                                             ━ expected item
-  │
-  ╰ note: for a full list of items that can appear in modules, see <https://doc.rust-lang.org/reference/items.html>
+  ╰╴                                                            ━ expected item
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_ascii_annotate_ascii_end_no_label() {
+    let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(334..335)))];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
+  |                                                                    ^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
+  ╰╴                                                                   ━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
