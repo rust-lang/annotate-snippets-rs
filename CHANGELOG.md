@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Correctly calculate annotation offsets when trimming unicode characters [#331](https://github.com/rust-lang/annotate-snippets-rs/pull/331)
+
 ## [0.12.6] - 2025-10-22
 
 ### Changed
