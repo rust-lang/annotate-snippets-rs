@@ -2981,6 +2981,30 @@ fn trim_unicode_annotate_ascii_end_with_label() {
 }
 
 #[test]
+fn trim_unicode_annotate_ascii_end_no_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(499..500)))];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ... 。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
+  |                                                                     ^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/
+  ╰╴                                                                    ━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
 fn trim_unicode_annotate_unicode_middle_with_label() {
     let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
     let input = &[Group::with_level(Level::ERROR).element(
@@ -3010,6 +3034,30 @@ fn trim_unicode_annotate_unicode_middle_with_label() {
 }
 
 #[test]
+fn trim_unicode_annotate_unicode_middle_no_label() {
+    let source = "/*这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。这是宽的。*/?";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(251..254)))];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ... 是宽的。这是宽的。这是宽的。这...
+  |                    ^^
+"#]];
+
+    let renderer = Renderer::plain().term_width(43);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ … 这是宽的。这是宽的。这是宽的。这是…
+  ╰╴                   ━━
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
 fn trim_ascii_annotate_ascii_end_with_label() {
     let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
     let input = &[Group::with_level(Level::ERROR).element(
@@ -3033,6 +3081,30 @@ fn trim_ascii_annotate_ascii_end_with_label() {
   ╭▸ 
 1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
   ╰╴                                                            ━ expected item
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn trim_ascii_annotate_ascii_end_no_label() {
+    let source = "/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?";
+    let input = &[Group::with_level(Level::ERROR)
+        .element(Snippet::source(source).annotation(AnnotationKind::Primary.span(334..335)))];
+
+    let expected_ascii = str![[r#"
+  |
+1 | ...aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
+  |                                                                    ^
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ 
+1 │ …aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa*/?
+  ╰╴                                                                   ━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
