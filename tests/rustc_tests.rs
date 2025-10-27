@@ -5648,7 +5648,6 @@ LL │ static ROOK_ATTACKS_TABLE: () = {
 }
 
 #[test]
-#[should_panic = "attempt to subtract with overflow"]
 fn emitter_overflow_bad_whitespace() {
     // tests/ui/errors/emitter-overflow-bad-whitespace.rs
     let source = r#"                                         fn main() {              return;              }
@@ -5669,11 +5668,33 @@ fn emitter_overflow_bad_whitespace() {
                 .patch(Patch::new(0..2, " ")),
         ),
     ];
-    let expected_ascii = str![[r#""#]];
+    let expected_ascii = str![[r#"
+error: unknown start of token:  
+  --> $DIR/emitter-overflow-bad-whitespace.rs:10:1
+   |
+10 |     ...
+   | ^
+   |
+help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is not
+   |
+10 |                                          fn main() {              return;              }
+   | +
+"#]];
     let renderer_ascii = Renderer::plain().term_width(1);
     assert_data_eq!(renderer_ascii.render(report), expected_ascii);
 
-    let expected_unicode = str![[r#""#]];
+    let expected_unicode = str![[r#"
+error: unknown start of token:  
+   ╭▸ $DIR/emitter-overflow-bad-whitespace.rs:10:1
+   │
+10 │       …
+   │ ━
+   ╰╴
+help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is not
+   ╭╴
+10 │                                          fn main() {              return;              }
+   ╰╴+
+"#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
 }

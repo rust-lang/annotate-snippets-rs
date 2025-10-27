@@ -71,7 +71,12 @@ impl Margin {
 
         if self.computed_right - self.computed_left > self.term_width {
             // Trimming only whitespace isn't enough, let's get craftier.
-            if self.label_right - self.whitespace_left <= self.term_width {
+            if self.label_right.saturating_sub(self.whitespace_left) <= self.term_width
+                // Trimming whitespace when the right-most label is somewhrere
+                // within it would result in the label pointing to the wrong
+                // place
+                && self.label_right >= self.whitespace_left
+            {
                 // Attempt to fit the code window only trimming whitespace.
                 self.computed_left = self.whitespace_left;
                 self.computed_right = self.computed_left + self.term_width;
