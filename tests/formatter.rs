@@ -1700,7 +1700,7 @@ error[E0599]: no method named `pick` found for struct `Chaenomeles` in the curre
    ╭▸ 
 LL │     pub struct Chaenomeles;
    │     ────────────────────── method `pick` not found for this struct
-   ‡
+   ⋮
 LL │     banana::Chaenomeles.pick()
    │                         ━━━━ method not found in `Chaenomeles`
    ╰╴
@@ -2487,7 +2487,7 @@ LL │ ┏     Box::new(
 LL │ ┃         Ok::<_, ()>(
 LL │ ┃             Err::<(), _>(
 LL │ ┃                 Ok::<_, ()>(
-   ‡ ┃
+   ⋮ ┃
 LL │ ┃     )
    │ ┗━━━━━┛ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    ╰╴
@@ -2600,7 +2600,7 @@ LL │ ┏     Box::new(
 LL │ ┃         Ok::<_, ()>(
 LL │ ┃             Err::<(), _>(
 LL │ ┃                 Ok::<_, ()>(
-   ‡ ┃
+   ⋮ ┃
 LL │ ┃     )
    │ ┗━━━━━┛ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    ╰╴
@@ -2785,7 +2785,7 @@ LL │        let x: Atype<
 LL │ │        Btype<
 LL │ │          Ctype<
 LL │ │            Atype<
-   ‡ │
+   ⋮ │
 LL │ │        i32
 LL │ │      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
    │ │┏━━━━━│━━━┛
@@ -4309,7 +4309,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    ╭▸ 
 12 │ cargo
    │ ━━━━━
-   ‡
+   ⋮
 18 │ zappy
    ╰╴
 "#]];
@@ -4800,7 +4800,7 @@ error: consider adding a `;` to the last statement for consistent formatting
  5 │ ┃         if *x > 0 {
  6 │ ┃             println!("Positive number");
  7 │ ┃         } else {
-   ‡ ┃
+   ⋮ ┃
 10 │ ┃     })
    │ ┗━━━━━━┛
    ╰╴

@@ -27,7 +27,7 @@
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">2</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> [workspace.lints.rust]</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">‡</tspan>
+    <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">⋮</tspan>
 </tspan>
     <tspan x="10px" y="118px"><tspan class="fg-bright-blue bold">9</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> </tspan><tspan class="fg-bright-red bold">unused_qualifications</tspan><tspan> = </tspan><tspan class="fg-bright-blue bold">"warn"</tspan>
 </tspan>
