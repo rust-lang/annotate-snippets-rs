@@ -1157,28 +1157,28 @@ fn f(){||yield(((){),
         )];
     let expected_ascii = str![[r#"
 error: this file contains an unclosed delimiter
-  --> $DIR/issue-91334.rs:7:23
-   |
-LL | fn f(){||yield(((){),
-   |       -       -    - ^
-   |       |       |    |
-   |       |       |    missing open `(` for this delimiter
-   |       |       unclosed delimiter
-   |       unclosed delimiter
+ --> $DIR/issue-91334.rs:7:23
+  |
+7 | fn f(){||yield(((){),
+  |       -       -    - ^
+  |       |       |    |
+  |       |       |    missing open `(` for this delimiter
+  |       |       unclosed delimiter
+  |       unclosed delimiter
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: this file contains an unclosed delimiter
-   ╭▸ $DIR/issue-91334.rs:7:23
-   │
-LL │ fn f(){||yield(((){),
-   │       ┬       ┬    ┬ ━
-   │       │       │    │
-   │       │       │    missing open `(` for this delimiter
-   │       │       unclosed delimiter
-   ╰╴      unclosed delimiter
+  ╭▸ $DIR/issue-91334.rs:7:23
+  │
+7 │ fn f(){||yield(((){),
+  │       ┬       ┬    ┬ ━
+  │       │       │    │
+  │       │       │    missing open `(` for this delimiter
+  │       │       unclosed delimiter
+  ╰╴      unclosed delimiter
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1246,42 +1246,42 @@ fn main() {
 error[E0571]: `break` with value from a `while` loop
   --> $DIR/issue-114529-illegal-break-with-value.rs:22:9
    |
-LL |       while true {
+21 |       while true {
    |       ---------- you can't `break` with a value in a `while` loop
-LL | /         break (|| { //~ ERROR `break` with value from a `while` loop
-LL | |             let local = 9;
-LL | |         });
+22 | /         break (|| { //~ ERROR `break` with value from a `while` loop
+23 | |             let local = 9;
+24 | |         });
    | |__________^ can only break with a value inside `loop` or breakable block
    |
 help: use `break` on its own without a value inside this `while` loop
   --> $DIR/issue-114529-illegal-break-with-value.rs:22:9
    |
-LL | /         break (|| { //~ ERROR `break` with value from a `while` loop
-LL | |             let local = 9;
-LL | |         });
+22 | /         break (|| { //~ ERROR `break` with value from a `while` loop
+23 | |             let local = 9;
+24 | |         });
    | |__________- break
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0571]: `break` with value from a `while` loop
    ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
    │
-LL │       while true {
+21 │       while true {
    │       ────────── you can't `break` with a value in a `while` loop
-LL │ ┏         break (|| { //~ ERROR `break` with value from a `while` loop
-LL │ ┃             let local = 9;
-LL │ ┃         });
+22 │ ┏         break (|| { //~ ERROR `break` with value from a `while` loop
+23 │ ┃             let local = 9;
+24 │ ┃         });
    │ ┗━━━━━━━━━━┛ can only break with a value inside `loop` or breakable block
    ╰╴
 help: use `break` on its own without a value inside this `while` loop
    ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
    │
-LL │ ┌         break (|| { //~ ERROR `break` with value from a `while` loop
-LL │ │             let local = 9;
-LL │ │         });
+22 │ ┌         break (|| { //~ ERROR `break` with value from a `while` loop
+23 │ │             let local = 9;
+24 │ │         });
    ╰╴└──────────┘ break
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -1471,50 +1471,50 @@ fn nsize() {
         ];
     let expected_ascii = str![[r#"
 error[E0277]: `V0usize` cannot be safely transmuted into `[usize; 2]`
-  --> $DIR/primitive_reprs_should_have_correct_length.rs:144:44
-   |
-LL |         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
-   |                                            ^^^^^^ the size of `V0usize` is smaller than the size of `[usize; 2]`
-   |
+   --> $DIR/primitive_reprs_should_have_correct_length.rs:144:44
+    |
+144 |         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
+    |                                            ^^^^^^ the size of `V0usize` is smaller than the size of `[usize; 2]`
+    |
 note: required by a bound in `is_transmutable`
-  --> $DIR/primitive_reprs_should_have_correct_length.rs:12:14
-   |
-LL |       pub fn is_transmutable<Src, Dst>()
-   |              --------------- required by a bound in this function
-LL |       where
-LL |           Dst: TransmuteFrom<Src, {
-   |  ______________^
-LL | |             Assume {
-LL | |                 alignment: true,
-LL | |                 lifetimes: true,
-...  |
-LL | |         }>
-   | |__________^ required by this bound in `is_transmutable`
+   --> $DIR/primitive_reprs_should_have_correct_length.rs:12:14
+    |
+ 10 |       pub fn is_transmutable<Src, Dst>()
+    |              --------------- required by a bound in this function
+ 11 |       where
+ 12 |           Dst: TransmuteFrom<Src, {
+    |  ______________^
+ 13 | |             Assume {
+ 14 | |                 alignment: true,
+ 15 | |                 lifetimes: true,
+...   |
+ 19 | |         }>
+    | |__________^ required by this bound in `is_transmutable`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0277]: `V0usize` cannot be safely transmuted into `[usize; 2]`
-   ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:144:44
-   │
-LL │         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
-   │                                            ━━━━━━ the size of `V0usize` is smaller than the size of `[usize; 2]`
-   ╰╴
+    ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:144:44
+    │
+144 │         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
+    │                                            ━━━━━━ the size of `V0usize` is smaller than the size of `[usize; 2]`
+    ╰╴
 note: required by a bound in `is_transmutable`
-   ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:12:14
-   │
-LL │       pub fn is_transmutable<Src, Dst>()
-   │              ─────────────── required by a bound in this function
-LL │       where
-LL │           Dst: TransmuteFrom<Src, {
-   │ ┏━━━━━━━━━━━━━━┛
-LL │ ┃             Assume {
-LL │ ┃                 alignment: true,
-LL │ ┃                 lifetimes: true,
-   ‡ ┃
-LL │ ┃         }>
-   ╰╴┗━━━━━━━━━━┛ required by this bound in `is_transmutable`
+    ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:12:14
+    │
+ 10 │       pub fn is_transmutable<Src, Dst>()
+    │              ─────────────── required by a bound in this function
+ 11 │       where
+ 12 │           Dst: TransmuteFrom<Src, {
+    │ ┏━━━━━━━━━━━━━━┛
+ 13 │ ┃             Assume {
+ 14 │ ┃                 alignment: true,
+ 15 │ ┃                 lifetimes: true,
+    ‡ ┃
+ 19 │ ┃         }>
+    ╰╴┗━━━━━━━━━━┛ required by this bound in `is_transmutable`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1563,17 +1563,17 @@ fn main() {
 error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
   --> $DIR/align-fail.rs:21:55
    |
-LL | ...ic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
+21 | ...ic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
    |                ^^^^^^^^^^^^^^^^^ the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
    ╭▸ $DIR/align-fail.rs:21:55
    │
-LL │ …atic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
+21 │ …atic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
    ╰╴               ━━━━━━━━━━━━━━━━━ the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -1647,33 +1647,33 @@ fn main() {}
             )];
     let expected_ascii = str![[r#"
 error[E0618]: expected function, found `{integer}`
-  --> $DIR/missing-semicolon.rs:5:13
-   |
-LL |       let x = 5;
-   |           - `x` has type `{integer}`
-LL |       let y = x //~ ERROR expected function
-   |               ^- help: consider using a semicolon here to finish the statement: `;`
-   |  _____________|
-   | |
-LL | |     () //~ ERROR expected `;`, found `}`
-   | |______- call expression requires function
+ --> $DIR/missing-semicolon.rs:5:13
+  |
+4 |       let x = 5;
+  |           - `x` has type `{integer}`
+5 |       let y = x //~ ERROR expected function
+  |               ^- help: consider using a semicolon here to finish the statement: `;`
+  |  _____________|
+  | |
+6 | |     () //~ ERROR expected `;`, found `}`
+  | |______- call expression requires function
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0618]: expected function, found `{integer}`
-   ╭▸ $DIR/missing-semicolon.rs:5:13
-   │
-LL │       let x = 5;
-   │           ─ `x` has type `{integer}`
-LL │       let y = x //~ ERROR expected function
-   │               ━─ help: consider using a semicolon here to finish the statement: `;`
-   │ ┌─────────────┘
-   │ │
-LL │ │     () //~ ERROR expected `;`, found `}`
-   ╰╴└──────┘ call expression requires function
+  ╭▸ $DIR/missing-semicolon.rs:5:13
+  │
+4 │       let x = 5;
+  │           ─ `x` has type `{integer}`
+5 │       let y = x //~ ERROR expected function
+  │               ━─ help: consider using a semicolon here to finish the statement: `;`
+  │ ┌─────────────┘
+  │ │
+6 │ │     () //~ ERROR expected `;`, found `}`
+  ╰╴└──────┘ call expression requires function
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1773,20 +1773,20 @@ outer_macro!(FirstStruct, FirstAttrStruct);
 warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
   --> $DIR/auxiliary/nested-macro-rules.rs:7:9
    |
-LL |   macro_rules! outer_macro {
+ 4 |   macro_rules! outer_macro {
    |   ------------------------ in this expansion of `nested_macro_rules::outer_macro!`
 ...
-LL | /         macro_rules! inner_macro {
-LL | |             ($bang_macro:ident, $attr_macro:ident) => {
-LL | |                 $bang_macro!($name);
-LL | |                 #[$attr_macro] struct $attr_struct_name {}
-LL | |             }
-LL | |         }
+ 7 | /         macro_rules! inner_macro {
+ 8 | |             ($bang_macro:ident, $attr_macro:ident) => {
+ 9 | |                 $bang_macro!($name);
+10 | |                 #[$attr_macro] struct $attr_struct_name {}
+11 | |             }
+12 | |         }
    | |_________^
    |
   ::: $DIR/nested-macro-rules.rs:23:5
    |
-LL |       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
+23 |       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
    |       ---------------------------------------------------------------- in this macro invocation
    |
    = help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
@@ -1794,30 +1794,30 @@ LL |       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
 note: the lint level is defined here
   --> $DIR/nested-macro-rules.rs:8:9
    |
-LL | #![warn(non_local_definitions)]
+ 8 | #![warn(non_local_definitions)]
    |         ^^^^^^^^^^^^^^^^^^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
    ╭▸ $DIR/auxiliary/nested-macro-rules.rs:7:9
    │
-LL │   macro_rules! outer_macro {
+ 4 │   macro_rules! outer_macro {
    │   ──────────────────────── in this expansion of `nested_macro_rules::outer_macro!`
    ‡
-LL │ ┏         macro_rules! inner_macro {
-LL │ ┃             ($bang_macro:ident, $attr_macro:ident) => {
-LL │ ┃                 $bang_macro!($name);
-LL │ ┃                 #[$attr_macro] struct $attr_struct_name {}
-LL │ ┃             }
-LL │ ┃         }
+ 7 │ ┏         macro_rules! inner_macro {
+ 8 │ ┃             ($bang_macro:ident, $attr_macro:ident) => {
+ 9 │ ┃                 $bang_macro!($name);
+10 │ ┃                 #[$attr_macro] struct $attr_struct_name {}
+11 │ ┃             }
+12 │ ┃         }
    │ ┗━━━━━━━━━┛
    │
    ⸬  $DIR/nested-macro-rules.rs:23:5
    │
-LL │       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
+23 │       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
    │       ──────────────────────────────────────────────────────────────── in this macro invocation
    │
    ├ help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
@@ -1825,7 +1825,7 @@ LL │       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
 note: the lint level is defined here
    ╭▸ $DIR/nested-macro-rules.rs:8:9
    │
-LL │ #![warn(non_local_definitions)]
+ 8 │ #![warn(non_local_definitions)]
    ╰╴        ━━━━━━━━━━━━━━━━━━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -1909,29 +1909,29 @@ macro_rules! inline {
 error[E0689]: can't call method `pow` on ambiguous numeric type `{integer}`
   --> $DIR/method-on-ambiguous-numeric-type.rs:37:9
    |
-LL |     bar.pow(2);
+37 |     bar.pow(2);
    |         ^^^
    |
 help: you must specify a type for this binding, like `i32`
   --> $DIR/auxiliary/macro-in-other-crate.rs:3:35
    |
-LL |     ($ident:ident) => { let $ident = 42; }
+ 3 |     ($ident:ident) => { let $ident = 42; }
    |                                   - : i32
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0689]: can't call method `pow` on ambiguous numeric type `{integer}`
    ╭▸ $DIR/method-on-ambiguous-numeric-type.rs:37:9
    │
-LL │     bar.pow(2);
+37 │     bar.pow(2);
    │         ━━━
    ╰╴
 help: you must specify a type for this binding, like `i32`
    ╭▸ $DIR/auxiliary/macro-in-other-crate.rs:3:35
    │
-LL │     ($ident:ident) => { let $ident = 42; }
+ 3 │     ($ident:ident) => { let $ident = 42; }
    ╰╴                                  ─ : i32
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -1977,17 +1977,17 @@ fn main() {}
 error[E0282]: type annotations needed
   --> $DIR/issue-42234-unknown-receiver-type.rs:15:10
    |
-LL |         .sum::<_>() //~ ERROR type annotations needed
+15 |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0282]: type annotations needed
    ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:15:10
    │
-LL │         .sum::<_>() //~ ERROR type annotations needed
+15 │         .sum::<_>() //~ ERROR type annotations needed
    ╰╴         ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2121,66 +2121,65 @@ fn main() {}
 error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
   --> $DIR/empty-match.rs:71:24
    |
-LL |     match_guarded_arm!(NonEmptyEnum5::V1); //~ ERROR `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+71 |     match_guarded_arm!(NonEmptyEnum5::V1); //~ ERROR `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
    |                        ^^^^^^^^^^^^^^^^^ patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
    |
 note: `NonEmptyEnum5` defined here
   --> $DIR/empty-match.rs:38:10
    |
-LL |     enum NonEmptyEnum5 {
+38 |     enum NonEmptyEnum5 {
    |          ^^^^^^^^^^^^^
-LL |         V1,
+39 |         V1,
    |         -- not covered
-LL |         V2,
+40 |         V2,
    |         -- not covered
-LL |         V3,
+41 |         V3,
    |         -- not covered
-LL |         V4,
+42 |         V4,
    |         -- not covered
-LL |         V5,
+43 |         V5,
    |         -- not covered
    = note: the matched value is of type `NonEmptyEnum5`
    = note: match arms with guards don't count towards exhaustivity
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms
   --> $DIR/empty-match.rs:17:33
    |
-LL |                 _ if false => {}
+17 |                 _ if false => {}
    |                                 - ,
                 _ => todo!()
 "#]];
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .term_width(annotate_snippets::renderer::DEFAULT_TERM_WIDTH + 4);
+    let renderer =
+        Renderer::plain().term_width(annotate_snippets::renderer::DEFAULT_TERM_WIDTH + 4);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
    ╭▸ $DIR/empty-match.rs:71:24
    │
-LL │     match_guarded_arm!(NonEmptyEnum5::V1); //~ ERROR `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+71 │     match_guarded_arm!(NonEmptyEnum5::V1); //~ ERROR `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
    │                        ━━━━━━━━━━━━━━━━━ patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
    ╰╴
 note: `NonEmptyEnum5` defined here
    ╭▸ $DIR/empty-match.rs:38:10
    │
-LL │     enum NonEmptyEnum5 {
+38 │     enum NonEmptyEnum5 {
    │          ━━━━━━━━━━━━━
-LL │         V1,
+39 │         V1,
    │         ── not covered
-LL │         V2,
+40 │         V2,
    │         ── not covered
-LL │         V3,
+41 │         V3,
    │         ── not covered
-LL │         V4,
+42 │         V4,
    │         ── not covered
-LL │         V5,
+43 │         V5,
    │         ── not covered
    ├ note: the matched value is of type `NonEmptyEnum5`
    ╰ note: match arms with guards don't count towards exhaustivity
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms
    ╭▸ $DIR/empty-match.rs:17:33
    │
-LL │                 _ if false => {}
+17 │                 _ if false => {}
    ╰╴                                ─ ,
                 _ => todo!()
 "#]];
@@ -2238,43 +2237,43 @@ fn main() {
                 )];
     let expected_ascii = str![[r#"
 error[E0038]: the trait alias `EqAlias` is not dyn compatible
-  --> $DIR/object-fail.rs:7:17
-   |
-LL |     let _: &dyn EqAlias = &123;
-   |                 ^^^^^^^ `EqAlias` is not dyn compatible
-   |
+ --> $DIR/object-fail.rs:7:17
+  |
+7 |     let _: &dyn EqAlias = &123;
+  |                 ^^^^^^^ `EqAlias` is not dyn compatible
+  |
 note: for a trait to be dyn compatible it needs to allow building a vtable
       for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
-  --> $SRC_DIR/core/src/cmp.rs:334:14
-   |
-   = note: ...because it uses `Self` as a type parameter
-   |
-  ::: $DIR/object-fail.rs:3:7
-   |
-LL | trait EqAlias = Eq;
-   |       ------- this trait is not dyn compatible...
+ --> $SRC_DIR/core/src/cmp.rs:334:14
+  |
+  = note: ...because it uses `Self` as a type parameter
+  |
+ ::: $DIR/object-fail.rs:3:7
+  |
+3 | trait EqAlias = Eq;
+  |       ------- this trait is not dyn compatible...
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0038]: the trait alias `EqAlias` is not dyn compatible
-   ╭▸ $DIR/object-fail.rs:7:17
-   │
-LL │     let _: &dyn EqAlias = &123;
-   │                 ━━━━━━━ `EqAlias` is not dyn compatible
-   ╰╴
+  ╭▸ $DIR/object-fail.rs:7:17
+  │
+7 │     let _: &dyn EqAlias = &123;
+  │                 ━━━━━━━ `EqAlias` is not dyn compatible
+  ╰╴
 note: for a trait to be dyn compatible it needs to allow building a vtable
       for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
-   ╭▸ $SRC_DIR/core/src/cmp.rs:334:14
-   │
-   ├ note: ...because it uses `Self` as a type parameter
-   │
-   ⸬  $DIR/object-fail.rs:3:7
-   │
-LL │ trait EqAlias = Eq;
-   ╰╴      ─────── this trait is not dyn compatible...
+  ╭▸ $SRC_DIR/core/src/cmp.rs:334:14
+  │
+  ├ note: ...because it uses `Self` as a type parameter
+  │
+  ⸬  $DIR/object-fail.rs:3:7
+  │
+3 │ trait EqAlias = Eq;
+  ╰╴      ─────── this trait is not dyn compatible...
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2302,23 +2301,21 @@ fn main() {}
         )];
     let expected_ascii = str![[r#"
 error[E0038]: mismatched types
-  --> $DIR/long-span.rs:2:15
-   |
-LL | ... = [0, 0, 0...0];
-   |       ^^^^^^^^...^^ expected `u8`, found `[{integer}; 1680]`
+ --> $DIR/long-span.rs:2:15
+  |
+2 | ... = [0, 0, 0,...];
+  |       ^^^^^^^^^...^ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .term_width(8);
+    let renderer = Renderer::plain().term_width(8);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0038]: mismatched types
-   ╭▸ $DIR/long-span.rs:2:15
-   │
-LL │ …u8 = [0, 0, 0…0];
-   ╰╴      ━━━━━━━━…━━ expected `u8`, found `[{integer}; 1680]`
+  ╭▸ $DIR/long-span.rs:2:15
+  │
+2 │ …u8 = [0, 0, 0,…];
+  ╰╴      ━━━━━━━━━…━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2346,24 +2343,23 @@ fn main() {}
         )];
     let expected_ascii = str![[r#"
 error[E0038]: mismatched types
-   ╭▸ $DIR/long-span.rs:2:15
-   │
-LL │ …u8 = [0, 0, 0…0];
-   ╰╴      ━━━━━━━━…━━ expected `u8`, found `[{integer}; 1680]`
+  ╭▸ $DIR/long-span.rs:2:15
+  │
+2 │ …u8 = [0, 0, 0,…];
+  ╰╴      ━━━━━━━━━…━ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
     let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
         .term_width(12)
         .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0038]: mismatched types
-   ╭▸ $DIR/long-span.rs:2:15
-   │
-LL │ …u8 = [0, 0, 0…0];
-   ╰╴      ━━━━━━━━…━━ expected `u8`, found `[{integer}; 1680]`
+  ╭▸ $DIR/long-span.rs:2:15
+  │
+2 │ …u8 = [0, 0, 0,…];
+  ╰╴      ━━━━━━━━━…━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2391,24 +2387,23 @@ fn main() {}
         )];
     let expected_ascii = str![[r#"
 error[E0038]: mismatched types
-   ╭▸ $DIR/long-span.rs:2:15
-   │
-LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, …, 0, 0, 0, 0, 0, 0, 0];
-   ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+  ╭▸ $DIR/long-span.rs:2:15
+  │
+2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0… 0, 0, 0, 0, 0, 0, 0];
+  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
     let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
         .term_width(80)
         .decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0038]: mismatched types
-   ╭▸ $DIR/long-span.rs:2:15
-   │
-LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, …, 0, 0, 0, 0, 0, 0, 0];
-   ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+  ╭▸ $DIR/long-span.rs:2:15
+  │
+2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0… 0, 0, 0, 0, 0, 0, 0];
+  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2436,23 +2431,21 @@ fn main() {}
         )];
     let expected_ascii = str![[r#"
 error[E0038]: mismatched types
-  --> $DIR/long-span.rs:2:15
-   |
-LL | ... = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u8`, found `[{integer}; 1680]`
+ --> $DIR/long-span.rs:2:15
+  |
+2 | ... = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,..., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .term_width(120);
+    let renderer = Renderer::plain().term_width(120);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0038]: mismatched types
-   ╭▸ $DIR/long-span.rs:2:15
-   │
-LL │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-   ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+  ╭▸ $DIR/long-span.rs:2:15
+  │
+2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2518,15 +2511,15 @@ fn main() {
 error: `Iterator::map` call that discard the iterator's values
   --> $DIR/lint_map_unit_fn.rs:11:18
    |
-LL |         x.iter_mut().map(|items| {
+11 |         x.iter_mut().map(|items| {
    |                      ^   -------
    |                      |   |
    |  ____________________|___this function returns `()`, which is likely not what you wanted
    | |  __________________|
    | | |
-LL | | |     //~^ ERROR `Iterator::map` call that discard the iterator's values
-LL | | |         items.sort();
-LL | | |     });
+12 | | |     //~^ ERROR `Iterator::map` call that discard the iterator's values
+13 | | |         items.sort();
+14 | | |     });
    | | |     -^ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
    | | |_____||
    | |_______|
@@ -2535,26 +2528,26 @@ LL | | |     });
    = note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
 help: you might have meant to use `Iterator::for_each`
    |
-LL -     x.iter_mut().map(|items| {
-LL +     x.iter_mut().for_each(|items| {
+11 -     x.iter_mut().map(|items| {
+11 +     x.iter_mut().for_each(|items| {
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: `Iterator::map` call that discard the iterator's values
    ╭▸ $DIR/lint_map_unit_fn.rs:11:18
    │
-LL │         x.iter_mut().map(|items| {
+11 │         x.iter_mut().map(|items| {
    │                      ╿   │──────
    │                      │   │
    │ ┌────────────────────│───this function returns `()`, which is likely not what you wanted
    │ │ ┏━━━━━━━━━━━━━━━━━━┙
    │ │ ┃
-LL │ │ ┃     //~^ ERROR `Iterator::map` call that discard the iterator's values
-LL │ │ ┃         items.sort();
-LL │ │ ┃     });
+12 │ │ ┃     //~^ ERROR `Iterator::map` call that discard the iterator's values
+13 │ │ ┃         items.sort();
+14 │ │ ┃     });
    │ │ ┃     │╿ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
    │ │ ┗━━━━━││
    │ └───────┤
@@ -2563,8 +2556,8 @@ LL │ │ ┃     });
    ╰ note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
 help: you might have meant to use `Iterator::for_each`
    ╭╴
-LL -     x.iter_mut().map(|items| {
-LL +     x.iter_mut().for_each(|items| {
+11 -     x.iter_mut().map(|items| {
+11 +     x.iter_mut().for_each(|items| {
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2619,31 +2612,31 @@ fn main() {
 error: character constant must be escaped: `/n`
   --> $DIR/bad-char-literals.rs:10:6
    |
-LL |       '
+10 |       '
    |  ______^
-LL | | ';
+11 | | ';
    | |_^
    |
 help: escape the character
    |
-LL |     '/n';
+10 |     '/n';
    |      ++
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: character constant must be escaped: `/n`
    ╭▸ $DIR/bad-char-literals.rs:10:6
    │
-LL │       '
+10 │       '
    │ ┏━━━━━━┛
-LL │ ┃ ';
+11 │ ┃ ';
    │ ┗━┛
    ╰╴
 help: escape the character
    ╭╴
-LL │     '/n';
+10 │     '/n';
    ╰╴     ++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2682,36 +2675,36 @@ fn main() {}
     ];
     let expected_ascii = str![[r#"
 error: unclosed frontmatter
-  --> $DIR/unclosed-1.rs:1:1
-   |
-LL | / ----cargo
-...  |
-LL | |
-   | |_^
-   |
+ --> $DIR/unclosed-1.rs:1:1
+  |
+1 | / ----cargo
+... |
+7 | |
+  | |_^
+  |
 note: frontmatter opening here was not closed
-  --> $DIR/unclosed-1.rs:1:1
-   |
-LL | ----cargo
-   | ^^^^
+ --> $DIR/unclosed-1.rs:1:1
+  |
+1 | ----cargo
+  | ^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: unclosed frontmatter
-   ╭▸ $DIR/unclosed-1.rs:1:1
-   │
-LL │ ┏ ----cargo
-   ‡ ┃
-LL │ ┃
-   │ ┗━┛
-   ╰╴
+  ╭▸ $DIR/unclosed-1.rs:1:1
+  │
+1 │ ┏ ----cargo
+  ‡ ┃
+7 │ ┃
+  │ ┗━┛
+  ╰╴
 note: frontmatter opening here was not closed
-   ╭▸ $DIR/unclosed-1.rs:1:1
-   │
-LL │ ----cargo
-   ╰╴━━━━
+  ╭▸ $DIR/unclosed-1.rs:1:1
+  │
+1 │ ----cargo
+  ╰╴━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2756,35 +2749,35 @@ fn foo() -> &str {
 error: unclosed frontmatter
   --> $DIR/unclosed-2.rs:1:1
    |
-LL | / ----cargo
+ 1 | / ----cargo
 ...  |
-LL | |     "----"
-LL | | }
+14 | |     "----"
+15 | | }
    | |__^
    |
 note: frontmatter opening here was not closed
   --> $DIR/unclosed-2.rs:1:1
    |
-LL | ----cargo
+ 1 | ----cargo
    | ^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: unclosed frontmatter
    ╭▸ $DIR/unclosed-2.rs:1:1
    │
-LL │ ┏ ----cargo
+ 1 │ ┏ ----cargo
    ‡ ┃
-LL │ ┃     "----"
-LL │ ┃ }
+14 │ ┃     "----"
+15 │ ┃ }
    │ ┗━━┛
    ╰╴
 note: frontmatter opening here was not closed
    ╭▸ $DIR/unclosed-2.rs:1:1
    │
-LL │ ----cargo
+ 1 │ ----cargo
    ╰╴━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2833,29 +2826,29 @@ fn foo(x: i32) -> i32 {
 error: invalid preceding whitespace for frontmatter close
   --> $DIR/unclosed-3.rs:12:1
    |
-LL |     ---x
+12 |     ---x
    | ^^^^^^^^
    |
 note: frontmatter close should not be preceded by whitespace
   --> $DIR/unclosed-3.rs:12:1
    |
-LL |     ---x
+12 |     ---x
    | ^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: invalid preceding whitespace for frontmatter close
    ╭▸ $DIR/unclosed-3.rs:12:1
    │
-LL │     ---x
+12 │     ---x
    │ ━━━━━━━━
    ╰╴
 note: frontmatter close should not be preceded by whitespace
    ╭▸ $DIR/unclosed-3.rs:12:1
    │
-LL │     ---x
+12 │     ---x
    ╰╴━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2893,36 +2886,36 @@ fn main() {}
     ];
     let expected_ascii = str![[r#"
 error: unclosed frontmatter
-  --> $DIR/unclosed-4.rs:1:1
-   |
-LL | / ----cargo
-LL | | //~^ ERROR: unclosed frontmatter
-LL | |
-   | |_^
-   |
+ --> $DIR/unclosed-4.rs:1:1
+  |
+1 | / ----cargo
+2 | | //~^ ERROR: unclosed frontmatter
+3 | |
+  | |_^
+  |
 note: frontmatter opening here was not closed
-  --> $DIR/unclosed-4.rs:1:1
-   |
-LL | ----cargo
-   | ^^^^
+ --> $DIR/unclosed-4.rs:1:1
+  |
+1 | ----cargo
+  | ^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: unclosed frontmatter
-   ╭▸ $DIR/unclosed-4.rs:1:1
-   │
-LL │ ┏ ----cargo
-LL │ ┃ //~^ ERROR: unclosed frontmatter
-LL │ ┃
-   │ ┗━┛
-   ╰╴
+  ╭▸ $DIR/unclosed-4.rs:1:1
+  │
+1 │ ┏ ----cargo
+2 │ ┃ //~^ ERROR: unclosed frontmatter
+3 │ ┃
+  │ ┗━┛
+  ╰╴
 note: frontmatter opening here was not closed
-   ╭▸ $DIR/unclosed-4.rs:1:1
-   │
-LL │ ----cargo
-   ╰╴━━━━
+  ╭▸ $DIR/unclosed-4.rs:1:1
+  │
+1 │ ----cargo
+  ╰╴━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2961,36 +2954,36 @@ fn main() {}
 
     let expected_ascii = str![[r#"
 error: unclosed frontmatter
-  --> $DIR/unclosed-5.rs:1:1
-   |
-LL | / ----cargo
-...  |
-LL | |
-   | |_^
-   |
+ --> $DIR/unclosed-5.rs:1:1
+  |
+1 | / ----cargo
+... |
+7 | |
+  | |_^
+  |
 note: frontmatter opening here was not closed
-  --> $DIR/unclosed-5.rs:1:1
-   |
-LL | ----cargo
-   | ^^^^
+ --> $DIR/unclosed-5.rs:1:1
+  |
+1 | ----cargo
+  | ^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: unclosed frontmatter
-   ╭▸ $DIR/unclosed-5.rs:1:1
-   │
-LL │ ┏ ----cargo
-   ‡ ┃
-LL │ ┃
-   │ ┗━┛
-   ╰╴
+  ╭▸ $DIR/unclosed-5.rs:1:1
+  │
+1 │ ┏ ----cargo
+  ‡ ┃
+7 │ ┃
+  │ ┗━┛
+  ╰╴
 note: frontmatter opening here was not closed
-   ╭▸ $DIR/unclosed-5.rs:1:1
-   │
-LL │ ----cargo
-   ╰╴━━━━
+  ╭▸ $DIR/unclosed-5.rs:1:1
+  │
+1 │ ----cargo
+  ╰╴━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3124,51 +3117,51 @@ pub enum E2 {
 error[E0532]: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
   --> $DIR/pat-tuple-field-count-cross.rs:35:9
    |
-LL |         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 |         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    |         ^^^^^^
    |
   ::: $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:19
    |
-LL | pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
+11 | pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
    |               --  -- `E1::Z1` defined here
    |               |
    |               similarly named unit variant `Z0` defined here
    |
 help: use the tuple variant pattern syntax instead
    |
-LL |         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 |         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    |               ++
 help: a unit variant with a similar name exists
    |
-LL -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-LL +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0532]: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    ╭▸ $DIR/pat-tuple-field-count-cross.rs:35:9
    │
-LL │         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 │         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    │         ━━━━━━
    │
    ⸬  $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:19
    │
-LL │ pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
+11 │ pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
    │               ┬─  ── `E1::Z1` defined here
    │               │
    │               similarly named unit variant `Z0` defined here
    ╰╴
 help: use the tuple variant pattern syntax instead
    ╭╴
-LL │         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 │         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    ╰╴              ++
 help: a unit variant with a similar name exists
    ╭╴
-LL -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-LL +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+35 +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -3209,44 +3202,44 @@ fn unterminated_nested_comment() {
 
     let expected_ascii = str![[r#"
 error[E0758]: unterminated block comment
-  --> $DIR/unterminated-nested-comment.rs:1:1
-   |
-LL |   /* //~ ERROR E0758
-   |   ^-
-   |   |
-   |  _unterminated block comment
-   | |
-LL | | /* */
-LL | | /*
-   | | --
-   | | |
-   | | ...as last nested comment starts here, maybe you want to close this instead?
-LL | | */
-   | |_--^
-   |   |
-   |   ...and last nested comment terminates here.
+ --> $DIR/unterminated-nested-comment.rs:1:1
+  |
+1 |   /* //~ ERROR E0758
+  |   ^-
+  |   |
+  |  _unterminated block comment
+  | |
+2 | | /* */
+3 | | /*
+  | | --
+  | | |
+  | | ...as last nested comment starts here, maybe you want to close this instead?
+4 | | */
+  | |_--^
+  |   |
+  |   ...and last nested comment terminates here.
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0758]: unterminated block comment
-   ╭▸ $DIR/unterminated-nested-comment.rs:1:1
-   │
-LL │   /* //~ ERROR E0758
-   │   ╿─
-   │   │
-   │ ┏━unterminated block comment
-   │ ┃
-LL │ ┃ /* */
-LL │ ┃ /*
-   │ ┃ ┬─
-   │ ┃ │
-   │ ┃ ...as last nested comment starts here, maybe you want to close this instead?
-LL │ ┃ */
-   │ ┗━┬─┛
-   │   │
-   ╰╴  ...and last nested comment terminates here.
+  ╭▸ $DIR/unterminated-nested-comment.rs:1:1
+  │
+1 │   /* //~ ERROR E0758
+  │   ╿─
+  │   │
+  │ ┏━unterminated block comment
+  │ ┃
+2 │ ┃ /* */
+3 │ ┃ /*
+  │ ┃ ┬─
+  │ ┃ │
+  │ ┃ ...as last nested comment starts here, maybe you want to close this instead?
+4 │ ┃ */
+  │ ┗━┬─┛
+  │   │
+  ╰╴  ...and last nested comment terminates here.
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3296,40 +3289,40 @@ fn mismatched_types1() {
 
     let expected_ascii = str![[r#"
 error[E0308]: mismatched types
-  --> $DIR/file.txt:3:1
-   |
-LL |
-   | ^ expected `&[u8]`, found `&str`
-   |
-  ::: $DIR/mismatched-types.rs:2:12
-   |
-LL |     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
-   |            -----   ------------------------ in this macro invocation
-   |            |
-   |            expected due to this
-   |
-   = note: expected reference `&[u8]`
-              found reference `&'static str`
+ --> $DIR/file.txt:3:1
+  |
+3 |
+  | ^ expected `&[u8]`, found `&str`
+  |
+ ::: $DIR/mismatched-types.rs:2:12
+  |
+2 |     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+  |            -----   ------------------------ in this macro invocation
+  |            |
+  |            expected due to this
+  |
+  = note: expected reference `&[u8]`
+             found reference `&'static str`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
-   ╭▸ $DIR/file.txt:3:1
-   │
-LL │
-   │ ━ expected `&[u8]`, found `&str`
-   │
-   ⸬  $DIR/mismatched-types.rs:2:12
-   │
-LL │     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
-   │            ┬────   ──────────────────────── in this macro invocation
-   │            │
-   │            expected due to this
-   │
-   ╰ note: expected reference `&[u8]`
-              found reference `&'static str`
+  ╭▸ $DIR/file.txt:3:1
+  │
+3 │
+  │ ━ expected `&[u8]`, found `&str`
+  │
+  ⸬  $DIR/mismatched-types.rs:2:12
+  │
+2 │     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
+  │            ┬────   ──────────────────────── in this macro invocation
+  │            │
+  │            expected due to this
+  │
+  ╰ note: expected reference `&[u8]`
+             found reference `&'static str`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3367,30 +3360,30 @@ fn mismatched_types2() {
 
     let expected_ascii = str![[r#"
 error[E0308]: mismatched types
-  --> $DIR/mismatched-types.rs:3:19
-   |
-LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-   |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
-   |            |
-   |            expected due to this
-   |
-   = note: expected reference `&str`
-              found reference `&'static [u8; 0]`
+ --> $DIR/mismatched-types.rs:3:19
+  |
+3 |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+  |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
+  |            |
+  |            expected due to this
+  |
+  = note: expected reference `&str`
+             found reference `&'static [u8; 0]`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
-   ╭▸ $DIR/mismatched-types.rs:3:19
-   │
-LL │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-   │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
-   │            │
-   │            expected due to this
-   │
-   ╰ note: expected reference `&str`
-              found reference `&'static [u8; 0]`
+  ╭▸ $DIR/mismatched-types.rs:3:19
+  │
+3 │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+  │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
+  │            │
+  │            expected due to this
+  │
+  ╰ note: expected reference `&str`
+             found reference `&'static [u8; 0]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3442,9 +3435,7 @@ fn main() {
     let expected_ascii = str![[r#"
 $DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`
 "#]];
-    let renderer = Renderer::plain()
-        .short_message(true)
-        .anonymized_line_numbers(true);
+    let renderer = Renderer::plain().short_message(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str!["$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`"];
@@ -3483,9 +3474,7 @@ fn main() {
     let expected_ascii = str![[r#"
 $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`
 "#]];
-    let renderer = Renderer::plain()
-        .short_message(true)
-        .anonymized_line_numbers(true);
+    let renderer = Renderer::plain().short_message(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str!["$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`"];
@@ -3537,44 +3526,42 @@ pub struct Foo; //~^ ERROR
 
     let expected_ascii = str![[r#"
 error: this URL is not a hyperlink
-  --> $DIR/diagnostic-width.rs:4:41
-   |
-LL | ... a http://link.com
-   |       ^^^^^^^^^^^^^^^
-   |
-   = note: bare URLs are not automatically turned into clickable links
+ --> $DIR/diagnostic-width.rs:4:41
+  |
+4 | ... a http://link.com
+  |       ^^^^^^^^^^^^^^^
+  |
+  = note: bare URLs are not automatically turned into clickable links
 note: the lint level is defined here
-  --> $DIR/diagnostic-width.rs:2:9
-   |
-LL | ...ny(ru...are_urls)]
-   |       ^^...^^^^^^^^
+ --> $DIR/diagnostic-width.rs:2:9
+  |
+2 | ...ny(rus...re_urls)]
+  |       ^^^...^^^^^^^
 help: use an automatic link instead
-   |
-LL | /// This is a long line that contains a <http://link.com>
-   |                                         +               +
+  |
+4 | /// This is a long line that contains a <http://link.com>
+  |                                         +               +
 "#]];
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .term_width(10);
+    let renderer = Renderer::plain().term_width(10);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: this URL is not a hyperlink
-   ╭▸ $DIR/diagnostic-width.rs:4:41
-   │
-LL │ …ns a http://link.com
-   │       ━━━━━━━━━━━━━━━
-   │
-   ╰ note: bare URLs are not automatically turned into clickable links
+  ╭▸ $DIR/diagnostic-width.rs:4:41
+  │
+4 │ …ns a http://link.com
+  │       ━━━━━━━━━━━━━━━
+  │
+  ╰ note: bare URLs are not automatically turned into clickable links
 note: the lint level is defined here
-   ╭▸ $DIR/diagnostic-width.rs:2:9
-   │
-LL │ …deny(ru…are_urls)]
-   ╰╴      ━━…━━━━━━━━
+  ╭▸ $DIR/diagnostic-width.rs:2:9
+  │
+2 │ …deny(rus…re_urls)]
+  ╰╴      ━━━…━━━━━━━
 help: use an automatic link instead
-   ╭╴
-LL │ /// This is a long line that contains a <http://link.com>
-   ╰╴                                        +               +
+  ╭╴
+4 │ /// This is a long line that contains a <http://link.com>
+  ╰╴                                        +               +
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3742,7 +3729,7 @@ fn main() {
 error[E0369]: cannot add `Box<isize>` to `Box<isize>`
   --> $DIR/autoderef-box-no-add.rs:25:24
    |
-LL |     let z: isize = a.x + b.y;
+25 |     let z: isize = a.x + b.y;
    |                    --- ^ --- Box<isize>
    |                    |
    |                    Box<isize>
@@ -3753,14 +3740,14 @@ note: the foreign item type `Box<isize>` doesn't implement `Add`
    |
    = note: not implement `Add`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0369]: cannot add `Box<isize>` to `Box<isize>`
    ╭▸ $DIR/autoderef-box-no-add.rs:25:24
    │
-LL │     let z: isize = a.x + b.y;
+25 │     let z: isize = a.x + b.y;
    │                    ┬── ━ ─── Box<isize>
    │                    │
    │                    Box<isize>
@@ -3878,7 +3865,7 @@ fn main() {
 error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
   --> $DIR/dont-project-to-specializable-projection.rs:48:28
    |
-LL |         match fut.as_mut().poll(ctx) {
+48 |         match fut.as_mut().poll(ctx) {
    |                            ^^^^ method not found in `Pin<&mut impl Future<Output = ()>>`
    |
   --> $SRC_DIR/core/src/future/future.rs:104:7
@@ -3888,17 +3875,17 @@ LL |         match fut.as_mut().poll(ctx) {
    = help: items from traits can only be used if the trait is in scope
 help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it
    |
-LL + use std::future::Future;
+ 6 + use std::future::Future;
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
    ╭▸ $DIR/dont-project-to-specializable-projection.rs:48:28
    │
-LL │         match fut.as_mut().poll(ctx) {
+48 │         match fut.as_mut().poll(ctx) {
    │                            ━━━━ method not found in `Pin<&mut impl Future<Output = ()>>`
    ╰╴
    ╭▸ $SRC_DIR/core/src/future/future.rs:104:7
@@ -3908,7 +3895,7 @@ LL │         match fut.as_mut().poll(ctx) {
    ╰ help: items from traits can only be used if the trait is in scope
 help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it
    ╭╴
-LL + use std::future::Future;
+ 6 + use std::future::Future;
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -3979,9 +3966,9 @@ fn main() {
 error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
   --> $DIR/binary-op-not-allowed-issue-125631.rs:11:9
    |
-LL |     (Error::new(ErrorKind::Other, "2"), thread::current())
+10 |     (Error::new(ErrorKind::Other, "2"), thread::current())
    |     ------------------------------------------------------ (std::io::Error, Thread)
-LL |         == (Error::new(ErrorKind::Other, "2"), thread::current());
+11 |         == (Error::new(ErrorKind::Other, "2"), thread::current());
    |         ^^ ------------------------------------------------------ (std::io::Error, Thread)
    |
 note: the foreign item types don't implement required traits for this operation to be valid
@@ -3992,16 +3979,16 @@ note: the foreign item types don't implement required traits for this operation 
    |
    = note: not implement `PartialEq`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
    ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
    │
-LL │     (Error::new(ErrorKind::Other, "2"), thread::current())
+10 │     (Error::new(ErrorKind::Other, "2"), thread::current())
    │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
-LL │         == (Error::new(ErrorKind::Other, "2"), thread::current());
+11 │         == (Error::new(ErrorKind::Other, "2"), thread::current());
    │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
    ╰╴
 note: the foreign item types don't implement required traits for this operation to be valid
@@ -4057,32 +4044,32 @@ pub fn main() {}
 
     let expected_ascii = str![[r#"
 error: cannot find derive macro `Eqr` in this scope
-  --> $DIR/deriving-meta-unknown-trait.rs:1:10
-   |
-LL | #[derive(Eqr)]
-   |          ^^^ help: a derive macro with a similar name exists: `Eq`
-   |
-  --> $SRC_DIR/core/src/cmp.rs:356:0
-   |
-   = note: similarly named derive macro `Eq` defined here
-   |
-   = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+ --> $DIR/deriving-meta-unknown-trait.rs:1:10
+  |
+1 | #[derive(Eqr)]
+  |          ^^^ help: a derive macro with a similar name exists: `Eq`
+  |
+ --> $SRC_DIR/core/src/cmp.rs:356:0
+  |
+  = note: similarly named derive macro `Eq` defined here
+  |
+  = note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: cannot find derive macro `Eqr` in this scope
-   ╭▸ $DIR/deriving-meta-unknown-trait.rs:1:10
-   │
-LL │ #[derive(Eqr)]
-   │          ━━━ help: a derive macro with a similar name exists: `Eq`
-   ╰╴
-   ╭▸ $SRC_DIR/core/src/cmp.rs:356:0
-   │
-   ├ note: similarly named derive macro `Eq` defined here
-   │
-   ╰ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+  ╭▸ $DIR/deriving-meta-unknown-trait.rs:1:10
+  │
+1 │ #[derive(Eqr)]
+  │          ━━━ help: a derive macro with a similar name exists: `Eq`
+  ╰╴
+  ╭▸ $SRC_DIR/core/src/cmp.rs:356:0
+  │
+  ├ note: similarly named derive macro `Eq` defined here
+  │
+  ╰ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -4147,10 +4134,10 @@ which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`"#;
 error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
   --> $DIR/not-repeatable.rs:11:13
    |
-LL | struct Ipv4Addr;
+ 7 | struct Ipv4Addr;
    | --------------- method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
 ...
-LL |     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not s...
+11 |     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not s...
    |             ^^^^^^^^^^^^^^^^^^ method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
    |
    = note: the following trait bounds were not satisfied:
@@ -4166,17 +4153,17 @@ note: the traits `Iterator` and `ToTokens` must be implemented
   --> $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
   --> $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
    ╭▸ $DIR/not-repeatable.rs:11:13
    │
-LL │ struct Ipv4Addr;
+ 7 │ struct Ipv4Addr;
    │ ─────────────── method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
    ‡
-LL │     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not sat…
+11 │     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not sat…
    │             ━━━━━━━━━━━━━━━━━━ method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
    │
    ╰ note: the following trait bounds were not satisfied:
@@ -4256,26 +4243,26 @@ fn main() {
 error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
   --> $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23
    |
-LL | struct S<T>(T);
+12 | struct S<T>(T);
    | ----------- associated type `Pr` not found for this struct
 ...
-LL |     let _: S::<bool>::Pr = ();
+28 |     let _: S::<bool>::Pr = ();
    |                       ^^ associated item not found in `S<bool>`
    |
    = note: the associated type was found for
            
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
    ╭▸ $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23
    │
-LL │ struct S<T>(T);
+12 │ struct S<T>(T);
    │ ─────────── associated type `Pr` not found for this struct
    ‡
-LL │     let _: S::<bool>::Pr = ();
+28 │     let _: S::<bool>::Pr = ();
    │                       ━━ associated item not found in `S<bool>`
    │
    ╰ note: the associated type was found for
@@ -4341,16 +4328,16 @@ fn main() {}
 error: extern blocks should be unsafe
   --> $DIR/unsafe-extern-suggestion.rs:6:1
    |
-LL |   extern "C" {
+ 6 |   extern "C" {
    |   ^
    |   |
    |  _help: needs `unsafe` before the extern keyword: `unsafe`
    | |
-LL | |     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
-LL | |     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
-LL | |     static TEST1: i32;
-LL | |     fn test1(i: i32);
-LL | | }
+ 7 | |     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
+ 8 | |     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+ 9 | |     static TEST1: i32;
+10 | |     fn test1(i: i32);
+11 | | }
    | |_^
    |
    = warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
@@ -4358,26 +4345,26 @@ LL | | }
 note: the lint level is defined here
   --> $DIR/unsafe-extern-suggestion.rs:3:9
    |
-LL | #![deny(missing_unsafe_on_extern)]
+ 3 | #![deny(missing_unsafe_on_extern)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: extern blocks should be unsafe
    ╭▸ $DIR/unsafe-extern-suggestion.rs:6:1
    │
-LL │   extern "C" {
+ 6 │   extern "C" {
    │   ╿
    │   │
    │ ┏━help: needs `unsafe` before the extern keyword: `unsafe`
    │ ┃
-LL │ ┃     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
-LL │ ┃     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
-LL │ ┃     static TEST1: i32;
-LL │ ┃     fn test1(i: i32);
-LL │ ┃ }
+ 7 │ ┃     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
+ 8 │ ┃     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+ 9 │ ┃     static TEST1: i32;
+10 │ ┃     fn test1(i: i32);
+11 │ ┃ }
    │ ┗━┛
    │
    ├ warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
@@ -4385,7 +4372,7 @@ LL │ ┃ }
 note: the lint level is defined here
    ╭▸ $DIR/unsafe-extern-suggestion.rs:3:9
    │
-LL │ #![deny(missing_unsafe_on_extern)]
+ 3 │ #![deny(missing_unsafe_on_extern)]
    ╰╴        ━━━━━━━━━━━━━━━━━━━━━━━━
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4468,14 +4455,14 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
 error[E0308]: mismatched types
   --> $DIR/alloc-error-handler-bad-signature-2.rs:10:1
    |
-LL |    #[alloc_error_handler]
+ 9 |    #[alloc_error_handler]
    |    ---------------------- in this procedural macro expansion
-LL | // fn oom(
-LL | ||     info: Layout, //~^ ERROR mismatched types
-LL | || ) { //~^^ ERROR mismatched types
+10 | // fn oom(
+11 | ||     info: Layout, //~^ ERROR mismatched types
+12 | || ) { //~^^ ERROR mismatched types
    | ||_- arguments to this function are incorrect
-LL | |      loop {}
-LL | |  }
+13 | |      loop {}
+14 | |  }
    | |__^ expected `Layout`, found `core::alloc::Layout`
    |
    = note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
@@ -4484,31 +4471,31 @@ note: `core::alloc::Layout` is defined in crate `core`
 note: `Layout` is defined in the current crate
   --> $DIR/alloc-error-handler-bad-signature-2.rs:7:1
    |
-LL | struct Layout;
+ 7 | struct Layout;
    | ^^^^^^^^^^^^^
 note: function defined here
   --> $DIR/alloc-error-handler-bad-signature-2.rs:10:4
    |
-LL | fn oom(
+10 | fn oom(
    |    ^^^
-LL |     info: Layout, //~^ ERROR mismatched types
+11 |     info: Layout, //~^ ERROR mismatched types
    |     ------------
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
    ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:10:1
    │
-LL │    #[alloc_error_handler]
+ 9 │    #[alloc_error_handler]
    │    ────────────────────── in this procedural macro expansion
-LL │ ┏┌ fn oom(
-LL │ ┃│     info: Layout, //~^ ERROR mismatched types
-LL │ ┃│ ) { //~^^ ERROR mismatched types
+10 │ ┏┌ fn oom(
+11 │ ┃│     info: Layout, //~^ ERROR mismatched types
+12 │ ┃│ ) { //~^^ ERROR mismatched types
    │ ┃└─┘ arguments to this function are incorrect
-LL │ ┃      loop {}
-LL │ ┃  }
+13 │ ┃      loop {}
+14 │ ┃  }
    │ ┗━━┛ expected `Layout`, found `core::alloc::Layout`
    │
    ╰ note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
@@ -4517,14 +4504,14 @@ note: `core::alloc::Layout` is defined in crate `core`
 note: `Layout` is defined in the current crate
    ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:7:1
    │
-LL │ struct Layout;
+ 7 │ struct Layout;
    ╰╴━━━━━━━━━━━━━
 note: function defined here
    ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:10:4
    │
-LL │ fn oom(
+10 │ fn oom(
    │    ━━━
-LL │     info: Layout, //~^ ERROR mismatched types
+11 │     info: Layout, //~^ ERROR mismatched types
    ╰╴    ────────────
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4586,23 +4573,23 @@ fn main() {
 warning: whitespace symbol '\u{a0}' is not skipped
   --> $DIR/str-escape.rs:12:18
    |
-LL |       let s = c"foo\
+12 |       let s = c"foo\
    |  __________________^
-LL | |              bar
+13 | |              bar
    | |   ^ whitespace symbol '\u{a0}' is not skipped
    | |___|
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii.raw());
 
     let expected_unicode = str![[r#"
 warning: whitespace symbol '\u{a0}' is not skipped
    ╭▸ $DIR/str-escape.rs:12:18
    │
-LL │       let s = c"foo\
+12 │       let s = c"foo\
    │ ┏━━━━━━━━━━━━━━━━━━┛
-LL │ ┃              bar
+13 │ ┃              bar
    │ ┃   ╿ whitespace symbol '\u{a0}' is not skipped
    │ ┗━━━│
    ╰╴
@@ -4679,7 +4666,7 @@ fn main() {
 error[E0004]: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
    ╭▸ $DIR/match-privately-empty.rs:14:11
    │
-LL │     match private::DATA {
+14 │     match private::DATA {
    │           ━━━━━━━━━━━━━ pattern `Some(Private { misc: true, .. })` not covered
    ╰╴
 note: `Option<Private>` defined here
@@ -4690,20 +4677,18 @@ note: `Option<Private>` defined here
    ╰ note: the matched value is of type `Option<Private>`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
    ╭╴
-LL ±         Some(private::Private { misc: false, .. }) => {},
-LL +         Some(Private { misc: true, .. }) => todo!()
+33 ±         Some(private::Private { misc: false, .. }) => {},
+34 +         Some(Private { misc: true, .. }) => todo!()
    ╰╴
 "#]];
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .decor_style(DecorStyle::Unicode);
+    let renderer = Renderer::plain().decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0004]: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
    ╭▸ $DIR/match-privately-empty.rs:14:11
    │
-LL │     match private::DATA {
+14 │     match private::DATA {
    │           ━━━━━━━━━━━━━ pattern `Some(Private { misc: true, .. })` not covered
    ╰╴
 note: `Option<Private>` defined here
@@ -4714,8 +4699,8 @@ note: `Option<Private>` defined here
    ╰ note: the matched value is of type `Option<Private>`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
    ╭╴
-LL ±         Some(private::Private { misc: false, .. }) => {},
-LL +         Some(Private { misc: true, .. }) => todo!()
+33 ±         Some(private::Private { misc: false, .. }) => {},
+34 +         Some(Private { misc: true, .. }) => todo!()
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4791,7 +4776,7 @@ for more information, visit <https://doc.rust-lang.org/reference/items/traits.ht
 error[E0038]: the trait `Ord` is not dyn compatible
    ╭▸ $DIR/bare-trait-dont-suggest-dyn.rs:6:33
    │
-LL │ fn ord_prefer_dot(s: String) -> Ord {
+ 6 │ fn ord_prefer_dot(s: String) -> Ord {
    │                                 ━━━ `Ord` is not dyn compatible
    ╰╴
 note: for a trait to be dyn compatible it needs to allow building a vtable
@@ -4804,19 +4789,17 @@ note: for a trait to be dyn compatible it needs to allow building a vtable
    ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
 help: consider using an opaque type instead
    ╭╴
-LL │ fn ord_prefer_dot(s: String) -> impl Ord {
+11 │ fn ord_prefer_dot(s: String) -> impl Ord {
    ╰╴                                ++++
 "#]];
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .decor_style(DecorStyle::Unicode);
+    let renderer = Renderer::plain().decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0038]: the trait `Ord` is not dyn compatible
    ╭▸ $DIR/bare-trait-dont-suggest-dyn.rs:6:33
    │
-LL │ fn ord_prefer_dot(s: String) -> Ord {
+ 6 │ fn ord_prefer_dot(s: String) -> Ord {
    │                                 ━━━ `Ord` is not dyn compatible
    ╰╴
 note: for a trait to be dyn compatible it needs to allow building a vtable
@@ -4829,7 +4812,7 @@ note: for a trait to be dyn compatible it needs to allow building a vtable
    ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
 help: consider using an opaque type instead
    ╭╴
-LL │ fn ord_prefer_dot(s: String) -> impl Ord {
+11 │ fn ord_prefer_dot(s: String) -> impl Ord {
    ╰╴                                ++++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4902,9 +4885,9 @@ fn main() {
 error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
    ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
    │
-LL │     (Error::new(ErrorKind::Other, "2"), thread::current())
+10 │     (Error::new(ErrorKind::Other, "2"), thread::current())
    │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
-LL │         == (Error::new(ErrorKind::Other, "2"), thread::current());
+11 │         == (Error::new(ErrorKind::Other, "2"), thread::current());
    │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
    ╰╴
 note: the foreign item types don't implement required traits for this operation to be valid
@@ -4915,18 +4898,16 @@ note: the foreign item types don't implement required traits for this operation 
    │
    ╰ note: not implement `PartialEq`
 "#]];
-    let renderer = Renderer::plain()
-        .anonymized_line_numbers(true)
-        .decor_style(DecorStyle::Unicode);
+    let renderer = Renderer::plain().decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
    ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
    │
-LL │     (Error::new(ErrorKind::Other, "2"), thread::current())
+10 │     (Error::new(ErrorKind::Other, "2"), thread::current())
    │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
-LL │         == (Error::new(ErrorKind::Other, "2"), thread::current());
+11 │         == (Error::new(ErrorKind::Other, "2"), thread::current());
    │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
    ╰╴
 note: the foreign item types don't implement required traits for this operation to be valid
@@ -5030,40 +5011,40 @@ fn main() {}
 error[E0433]: failed to resolve: use of undeclared type `IntoIter`
   --> $DIR/issue-82956.rs:25:24
    |
-LL |         let mut iter = IntoIter::new(self);
+25 |         let mut iter = IntoIter::new(self);
    |                        ^^^^^^^^ use of undeclared type `IntoIter`
    |
 help: consider importing one of these structs
    |
-LL + use std::array::IntoIter;
+ 4 + use std::array::IntoIter;
    |
-LL + use std::collections::binary_heap::IntoIter;
+ 4 + use std::collections::binary_heap::IntoIter;
    |
-LL + use std::collections::btree_map::IntoIter;
+ 4 + use std::collections::btree_map::IntoIter;
    |
-LL + use std::collections::btree_set::IntoIter;
+ 4 + use std::collections::btree_set::IntoIter;
    |
    = and 9 other candidates
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0433]: failed to resolve: use of undeclared type `IntoIter`
    ╭▸ $DIR/issue-82956.rs:25:24
    │
-LL │         let mut iter = IntoIter::new(self);
+25 │         let mut iter = IntoIter::new(self);
    │                        ━━━━━━━━ use of undeclared type `IntoIter`
    ╰╴
 help: consider importing one of these structs
    ╭╴
-LL + use std::array::IntoIter;
+ 4 + use std::array::IntoIter;
    ├╴
-LL + use std::collections::binary_heap::IntoIter;
+ 4 + use std::collections::binary_heap::IntoIter;
    ├╴
-LL + use std::collections::btree_map::IntoIter;
+ 4 + use std::collections::btree_map::IntoIter;
    ├╴
-LL + use std::collections::btree_set::IntoIter;
+ 4 + use std::collections::btree_set::IntoIter;
    │
    ╰ and 9 other candidates
 "#]];
@@ -5157,7 +5138,7 @@ fn main() {
 error[E0423]: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
   --> $DIR/multi-suggestion.rs:17:13
    |
-LL |     let _ = std::collections::HashMap();
+17 |     let _ = std::collections::HashMap();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   ::: $SRC_DIR/std/src/collections/hash/map.rs:242:0
    |
@@ -5165,30 +5146,30 @@ LL |     let _ = std::collections::HashMap();
    |
 help: you might have meant to use an associated function to build this type
    |
-LL |     let _ = std::collections::HashMap::new();
+17 |     let _ = std::collections::HashMap::new();
    |                                      +++++
-LL -     let _ = std::collections::HashMap();
-LL +     let _ = std::collections::HashMap::with_capacity(_);
+17 -     let _ = std::collections::HashMap();
+17 +     let _ = std::collections::HashMap::with_capacity(_);
    |
-LL -     let _ = std::collections::HashMap();
-LL +     let _ = std::collections::HashMap::with_hasher(_);
+17 -     let _ = std::collections::HashMap();
+17 +     let _ = std::collections::HashMap::with_hasher(_);
    |
-LL -     let _ = std::collections::HashMap();
-LL +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
+17 -     let _ = std::collections::HashMap();
+17 +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
    |
 help: consider using the `Default` trait
    |
-LL |     let _ = <std::collections::HashMap as std::default::Default>::default();
+17 |     let _ = <std::collections::HashMap as std::default::Default>::default();
    |             +                          ++++++++++++++++++++++++++++++++++
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0423]: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
    ╭▸ $DIR/multi-suggestion.rs:17:13
    │
-LL │     let _ = std::collections::HashMap();
+17 │     let _ = std::collections::HashMap();
    │             ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ⸬  $SRC_DIR/std/src/collections/hash/map.rs:242:0
    │
@@ -5196,20 +5177,20 @@ LL │     let _ = std::collections::HashMap();
    ╰╴
 help: you might have meant to use an associated function to build this type
    ╭╴
-LL │     let _ = std::collections::HashMap::new();
+17 │     let _ = std::collections::HashMap::new();
    ├╴                                     +++++
-LL -     let _ = std::collections::HashMap();
-LL +     let _ = std::collections::HashMap::with_capacity(_);
+17 -     let _ = std::collections::HashMap();
+17 +     let _ = std::collections::HashMap::with_capacity(_);
    ├╴
-LL -     let _ = std::collections::HashMap();
-LL +     let _ = std::collections::HashMap::with_hasher(_);
+17 -     let _ = std::collections::HashMap();
+17 +     let _ = std::collections::HashMap::with_hasher(_);
    ├╴
-LL -     let _ = std::collections::HashMap();
-LL +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
+17 -     let _ = std::collections::HashMap();
+17 +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
    ╰╴
 help: consider using the `Default` trait
    ╭╴
-LL │     let _ = <std::collections::HashMap as std::default::Default>::default();
+17 │     let _ = <std::collections::HashMap as std::default::Default>::default();
    ╰╴            +                          ++++++++++++++++++++++++++++++++++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -5305,7 +5286,7 @@ fn main() {
 error[E0423]: cannot initialize a tuple struct which contains private fields
   --> $DIR/suggest-box-new.rs:11:19
    |
-LL |         wtf: Some(Box(U {
+11 |         wtf: Some(Box(U {
    |                   ^^^
    |
 note: constructor is not visible here due to private fields
@@ -5316,45 +5297,45 @@ note: constructor is not visible here due to private fields
    = note: private field
 help: you might have meant to use an associated function to build this type
    |
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new(_)),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new(_)),
    |
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new_uninit()),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new_uninit()),
    |
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new_zeroed()),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new_zeroed()),
    |
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new_in(_, _)),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new_in(_, _)),
    |
    = and 12 other candidates
 help: consider using the `Default` trait
    |
-LL -         wtf: Some(Box(U {
-LL +         wtf: Some(<Box as std::default::Default>::default()),
+11 -         wtf: Some(Box(U {
+11 +         wtf: Some(<Box as std::default::Default>::default()),
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0423]: cannot initialize a tuple struct which contains private fields
    ╭▸ $DIR/suggest-box-new.rs:11:19
    │
-LL │         wtf: Some(Box(U {
+11 │         wtf: Some(Box(U {
    │                   ━━━
    ╰╴
 note: constructor is not visible here due to private fields
@@ -5365,35 +5346,35 @@ note: constructor is not visible here due to private fields
    ╰ note: private field
 help: you might have meant to use an associated function to build this type
    ╭╴
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new(_)),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new(_)),
    ├╴
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new_uninit()),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new_uninit()),
    ├╴
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new_zeroed()),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new_zeroed()),
    ├╴
-LL -         wtf: Some(Box(U {
-LL -             wtf: None,
-LL -             x: (),
-LL -         })),
-LL +         wtf: Some(Box::new_in(_, _)),
+11 -         wtf: Some(Box(U {
+12 -             wtf: None,
+13 -             x: (),
+14 -         })),
+11 +         wtf: Some(Box::new_in(_, _)),
    │
    ╰ and 12 other candidates
 help: consider using the `Default` trait
    ╭╴
-LL -         wtf: Some(Box(U {
-LL +         wtf: Some(<Box as std::default::Default>::default()),
+11 -         wtf: Some(Box(U {
+11 +         wtf: Some(<Box as std::default::Default>::default()),
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -5481,46 +5462,46 @@ fn main() {}
 error[E0599]: no method named `bar` found for struct `Thing` in the current scope
   --> $DIR/too-many-field-suggestions.rs:25:7
    |
-LL | struct Thing {
+ 1 | struct Thing {
    | ------------ method `bar` not found for this struct
 ...
-LL |     t.bar();
+25 |     t.bar();
    |       ^^^ method not found in `Thing`
    |
 help: some of the expressions' fields have a method of the same name
    |
-LL |     t.a0.bar();
+25 |     t.a0.bar();
    |       +++
-LL |     t.a1.bar();
+25 |     t.a1.bar();
    |       +++
-LL |     t.a2.bar();
+25 |     t.a2.bar();
    |       +++
-LL |     t.a3.bar();
+25 |     t.a3.bar();
    |       +++
    = and 6 other candidates
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0599]: no method named `bar` found for struct `Thing` in the current scope
    ╭▸ $DIR/too-many-field-suggestions.rs:25:7
    │
-LL │ struct Thing {
+ 1 │ struct Thing {
    │ ──────────── method `bar` not found for this struct
    ‡
-LL │     t.bar();
+25 │     t.bar();
    │       ━━━ method not found in `Thing`
    ╰╴
 help: some of the expressions' fields have a method of the same name
    ╭╴
-LL │     t.a0.bar();
+25 │     t.a0.bar();
    ├╴      +++
-LL │     t.a1.bar();
+25 │     t.a1.bar();
    ├╴      +++
-LL │     t.a2.bar();
+25 │     t.a2.bar();
    ├╴      +++
-LL │     t.a3.bar();
+25 │     t.a3.bar();
    │       +++
    ╰ and 6 other candidates
 "#]];
@@ -5542,18 +5523,18 @@ fn invalid_arguments_unterminated() {
         ))];
     let expected_ascii = str![[r#"
 error: invalid `--check-cfg` argument: `cfg(`
-   |
-   = note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
-   = note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
+  |
+  = note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
+  = note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: invalid `--check-cfg` argument: `cfg(`
-   │
-   ├ note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
-   ╰ note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
+  │
+  ├ note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
+  ╰ note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -5616,32 +5597,32 @@ If your compilation actually takes a long time, you can safely allow the lint.";
     ];
     let expected_ascii = str![[r#"
 error: constant evaluation is taking a long time
-  --> $SRC_DIR/core/src/num/mod.rs:1151:4
-   = note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
-           If your compilation actually takes a long time, you can safely allow the lint.
+ --> $SRC_DIR/core/src/num/mod.rs:1151:4
+  = note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+          If your compilation actually takes a long time, you can safely allow the lint.
 help: the constant being evaluated
-  --> $DIR/timeout.rs:7:1
-   |
-LL | static ROOK_ATTACKS_TABLE: () = {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = note: `#[deny(long_running_const_eval)]` on by default
-   = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
+ --> $DIR/timeout.rs:7:1
+  |
+7 | static ROOK_ATTACKS_TABLE: () = {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: `#[deny(long_running_const_eval)]` on by default
+  = note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: constant evaluation is taking a long time
-   ╭▸ $SRC_DIR/core/src/num/mod.rs:1151:4
-   ╰ note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
-           If your compilation actually takes a long time, you can safely allow the lint.
+  ╭▸ $SRC_DIR/core/src/num/mod.rs:1151:4
+  ╰ note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+          If your compilation actually takes a long time, you can safely allow the lint.
 help: the constant being evaluated
-   ╭▸ $DIR/timeout.rs:7:1
-   │
-LL │ static ROOK_ATTACKS_TABLE: () = {
-   │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ├ note: `#[deny(long_running_const_eval)]` on by default
-   ╰ note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
+  ╭▸ $DIR/timeout.rs:7:1
+  │
+7 │ static ROOK_ATTACKS_TABLE: () = {
+  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ├ note: `#[deny(long_running_const_eval)]` on by default
+  ╰ note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);

@@ -27,7 +27,7 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>   </tspan><tspan class="fg-bright-blue bold">│</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">LL</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>     query(wrapped_fn);</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">21</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>     query(wrapped_fn);</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>   </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>     </tspan><tspan class="fg-bright-blue bold">┬────</tspan><tspan> </tspan><tspan class="fg-bright-red bold">━━━━━━━━━━</tspan><tspan> </tspan><tspan class="fg-bright-red bold">one type is more general than the other</tspan>
 </tspan>
@@ -47,13 +47,13 @@
 </tspan>
     <tspan x="10px" y="244px"><tspan>   </tspan><tspan class="fg-bright-blue bold">│</tspan>
 </tspan>
-    <tspan x="10px" y="262px"><tspan class="fg-bright-blue bold">LL</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>   fn query(_: fn(Box&lt;(dyn Any + Send + '_)&gt;) -&gt; Pin&lt;Box&lt;(</tspan>
+    <tspan x="10px" y="262px"><tspan class="fg-bright-blue bold">10</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>   fn query(_: fn(Box&lt;(dyn Any + Send + '_)&gt;) -&gt; Pin&lt;Box&lt;(</tspan>
 </tspan>
     <tspan x="10px" y="280px"><tspan>   </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">┌────</tspan><tspan class="fg-bright-green bold">━━━━━</tspan><tspan class="fg-bright-blue bold">─┘</tspan>
 </tspan>
-    <tspan x="10px" y="298px"><tspan class="fg-bright-blue bold">LL</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>     dyn Future&lt;Output = Result&lt;Box&lt;(dyn Any + 'static)&gt;, String&gt;&gt; + Send + 'static</tspan>
+    <tspan x="10px" y="298px"><tspan class="fg-bright-blue bold">11</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>     dyn Future&lt;Output = Result&lt;Box&lt;(dyn Any + 'static)&gt;, String&gt;&gt; + Send + 'static</tspan>
 </tspan>
-    <tspan x="10px" y="316px"><tspan class="fg-bright-blue bold">LL</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> )&gt;&gt;) {}</tspan>
+    <tspan x="10px" y="316px"><tspan class="fg-bright-blue bold">12</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> )&gt;&gt;) {}</tspan>
 </tspan>
     <tspan x="10px" y="334px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰╴└───┘</tspan>
 </tspan>

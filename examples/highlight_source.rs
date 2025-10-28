@@ -26,8 +26,6 @@ fn main() {}
 
     )];
 
-    let renderer = Renderer::styled()
-        .anonymized_line_numbers(true)
-        .decor_style(DecorStyle::Unicode);
+    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
     anstream::println!("{}", renderer.render(report));
 }

@@ -510,22 +510,22 @@ fn test_anon_lines() {
     let expected_ascii = str![[r#"
 error: 
    |
-LL | This is an example
-LL | of content lines
-LL |
-LL | abc
+56 | This is an example
+57 | of content lines
+58 |
+59 | abc
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: 
    ╭▸ 
-LL │ This is an example
-LL │ of content lines
-LL │
-LL │ abc
+56 │ This is an example
+57 │ of content lines
+58 │
+59 │ abc
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -1591,34 +1591,34 @@ fn two_suggestions_same_span() {
 
     let expected_ascii = str![[r#"
 error[E0423]: expected value, found enum `A`
-   |
-LL |     A.foo();
-   |     ^
-   |
+  |
+1 |     A.foo();
+  |     ^
+  |
 help: you might have meant to use one of the following enum variants
-   |
-LL -     A.foo();
-LL +     (A::Tuple()).foo();
-   |
-LL |     A::Unit.foo();
-   |      ++++++
+  |
+1 -     A.foo();
+1 +     (A::Tuple()).foo();
+  |
+1 |     A::Unit.foo();
+  |      ++++++
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0423]: expected value, found enum `A`
-   ╭▸ 
-LL │     A.foo();
-   │     ━
-   ╰╴
+  ╭▸ 
+1 │     A.foo();
+  │     ━
+  ╰╴
 help: you might have meant to use one of the following enum variants
-   ╭╴
-LL -     A.foo();
-LL +     (A::Tuple()).foo();
-   ├╴
-LL │     A::Unit.foo();
-   ╰╴     ++++++
+  ╭╴
+1 -     A.foo();
+1 +     (A::Tuple()).foo();
+  ├╴
+1 │     A::Unit.foo();
+  ╰╴     ++++++
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1679,36 +1679,36 @@ fn main() {
     let expected_ascii = str![[r#"
 error[E0599]: no method named `pick` found for struct `Chaenomeles` in the current scope
    |
-LL |     pub struct Chaenomeles;
+ 3 |     pub struct Chaenomeles;
    |     ---------------------- method `pick` not found for this struct
 ...
-LL |     banana::Chaenomeles.pick()
+18 |     banana::Chaenomeles.pick()
    |                         ^^^^ method not found in `Chaenomeles`
    |
 help: the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them
    |
-LL + use banana::Apple;
+ 2 + use banana::Apple;
    |
-LL + use banana::Peach;
+ 2 + use banana::Peach;
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0599]: no method named `pick` found for struct `Chaenomeles` in the current scope
    ╭▸ 
-LL │     pub struct Chaenomeles;
+ 3 │     pub struct Chaenomeles;
    │     ────────────────────── method `pick` not found for this struct
    ‡
-LL │     banana::Chaenomeles.pick()
+18 │     banana::Chaenomeles.pick()
    │                         ━━━━ method not found in `Chaenomeles`
    ╰╴
 help: the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them
    ╭╴
-LL + use banana::Apple;
+ 2 + use banana::Apple;
    ├╴
-LL + use banana::Peach;
+ 2 + use banana::Peach;
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -1739,30 +1739,30 @@ fn single_line_non_overlapping_suggestions() {
 
     let expected_ascii = str![[r#"
 error[E0423]: expected value, found enum `A`
-   |
-LL |     A.foo();
-   |     ^
-   |
+  |
+1 |     A.foo();
+  |     ^
+  |
 help: make these changes and things will work
-   |
-LL -     A.foo();
-LL +     (A::Tuple()).bar();
-   |
+  |
+1 -     A.foo();
+1 +     (A::Tuple()).bar();
+  |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0423]: expected value, found enum `A`
-   ╭▸ 
-LL │     A.foo();
-   │     ━
-   ╰╴
+  ╭▸ 
+1 │     A.foo();
+  │     ━
+  ╰╴
 help: make these changes and things will work
-   ╭╴
-LL -     A.foo();
-LL +     (A::Tuple()).bar();
-   ╰╴
+  ╭╴
+1 -     A.foo();
+1 +     (A::Tuple()).bar();
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1791,30 +1791,30 @@ fn single_line_non_overlapping_suggestions2() {
 
     let expected_ascii = str![[r#"
 error[E0423]: Found `ThisIsVeryLong`
-   |
-LL |     ThisIsVeryLong.foo();
-   |     ^^^^^^^^^^^^^^
-   |
+  |
+1 |     ThisIsVeryLong.foo();
+  |     ^^^^^^^^^^^^^^
+  |
 help: make these changes and things will work
-   |
-LL -     ThisIsVeryLong.foo();
-LL +     (A::Tuple()).bar();
-   |
+  |
+1 -     ThisIsVeryLong.foo();
+1 +     (A::Tuple()).bar();
+  |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0423]: Found `ThisIsVeryLong`
-   ╭▸ 
-LL │     ThisIsVeryLong.foo();
-   │     ━━━━━━━━━━━━━━
-   ╰╴
+  ╭▸ 
+1 │     ThisIsVeryLong.foo();
+  │     ━━━━━━━━━━━━━━
+  ╰╴
 help: make these changes and things will work
-   ╭╴
-LL -     ThisIsVeryLong.foo();
-LL +     (A::Tuple()).bar();
-   ╰╴
+  ╭╴
+1 -     ThisIsVeryLong.foo();
+1 +     (A::Tuple()).bar();
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1871,50 +1871,50 @@ fn multiple_replacements() {
     ];
     let expected_ascii = str![[r#"
 error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable
-   |
-LL |     let y = || {
-   |             ^^ immutable borrow occurs here
-LL |         self.bar();
-   |         ^^^^ first borrow occurs due to use of `*self` in closure
-LL |     };
-LL |     self.qux();
-   |     ^^^^^^^^^^ mutable borrow occurs here
-LL |     y();
-   |     ^ immutable borrow later used here
-   |
+  |
+2 |     let y = || {
+  |             ^^ immutable borrow occurs here
+3 |         self.bar();
+  |         ^^^^ first borrow occurs due to use of `*self` in closure
+4 |     };
+5 |     self.qux();
+  |     ^^^^^^^^^^ mutable borrow occurs here
+6 |     y();
+  |     ^ immutable borrow later used here
+  |
 help: try explicitly pass `&Self` into the Closure as an argument
-   |
-LL ~     let y = |this: &Self| {
-LL ~         this.bar();
-LL |     };
-LL |     self.qux();
-LL ~     y(self);
-   |
+  |
+2 ~     let y = |this: &Self| {
+3 ~         this.bar();
+4 |     };
+5 |     self.qux();
+6 ~     y(self);
+  |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable
-   ╭▸ 
-LL │     let y = || {
-   │             ━━ immutable borrow occurs here
-LL │         self.bar();
-   │         ━━━━ first borrow occurs due to use of `*self` in closure
-LL │     };
-LL │     self.qux();
-   │     ━━━━━━━━━━ mutable borrow occurs here
-LL │     y();
-   │     ━ immutable borrow later used here
-   ╰╴
+  ╭▸ 
+2 │     let y = || {
+  │             ━━ immutable borrow occurs here
+3 │         self.bar();
+  │         ━━━━ first borrow occurs due to use of `*self` in closure
+4 │     };
+5 │     self.qux();
+  │     ━━━━━━━━━━ mutable borrow occurs here
+6 │     y();
+  │     ━ immutable borrow later used here
+  ╰╴
 help: try explicitly pass `&Self` into the Closure as an argument
-   ╭╴
-LL ±     let y = |this: &Self| {
-LL ±         this.bar();
-LL │     };
-LL │     self.qux();
-LL ±     y(self);
-   ╰╴
+  ╭╴
+2 ±     let y = |this: &Self| {
+3 ±         this.bar();
+4 │     };
+5 │     self.qux();
+6 ±     y(self);
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -1973,42 +1973,42 @@ fn main() {
 
     let expected_ascii = str![[r#"
 error[E0499]: cannot borrow `chars` as mutable more than once at a time
-   |
-LL |     for _c in chars.by_ref() {
-   |               --------------
-   |               |
-   |               first mutable borrow occurs here
-   |               first borrow later used here
-LL |         chars.next();
-   |         ^^^^^ second mutable borrow occurs here
-   |
+  |
+4 |     for _c in chars.by_ref() {
+  |               --------------
+  |               |
+  |               first mutable borrow occurs here
+  |               first borrow later used here
+5 |         chars.next();
+  |         ^^^^^ second mutable borrow occurs here
+  |
 help: if you want to call `next` on a iterator within the loop, consider using `while let`
-   |
-LL ~     let iter = chars.by_ref();
-LL ~     while let Some(_c) = iter.next() {
-LL ~         iter.next();
-   |
+  |
+4 ~     let iter = chars.by_ref();
+5 ~     while let Some(_c) = iter.next() {
+6 ~         iter.next();
+  |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0499]: cannot borrow `chars` as mutable more than once at a time
-   ╭▸ 
-LL │     for _c in chars.by_ref() {
-   │               ┬─────────────
-   │               │
-   │               first mutable borrow occurs here
-   │               first borrow later used here
-LL │         chars.next();
-   │         ━━━━━ second mutable borrow occurs here
-   ╰╴
+  ╭▸ 
+4 │     for _c in chars.by_ref() {
+  │               ┬─────────────
+  │               │
+  │               first mutable borrow occurs here
+  │               first borrow later used here
+5 │         chars.next();
+  │         ━━━━━ second mutable borrow occurs here
+  ╰╴
 help: if you want to call `next` on a iterator within the loop, consider using `while let`
-   ╭╴
-LL ±     let iter = chars.by_ref();
-LL ±     while let Some(_c) = iter.next() {
-LL ±         iter.next();
-   ╰╴
+  ╭╴
+4 ±     let iter = chars.by_ref();
+5 ±     while let Some(_c) = iter.next() {
+6 ±         iter.next();
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2057,45 +2057,45 @@ fn main() {}"#;
     let expected_ascii = str![[r#"
 error[E0433]: failed to resolve: use of undeclared crate or module `st`
    |
-LL |     bar: st::cell::Cell<bool>
+13 |     bar: st::cell::Cell<bool>
    |          ^^ use of undeclared crate or module `st`
    |
 help: there is a crate or module with a similar name
    |
-LL |     bar: std::cell::Cell<bool>
+13 |     bar: std::cell::Cell<bool>
    |            +
 help: consider importing this module
    |
-LL + use std::cell;
+ 2 + use std::cell;
    |
 help: if you import `cell`, refer to it directly
    |
-LL -     bar: st::cell::Cell<bool>
-LL +     bar: cell::Cell<bool>
+13 -     bar: st::cell::Cell<bool>
+13 +     bar: cell::Cell<bool>
    |
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0433]: failed to resolve: use of undeclared crate or module `st`
    ╭▸ 
-LL │     bar: st::cell::Cell<bool>
+13 │     bar: st::cell::Cell<bool>
    │          ━━ use of undeclared crate or module `st`
    ╰╴
 help: there is a crate or module with a similar name
    ╭╴
-LL │     bar: std::cell::Cell<bool>
+13 │     bar: std::cell::Cell<bool>
    ╰╴           +
 help: consider importing this module
    ╭╴
-LL + use std::cell;
+ 2 + use std::cell;
    ╰╴
 help: if you import `cell`, refer to it directly
    ╭╴
-LL -     bar: st::cell::Cell<bool>
-LL +     bar: cell::Cell<bool>
+13 -     bar: st::cell::Cell<bool>
+13 +     bar: cell::Cell<bool>
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2147,38 +2147,38 @@ fn main() {}"#;
     let expected_ascii = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    |
-LL | fn foo<T>(foo: Wrapper<T>)
+ 4 | fn foo<T>(foo: Wrapper<T>)
    |        -       ^^^^^^^^^^ doesn't have a size known at compile-time
    |        |
    |        this type parameter needs to be `Sized`
    |
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
    |
-LL - where
-LL -     T
-LL -     :
-LL -     ?
-LL -     Sized
+ 6 - where
+ 7 -     T
+ 8 -     :
+ 9 -     ?
+10 -     Sized
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    ╭▸ 
-LL │ fn foo<T>(foo: Wrapper<T>)
+ 4 │ fn foo<T>(foo: Wrapper<T>)
    │        ┬       ━━━━━━━━━━ doesn't have a size known at compile-time
    │        │
    │        this type parameter needs to be `Sized`
    ╰╴
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
    ╭╴
-LL - where
-LL -     T
-LL -     :
-LL -     ?
-LL -     Sized
+ 6 - where
+ 7 -     T
+ 8 -     :
+ 9 -     ?
+10 -     Sized
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2265,7 +2265,7 @@ fn main() {}"#;
 error[E0277]: the size for values of type `T` cannot be known at compilation time
   --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:4:16
    |
-LL | fn foo<T>(foo: Wrapper<T>)
+ 4 | fn foo<T>(foo: Wrapper<T>)
    |        -       ^^^^^^^^^^ doesn't have a size known at compile-time
    |        |
    |        this type parameter needs to be `Sized`
@@ -2273,33 +2273,33 @@ LL | fn foo<T>(foo: Wrapper<T>)
 note: required by an implicit `Sized` bound in `Wrapper`
   --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
    |
-LL | struct Wrapper<T>(T);
+ 2 | struct Wrapper<T>(T);
    |                ^ required by the implicit `Sized` requirement on this type parameter in `Wrapper`
 help: you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`
   --> $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
    |
-LL | struct Wrapper<T>(T);
+ 2 | struct Wrapper<T>(T);
    |                ^  - ...if indirection were used here: `Box<T>`
    |                |
    |                this could be changed to `T: ?Sized`...
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
    |
-LL - and where
-LL -     T
-LL -     :
-LL -     ?
-LL -     Sized
-LL + and + Send
+ 6 - and where
+ 7 -     T
+ 8 -     :
+ 9 -     ?
+10 -     Sized
+ 6 + and + Send
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0277]: the size for values of type `T` cannot be known at compilation time
    ╭▸ $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:4:16
    │
-LL │ fn foo<T>(foo: Wrapper<T>)
+ 4 │ fn foo<T>(foo: Wrapper<T>)
    │        ┬       ━━━━━━━━━━ doesn't have a size known at compile-time
    │        │
    │        this type parameter needs to be `Sized`
@@ -2307,23 +2307,23 @@ LL │ fn foo<T>(foo: Wrapper<T>)
 note: required by an implicit `Sized` bound in `Wrapper`
    ╭▸ $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
    │
-LL │ struct Wrapper<T>(T);
+ 2 │ struct Wrapper<T>(T);
    ╰╴               ━ required by the implicit `Sized` requirement on this type parameter in `Wrapper`
 help: you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`
    ╭▸ $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16
    │
-LL │ struct Wrapper<T>(T);
+ 2 │ struct Wrapper<T>(T);
    │                ┯  ─ ...if indirection were used here: `Box<T>`
    │                │
    ╰╴               this could be changed to `T: ?Sized`...
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
    ╭╴
-LL - and where
-LL -     T
-LL -     :
-LL -     ?
-LL -     Sized
-LL + and + Send
+ 6 - and where
+ 7 -     T
+ 8 -     :
+ 9 -     ?
+10 -     Sized
+ 6 + and + Send
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -2459,42 +2459,40 @@ fn main() {
 error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
   --> $DIR/E0271.rs:20:5
    |
-LL | /     Box::new(
-LL | |         Ok::<_, ()>(
-LL | |             Err::<(), _>(
-LL | |                 Ok::<_, ()>(
+20 | /     Box::new(
+21 | |         Ok::<_, ()>(
+22 | |             Err::<(), _>(
+23 | |                 Ok::<_, ()>(
 ...  |
-LL | |     )
+32 | |     )
    | |_____^ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    |
 note: expected this to be `Foo`
   --> $DIR/E0271.rs:10:18
    |
-LL |     type Error = E;
+10 |     type Error = E;
    |                  ^
    = note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
 "#]];
-    let renderer = Renderer::plain()
-        .term_width(40)
-        .anonymized_line_numbers(true);
+    let renderer = Renderer::plain().term_width(40);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
    ╭▸ $DIR/E0271.rs:20:5
    │
-LL │ ┏     Box::new(
-LL │ ┃         Ok::<_, ()>(
-LL │ ┃             Err::<(), _>(
-LL │ ┃                 Ok::<_, ()>(
+20 │ ┏     Box::new(
+21 │ ┃         Ok::<_, ()>(
+22 │ ┃             Err::<(), _>(
+23 │ ┃                 Ok::<_, ()>(
    ‡ ┃
-LL │ ┃     )
+32 │ ┃     )
    │ ┗━━━━━┛ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    ╰╴
 note: expected this to be `Foo`
    ╭▸ $DIR/E0271.rs:10:18
    │
-LL │     type Error = E;
+10 │     type Error = E;
    │                  ━
    ╰ note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
 "#]];
@@ -2571,43 +2569,41 @@ fn main() {
 error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
   --> $DIR/E0271.rs:20:5
    |
-LL | /     Box::new(
-LL | |         Ok::<_, ()>(
-LL | |             Err::<(), _>(
-LL | |                 Ok::<_, ()>(
+20 | /     Box::new(
+21 | |         Ok::<_, ()>(
+22 | |             Err::<(), _>(
+23 | |                 Ok::<_, ()>(
 ...  |
-LL | |     )
+32 | |     )
    | |_____^ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    |
 note: expected this to be `Foo`
   --> $DIR/E0271.rs:10:18
    |
-LL |     type Error = E;
+10 |     type Error = E;
    |                  ^
    = note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
    = note: a second note
 "#]];
-    let renderer = Renderer::plain()
-        .term_width(40)
-        .anonymized_line_numbers(true);
+    let renderer = Renderer::plain().term_width(40);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
    ╭▸ $DIR/E0271.rs:20:5
    │
-LL │ ┏     Box::new(
-LL │ ┃         Ok::<_, ()>(
-LL │ ┃             Err::<(), _>(
-LL │ ┃                 Ok::<_, ()>(
+20 │ ┏     Box::new(
+21 │ ┃         Ok::<_, ()>(
+22 │ ┃             Err::<(), _>(
+23 │ ┃                 Ok::<_, ()>(
    ‡ ┃
-LL │ ┃     )
+32 │ ┃     )
    │ ┗━━━━━┛ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    ╰╴
 note: expected this to be `Foo`
    ╭▸ $DIR/E0271.rs:10:18
    │
-LL │     type Error = E;
+10 │     type Error = E;
    │                  ━
    ├ note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
    ╰ note: a second note
@@ -2749,21 +2745,21 @@ fn main() {
 error[E0308]: mismatched types
   --> $DIR/long-E0308.rs:48:9
    |
-LL |        let x: Atype<
+24 |        let x: Atype<
    |  _____________-
-LL | |        Btype<
-LL | |          Ctype<
-LL | |            Atype<
+25 | |        Btype<
+26 | |          Ctype<
+27 | |            Atype<
 ...  |
-LL | |        i32
-LL | |      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok...
+47 | |        i32
+48 | |      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok...
    | | _____-___^
    | ||_____|
    |  |     expected due to this
-LL |  |         Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok...
-LL |  |             Ok("")
-LL |  |         ))))))))))))))))))))))))))))))
-LL |  |     )))))))))))))))))))))))))))))];
+49 |  |         Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok...
+50 |  |             Ok("")
+51 |  |         ))))))))))))))))))))))))))))))
+52 |  |     )))))))))))))))))))))))))))))];
    |  |__________________________________^ expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
    |
    = note: expected struct `Atype<Btype<..., i32>, i32>`
@@ -2771,30 +2767,28 @@ LL |  |     )))))))))))))))))))))))))))))];
    = note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
    = note: consider using `--verbose` to print the full type name to the console
 "#]];
-    let renderer = Renderer::plain()
-        .term_width(60)
-        .anonymized_line_numbers(true);
+    let renderer = Renderer::plain().term_width(60);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
    ╭▸ $DIR/long-E0308.rs:48:9
    │
-LL │        let x: Atype<
+24 │        let x: Atype<
    │ ┌─────────────┘
-LL │ │        Btype<
-LL │ │          Ctype<
-LL │ │            Atype<
+25 │ │        Btype<
+26 │ │          Ctype<
+27 │ │            Atype<
    ‡ │
-LL │ │        i32
-LL │ │      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
+47 │ │        i32
+48 │ │      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
    │ │┏━━━━━│━━━┛
    │ └┃─────┤
    │  ┃     expected due to this
-LL │  ┃         Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
-LL │  ┃             Ok("")
-LL │  ┃         ))))))))))))))))))))))))))))))
-LL │  ┃     )))))))))))))))))))))))))))))];
+49 │  ┃         Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
+50 │  ┃             Ok("")
+51 │  ┃         ))))))))))))))))))))))))))))))
+52 │  ┃     )))))))))))))))))))))))))))))];
    │  ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
    │
    ├ note: expected struct `Atype<Btype<..., i32>, i32>`
@@ -2865,7 +2859,7 @@ fn main() {
 error[E0308]: mismatched types
   --> $DIR/unicode-output.rs:23:11
    |
-LL |     query(wrapped_fn);
+23 |     query(wrapped_fn);
    |     ----- ^^^^^^^^^^ one type is more general than the other
    |     |
    |     arguments to this function are incorrect
@@ -2875,20 +2869,20 @@ LL |     query(wrapped_fn);
 note: function defined here
   --> $DIR/unicode-output.rs:12:10
    |
-LL |   fn query(_: fn(Box<(dyn Any + Send + '_)>) -> Pin<Box<(
+12 |   fn query(_: fn(Box<(dyn Any + Send + '_)>) -> Pin<Box<(
    |  ____-----_^
-LL | |     dyn Future<Output = Result<Box<(dyn Any + 'static)>, String>> + Send + 'static
-LL | | )>>) {}
+13 | |     dyn Future<Output = Result<Box<(dyn Any + 'static)>, String>> + Send + 'static
+14 | | )>>) {}
    | |___^
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
    ╭▸ $DIR/unicode-output.rs:23:11
    │
-LL │     query(wrapped_fn);
+23 │     query(wrapped_fn);
    │     ┬──── ━━━━━━━━━━ one type is more general than the other
    │     │
    │     arguments to this function are incorrect
@@ -2898,10 +2892,10 @@ LL │     query(wrapped_fn);
 note: function defined here
    ╭▸ $DIR/unicode-output.rs:12:10
    │
-LL │   fn query(_: fn(Box<(dyn Any + Send + '_)>) -> Pin<Box<(
+12 │   fn query(_: fn(Box<(dyn Any + Send + '_)>) -> Pin<Box<(
    │ ┏━━━━─────━┛
-LL │ ┃     dyn Future<Output = Result<Box<(dyn Any + 'static)>, String>> + Send + 'static
-LL │ ┃ )>>) {}
+13 │ ┃     dyn Future<Output = Result<Box<(dyn Any + 'static)>, String>> + Send + 'static
+14 │ ┃ )>>) {}
    ╰╴┗━━━┛
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -3192,25 +3186,25 @@ fn main() {
 
     let expected_ascii = str![[r#"
 error[E0308]: mismatched types
-  --> $DIR/non-whitespace-trimming-unicode.rs:4:415
-   |
-LL | ...♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲...
-   |                                                  --   ^^ expected `()`, found integer
-   |                                                  |
-   |                                                  expected due to this
+ --> $DIR/non-whitespace-trimming-unicode.rs:4:415
+  |
+4 | ...♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲...
+  |                                                   --   ^^ expected `()`, found integer
+  |                                                   |
+  |                                                   expected due to this
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
-   ╭▸ $DIR/non-whitespace-trimming-unicode.rs:4:415
-   │
-LL │ …♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳…
-   │                                                  ┬─   ━━ expected `()`, found integer
-   │                                                  │
-   ╰╴                                                 expected due to this
+  ╭▸ $DIR/non-whitespace-trimming-unicode.rs:4:415
+  │
+4 │ …♤♥♦♧♨♩♪♫♬♭♮♯♰♱♲♳♴♵♶♷♸♹♺♻♼♽♾♿⚀⚁⚂⚃⚄⚅⚆⚈⚉4"; let _: () = 42;  let _: &str = "🦀☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓  ☖☗☘☙☚☛☜☝☞☟☠☡☢☣☤☥☦☧☨☩☪☫☬☭☮☯☰☱☲☳…
+  │                                                   ┬─   ━━ expected `()`, found integer
+  │                                                   │
+  ╰╴                                                  expected due to this
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3257,39 +3251,39 @@ fn main() {
 
     let expected_ascii = str![[r#"
 error[E0369]: cannot add `&str` to `&str`
-  --> $DIR/non-1-width-unicode-multiline-label.rs:7:260
-   |
-LL | ...࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
-   |                                  -------------- ^ -------------- &str
-   |                                  |              |
-   |                                  |              `+` cannot be used to concatenate two `&str` strings
-   |                                  &str
-   |
-   = note: string concatenation requires an owned `String` on the left
+ --> $DIR/non-1-width-unicode-multiline-label.rs:7:260
+  |
+7 | ...࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
+  |                                  -------------- ^ -------------- &str
+  |                                  |              |
+  |                                  |              `+` cannot be used to concatenate two `&str` strings
+  |                                  &str
+  |
+  = note: string concatenation requires an owned `String` on the left
 help: create an owned `String` from a string reference
-   |
-LL |     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun.to_owned() + " really fun!";
-   |                                                                                                                                                                                         +++++++++++
+  |
+7 |     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun.to_owned() + " really fun!";
+  |                                                                                                                                                                                         +++++++++++
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0369]: cannot add `&str` to `&str`
-   ╭▸ $DIR/non-1-width-unicode-multiline-label.rs:7:260
-   │
-LL │ …࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
-   │                                  ┬───────────── ┯ ────────────── &str
-   │                                  │              │
-   │                                  │              `+` cannot be used to concatenate two `&str` strings
-   │                                  &str
-   │
-   ╰ note: string concatenation requires an owned `String` on the left
+  ╭▸ $DIR/non-1-width-unicode-multiline-label.rs:7:260
+  │
+7 │ …࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun + " really fun!";
+  │                                  ┬───────────── ┯ ────────────── &str
+  │                                  │              │
+  │                                  │              `+` cannot be used to concatenate two `&str` strings
+  │                                  &str
+  │
+  ╰ note: string concatenation requires an owned `String` on the left
 help: create an owned `String` from a string reference
-   ╭╴
-LL │     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun.to_owned() + " really fun!";
-   ╰╴                                                                                                                                                                                        +++++++++++
+  ╭╴
+7 │     let _ = "ༀ༁༂༃༄༅༆༇༈༉༊་༌།༎༏༐༑༒༓༔༕༖༗༘༙༚༛༜༝༞༟༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳༴༵༶༷༸༹༺༻༼༽༾༿ཀཁགགྷངཅཆཇ཈ཉཊཋཌཌྷཎཏཐདདྷནཔཕབབྷམཙཚཛཛྷཝཞཟའཡརལཤཥསཧཨཀྵཪཫཬ཭཮཯཰ཱཱཱིིུུྲྀཷླྀཹེཻོཽཾཿ྄ཱྀྀྂྃ྅྆྇ྈྉྊྋྌྍྎྏྐྑྒྒྷྔྕྖྗ྘ྙྚྛྜྜྷྞྟྠྡྡྷྣྤྥྦྦྷྨྩྪྫྫྷྭྮྯྰྱྲླྴྵྶྷྸྐྵྺྻྼ྽྾྿࿀࿁࿂࿃࿄࿅࿆࿇࿈࿉࿊࿋࿌࿍࿎࿏࿐࿑࿒࿓࿔࿕࿖࿗࿘࿙࿚"; let _a = unicode_is_fun.to_owned() + " really fun!";
+  ╰╴                                                                                                                                                                                        +++++++++++
 "#]];
 
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -3326,35 +3320,35 @@ fn foo() {
 
     let expected_ascii = str![[r#"
 error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
-  --> $DIR/not-utf8.rs:6:5
-   |
-LL |     include!("not-utf8.bin");
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^
-   |
+ --> $DIR/not-utf8.rs:6:5
+  |
+6 |     include!("not-utf8.bin");
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
 note: byte `193` is not valid utf-8
-  --> $DIR/not-utf8.bin:1:1
-   |
-LL | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�␜␇�
-   | ^
-   = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
+ --> $DIR/not-utf8.bin:1:1
+  |
+1 | �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�␜␇�
+  | ^
+  = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
-   ╭▸ $DIR/not-utf8.rs:6:5
-   │
-LL │     include!("not-utf8.bin");
-   │     ━━━━━━━━━━━━━━━━━━━━━━━━
-   ╰╴
+  ╭▸ $DIR/not-utf8.rs:6:5
+  │
+6 │     include!("not-utf8.bin");
+  │     ━━━━━━━━━━━━━━━━━━━━━━━━
+  ╰╴
 note: byte `193` is not valid utf-8
-   ╭▸ $DIR/not-utf8.bin:1:1
-   │
-LL │ �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�␜␇�
-   │ ━
-   ╰ note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
+  ╭▸ $DIR/not-utf8.bin:1:1
+  │
+1 │ �|�␂!5�cc␕␂�Ӻi��WWj�ȥ�'�}�␒�J�ȉ��W�␞O�@����␜w�V���LO����␔[ ␃_�'���SQ�~ذ��ų&��-    ��lN~��!@␌ _#���kQ��h�␝�:�␜␇�
+  │ ━
+  ╰ note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3392,30 +3386,30 @@ fn secondary_title_no_level_text() {
 
     let expected_ascii = str![[r#"
 error[E0308]: mismatched types
-  --> $DIR/mismatched-types.rs:3:19
-   |
-LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-   |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
-   |            |
-   |            expected due to this
-   |
-   = expected reference `&str`
-     found reference `&'static [u8; 0]`
+ --> $DIR/mismatched-types.rs:3:19
+  |
+3 |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+  |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
+  |            |
+  |            expected due to this
+  |
+  = expected reference `&str`
+    found reference `&'static [u8; 0]`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
-   ╭▸ $DIR/mismatched-types.rs:3:19
-   │
-LL │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-   │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
-   │            │
-   │            expected due to this
-   │
-   ╰ expected reference `&str`
-     found reference `&'static [u8; 0]`
+  ╭▸ $DIR/mismatched-types.rs:3:19
+  │
+3 │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+  │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
+  │            │
+  │            expected due to this
+  │
+  ╰ expected reference `&str`
+    found reference `&'static [u8; 0]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3453,30 +3447,30 @@ fn secondary_title_custom_level_text() {
 
     let expected_ascii = str![[r#"
 error[E0308]: mismatched types
-  --> $DIR/mismatched-types.rs:3:19
-   |
-LL |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-   |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
-   |            |
-   |            expected due to this
-   |
-   = custom: expected reference `&str`
-             found reference `&'static [u8; 0]`
+ --> $DIR/mismatched-types.rs:3:19
+  |
+3 |     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+  |            ----   ^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `&str`, found `&[u8; 0]`
+  |            |
+  |            expected due to this
+  |
+  = custom: expected reference `&str`
+            found reference `&'static [u8; 0]`
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0308]: mismatched types
-   ╭▸ $DIR/mismatched-types.rs:3:19
-   │
-LL │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-   │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
-   │            │
-   │            expected due to this
-   │
-   ╰ custom: expected reference `&str`
-             found reference `&'static [u8; 0]`
+  ╭▸ $DIR/mismatched-types.rs:3:19
+  │
+3 │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
+  │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
+  │            │
+  │            expected due to this
+  │
+  ╰ custom: expected reference `&str`
+            found reference `&'static [u8; 0]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3546,42 +3540,42 @@ fn main() {
 error[E0571]: `break` with value from a `while` loop
   --> $DIR/issue-114529-illegal-break-with-value.rs:22:9
    |
-LL |       while true {
+21 |       while true {
    |       ---------- you can't `break` with a value in a `while` loop
-LL | /         break (|| { //~ ERROR `break` with value from a `while` loop
-LL | |             let local = 9;
-LL | |         });
+22 | /         break (|| { //~ ERROR `break` with value from a `while` loop
+23 | |             let local = 9;
+24 | |         });
    | |__________^ can only break with a value inside `loop` or breakable block
    |
 suggestion[S0123]: use `break` on its own without a value inside this `while` loop
    |
-LL -         break (|| { //~ ERROR `break` with value from a `while` loop
-LL -             let local = 9;
-LL -         });
-LL +         break;
+22 -         break (|| { //~ ERROR `break` with value from a `while` loop
+23 -             let local = 9;
+24 -         });
+22 +         break;
    |
 "#]];
 
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0571]: `break` with value from a `while` loop
    ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
    │
-LL │       while true {
+21 │       while true {
    │       ────────── you can't `break` with a value in a `while` loop
-LL │ ┏         break (|| { //~ ERROR `break` with value from a `while` loop
-LL │ ┃             let local = 9;
-LL │ ┃         });
+22 │ ┏         break (|| { //~ ERROR `break` with value from a `while` loop
+23 │ ┃             let local = 9;
+24 │ ┃         });
    │ ┗━━━━━━━━━━┛ can only break with a value inside `loop` or breakable block
    ╰╴
 suggestion[S0123]: use `break` on its own without a value inside this `while` loop
    ╭╴
-LL -         break (|| { //~ ERROR `break` with value from a `while` loop
-LL -             let local = 9;
-LL -         });
-LL +         break;
+22 -         break (|| { //~ ERROR `break` with value from a `while` loop
+23 -             let local = 9;
+24 -         });
+22 +         break;
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4104,18 +4098,18 @@ fn main() {}
 error[E0282]: type annotations needed
   --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
    |
-LL |         .sum::<_>() //~ ERROR type annotations needed
+12 |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0282]: type annotations needed
    ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:12:10
    │
-LL │         .sum::<_>() //~ ERROR type annotations needed
+12 │         .sum::<_>() //~ ERROR type annotations needed
    │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
    ╰╴
 "#]];
@@ -4170,29 +4164,29 @@ fn main() {}
 error[E0282]: type annotations needed
   --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
    |
-LL |         .sum::<_>() //~ ERROR type annotations needed
+12 |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
    |
 help: consider specifying the generic argument
    |
-LL -         .sum::<_>() //~ ERROR type annotations needed
-LL +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
+23 -         .sum::<_>() //~ ERROR type annotations needed
+23 +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0282]: type annotations needed
    ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:12:10
    │
-LL │         .sum::<_>() //~ ERROR type annotations needed
+12 │         .sum::<_>() //~ ERROR type annotations needed
    │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
    ╰╴
 help: consider specifying the generic argument
    ╭╴
-LL -         .sum::<_>() //~ ERROR type annotations needed
-LL +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
+23 -         .sum::<_>() //~ ERROR type annotations needed
+23 +         .sum::<GENERIC_ARG>() //~ ERROR type annotations needed
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4244,27 +4238,27 @@ fn main() {}
 error[E0282]: type annotations needed
   --> $DIR/issue-42234-unknown-receiver-type.rs:12:10
    |
-LL |         .sum::<_>() //~ ERROR type annotations needed
+12 |         .sum::<_>() //~ ERROR type annotations needed
    |          ^^^ cannot infer type of the type parameter `S` declared on the method `sum`
    |
 help: consider specifying the generic argument
    |
-LL |         .sum::<_>() //~ ERROR type annotations needed
+23 |         .sum::<_>() //~ ERROR type annotations needed
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error[E0282]: type annotations needed
    ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:12:10
    │
-LL │         .sum::<_>() //~ ERROR type annotations needed
+12 │         .sum::<_>() //~ ERROR type annotations needed
    │          ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
    ╰╴
 help: consider specifying the generic argument
    ╭╴
-LL │         .sum::<_>() //~ ERROR type annotations needed
+23 │         .sum::<_>() //~ ERROR type annotations needed
    ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -4416,10 +4410,10 @@ error[E0609]: no field `field` on type `Thing`
    = note: a `Title` then a `Message`!?!?
   --> $DIR/too-many-field-suggestions.rs:26:7
    |
-LL |     t.field;
+26 |     t.field;
    |       ^^^^^ unknown field
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
@@ -4428,7 +4422,7 @@ error[E0609]: no field `field` on type `Thing`
    ├ note: a `Title` then a `Message`!?!?
    ├▸ $DIR/too-many-field-suggestions.rs:26:7
    │
-LL │     t.field;
+26 │     t.field;
    ╰╴      ━━━━━ unknown field
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);

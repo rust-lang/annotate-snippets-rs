@@ -27,7 +27,7 @@ fn case() {
         )];
 
     let expected_ascii = file!["strip_line_non_ws.ascii.term.svg": TermSvg];
-    let renderer = Renderer::styled().anonymized_line_numbers(true);
+    let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = file!["strip_line_non_ws.unicode.term.svg": TermSvg];
