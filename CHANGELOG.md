@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.8] - 2025-10-28
+
 ### Fixes
 
 - No longer panic when annotating leading whitespace [#334](https://github.com/rust-lang/annotate-snippets-rs/pull/334)
@@ -268,7 +270,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.7...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.8...HEAD
+[0.12.8]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.7...0.12.8
 [0.12.7]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.6...0.12.7
 [0.12.6]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.5...0.12.6
 [0.12.5]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.4...0.12.5
