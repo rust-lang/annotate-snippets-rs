@@ -96,7 +96,7 @@ lto = true
 
 [package]
 name = "annotate-snippets"
-version = "0.12.7"
+version = "0.12.8"
 description = "Format diagnostic reports, including highlighting snippets of text"
 categories = []
 keywords = ["code", "analysis", "ascii", "errors", "debug"]
