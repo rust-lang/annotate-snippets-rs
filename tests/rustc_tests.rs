@@ -5646,3 +5646,34 @@ LL │ static ROOK_ATTACKS_TABLE: () = {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+#[should_panic = "attempt to subtract with overflow"]
+fn emitter_overflow_bad_whitespace() {
+    // tests/ui/errors/emitter-overflow-bad-whitespace.rs
+    let source = r#"                                         fn main() {              return;              }
+"#;
+    let title_0 = "Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is not";
+
+    let report = &[
+        Group::with_title(Level::ERROR.primary_title("unknown start of token: \u{a0}")).element(
+            Snippet::source(source)
+                .path("$DIR/emitter-overflow-bad-whitespace.rs")
+                .line_start(10)
+                .annotation(AnnotationKind::Primary.span(0..2)),
+        ),
+        Group::with_title(Level::HELP.secondary_title(title_0)).element(
+            Snippet::source(source)
+                .path("$DIR/emitter-overflow-bad-whitespace.rs")
+                .line_start(10)
+                .patch(Patch::new(0..2, " ")),
+        ),
+    ];
+    let expected_ascii = str![[r#""#]];
+    let renderer_ascii = Renderer::plain().term_width(1);
+    assert_data_eq!(renderer_ascii.render(report), expected_ascii);
+
+    let expected_unicode = str![[r#""#]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+}
