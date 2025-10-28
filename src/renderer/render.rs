@@ -622,11 +622,6 @@ fn render_snippet_annotations(
     // Get the left-side margin to remove it
     let mut whitespace_margin = usize::MAX;
     for line_info in annotated_lines {
-        // Whitespace can only be removed (aka considered leading)
-        // if the lexer considers it whitespace.
-        // non-rustc_lexer::is_whitespace() chars are reported as an
-        // error (ex. no-break-spaces \u{a0}), and thus can't be considered
-        // for removal during error reporting.
         let leading_whitespace = line_info
             .line
             .chars()
