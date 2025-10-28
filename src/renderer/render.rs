@@ -2229,7 +2229,7 @@ fn draw_note_separator(
 fn draw_line_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usize, col: usize) {
     let (column, dots) = match renderer.decor_style {
         DecorStyle::Ascii => (0, "..."),
-        DecorStyle::Unicode => (col - 2, "‡"),
+        DecorStyle::Unicode => (col - 2, "⋮"),
     };
     buffer.puts(line, column, dots, ElementStyle::LineNumber);
 }

@@ -29,7 +29,7 @@
 </tspan>
     <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan>     </tspan><tspan class="fg-bright-blue bold">─</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">move occurs because `x` has type `std::vec::Vec&lt;i32&gt;`, which does not implement the `Copy` trait</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan>  </tspan><tspan class="fg-bright-blue bold">‡</tspan>
+    <tspan x="10px" y="118px"><tspan>  </tspan><tspan class="fg-bright-blue bold">⋮</tspan>
 </tspan>
     <tspan x="10px" y="136px"><tspan class="fg-bright-blue bold">7</tspan><tspan> </tspan><tspan class="fg-bright-blue bold">│</tspan><tspan> let y = x;</tspan>
 </tspan>
