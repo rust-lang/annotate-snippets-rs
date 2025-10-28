@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- No longer panic when annotating leading whitespace [#334](https://github.com/rust-lang/annotate-snippets-rs/pull/334)
+
 ## [0.12.7] - 2025-10-24
 
 ### Fixes
