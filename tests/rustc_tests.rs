@@ -5679,3 +5679,85 @@ help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is 
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
 }
+
+#[test]
+fn unresolved_import_str_with_multiple_helps() {
+    let source = r#"#![no_main]
+use str;
+"#;
+    let input = &[
+        Level::ERROR
+            .primary_title("unresolved import `str`")
+            .id("E0432")
+            .element(
+                Snippet::source(source).path("/tmp/test2.rs").annotation(
+                    AnnotationKind::Primary
+                        .span(16..19)
+                        .label("no `str` in the root"),
+                ),
+            ),
+        Level::HELP
+            .secondary_title("a similar name exists in the module")
+            .element(
+                Snippet::source(source)
+                    .path("/tmp/test2.rs")
+                    .patch(Patch::new(16..19, "std")),
+            ),
+        Level::HELP
+            .secondary_title("consider importing one of these items instead")
+            .element(
+                Snippet::source(source)
+                    .path("/tmp/test2.rs")
+                    .patch(Patch::new(16..19, "std::primitive::str")),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("/tmp/test2.rs")
+                    .patch(Patch::new(16..19, "std::str")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0432]: unresolved import `str`
+ --> /tmp/test2.rs:2:5
+  |
+2 | use str;
+  |     ^^^ no `str` in the root
+  |
+help: a similar name exists in the module
+  |
+2 - use str;
+2 + use std;
+  |
+help: consider importing one of these items instead
+  |
+2 | use std::primitive::str;
+  |     ++++++++++++++++
+2 | use std::str;
+  |     +++++
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0432]: unresolved import `str`
+  ╭▸ /tmp/test2.rs:2:5
+  │
+2 │ use str;
+  │     ━━━ no `str` in the root
+  ╰╴
+help: a similar name exists in the module
+  ╭╴
+2 - use str;
+2 + use std;
+  ╰╴
+help: consider importing one of these items instead
+  ╭╴
+2 │ use std::primitive::str;
+  ├╴    ++++++++++++++++
+2 │ use std::str;
+  ╰╴    +++++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
