@@ -779,18 +779,24 @@ pub(crate) fn as_substr<'a>(
     original: &'a str,
     suggestion: &'a str,
 ) -> Option<(usize, &'a str, usize)> {
-    let common_prefix = original
-        .chars()
-        .zip(suggestion.chars())
-        .take_while(|(c1, c2)| c1 == c2)
-        .map(|(c, _)| c.len_utf8())
-        .sum();
-    let original = &original[common_prefix..];
-    let suggestion = &suggestion[common_prefix..];
-    if let Some(stripped) = suggestion.strip_suffix(original) {
-        let common_suffix = original.len();
-        Some((common_prefix, stripped, common_suffix))
+    if let Some(stripped) = suggestion.strip_prefix(original) {
+        Some((original.len(), stripped, 0))
+    } else if let Some(stripped) = suggestion.strip_suffix(original) {
+        Some((0, stripped, original.len()))
     } else {
-        None
+        let common_prefix = original
+            .chars()
+            .zip(suggestion.chars())
+            .take_while(|(c1, c2)| c1 == c2)
+            .map(|(c, _)| c.len_utf8())
+            .sum();
+        let original = &original[common_prefix..];
+        let suggestion = &suggestion[common_prefix..];
+        if let Some(stripped) = suggestion.strip_suffix(original) {
+            let common_suffix = original.len();
+            Some((common_prefix, stripped, common_suffix))
+        } else {
+            None
+        }
     }
 }
