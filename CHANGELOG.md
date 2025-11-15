@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Fixes
+
+- Prefer exact prefix/suffix matches when trimming replacements [#345](https://github.com/rust-lang/annotate-snippets-rs/pull/345)
+
 ## [0.12.8] - 2025-10-28
 
 ### Fixes
