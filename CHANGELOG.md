@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.10] - 2025-12-01
+
+### Fixed
+
+- Render all removed lines when multiple Patch remove lines [#353](https://github.com/rust-lang/annotate-snippets-rs/pull/353)
+
 ## [0.12.9] - 2025-11-15
 
 ### Fixes
@@ -276,7 +282,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.9...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.10...HEAD
+[0.12.10]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.9...0.12.10
 [0.12.9]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.8...0.12.9
 [0.12.8]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.7...0.12.8
 [0.12.7]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.6...0.12.7
