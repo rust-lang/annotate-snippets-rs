@@ -5679,3 +5679,219 @@ help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is 
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
 }
+
+#[test]
+fn issue_109854() {
+    // tests/ui/suggestions/issue-109854.rs
+    let source_0 = r##"    String::with_capacity(
+    //~^ ERROR this function takes 1 argument but 3 arguments were supplied
+    generate_setter,
+    r#"
+pub(crate) struct Person<T: Clone> {}
+"#,
+     r#""#,
+"##;
+    let source_1 = r#"    generate_setter,
+"#;
+    let title_0 = "expected type `[22;1;35musize[22;39m`
+found fn item `[22;1;35mfn() {generate_setter}[22;39m`";
+    let source_2 = r##"    generate_setter,
+    r#"
+pub(crate) struct Person<T: Clone> {}
+"#,
+     r#""#,
+"##;
+
+    let report = &[
+        Level::ERROR
+            .primary_title("this function takes 1 argument but 3 arguments were supplied")
+            .id("E0061")
+            .element(
+                Snippet::source(source_0)
+                    .path("$DIR/issue-109854.rs")
+                    .line_start(2)
+                    .annotation(AnnotationKind::Primary.span(4..25))
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(128..172)
+                            .label("unexpected argument #2 of type `&'static str`"),
+                    )
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(179..184)
+                            .label("unexpected argument #3 of type `&'static str`"),
+                    ),
+            ),
+        Level::NOTE
+            .secondary_title("expected `usize`, found fn item")
+            .element(
+                Snippet::source(source_1)
+                    .path("$DIR/issue-109854.rs")
+                    .line_start(4)
+                    .annotation(AnnotationKind::Primary.span(4..19)),
+            )
+            .element(Level::NOTE.message(title_0)),
+        Level::NOTE
+            .secondary_title("associated function defined here")
+            .element(
+                Origin::path("$SRC_DIR/alloc/src/string.rs")
+                    .line(480)
+                    .char_column(11),
+            ),
+        Level::HELP
+            .secondary_title("remove the extra arguments")
+            .element(
+                Snippet::source(source_2)
+                    .path("$DIR/issue-109854.rs")
+                    .line_start(4)
+                    .patch(Patch::new(4..19, "/* usize */"))
+                    .patch(Patch::new(19..69, ""))
+                    .patch(Patch::new(69..81, "")),
+            ),
+    ];
+    let expected_ascii = str![[r##"
+error[E0061]: this function takes 1 argument but 3 arguments were supplied
+ --> $DIR/issue-109854.rs:2:5
+  |
+2 |       String::with_capacity(
+  |       ^^^^^^^^^^^^^^^^^^^^^
+...
+5 | /     r#"
+6 | | pub(crate) struct Person<T: Clone> {}
+7 | | "#,
+  | |__- unexpected argument #2 of type `&'static str`
+8 |        r#""#,
+  |        ----- unexpected argument #3 of type `&'static str`
+  |
+note: expected `usize`, found fn item
+ --> $DIR/issue-109854.rs:4:5
+  |
+4 |     generate_setter,
+  |     ^^^^^^^^^^^^^^^
+  = note: expected type `[22;1;35musize[22;39m`
+          found fn item `[22;1;35mfn() {generate_setter}[22;39m`
+note: associated function defined here
+ --> $SRC_DIR/alloc/src/string.rs:480:11
+help: remove the extra arguments
+  |
+4 -     generate_setter,
+4 +     /* usize */,
+  |
+"##]];
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(report), expected_ascii);
+
+    let expected_unicode = str![[r##"
+error[E0061]: this function takes 1 argument but 3 arguments were supplied
+  ╭▸ $DIR/issue-109854.rs:2:5
+  │
+2 │       String::with_capacity(
+  │       ━━━━━━━━━━━━━━━━━━━━━
+  ‡
+5 │ ┌     r#"
+6 │ │ pub(crate) struct Person<T: Clone> {}
+7 │ │ "#,
+  │ └──┘ unexpected argument #2 of type `&'static str`
+8 │        r#""#,
+  │        ───── unexpected argument #3 of type `&'static str`
+  ╰╴
+note: expected `usize`, found fn item
+  ╭▸ $DIR/issue-109854.rs:4:5
+  │
+4 │     generate_setter,
+  │     ━━━━━━━━━━━━━━━
+  ╰ note: expected type `[22;1;35musize[22;39m`
+          found fn item `[22;1;35mfn() {generate_setter}[22;39m`
+note: associated function defined here
+  ─▸ $SRC_DIR/alloc/src/string.rs:480:11
+help: remove the extra arguments
+  ╭╴
+4 -     generate_setter,
+4 +     /* usize */,
+  ╰╴
+"##]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+}
+
+#[test]
+fn match_same_arms() {
+    // src/tools/clippy/tests/ui/match_same_arms.rs
+    let source = r#"        2 => 'b',
+        3 => 'b',
+        _ => 'b',
+"#;
+
+    let report = &[
+        Level::ERROR
+            .primary_title("these match arms have identical bodies")
+            .element(
+                Snippet::source(source)
+                    .path("tests/ui/match_same_arms.rs")
+                    .line_start(20)
+                    .annotation(AnnotationKind::Primary.span(8..16))
+                    .annotation(AnnotationKind::Primary.span(26..34))
+                    .annotation(
+                        AnnotationKind::Primary
+                            .span(44..52)
+                            .label("the wildcard arm"),
+                    ),
+            )
+            .element(
+                Level::HELP
+                    .message("if this is unintentional make the arms return different values"),
+            ),
+        Level::HELP
+            .secondary_title("otherwise remove the non-wildcard arms")
+            .element(
+                Snippet::source(source)
+                    .path("tests/ui/match_same_arms.rs")
+                    .line_start(20)
+                    .patch(Patch::new(8..26, ""))
+                    .patch(Patch::new(26..44, "")),
+            ),
+    ];
+    let expected_ascii = str![[r#"
+error: these match arms have identical bodies
+  --> tests/ui/match_same_arms.rs:20:9
+   |
+20 |         2 => 'b',
+   |         ^^^^^^^^
+21 |         3 => 'b',
+   |         ^^^^^^^^
+22 |         _ => 'b',
+   |         ^^^^^^^^ the wildcard arm
+   |
+   = help: if this is unintentional make the arms return different values
+help: otherwise remove the non-wildcard arms
+   |
+20 -         2 => 'b',
+21 -         3 => 'b',
+20 +         _ => 'b',
+   |
+"#]];
+    let renderer_ascii = Renderer::plain();
+    assert_data_eq!(renderer_ascii.render(report), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: these match arms have identical bodies
+   ╭▸ tests/ui/match_same_arms.rs:20:9
+   │
+20 │         2 => 'b',
+   │         ━━━━━━━━
+21 │         3 => 'b',
+   │         ━━━━━━━━
+22 │         _ => 'b',
+   │         ━━━━━━━━ the wildcard arm
+   │
+   ╰ help: if this is unintentional make the arms return different values
+help: otherwise remove the non-wildcard arms
+   ╭╴
+20 -         2 => 'b',
+21 -         3 => 'b',
+20 +         _ => 'b',
+   ╰╴
+"#]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+}
