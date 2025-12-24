@@ -1,4 +1,6 @@
-use crate::renderer::{char_width, num_overlap, LineAnnotation, LineAnnotationType};
+use crate::renderer::{
+    char_width, normalize_whitespace, num_overlap, LineAnnotation, LineAnnotationType,
+};
 use crate::{Annotation, AnnotationKind, Patch};
 use std::borrow::Cow;
 use std::cmp::{max, min};
@@ -64,12 +66,17 @@ impl<'a> SourceMap<'a> {
             .iter()
             .find(|info| span.start >= info.start_byte && span.start < info.end_byte)
             .unwrap_or(self.lines.last().unwrap());
-        let (mut start_char_pos, start_display_pos) = start_info.line
+        let (mut start_char_pos, start_display_pos, start_normalized_pos) = start_info.line
             [0..(span.start - start_info.start_byte).min(start_info.line.len())]
             .chars()
-            .fold((0, 0), |(char_pos, byte_pos), c| {
+            .fold((0, 0, 0), |(char_pos, display_pos, normalized_pos), c| {
                 let display = char_width(c);
-                (char_pos + 1, byte_pos + display)
+                let normalized = normalize_whitespace(&c.to_string()).chars().count();
+                (
+                    char_pos + 1,
+                    display_pos + display,
+                    normalized_pos + normalized,
+                )
             });
         // correct the char pos if we are highlighting the end of a line
         if (span.start - start_info.start_byte).saturating_sub(start_info.line.len()) > 0 {
@@ -79,6 +86,7 @@ impl<'a> SourceMap<'a> {
             line: start_info.line_index,
             char: start_char_pos,
             display: start_display_pos,
+            normalized: start_normalized_pos,
             byte: span.start,
         };
 
@@ -91,18 +99,24 @@ impl<'a> SourceMap<'a> {
             .iter()
             .find(|info| span.end >= info.start_byte && span.end < info.end_byte)
             .unwrap_or(self.lines.last().unwrap());
-        let (end_char_pos, end_display_pos) = end_info.line
+        let (end_char_pos, end_display_pos, end_normalized_pos) = end_info.line
             [0..(span.end - end_info.start_byte).min(end_info.line.len())]
             .chars()
-            .fold((0, 0), |(char_pos, byte_pos), c| {
+            .fold((0, 0, 0), |(char_pos, display_pos, normalized_pos), c| {
                 let display = char_width(c);
-                (char_pos + 1, byte_pos + display)
+                let normalized = normalize_whitespace(&c.to_string()).chars().count();
+                (
+                    char_pos + 1,
+                    display_pos + display,
+                    normalized_pos + normalized,
+                )
             });
 
         let mut end = Loc {
             line: end_info.line_index,
             char: end_char_pos,
             display: end_display_pos,
+            normalized: end_normalized_pos,
             byte: span.end,
         };
         if start.line != end.line && end.byte > end_info.end_byte - end_info.end_line_size {
@@ -593,6 +607,7 @@ impl<'a> MultilineAnnotation<'a> {
                 line: self.start.line,
                 char: self.start.char + 1,
                 display: self.start.display + 1,
+                normalized: self.start.normalized + 1,
                 byte: self.start.byte + 1,
             },
             kind: self.kind,
@@ -608,6 +623,7 @@ impl<'a> MultilineAnnotation<'a> {
                 line: self.end.line,
                 char: self.end.char.saturating_sub(1),
                 display: self.end.display.saturating_sub(1),
+                normalized: self.end.normalized.saturating_sub(1),
                 byte: self.end.byte.saturating_sub(1),
             },
             end: self.end,
@@ -656,6 +672,8 @@ pub(crate) struct Loc {
     pub(crate) char: usize,
     /// The (0-based) column offset when displayed.
     pub(crate) display: usize,
+    /// The (0-based) column offset when normalized.
+    pub(crate) normalized: usize,
     /// The (0-based) byte offset.
     pub(crate) byte: usize,
 }
