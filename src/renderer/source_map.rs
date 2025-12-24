@@ -67,9 +67,9 @@ impl<'a> SourceMap<'a> {
         let (mut start_char_pos, start_display_pos) = start_info.line
             [0..(span.start - start_info.start_byte).min(start_info.line.len())]
             .chars()
-            .fold((0, 0), |(char_pos, byte_pos), c| {
+            .fold((0, 0), |(char_pos, display_pos), c| {
                 let display = char_width(c);
-                (char_pos + 1, byte_pos + display)
+                (char_pos + 1, display_pos + display)
             });
         // correct the char pos if we are highlighting the end of a line
         if (span.start - start_info.start_byte).saturating_sub(start_info.line.len()) > 0 {
@@ -94,9 +94,9 @@ impl<'a> SourceMap<'a> {
         let (end_char_pos, end_display_pos) = end_info.line
             [0..(span.end - end_info.start_byte).min(end_info.line.len())]
             .chars()
-            .fold((0, 0), |(char_pos, byte_pos), c| {
+            .fold((0, 0), |(char_pos, display_pos), c| {
                 let display = char_width(c);
-                (char_pos + 1, byte_pos + display)
+                (char_pos + 1, display_pos + display)
             });
 
         let mut end = Loc {
