@@ -1622,6 +1622,8 @@ fn emit_suggestion_default(
             let (span_start, span_end) = sm.span_to_locations(part.span.clone());
             let span_start_pos = span_start.display;
             let span_end_pos = span_end.display;
+            let span_start_normalized_pos = span_start.normalized;
+            let span_end_normalized_pos = span_end.normalized;
 
             // If this addition is _only_ whitespace, then don't trim it,
             // or else we're just not rendering anything.
@@ -1732,17 +1734,19 @@ fn emit_suggestion_default(
                         // the column of the part span end.
                         // On all others, we highlight the whole line.
                         let start = if i == 0 {
-                            (padding as isize + span_start_pos as isize) as usize
+                            (padding as isize + span_start_normalized_pos as isize) as usize
                         } else {
                             padding
                         };
+                        let line_chars = line.chars().count();
                         let end = if i == 0 {
-                            (padding as isize + span_start_pos as isize + line.len() as isize)
-                                as usize
+                            (padding as isize
+                                + span_start_normalized_pos as isize
+                                + line_chars as isize) as usize
                         } else if i == newlines - 1 {
-                            (padding as isize + span_end_pos as isize) as usize
+                            (padding as isize + span_end_normalized_pos as isize) as usize
                         } else {
-                            (padding as isize + line.len() as isize) as usize
+                            (padding as isize + line_chars as isize) as usize
                         };
                         buffer.set_style_range(row, start, end, ElementStyle::Removal, true);
                     }
@@ -1750,8 +1754,8 @@ fn emit_suggestion_default(
                     // The removed code fits all in one line.
                     buffer.set_style_range(
                         row_num - 2,
-                        (padding as isize + span_start_pos as isize) as usize,
-                        (padding as isize + span_end_pos as isize) as usize,
+                        (padding as isize + span_start_normalized_pos as isize) as usize,
+                        (padding as isize + span_end_normalized_pos as isize) as usize,
                         ElementStyle::Removal,
                         true,
                     );
