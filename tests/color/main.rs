@@ -9,6 +9,7 @@ mod fold_ann_multiline;
 mod fold_bad_origin_line;
 mod fold_leading;
 mod fold_trailing;
+mod highlight_diff_line_with_wide_characters;
 mod highlight_duplicated_diff_lines;
 mod highlight_source;
 mod issue_9;
