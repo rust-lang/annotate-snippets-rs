@@ -95,10 +95,17 @@
 //! cargo add annotate-snippets --dev --feature testing-colors
 //! ```
 
+#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(clippy::print_stderr)]
 #![warn(clippy::print_stdout)]
+#![warn(clippy::std_instead_of_alloc)]
+#![warn(clippy::std_instead_of_core)]
 #![warn(missing_debug_implementations)]
+
+extern crate alloc;
+
+use alloc::string::String;
 
 pub mod level;
 pub mod renderer;

@@ -1,4 +1,4 @@
-use std::cmp::{max, min};
+use core::cmp::{max, min};
 
 const ELLIPSIS_PASSING: usize = 6;
 const LONG_WHITESPACE: usize = 20;

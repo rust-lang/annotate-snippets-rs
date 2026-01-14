@@ -25,6 +25,8 @@ pub(crate) mod stylesheet;
 mod margin;
 mod styled_buffer;
 
+use alloc::string::String;
+
 use crate::Report;
 
 pub(crate) use render::normalize_whitespace;
