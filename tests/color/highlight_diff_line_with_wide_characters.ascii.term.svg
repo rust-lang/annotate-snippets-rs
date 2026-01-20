@@ -43,7 +43,7 @@
 </tspan>
     <tspan x="10px" y="208px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="226px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>const 哦哦: 啊啊啊啊 = 哈哈哈哈 {</tspan><tspan class="fg-bright-red">}; // some c</tspan><tspan>omment</tspan>
+    <tspan x="10px" y="226px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>const 哦哦: 啊啊啊啊 = </tspan><tspan class="fg-bright-red">哈哈哈哈</tspan><tspan> {}; // some comment</tspan>
 </tspan>
     <tspan x="10px" y="244px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-green">+ </tspan><tspan>const 哦哦: 啊啊啊啊 = </tspan><tspan class="fg-bright-green">啊啊啊啊</tspan><tspan> {}; // some comment</tspan>
 </tspan>
