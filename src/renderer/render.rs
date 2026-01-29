@@ -1721,6 +1721,14 @@ fn emit_suggestion_default(
                     // logic to show the whole prior snippet, but the current output is not
                     // too bad to begin with, so we side-step that issue here.
                     for (i, line) in snippet.lines().enumerate() {
+                        let tabs: usize = line
+                            .chars()
+                            .take(span_start.char)
+                            .map(|ch| match ch {
+                                '\t' => 3,
+                                _ => 0,
+                            })
+                            .sum();
                         let line = normalize_whitespace(line);
                         // Going lower than buffer_offset (+ 1) would mean
                         // overwriting existing content in the buffer
@@ -1732,26 +1740,36 @@ fn emit_suggestion_default(
                         // the column of the part span end.
                         // On all others, we highlight the whole line.
                         let start = if i == 0 {
-                            (padding as isize + span_start_pos as isize) as usize
+                            (padding as isize + (span_start.char + tabs) as isize) as usize
                         } else {
                             padding
                         };
                         let end = if i == 0 {
-                            (padding as isize + span_start_pos as isize + line.len() as isize)
+                            (padding as isize
+                                + (span_start.char + tabs) as isize
+                                + line.chars().count() as isize)
                                 as usize
                         } else if i == newlines - 1 {
-                            (padding as isize + span_end_pos as isize) as usize
+                            (padding as isize + (span_end.char + tabs) as isize) as usize
                         } else {
-                            (padding as isize + line.len() as isize) as usize
+                            (padding as isize + line.chars().count() as isize) as usize
                         };
                         buffer.set_style_range(row, start, end, ElementStyle::Removal, true);
                     }
                 } else {
+                    let tabs: usize = snippet
+                        .chars()
+                        .take(span_start.char)
+                        .map(|ch| match ch {
+                            '\t' => 3,
+                            _ => 0,
+                        })
+                        .sum();
                     // The removed code fits all in one line.
                     buffer.set_style_range(
                         row_num - 2,
-                        (padding as isize + span_start_pos as isize) as usize,
-                        (padding as isize + span_end_pos as isize) as usize,
+                        (padding as isize + (span_start.char + tabs) as isize) as usize,
+                        (padding as isize + (span_end.char + tabs) as isize) as usize,
                         ElementStyle::Removal,
                         true,
                     );
