@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+ ## [0.12.11] - 2026-01-29
+
+### Fixed
+
+- Fix Unicode highlight alignment in patches [#357](https://github.com/rust-lang/annotate-snippets-rs/pull/357)
+
 ## [0.12.10] - 2025-12-01
 
 ### Fixed
@@ -282,7 +288,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.10...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.11...HEAD
+[0.12.11]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.10..0.12.11
 [0.12.10]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.9...0.12.10
 [0.12.9]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.8...0.12.9
 [0.12.8]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.7...0.12.8
