@@ -277,6 +277,14 @@ impl<'a, T: Clone> Snippet<'a, T> {
         self.fold = fold;
         self
     }
+
+    /// Access the markers previously registered to this [`Snippet`]
+    ///
+    /// This will return all [`Annotation`]s or [`Patch`]es added to the
+    /// current [`Snippet`].
+    pub fn markers(&self) -> &[T] {
+        &self.markers
+    }
 }
 
 impl<'a> Snippet<'a, Annotation<'a>> {
