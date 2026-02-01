@@ -25,6 +25,8 @@ pub(crate) mod stylesheet;
 mod margin;
 mod styled_buffer;
 
+use std::fmt;
+
 use crate::Report;
 
 pub(crate) use render::normalize_whitespace;
@@ -193,7 +195,14 @@ impl Renderer {
 impl Renderer {
     /// Render a diagnostic [`Report`]
     pub fn render(&self, groups: Report<'_>) -> String {
-        render::render(self, groups)
+        let mut s = String::new();
+        self.render_to(&mut s, groups)
+            .expect("String::write_fmt is infallible");
+        s
+    }
+    /// Render a diagnostic [`Report`] to the given [`Write`](fmt::Write)r
+    pub fn render_to<W: fmt::Write>(&self, to: W, groups: Report<'_>) -> fmt::Result {
+        render::render_to(to, self, groups)
     }
 }
 

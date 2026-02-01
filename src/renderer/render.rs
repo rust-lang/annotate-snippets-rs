@@ -24,9 +24,13 @@ use crate::{
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
 
-pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
+pub(crate) fn render_to(
+    mut to: impl fmt::Write,
+    renderer: &Renderer,
+    groups: Report<'_>,
+) -> fmt::Result {
     if renderer.short_message {
-        render_short_message(renderer, groups).unwrap()
+        render_short_message(to, renderer, groups)
     } else {
         let (max_line_num, og_primary_path, groups) = pre_process(groups);
         let max_line_num_len = if renderer.anonymized_line_numbers {
@@ -34,7 +38,6 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
         } else {
             num_decimal_digits(max_line_num)
         };
-        let mut out_string = String::new();
         let group_len = groups.len();
         for (
             g,
@@ -220,19 +223,21 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                 }
             }
             buffer
-                .render(&level, &renderer.stylesheet, &mut out_string)
+                .render_to(&mut to, &level, &renderer.stylesheet)
                 .unwrap();
             if g != group_len - 1 {
-                use std::fmt::Write;
-
-                writeln!(out_string).unwrap();
+                writeln!(to).unwrap();
             }
         }
-        out_string
+        Ok(())
     }
 }
 
-fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<String, fmt::Error> {
+fn render_short_message(
+    to: impl fmt::Write,
+    renderer: &Renderer,
+    groups: &[Group<'_>],
+) -> fmt::Result {
     let mut buffer = StyledBuffer::new();
     let mut labels = None;
     let group = groups.first().expect("Expected at least one group");
@@ -306,10 +311,9 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
         buffer.append(0, &format!(": {labels}"), ElementStyle::NoStyle);
     }
 
-    let mut out_string = String::new();
-    buffer.render(&title.level, &renderer.stylesheet, &mut out_string)?;
+    buffer.render_to(to, &title.level, &renderer.stylesheet)?;
 
-    Ok(out_string)
+    Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
