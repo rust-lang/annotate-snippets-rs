@@ -15,6 +15,7 @@ fn hardcoded() {
                 Snippet::source(SOURCE)
                     .line_start(26)
                     .path("footer.rs")
+                    .path_url("file://sample_hostname/home/user/footer.rs:28")
                     .annotation(AnnotationKind::Primary.span(193..195).label(
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
                     ))
@@ -38,6 +39,7 @@ fn with_formatter() {
             Snippet::source(SOURCE)
                 .line_start(26)
                 .path("bad_expression.rs")
+                .path_url(|line, _col| format!("file://sample_hostname/home/user/footer.rs:{line}"))
                 .annotation(
                     AnnotationKind::Primary
                         .span(192..193)
@@ -60,6 +62,7 @@ fn in_patch_origin() {
             )
             .line_start(6)
             .path("issue_371.rs")
+            .path_url("file://sample_hostname/home/user/issue_371.rs:6")
             .patch(Patch::new(17..50, "")),
         )];
 

@@ -1,8 +1,11 @@
 //! Structures used as an input for the library.
 
 use alloc::borrow::{Cow, ToOwned};
-use alloc::string::String;
+use alloc::rc::Rc;
+use alloc::string::{String, ToString};
 use alloc::{vec, vec::Vec};
+use core::borrow::Borrow;
+use core::fmt::{self, Debug, Display, Formatter};
 use core::ops::Range;
 
 use crate::Level;
@@ -227,6 +230,7 @@ pub struct Snippet<'a, T> {
     pub(crate) line_start: usize,
     pub(crate) source: Cow<'a, str>,
     pub(crate) markers: Vec<T>,
+    pub(crate) url: Option<PathUrlFormatterWrapper<'a>>,
     pub(crate) fold: bool,
 }
 
@@ -246,6 +250,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
             line_start: 1,
             source: source.into(),
             markers: vec![],
+            url: None,
             fold: true,
         }
     }
@@ -271,6 +276,77 @@ impl<'a, T: Clone> Snippet<'a, T> {
         self
     }
 
+    /// The URL to the [`source`][Self::source]. Can be a `file://` URL.
+    ///
+    /// Make sure to follow [the OSC 8 reference document][OSC-8], and in
+    /// particular the [`file://` URIs and the hostname][OSC-8-file-URIs] when
+    /// generating a `file://` URL.
+    ///
+    /// This function accepts two different kinds of arguments:
+    ///
+    /// - Some kind of string (`&str`, `String` or `Cow<str>`), used as is as a
+    ///   URL.
+    /// - An `impl Fn(usize, usize) -> String` that returns a URL from the line
+    ///   and column computed by `annotate_snippets`.
+    ///
+    /// The following two snippets render the same:
+    ///
+    /// ```
+    /// # use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+    /// #
+    /// # const HOSTNAME: &str = "sample_hostname";
+    /// const SOURCE: &str = "hello; world!";
+    ///
+    /// let string_snippet = Snippet::source(SOURCE)
+    ///     .path("file.txt")
+    ///     .path_url(format!("file://{HOSTNAME}/path/to/file.txt:1"))
+    ///     .annotation(AnnotationKind::Primary.span(5..5).label("expected `,`"));
+    ///
+    /// let formatter_snippet = Snippet::source(SOURCE)
+    ///     .path("file.txt")
+    ///     .path_url(|line, _col| format!("file://{HOSTNAME}/path/to/file.txt:{line}"))
+    ///     .annotation(AnnotationKind::Primary.span(5..5).label("expected `,`"));
+    /// #
+    /// # let string_report = [
+    /// #     Group::with_level(Level::ERROR)
+    /// #         .element(string_snippet)
+    /// # ];
+    /// # let formatter_report = [
+    /// #     Group::with_level(Level::ERROR)
+    /// #         .element(formatter_snippet)
+    /// # ];
+    /// # let renderer = Renderer::plain();
+    /// # let string_render = renderer.render(&string_report);
+    /// # let formatter_render = renderer.render(&formatter_report);
+    /// # assert_eq!(string_render, formatter_render);
+    /// ```
+    ///
+    /// One can design reusable formatters using the following pattern:
+    ///
+    /// ```
+    /// # use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+    /// #
+    /// # const HOSTNAME: &str = "sample_hostname";
+    /// # const SOURCE: &str = "";
+    /// #
+    /// let file_url = |path| {
+    ///     move |line, _col| format!("file://{HOSTNAME}/{path}:{line}")
+    /// };
+    ///
+    /// let snippet = Snippet::source(SOURCE)
+    ///     .path("foo.txt")
+    ///     .path_url(file_url("/path/to/foo.txt"));
+    /// #
+    /// # let snippet: Snippet<()> = snippet;
+    /// ```
+    ///
+    /// [OSC-8]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
+    /// [OSC-8-file-URIs]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda#file-uris-and-the-hostname
+    pub fn path_url(mut self, url: impl Into<OptionPathUrlFormatter<'a>>) -> Self {
+        self.url = url.into().0.map(PathUrlFormatterWrapper);
+        self
+    }
+
     /// Control whether lines without [`Annotation`]s are shown
     ///
     /// The default is `fold(true)`, collapsing uninteresting lines.
@@ -293,6 +369,12 @@ impl<'a> Snippet<'a, Annotation<'a>> {
     pub fn annotations(mut self, annotation: impl IntoIterator<Item = Annotation<'a>>) -> Self {
         self.markers.extend(annotation);
         self
+    }
+
+    pub(crate) fn primary_span(&self) -> Option<Range<usize>> {
+        self.markers
+            .iter()
+            .find_map(|marker| marker.kind.is_primary().then(|| marker.span.clone()))
     }
 }
 
@@ -487,6 +569,7 @@ pub struct Origin<'a> {
     pub(crate) path: Cow<'a, str>,
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
+    pub(crate) url: Option<Cow<'a, str>>,
 }
 
 impl<'a> Origin<'a> {
@@ -502,6 +585,7 @@ impl<'a> Origin<'a> {
             path: path.into(),
             line: None,
             char_column: None,
+            url: None,
         }
     }
 
@@ -520,6 +604,19 @@ impl<'a> Origin<'a> {
     /// </div>
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
+        self
+    }
+
+    /// The URL to the origin. Can be a `file://` URL.
+    ///
+    /// Make sure to follow [the OSC 8 reference document][OSC-8], and in
+    /// particular the [`file://` URIs and the hostname][OSC-8-file-URIs] when
+    /// generating a `file://` URL.
+    ///
+    /// [OSC-8]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
+    /// [OSC-8-file-URIs]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda#file-uris-and-the-hostname
+    pub fn path_url(mut self, url: impl Into<Cow<'a, str>>) -> Self {
+        self.url = Some(url.into());
         self
     }
 }
@@ -565,5 +662,158 @@ impl<'a> From<String> for OptionCow<'a> {
 impl<'a> From<&'a String> for OptionCow<'a> {
     fn from(value: &'a String) -> Self {
         Self(Some(Cow::Borrowed(value.as_str())))
+    }
+}
+
+// Wrapper over `Rc<dyn PathUrlFormatter>` that implements both `Clone` and `Debug`.
+#[derive(Clone)]
+pub(crate) struct PathUrlFormatterWrapper<'a>(pub(crate) Rc<dyn PathUrlFormatter + 'a>);
+
+impl<'a> Debug for PathUrlFormatterWrapper<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        debug_path_url_formatter(&self.0).fmt(f)
+    }
+}
+
+pub struct OptionPathUrlFormatter<'a>(pub(crate) Option<Rc<dyn PathUrlFormatter + 'a>>);
+
+impl<'a> Debug for OptionPathUrlFormatter<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.0.as_ref().map(debug_path_url_formatter).fmt(f)
+    }
+}
+
+// Workaround edge cases in `clippy::needless_lifetime::needless_lifetimes`.
+// https://github.com/rust-lang/rust-clippy/issues/10495
+// https://github.com/rust-lang/rust-clippy/issues/12908
+#[allow(clippy::needless_lifetimes)]
+// FIXME: when MSRV is bumped to >= 1.93.0, replace this with `std::fmt::from_fn`.
+fn debug_path_url_formatter<'a>(
+    formatter: &'a impl Borrow<dyn PathUrlFormatter + 'a>,
+) -> impl Debug {
+    struct D<'a>(&'a dyn PathUrlFormatter);
+
+    impl<'a> Debug for D<'a> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            match self.0.debug_literal() {
+                Some(str) => Debug::fmt(str, f),
+                None => Display::fmt("dyn PathUrlFormatter", f),
+            }
+        }
+    }
+
+    D(formatter.borrow())
+}
+
+impl<'a> OptionPathUrlFormatter<'a> {
+    fn some(value: impl PathUrlFormatter + 'a) -> Self {
+        OptionPathUrlFormatter(Some(Rc::new(value)))
+    }
+
+    fn none() -> Self {
+        OptionPathUrlFormatter(None)
+    }
+}
+
+pub trait PathUrlFormatter {
+    fn format_url(&self, line: usize, byte_col: usize) -> String;
+
+    // Allows to provide a consistent `Debug` implementation for `String`,
+    // `&str` and `Cow<str>`. Not exposed to the user.
+    #[doc(hidden)]
+    fn debug_literal(&self) -> Option<&str> {
+        None
+    }
+}
+
+impl<'a> PathUrlFormatter for PathUrlFormatterWrapper<'a> {
+    fn format_url(&self, line: usize, byte_col: usize) -> String {
+        self.0.format_url(line, byte_col)
+    }
+
+    #[doc(hidden)]
+    fn debug_literal(&self) -> Option<&str> {
+        self.0.debug_literal()
+    }
+}
+
+impl<'a> From<&'a str> for OptionPathUrlFormatter<'a> {
+    fn from(value: &'a str) -> Self {
+        Self::some(value)
+    }
+}
+
+impl<'a> From<String> for OptionPathUrlFormatter<'a> {
+    fn from(value: String) -> Self {
+        Self::some(value)
+    }
+}
+
+impl<'a> From<Cow<'a, str>> for OptionPathUrlFormatter<'a> {
+    fn from(value: Cow<'a, str>) -> Self {
+        Self::some(value)
+    }
+}
+
+impl<'a, T> From<T> for OptionPathUrlFormatter<'a>
+where
+    T: Fn(usize, usize) -> String + 'a,
+{
+    fn from(value: T) -> Self {
+        Self::some(value)
+    }
+}
+
+impl<'a, T> From<Option<T>> for OptionPathUrlFormatter<'a>
+where
+    T: Fn(usize, usize) -> String + 'a,
+{
+    fn from(value: Option<T>) -> Self {
+        match value {
+            Some(value) => OptionPathUrlFormatter::some(value),
+            None => OptionPathUrlFormatter::none(),
+        }
+    }
+}
+
+impl PathUrlFormatter for &str {
+    fn format_url(&self, _line: usize, _byte_col: usize) -> String {
+        self.to_string()
+    }
+
+    #[doc(hidden)]
+    fn debug_literal(&self) -> Option<&str> {
+        Some(self)
+    }
+}
+
+impl PathUrlFormatter for String {
+    fn format_url(&self, _line: usize, _byte_col: usize) -> String {
+        self.clone()
+    }
+
+    #[doc(hidden)]
+    fn debug_literal(&self) -> Option<&str> {
+        Some(self)
+    }
+}
+
+impl<'a> PathUrlFormatter for Cow<'a, str> {
+    fn format_url(&self, _line: usize, _byte_col: usize) -> String {
+        self.to_string()
+    }
+
+    #[doc(hidden)]
+    fn debug_literal(&self) -> Option<&str> {
+        Some(self)
+    }
+}
+
+impl<T> PathUrlFormatter for T
+where
+    T: Fn(usize, usize) -> String,
+{
+    fn format_url(&self, line: usize, byte_col: usize) -> String {
+        self(line, byte_col)
     }
 }

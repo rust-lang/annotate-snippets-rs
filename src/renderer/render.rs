@@ -20,8 +20,8 @@ use crate::renderer::source_map::{
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
 use crate::{
-    Annotation, AnnotationKind, Element, Group, Message, Origin, Padding, Patch, Report, Snippet,
-    Title,
+    Annotation, AnnotationKind, Element, Group, Message, Origin, Padding, Patch, PathUrlFormatter,
+    Report, Snippet, Title,
 };
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
@@ -271,6 +271,13 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
             let mut origin = Origin::path(path.as_ref());
 
             let source_map = SourceMap::new(&cause.source, cause.line_start);
+            if let Some(primary_span) = cause.primary_span()
+                && let Some(path_url_formatter) = &cause.url
+            {
+                let (line, byte_col) = source_map.byte_to_line_byte_col(primary_span.start);
+                let url = path_url_formatter.format_url(line, byte_col);
+                origin.url = Some(Cow::from(url));
+            }
             let (_depth, annotated_lines) =
                 source_map.annotated_lines(cause.markers.clone(), cause.fold);
 
@@ -483,6 +490,9 @@ fn render_origin(
         _ => origin.path.to_string(),
     };
 
+    let link = Hyperlink::from(origin.url.as_deref());
+    let str = format!("{link}{str}{link:#}");
+
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
     if !renderer.short_message {
         for _ in 0..max_line_num_len {
@@ -550,6 +560,15 @@ fn render_snippet_annotations(
                 }
             }
         }
+
+        if let Some(primary_span) = snippet.primary_span()
+            && let Some(url_formatter) = &snippet.url
+        {
+            let (line, byte_col) = sm.byte_to_line_byte_col(primary_span.start);
+            let url = url_formatter.format_url(line, byte_col);
+            origin.url = Some(Cow::from(url));
+        }
+
         let buffer_msg_line_offset = buffer.num_lines();
         render_origin(
             renderer,
@@ -1445,10 +1464,17 @@ fn emit_suggestion_default(
         && let Some(path) = suggestion.path.as_ref()
         && !matches_previous_suggestion
     {
-        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-        let origin = Origin::path(path.as_ref())
+        let span = parts[0].span.clone();
+        let (loc, _) = sm.span_to_locations(span.clone());
+        let mut origin = Origin::path(path.as_ref())
             .line(loc.line)
             .char_column(loc.char + 1);
+
+        if let Some(formatter) = &suggestion.url {
+            let (line, byte_col) = sm.byte_to_line_byte_col(span.start);
+            let url = formatter.format_url(line, byte_col);
+            origin.url = Some(Cow::from(url));
+        }
 
         render_origin(
             renderer,
