@@ -488,7 +488,23 @@ fn render_origin(
         _ => origin.path.to_string(),
     };
 
+    if let Some(url) = &origin.url {
+        let url = normalize_whitespace(url);
+        buffer.append(
+            buffer_msg_line_offset,
+            &format!("\x1B]8;;{url}\x1B\\"),
+            ElementStyle::LineAndColumn,
+        );
+    }
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
+    if origin.url.is_some() {
+        buffer.append(
+            buffer_msg_line_offset,
+            "\x1B]8;;\x1B\\",
+            ElementStyle::LineAndColumn,
+        );
+    }
+
     if !renderer.short_message {
         for _ in 0..max_line_num_len {
             buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
@@ -555,6 +571,11 @@ fn render_snippet_annotations(
                 }
             }
         }
+
+        if let Some(url) = &snippet.url {
+            origin.url = Some(Cow::Borrowed(url));
+        }
+
         let buffer_msg_line_offset = buffer.num_lines();
         render_origin(
             renderer,
