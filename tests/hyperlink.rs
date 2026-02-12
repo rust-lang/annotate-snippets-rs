@@ -16,6 +16,7 @@ fn simple() {
                 Snippet::source(source)
                     .line_start(26)
                     .path("examples/footer.rs")
+                    .path_url("file://localhost/home/user/rust/file.rs")
                     .annotation(AnnotationKind::Primary.span(193..195).label(
                         "expected struct `annotate_snippets::snippet::Slice`, found reference",
                     ))

@@ -227,6 +227,7 @@ pub struct Snippet<'a, T> {
     pub(crate) line_start: usize,
     pub(crate) source: Cow<'a, str>,
     pub(crate) markers: Vec<T>,
+    pub(crate) url: Option<Cow<'a, str>>,
     pub(crate) fold: bool,
 }
 
@@ -246,6 +247,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
             line_start: 1,
             source: source.into(),
             markers: vec![],
+            url: None,
             fold: true,
         }
     }
@@ -268,6 +270,19 @@ impl<'a, T: Clone> Snippet<'a, T> {
     /// </div>
     pub fn path(mut self, path: impl Into<OptionCow<'a>>) -> Self {
         self.path = path.into().0;
+        self
+    }
+
+    /// The URL to the [`source`][Self::source]. Can be a `file://` URL.
+    ///
+    /// Make sure to follow [the OSC 8 reference document][OSC-8], and in
+    /// particular the [`file://` URIs and the hostname][OSC-8-file-URIs] when
+    /// generating a `file://` URL.
+    ///
+    /// [OSC-8]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
+    /// [OSC-8-file-URIs]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda#file-uris-and-the-hostname
+    pub fn path_url(mut self, url: impl Into<OptionCow<'a>>) -> Self {
+        self.url = url.into().0;
         self
     }
 
@@ -487,6 +502,7 @@ pub struct Origin<'a> {
     pub(crate) path: Cow<'a, str>,
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
+    pub(crate) url: Option<Cow<'a, str>>,
 }
 
 impl<'a> Origin<'a> {
@@ -502,6 +518,7 @@ impl<'a> Origin<'a> {
             path: path.into(),
             line: None,
             char_column: None,
+            url: None,
         }
     }
 
@@ -520,6 +537,19 @@ impl<'a> Origin<'a> {
     /// </div>
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
+        self
+    }
+
+    /// The URL to the origin. Can be a `file://` URL.
+    ///
+    /// Make sure to follow [the OSC 8 reference document][OSC-8], and in
+    /// particular the [`file://` URIs and the hostname][OSC-8-file-URIs] when
+    /// generating a `file://` URL.
+    ///
+    /// [OSC-8]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
+    /// [OSC-8-file-URIs]: https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda#file-uris-and-the-hostname
+    pub fn path_url(mut self, uri: impl Into<Cow<'a, str>>) -> Self {
+        self.url = Some(uri.into());
         self
     }
 }

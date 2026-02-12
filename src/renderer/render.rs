@@ -485,6 +485,11 @@ fn render_origin(
         _ => origin.path.to_string(),
     };
 
+    let link = Hyperlink {
+        url: origin.url.as_deref(),
+    };
+    let str = format!("{link}{str}{link:#}");
+
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
     if !renderer.short_message {
         for _ in 0..max_line_num_len {
@@ -552,6 +557,11 @@ fn render_snippet_annotations(
                 }
             }
         }
+
+        if let Some(url) = &snippet.url {
+            origin.url = Some(Cow::Borrowed(url));
+        }
+
         let buffer_msg_line_offset = buffer.num_lines();
         render_origin(
             renderer,
