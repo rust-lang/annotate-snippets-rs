@@ -25,7 +25,7 @@ use crate::{
     Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Report, Snippet, Title,
 };
 
-const ANONYMIZED_LINE_NUM: &str = "LL";
+pub(crate) const ANONYMIZED_LINE_NUM: &str = "LL";
 
 pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
@@ -2295,7 +2295,7 @@ fn draw_line_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usi
     buffer.puts(line, column, dots, ElementStyle::LineNumber);
 }
 
-trait MessageOrTitle {
+pub(crate) trait MessageOrTitle {
     fn level(&self) -> &Level<'_>;
     fn id(&self) -> Option<&Id<'_>>;
     fn text(&self) -> &str;
@@ -2366,7 +2366,7 @@ fn num_decimal_digits(num: Option<usize>) -> usize {
     MAX_DIGITS
 }
 
-fn str_width(s: &str) -> usize {
+pub(crate) fn str_width(s: &str) -> usize {
     s.chars().map(char_width).sum()
 }
 
@@ -2629,13 +2629,13 @@ pub(crate) struct UnderlineParts {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum TitleStyle {
+pub(crate) enum TitleStyle {
     Primary,
     Secondary,
     Message,
 }
 
-struct Hyperlink<D: fmt::Display> {
+pub(crate) struct Hyperlink<D: fmt::Display> {
     url: Option<D>,
 }
 

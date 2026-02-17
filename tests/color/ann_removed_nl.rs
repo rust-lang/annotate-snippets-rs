@@ -20,6 +20,6 @@ fn case() {
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = file!["ann_removed_nl.no_graphics.term.svg": TermSvg];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }

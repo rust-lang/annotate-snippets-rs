@@ -44,6 +44,6 @@ const 哦哦: 啊啊啊啊 = 哈哈哈哈 {}; // some comment"#;
 
     let expected_no_graphics =
         file!["highlight_diff_line_with_wide_characters.no_graphics.term.svg": TermSvg];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }

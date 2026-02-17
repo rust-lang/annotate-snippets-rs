@@ -62,19 +62,13 @@ error[E0599]: no method named `build` found for struct `PartialTest<true, false>
     assert_data_eq!(renderer_ascii.render(report), expected_ascii);
 
     let expected_no_graphics = str![[r#"
-error[E0599]: no method named `build` found for struct `PartialTest<true, false>` in the current scope
-  --> tests/no_compile/missing_fields_in_builder.rs:12:33
-   |
- 3 | #[bitfield(u32, default = 0, forbid_overlaps)]
-   | ---------------------------------------------- method `build` not found for this struct
-...
-12 |     Test::builder().with_foo(1).build();
-   |                                 ^^^^^ method not found in `PartialTest<true, false>`
-   |
-   = note: the method was found for
-           - `PartialTest<true, true>`
+error E0599: no method named `build` found for struct `PartialTest<true, false>` in the current scope
+ at tests/no_compile/missing_fields_in_builder.rs:12:33: method not found in `PartialTest<true, false>`
+  on line 3: method `build` not found for this struct
+ note: the method was found for
+       - `PartialTest<true, true>`
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -152,23 +146,15 @@ help: one of the expressions' fields has a method of the same name
     assert_data_eq!(renderer_ascii.render(report), expected_ascii);
 
     let expected_no_graphics = str![[r#"
-error[E0599]: no method named `with_bar` found for struct `PartialTest<true, true>` in the current scope
-  --> tests/no_compile/missing_fields_in_builder.rs:15:45
-   |
- 3 | #[bitfield(u32, default = 0, forbid_overlaps)]
-   | ---------------------------------------------- method `with_bar` not found for this struct
-...
-15 |     Test::builder().with_bar(1).with_foo(1).with_bar(2).build();
-   |                                             ^^^^^^^^ method not found in `PartialTest<true, true>`
-   |
-   = note: the method was found for
-           - `PartialTest<foo_bitfield, false>`
+error E0599: no method named `with_bar` found for struct `PartialTest<true, true>` in the current scope
+ at tests/no_compile/missing_fields_in_builder.rs:15:45: method not found in `PartialTest<true, true>`
+  on line 3: method `with_bar` not found for this struct
+ note: the method was found for
+       - `PartialTest<foo_bitfield, false>`
 help: one of the expressions' fields has a method of the same name
-   |
-15 |     Test::builder().with_bar(1).with_foo(1).value.with_bar(2).build();
-   |                                             ++++++
+ on line 15, column 45 add: value.
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -240,25 +226,20 @@ help: consider importing one of these structs
     assert_data_eq!(renderer_ascii.render(report), expected_ascii);
 
     let expected_no_graphics = str![[r#"
-error[E0425]: cannot find type `Iter` in this scope
- --> $DIR/missing-type.rs:5:12
-  |
-5 |     let x: Iter;
-  |            ^^^^ not found in this scope
-  |
+error E0425: cannot find type `Iter` in this scope
+ at $DIR/missing-type.rs:5:12: not found in this scope
 help: consider importing one of these structs
-  |
-4 + use std::collections::binary_heap::Iter;
-  |
-4 + use std::collections::btree_map::Iter;
-  |
-4 + use std::collections::btree_set::Iter;
-  |
-4 + use std::collections::hash_map::Iter;
-  |
-  = and 9 other candidates
+ option 1
+  on line 4, column 1 add: use std::collections::binary_heap::Iter;
+ option 2
+  on line 4, column 1 add: use std::collections::btree_map::Iter;
+ option 3
+  on line 4, column 1 add: use std::collections::btree_set::Iter;
+ option 4
+  on line 4, column 1 add: use std::collections::hash_map::Iter;
+and 9 other candidates
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -319,18 +300,11 @@ LL |     fn private_method(&self) {}
     assert_data_eq!(renderer_ascii.render(report), expected_ascii);
 
     let expected_no_graphics = str![[r#"
-error[E0624]: method `private_method` is private
-  --> $DIR/multiple-files.rs:7:35
-   |
-LL |     other_file::WithPrivateMethod.private_method();
-   |                                   ^^^^^^^^^^^^^^ private method
-   |
-  ::: $DIR/auxiliary/other_file.rs:5:5
-   |
-LL |     fn private_method(&self) {}
-   |     ------------------------ private method defined here
+error E0624: method `private_method` is private
+ at $DIR/multiple-files.rs:7:35: private method
+ at $DIR/auxiliary/other_file.rs:5:5: private method defined here
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -423,19 +397,12 @@ LL │     hello!(hi hi);
 
     let expected_no_graphics = str![[r#"
 error: hello to you, too!
-  --> $DIR/multispan.rs:18:5
-   |
-LL |     hello!(hi hi);
-   |     ^^^^^^^^^^^^^
-   |
+ at $DIR/multispan.rs:18:5
 note: found these 'hi's
-  --> $DIR/multispan.rs:18:12
-   |
-LL |     hello!(hi hi);
-   |            ^^ ^^
-   = note: this error originates in the macro `hello` (in Nightly builds, run with -Z macro-backtrace for more info)
+ at $DIR/multispan.rs:18:12
+ note: this error originates in the macro `hello` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -485,19 +452,11 @@ LL +     () => {{  }}
 
     let expected_no_graphics = str![[r#"
 error: foo
-  --> $DIR/foo.rs:3:5
-   |
-LL |     hello!();
-   |     ^^^^^^^^
-   |
+ at $DIR/foo.rs:3:5
 help: consider removing this
-  --> $DIR/macro.rs:3:14
-   |
-LL -     () => {{ foo() }}
-LL +     () => {{  }}
-   |
+ at $DIR/macro.rs:3:14
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -538,18 +497,12 @@ help: convert both operands
 
     let expected_no_graphics = str![[r#"
 error: mismatched types
- --> file.rs:1:5
-  |
-1 | x = value + 1;
-  |     ^^^^^ expected `u8`
-  |
+ at file.rs:1:5: expected `u8`
 help: convert both operands
-  |
-1 - x = value + 1;
-1 + x = u8::from(value) + 1u8;
-  |
+ on line 1, column 5 to column 10 replace with: u8::from(value)
+ on line 1, column 14 add: u8
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -586,17 +539,11 @@ help: convert it
 
     let expected_no_graphics = str![[r#"
 error: mismatched types
- --> file.rs:1:6
-  |
-1 | call(arg);
-  |      ^^^ expected `u8`
-  |
+ at file.rs:1:6: expected `u8`
 help: convert it
-  |
-1 | call(arg.into());
-  |         +++++++
+ on line 1, column 9 add: .into()
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -625,13 +572,10 @@ help: consider importing this struct
 
     let expected_no_graphics = str![[r#"
 help: consider importing this struct
- --> file.rs:1:9
-  |
-1 | use std:slice:::slice;
-  |         +++++++
-  = note: a note after the suggestion
+ at file.rs:1:9 add: slice::
+ note: a note after the suggestion
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -671,19 +615,10 @@ help: rename one of these
 
     let expected_no_graphics = str![[r#"
 help: rename one of these
- --> file.rs:1:4
-  |
-1 - fn f() {}
-1 + fn a() {}
-  |
-  |
- --> file.rs:1:4
-  |
-1 - fn f() {}
-1 + fn b() {}
-  |
+ at file.rs:1:4 to column 5 replace with: a
+ at file.rs:1:4 to column 5 replace with: b
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -711,14 +646,10 @@ error: mismatched types
 
     let expected_no_graphics = str![[r#"
 error: mismatched types
- --> file.rs:1:4
-  |
-1 |  abc
-  |   -^ primary label
-  |   |
-  |   context label
+ at file.rs:1:4: primary label
+  on line 1, column 3: context label
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -745,12 +676,9 @@ help: consider importing this struct
 
     let expected_no_graphics = str![[r#"
 help: consider importing this struct
- --> b.rs:1:1
-  |
-1 + use std::slice::Iter;
-  |
+ at b.rs:1:1 add: use std::slice::Iter;
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -775,12 +703,9 @@ error: tab    here
 
     let expected_no_graphics = str![[r#"
 error: tab    here
- --> file.rs:1:5
-  |
-1 | let x = 1;
-  |     ^ label	with tab
+ at file.rs:1:5: label	with tab
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -805,12 +730,9 @@ error: mismatched types
 
     let expected_no_graphics = str![[r#"
 error: mismatched types
- --> $DIR/file.rs:LL:10
-  |
-2 |     call(arg);
-  |          ^^^ expected `u8`
+ at $DIR/file.rs:LL:10: expected `u8`
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -846,16 +768,12 @@ help: change either declaration
 
     let expected_no_graphics = str![[r#"
 help: change either declaration
- --> file.rs:1:1
-  |
-1 - first
-1 + x
-  |
-2 - second
-2 + y
-  |
+ option 1
+  at file.rs:1:1 to column 6 replace with: x
+ option 2
+  on line 2, column 1 to column 7 replace with: y
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -882,13 +800,9 @@ note: variable defined here
 
     let expected_no_graphics = str![[r#"
 note: variable defined here
- --> file.rs:2:5
-  |
-1 | struct Context;
-2 | let x = 1;
-  |     -
+ at file.rs:2:5
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -914,13 +828,10 @@ help: replace the suffix
 
     let expected_no_graphics = str![[r#"
 help: replace the suffix
- --> file.rs:1:4
-  |
-1 ~  xyfirst
-2 + second
-  |
+ at file.rs:1:4 to column 7 replace with: first
+second
 "#]];
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -942,9 +853,9 @@ fn patch_replacement_escapes_terminal_controls() {
     );
 
     let expected_no_graphics =
-        str![[r#""help: change the value\n --> file.rs:1:1\n  |\n1 - old\n1 + ␛[2Jvalue\n  |""#]]
+        str![[r#""help: change the value\n at file.rs:1:1 to column 4 replace with: ␛[2Jvalue""#]]
             .raw();
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(
         format!("{:?}", renderer_no_graphics.render(report)),
         expected_no_graphics,
@@ -973,9 +884,9 @@ fn alternative_patch_replacement_normalizes_bidi_controls() {
         expected_ascii
     );
 
-    let expected_no_graphics = str![[r#""help: change the value\n --> file.rs:1:1\n  |\n1 - old\n1 + �value�\n  |\n1 - old\n1 + other\n  |""#]]
+    let expected_no_graphics = str![[r#""help: change the value\n option 1\n  at file.rs:1:1 to column 4 replace with: �value�\n option 2\n  on line 1, column 1 to column 4 replace with: other""#]]
     .raw();
-    let renderer_no_graphics = renderer_ascii;
+    let renderer_no_graphics = renderer_ascii.no_graphics(true);
     assert_data_eq!(
         format!("{:?}", renderer_no_graphics.render(report)),
         expected_no_graphics,

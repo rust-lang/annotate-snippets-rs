@@ -46,14 +46,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:2:10
-  │
-2 │   fn foo() {
-  │ ┏━━━━━━━━━━┛
-3 │ ┃ }
-  ╰╴┗━┛ test
+ at test.rs:2:10 to 3:2: test
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -98,15 +93,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:2:10
-  │
-2 │   fn foo() {
-  │ ┏━━━━━━━━━━┛
-  ┆ ┇
-5 │ ┃   }
-  ╰╴┗━━━┛ test
+ at test.rs:2:10 to 5:4: test
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -168,18 +157,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │      X0 Y0
-  │ ┏━━━━┛  │
-  │ ┃┌──────┘
-4 │ ┃│   X1 Y1
-5 │ ┃│   X2 Y2
-  │ ┃└────╿──┘ `Y` is a good letter too
-  │ ┗━━━━━┥
-  ╰╴      `X` is a good letter
+ at test.rs:3:3 to 5:5: `X` is a good letter
+  on line 3, column 6 to line 5: `Y` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -238,17 +219,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │      X0 Y0
-  │ ┏━━━━┛  │
-  │ ┃┌──────┘
-4 │ ┃│   Y1 X1
-  │ ┗│━━━━│━━┛ `X` is a good letter
-  │  └────┤
-  ╰╴      `Y` is a good letter too
+ at test.rs:3:3 to 4:8: `X` is a good letter
+  on line 3, column 6 to line 4, column 5: `Y` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -311,18 +285,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:6
-  │
-3 │      X0 Y0 Z0
-  │ ┏━━━━━━━┛
-4 │ ┃    X1 Y1 Z1
-  │ ┃┌─────────┘
-5 │ ┃│   X2 Y2 Z2
-  │ ┗│━━━━┛ `X` is a good letter
-6 │  │   X3 Y3 Z3
-  ╰╴ └────┘ `Y` is a good letter too
+ at test.rs:3:6 to 5:5: `X` is a good letter
+  on line 4, column 9 to line 6, column 5: `Y` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -389,20 +355,11 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │       X0 Y0 Z0
-  │ ┏━━━━━┛  │  │
-  │ ┃┌───────┘  │
-  │ ┃│┌─────────┘
-4 │ ┃││   X1 Y1 Z1
-5 │ ┃││   X2 Y2 Z2
-  │ ┃│└────╿──│──┘ `Z` label
-  │ ┃└─────│──┤
-  │ ┗━━━━━━┥  `Y` is a good letter too
-  ╰╴       `X` is a good letter
+ at test.rs:3:3 to 5:5: `X` is a good letter
+  on line 3, column 6 to line 5, column 8: `Y` is a good letter too
+  on line 3, column 9 to line 5: `Z` label
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -467,18 +424,11 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │ ┏   X0 Y0 Z0
-4 │ ┃   X1 Y1 Z1
-5 │ ┃   X2 Y2 Z2
-  │ ┃    ╿
-  │ ┃    │
-  │ ┃    `X` is a good letter
-  │ ┗━━━━`Y` is a good letter too
-  ╰╴     `Z` label
+ at test.rs:3:3 to 5:5: `X` is a good letter
+  on line 3 to line 5, column 5: `Y` is a good letter too
+  on line 3 to line 5, column 5: `Z` label
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -550,22 +500,11 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:6
-  │
-3 │      X0 Y0 Z0
-  │ ┏━━━━━━━┛
-4 │ ┃    X1 Y1 Z1
-  │ ┃┌────╿─┘
-  │ ┗│━━━━┥
-  │  │    `X` is a good letter
-5 │  │   X2 Y2 Z2
-  │  └───│──────┘ `Y` is a good letter too
-  │  ┌───┘
-  │  │
-6 │  │   X3 Y3 Z3
-  ╰╴ └───────┘ `Z`
+ at test.rs:3:6 to 4:5: `X` is a good letter
+  on line 4, column 6 to line 5: `Y` is a good letter too
+  on line 5 to line 6, column 8: `Z`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -626,17 +565,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │ ┏   X0 Y0 Z0
-4 │ ┃   X1 Y1 Z1
-  │ ┗━━━━┛ `X` is a good letter
-5 │     X2 Y2 Z2
-  │ ┌──────┘
-6 │ │   X3 Y3 Z3
-  ╰╴└──────────┘ `Y` is a good letter too
+ at test.rs:3:3 to 4:5: `X` is a good letter
+  on line 5, column 6 to line 6: `Y` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -701,19 +633,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:6
-  │
-3 │      X0 Y0 Z0
-  │ ┏━━━━━━━┛
-4 │ ┃    X1 Y1 Z1
-  │ ┃┌────╿────┘
-  │ ┗│━━━━┥
-  │  │    `X` is a good letter
-5 │  │   X2 Y2 Z2
-6 │  │   X3 Y3 Z3
-  ╰╴ └──────────┘ `Y` is a good letter too
+ at test.rs:3:6 to 4:5: `X` is a good letter
+  on line 4, column 9 to line 6: `Y` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -758,12 +681,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:7
-  │
-3 │   a { b { c } d }
-  ╰╴  ────━━━━─━━── `a` is a good letter
+ at test.rs:3:7
+  on line 3: `a` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -807,12 +728,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a { b { c } d }
-  ╰╴  ━━━━───────━━ `a` is a good letter
+ at test.rs:3:3: `a` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -861,14 +779,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:7
-  │
-3 │   a { b { c } d }
-  │   ────┯━━━─━━──
-  │       │
-  ╰╴      `b` is a good letter
+ at test.rs:3:7: `b` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -916,14 +829,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a { b { c } d }
-  │   ━━━━┬──────━━
-  │       │
-  ╰╴      `b` is a good letter
+ at test.rs:3:3
+  on line 3, column 7: `b` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -971,14 +880,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a  bc  d
-  │   ┯━━━────
-  │   │
-  ╰╴  `a` is a good letter
+ at test.rs:3:3: `a` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1018,12 +922,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a { b { c } d }
-  ╰╴  ━━━━───────━━
+ at test.rs:3:3
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1064,12 +965,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:7
-  │
-3 │   a { b { c } d }
-  ╰╴  ────━━━━─━━──
+ at test.rs:3:7
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1123,15 +1021,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a { b { c } d }
-  │   ┯━━━┬──────━━
-  │   │   │
-  │   │   `b` is a good letter
-  ╰╴  `a` is a good letter
+ at test.rs:3:3: `a` is a good letter
+  on line 3, column 7: `b` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1174,12 +1067,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a { b { c } d }
-  ╰╴  ━━━━━━━━━━━━━ `a` is a good letter
+ at test.rs:3:3: `a` is a good letter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1218,12 +1108,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-  ╭▸ test.rs:3:3
-  │
-3 │   a { b { c } d }
-  ╰╴  ━━━━━━━━━━━━━
+ at test.rs:3:3
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1306,23 +1193,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-   ╭▸ test.rs:3:6
-   │
- 3 │      X0 Y0 Z0
-   │ ┏━━━━━━━┛
- 4 │ ┃    X1 Y1 Z1
-   │ ┃┌────╿────┘
-   │ ┗│━━━━┥
-   │  │    `X` is a good letter
- 5 │  │ 1
- 6 │  │ 2
- 7 │  │ 3
-   ┆  ┆
-15 │  │   X2 Y2 Z2
-16 │  │   X3 Y3 Z3
-   ╰╴ └──────────┘ `Y` is a good letter too
+ at test.rs:3:6 to 4:5: `X` is a good letter
+  on line 4, column 9 to line 16: `Y` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 #[test]
@@ -1411,26 +1285,10 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-   ╭▸ test.rs:3:6
-   │
- 3 │      X0 Y0 Z0
-   │ ┏━━━━━━━┛
- 4 │ ┃  1
- 5 │ ┃  2
- 6 │ ┃  3
- 7 │ ┃    X1 Y1 Z1
-   │ ┃┌─────────┘
- 8 │ ┃│ 4
- 9 │ ┃│ 5
-10 │ ┃│ 6
-11 │ ┃│   X2 Y2 Z2
-   │ ┃└──────────┘ `Z` is a good letter too
-   ┆ ┇
-15 │ ┃  10
-16 │ ┃    X3 Y3 Z3
-   ╰╴┗━━━━━━━━┛ `Y` is a good letter
+ at test.rs:3:6 to 16:8: `Y` is a good letter
+  on line 7, column 9 to line 11: `Z` is a good letter too
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -1497,16 +1355,12 @@ error: this file contains an unclosed delimiter
 
     let expected_no_graphics = str![[r#"
 error: this file contains an unclosed delimiter
-  ╭▸ $DIR/issue-91334.rs:7:23
-  │
-7 │ fn f(){||yield(((){),
-  │       ┬       ┬    ┬ ━
-  │       │       │    │
-  │       │       │    missing open `(` for this delimiter
-  │       │       unclosed delimiter
-  ╰╴      unclosed delimiter
+ at $DIR/issue-91334.rs:7:23
+  on line 7, column 7: unclosed delimiter
+  on line 7, column 15: unclosed delimiter
+  on line 7, column 20: missing open `(` for this delimiter
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -1614,25 +1468,13 @@ help: use `break` on its own without a value inside this `while` loop
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0571]: `break` with value from a `while` loop
-   ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
-   │
-21 │       while true {
-   │       ────────── you can't `break` with a value in a `while` loop
-22 │ ┏         break (|| { //~ ERROR `break` with value from a `while` loop
-23 │ ┃             let local = 9;
-24 │ ┃         });
-   │ ┗━━━━━━━━━━┛ can only break with a value inside `loop` or breakable block
-   ╰╴
+error E0571: `break` with value from a `while` loop
+ at $DIR/issue-114529-illegal-break-with-value.rs:22:9 to 24:11: can only break with a value inside `loop` or breakable block
+  on line 21: you can't `break` with a value in a `while` loop
 help: use `break` on its own without a value inside this `while` loop
-   ╭▸ $DIR/issue-114529-illegal-break-with-value.rs:22:9
-   │
-22 │ ┌         break (|| { //~ ERROR `break` with value from a `while` loop
-23 │ │             let local = 9;
-24 │ │         });
-   ╰╴└──────────┘ break
+ at $DIR/issue-114529-illegal-break-with-value.rs:22:9 to 24:11: break
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -1868,28 +1710,13 @@ note: required by a bound in `is_transmutable`
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0277]: `V0usize` cannot be safely transmuted into `[usize; 2]`
-    ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:144:44
-    │
-144 │         assert::is_transmutable::<Current, Larger>(); //~ ERROR cannot be safely transmuted
-    │                                            ━━━━━━ the size of `V0usize` is smaller than the size of `[usize; 2]`
-    ╰╴
+error E0277: `V0usize` cannot be safely transmuted into `[usize; 2]`
+ at $DIR/primitive_reprs_should_have_correct_length.rs:144:44: the size of `V0usize` is smaller than the size of `[usize; 2]`
 note: required by a bound in `is_transmutable`
-    ╭▸ $DIR/primitive_reprs_should_have_correct_length.rs:12:14
-    │
- 10 │       pub fn is_transmutable<Src, Dst>()
-    │              ─────────────── required by a bound in this function
- 11 │       where
- 12 │           Dst: TransmuteFrom<Src, {
-    │ ┏━━━━━━━━━━━━━━┛
- 13 │ ┃             Assume {
- 14 │ ┃                 alignment: true,
- 15 │ ┃                 lifetimes: true,
-    ┆ ┇
- 19 │ ┃         }>
-    ╰╴┗━━━━━━━━━━┛ required by this bound in `is_transmutable`
+ at $DIR/primitive_reprs_should_have_correct_length.rs:12:14 to 19:11: required by this bound in `is_transmutable`
+  on line 10, column 12: required by a bound in this function
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -1953,13 +1780,10 @@ error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
-   ╭▸ $DIR/align-fail.rs:21:55
-   │
-21 │ …atic [u8; 0], &'static [u16; 0]>(); //~ ERROR `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
-   ╰╴               ━━━━━━━━━━━━━━━━━ the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
+error E027s7: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
+ at $DIR/align-fail.rs:21:55: the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2062,19 +1886,13 @@ error[E0618]: expected function, found `{integer}`
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0618]: expected function, found `{integer}`
-  ╭▸ $DIR/missing-semicolon.rs:5:13
-  │
-4 │       let x = 5;
-  │           ─ `x` has type `{integer}`
-5 │       let y = x //~ ERROR expected function
-  │               ━─ help: consider using a semicolon here to finish the statement: `;`
-  │ ┌─────────────┘
-  │ │
-6 │ │     () //~ ERROR expected `;`, found `}`
-  ╰╴└──────┘ call expression requires function
+error E0618: expected function, found `{integer}`
+ at $DIR/missing-semicolon.rs:5:13
+  on line 4, column 9: `x` has type `{integer}`
+  on line 5, column 13 to line 6, column 7: call expression requires function
+  on line 5, column 14: help: consider using a semicolon here to finish the statement: `;`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2232,33 +2050,15 @@ note: the lint level is defined here
 
     let expected_no_graphics = str![[r#"
 warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
-   ╭▸ $DIR/auxiliary/nested-macro-rules.rs:7:9
-   │
- 4 │   macro_rules! outer_macro {
-   │   ──────────────────────── in this expansion of `nested_macro_rules::outer_macro!`
-   ┆
- 7 │ ┏         macro_rules! inner_macro {
- 8 │ ┃             ($bang_macro:ident, $attr_macro:ident) => {
- 9 │ ┃                 $bang_macro!($name);
-10 │ ┃                 #[$attr_macro] struct $attr_struct_name {}
-11 │ ┃             }
-12 │ ┃         }
-   │ ┗━━━━━━━━━┛
-   │
-   ⸬  $DIR/nested-macro-rules.rs:23:5
-   │
-23 │       nested_macro_rules::outer_macro!(SecondStruct, SecondAttrStruct);
-   │       ──────────────────────────────────────────────────────────────── in this macro invocation
-   │
-   ├ help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
-   ╰ note: a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute
+ at $DIR/auxiliary/nested-macro-rules.rs:7:9 to 12:10
+  on line 4: in this expansion of `nested_macro_rules::outer_macro!`
+ at $DIR/nested-macro-rules.rs:23:5: in this macro invocation
+ help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
+ note: a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute
 note: the lint level is defined here
-   ╭▸ $DIR/nested-macro-rules.rs:8:9
-   │
- 8 │ #![warn(non_local_definitions)]
-   ╰╴        ━━━━━━━━━━━━━━━━━━━━━
+ at $DIR/nested-macro-rules.rs:8:9
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2368,19 +2168,12 @@ help: you must specify a type for this binding, like `i32`
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0689]: can't call method `pow` on ambiguous numeric type `{integer}`
-   ╭▸ $DIR/method-on-ambiguous-numeric-type.rs:37:9
-   │
-37 │     bar.pow(2);
-   │         ━━━
-   ╰╴
+error E0689: can't call method `pow` on ambiguous numeric type `{integer}`
+ at $DIR/method-on-ambiguous-numeric-type.rs:37:9
 help: you must specify a type for this binding, like `i32`
-   ╭▸ $DIR/auxiliary/macro-in-other-crate.rs:3:35
-   │
- 3 │     ($ident:ident) => { let $ident = 42; }
-   ╰╴                                  ─ : i32
+ at $DIR/auxiliary/macro-in-other-crate.rs:3:35: : i32
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2440,13 +2233,10 @@ error[E0282]: type annotations needed
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0282]: type annotations needed
-   ╭▸ $DIR/issue-42234-unknown-receiver-type.rs:15:10
-   │
-15 │         .sum::<_>() //~ ERROR type annotations needed
-   ╰╴         ━━━ cannot infer type of the type parameter `S` declared on the method `sum`
+error E0282: type annotations needed
+ at $DIR/issue-42234-unknown-receiver-type.rs:15:10: cannot infer type of the type parameter `S` declared on the method `sum`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2643,37 +2433,22 @@ help: ensure that all possible cases are being handled by adding a match arm wit
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0004]: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
-   ╭▸ $DIR/empty-match.rs:71:24
-   │
-71 │     match_guarded_arm!(NonEmptyEnum5::V1); //~ ERROR `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
-   │                        ━━━━━━━━━━━━━━━━━ patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
-   ╰╴
+error E0004: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+ at $DIR/empty-match.rs:71:24: patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
 note: `NonEmptyEnum5` defined here
-   ╭▸ $DIR/empty-match.rs:38:10
-   │
-38 │     enum NonEmptyEnum5 {
-   │          ━━━━━━━━━━━━━
-39 │         V1,
-   │         ── not covered
-40 │         V2,
-   │         ── not covered
-41 │         V3,
-   │         ── not covered
-42 │         V4,
-   │         ── not covered
-43 │         V5,
-   │         ── not covered
-   ├ note: the matched value is of type `NonEmptyEnum5`
-   ╰ note: match arms with guards don't count towards exhaustivity
+ at $DIR/empty-match.rs:38:10
+  on line 39: not covered
+  on line 40: not covered
+  on line 41: not covered
+  on line 42: not covered
+  on line 43: not covered
+ note: the matched value is of type `NonEmptyEnum5`
+ note: match arms with guards don't count towards exhaustivity
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms
-   ╭▸ $DIR/empty-match.rs:17:33
-   │
-17 │                 _ if false => {}
-   ╰╴                                ─ ,
+ at $DIR/empty-match.rs:17:33: ,
                 _ => todo!()
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2769,24 +2544,15 @@ note: for a trait to be dyn compatible it needs to allow building a vtable
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0038]: the trait alias `EqAlias` is not dyn compatible
-  ╭▸ $DIR/object-fail.rs:7:17
-  │
-7 │     let _: &dyn EqAlias = &123;
-  │                 ━━━━━━━ `EqAlias` is not dyn compatible
-  ╰╴
+error E0038: the trait alias `EqAlias` is not dyn compatible
+ at $DIR/object-fail.rs:7:17: `EqAlias` is not dyn compatible
 note: for a trait to be dyn compatible it needs to allow building a vtable
       for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
-  ╭▸ $SRC_DIR/core/src/cmp.rs:334:14
-  │
-  ├ note: ...because it uses `Self` as a type parameter
-  │
-  ⸬  $DIR/object-fail.rs:3:7
-  │
-3 │ trait EqAlias = Eq;
-  ╰╴      ─────── this trait is not dyn compatible...
+ at $SRC_DIR/core/src/cmp.rs:334:14
+ note: ...because it uses `Self` as a type parameter
+ at $DIR/object-fail.rs:3:7: this trait is not dyn compatible...
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2832,13 +2598,10 @@ error[E0038]: mismatched types
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0038]: mismatched types
-  ╭▸ $DIR/long-span.rs:2:15
-  │
-2 │ …u8 = [0, 0…0, 0];
-  ╰╴      ━━━━━…━━━━━ expected `u8`, found `[{integer}; 1680]`
+error E0038: mismatched types
+ at $DIR/long-span.rs:2:15: expected `u8`, found `[{integer}; 1680]`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2886,13 +2649,10 @@ error[E0038]: mismatched types
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0038]: mismatched types
-  ╭▸ $DIR/long-span.rs:2:15
-  │
-2 │ …u8 = [0, 0…0, 0];
-  ╰╴      ━━━━━…━━━━━ expected `u8`, found `[{integer}; 1680]`
+error E0038: mismatched types
+ at $DIR/long-span.rs:2:15: expected `u8`, found `[{integer}; 1680]`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2940,13 +2700,10 @@ error[E0038]: mismatched types
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0038]: mismatched types
-  ╭▸ $DIR/long-span.rs:2:15
-  │
-2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, …, 0, 0, 0, 0, 0, 0, 0, 0];
-  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+error E0038: mismatched types
+ at $DIR/long-span.rs:2:15: expected `u8`, found `[{integer}; 1680]`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -2992,13 +2749,10 @@ error[E0038]: mismatched types
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0038]: mismatched types
-  ╭▸ $DIR/long-span.rs:2:15
-  │
-2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0…0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+error E0038: mismatched types
+ at $DIR/long-span.rs:2:15: expected `u8`, found `[{integer}; 1680]`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3116,30 +2870,15 @@ help: you might have meant to use `Iterator::for_each`
 
     let expected_no_graphics = str![[r#"
 error: `Iterator::map` call that discard the iterator's values
-   ╭▸ $DIR/lint_map_unit_fn.rs:11:18
-   │
-11 │         x.iter_mut().map(|items| {
-   │                      ╿   │──────
-   │                      │   │
-   │ ┌────────────────────│───this function returns `()`, which is likely not what you wanted
-   │ │ ┏━━━━━━━━━━━━━━━━━━┙
-   │ │ ┃
-12 │ │ ┃     //~^ ERROR `Iterator::map` call that discard the iterator's values
-13 │ │ ┃         items.sort();
-14 │ │ ┃     });
-   │ │ ┃     │╿ after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
-   │ │ ┗━━━━━││
-   │ └───────┤
-   │         called `Iterator::map` with callable that returns `()`
-   │
-   ╰ note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
+ at $DIR/lint_map_unit_fn.rs:11:18 to 14:7
+  on line 11, column 18 to line 14, column 7: after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+  on line 11, column 22: this function returns `()`, which is likely not what you wanted
+  on line 11, column 22 to line 14, column 6: called `Iterator::map` with callable that returns `()`
+ note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
 help: you might have meant to use `Iterator::for_each`
-   ╭╴
-11 -     x.iter_mut().map(|items| {
-11 +     x.iter_mut().for_each(|items| {
-   ╰╴
+ on line 11, column 18 to column 21 replace with: for_each
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3223,19 +2962,11 @@ help: escape the character
 
     let expected_no_graphics = str![[r#"
 error: character constant must be escaped: `/n`
-   ╭▸ $DIR/bad-char-literals.rs:10:6
-   │
-10 │       '
-   │ ┏━━━━━━┛
-11 │ ┃ ';
-   │ ┗━┛
-   ╰╴
+ at $DIR/bad-char-literals.rs:10:6 to 11:1
 help: escape the character
-   ╭╴
-10 │     '/n';
-   ╰╴     ++
+ on line 10, column 6 add: /n
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3307,20 +3038,11 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-  ╭▸ $DIR/unclosed-1.rs:1:1
-  │
-1 │ ┏ ----cargo
-  ┆ ┇
-7 │ ┃
-  │ ┗━┛
-  ╰╴
+ at $DIR/unclosed-1.rs:1:1 to 7:1
 note: frontmatter opening here was not closed
-  ╭▸ $DIR/unclosed-1.rs:1:1
-  │
-1 │ ----cargo
-  ╰╴━━━━
+ at $DIR/unclosed-1.rs:1:1
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3399,21 +3121,11 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-   ╭▸ $DIR/unclosed-2.rs:1:1
-   │
- 1 │ ┏ ----cargo
-   ┆ ┇
-14 │ ┃     "----"
-15 │ ┃ }
-   │ ┗━━┛
-   ╰╴
+ at $DIR/unclosed-2.rs:1:1 to 15:3
 note: frontmatter opening here was not closed
-   ╭▸ $DIR/unclosed-2.rs:1:1
-   │
- 1 │ ----cargo
-   ╰╴━━━━
+ at $DIR/unclosed-2.rs:1:1
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3489,18 +3201,11 @@ note: frontmatter close should not be preceded by whitespace
 
     let expected_no_graphics = str![[r#"
 error: invalid preceding whitespace for frontmatter close
-   ╭▸ $DIR/unclosed-3.rs:12:1
-   │
-12 │     ---x
-   │ ━━━━━━━━
-   ╰╴
+ at $DIR/unclosed-3.rs:12:1
 note: frontmatter close should not be preceded by whitespace
-   ╭▸ $DIR/unclosed-3.rs:12:1
-   │
-12 │     ---x
-   ╰╴━━━━
+ at $DIR/unclosed-3.rs:12:1
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3571,20 +3276,11 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-  ╭▸ $DIR/unclosed-4.rs:1:1
-  │
-1 │ ┏ ----cargo
-2 │ ┃ //~^ ERROR: unclosed frontmatter
-3 │ ┃
-  │ ┗━┛
-  ╰╴
+ at $DIR/unclosed-4.rs:1:1 to 3:1
 note: frontmatter opening here was not closed
-  ╭▸ $DIR/unclosed-4.rs:1:1
-  │
-1 │ ----cargo
-  ╰╴━━━━
+ at $DIR/unclosed-4.rs:1:1
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3657,20 +3353,11 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-  ╭▸ $DIR/unclosed-5.rs:1:1
-  │
-1 │ ┏ ----cargo
-  ┆ ┇
-7 │ ┃
-  │ ┗━┛
-  ╰╴
+ at $DIR/unclosed-5.rs:1:1 to 7:1
 note: frontmatter opening here was not closed
-  ╭▸ $DIR/unclosed-5.rs:1:1
-  │
-1 │ ----cargo
-  ╰╴━━━━
+ at $DIR/unclosed-5.rs:1:1
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3853,30 +3540,16 @@ help: a unit variant with a similar name exists
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0532]: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-   ╭▸ $DIR/pat-tuple-field-count-cross.rs:35:9
-   │
-35 │         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-   │         ━━━━━━
-   │
-   ⸬  $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:19
-   │
-11 │ pub enum E1 { Z0, Z1(), S(u8, u8, u8) }
-   │               ┬─  ── `E1::Z1` defined here
-   │               │
-   │               similarly named unit variant `Z0` defined here
-   ╰╴
+error E0532: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+ at $DIR/pat-tuple-field-count-cross.rs:35:9
+ at $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs:11:15: similarly named unit variant `Z0` defined here
+  on line 11, column 19: `E1::Z1` defined here
 help: use the tuple variant pattern syntax instead
-   ╭╴
-35 │         E1::Z1() => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-   ╰╴              ++
+ on line 35, column 15 add: ()
 help: a unit variant with a similar name exists
-   ╭╴
-35 -         E1::Z1 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-35 +         E1::Z0 => {} //~ ERROR expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
-   ╰╴
+ on line 35, column 13 to column 15 replace with: Z0
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -3957,25 +3630,13 @@ error[E0758]: unterminated block comment
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0758]: unterminated block comment
-  ╭▸ $DIR/unterminated-nested-comment.rs:1:1
-  │
-1 │   /* //~ ERROR E0758
-  │   ╿─
-  │   │
-  │ ┏━unterminated block comment
-  │ ┃
-2 │ ┃ /* */
-3 │ ┃ /*
-  │ ┃ ┬─
-  │ ┃ │
-  │ ┃ ...as last nested comment starts here, maybe you want to close this instead?
-4 │ ┃ */
-  │ ┗━┬─┛
-  │   │
-  ╰╴  ...and last nested comment terminates here.
+error E0758: unterminated block comment
+ at $DIR/unterminated-nested-comment.rs:1:1 to 4:4
+  on line 1: unterminated block comment
+  on line 3: ...as last nested comment starts here, maybe you want to close this instead?
+  on line 4: ...and last nested comment terminates here.
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4062,23 +3723,14 @@ error[E0308]: mismatched types
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0308]: mismatched types
-  ╭▸ $DIR/file.txt:3:1
-  │
-3 │
-  │ ━ expected `&[u8]`, found `&str`
-  │
-  ⸬  $DIR/mismatched-types.rs:2:12
-  │
-2 │     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
-  │            ┬────   ──────────────────────── in this macro invocation
-  │            │
-  │            expected due to this
-  │
-  ╰ note: expected reference `&[u8]`
-             found reference `&'static str`
+error E0308: mismatched types
+ at $DIR/file.txt:3:1: expected `&[u8]`, found `&str`
+ at $DIR/mismatched-types.rs:2:12: expected due to this
+  on line 2, column 20: in this macro invocation
+ note: expected reference `&[u8]`
+          found reference `&'static str`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4143,18 +3795,13 @@ error[E0308]: mismatched types
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0308]: mismatched types
-  ╭▸ $DIR/mismatched-types.rs:3:19
-  │
-3 │     let s: &str = include_bytes!("file.txt");   //~ ERROR mismatched types
-  │            ┬───   ━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `&str`, found `&[u8; 0]`
-  │            │
-  │            expected due to this
-  │
-  ╰ note: expected reference `&str`
-             found reference `&'static [u8; 0]`
+error E0308: mismatched types
+ at $DIR/mismatched-types.rs:3:19: expected `&str`, found `&[u8; 0]`
+  on line 3, column 12: expected due to this
+ note: expected reference `&str`
+          found reference `&'static [u8; 0]`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4213,10 +3860,14 @@ $DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, 
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str![
-        "$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`"
-    ];
-    let renderer_no_graphics = renderer;
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/short-error-format.rs:6:9: expected `u32`, found `String`
+  on line 6: arguments to this function are incorrect
+note: function defined here
+ at $DIR/short-error-format.rs:3:4
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4260,10 +3911,11 @@ $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for 
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str![
-        "$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`"
-    ];
-    let renderer_no_graphics = renderer;
+    let expected_no_graphics = str![[r#"
+error E0599: no method named `salut` found for type `u32` in the current scope
+ at $DIR/short-error-format.rs:8:7: method not found in `u32`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4353,23 +4005,15 @@ help: use an automatic link instead
 
     let expected_no_graphics = str![[r#"
 error: this URL is not a hyperlink
-  ╭▸ $DIR/diagnostic-width.rs:4:41
-  │
-4 │ …ns a http:…k.com
-  │       ━━━━━…━━━━━
-  │
-  ╰ note: bare URLs are not automatically turned into clickable links
+ at $DIR/diagnostic-width.rs:4:41
+ note: bare URLs are not automatically turned into clickable links
 note: the lint level is defined here
-  ╭▸ $DIR/diagnostic-width.rs:2:9
-  │
-2 │ …deny(rustd…_urls)]
-  ╰╴      ━━━━━…━━━━━
+ at $DIR/diagnostic-width.rs:2:9
 help: use an automatic link instead
-  ╭╴
-4 │ /// This is a long line that contains a <http://link.com>
-  ╰╴                                        +               +
+ on line 4, column 41 add: <
+ on line 4, column 56 add: >
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4465,26 +4109,17 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
 
     let expected_no_graphics = str![[r#"
 warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
-  ╭▸ lint_example.rs:3:11
-  │
-3 │ [1, 2, 3].into_iter().for_each(|n| { *n; });
-  │           ━━━━━━━━━
-  │
-  ├ warning: this changes meaning in Rust 2021
-  ├ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
-  ╰ note: `#[warn(array_into_iter)]` on by default
+ at lint_example.rs:3:11
+ warning: this changes meaning in Rust 2021
+ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+ note: `#[warn(array_into_iter)]` on by default
 help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
-  ╭╴
-3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
-3 + [1, 2, 3].iter().for_each(|n| { *n; });
-  ╰╴
+ on line 3, column 11 to column 20 replace with: iter
 help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
-  ╭╴
-3 - [1, 2, 3].into_iter().for_each(|n| { *n; });
-3 + IntoIterator::into_iter([1, 2, 3]).for_each(|n| { *n; });
-  ╰╴
+ on line 3, column 1 add: IntoIterator::into_iter(
+ on line 3, column 10 to column 22 replace with: )
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4592,21 +4227,16 @@ note: the foreign item type `Box<isize>` doesn't implement `Add`
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0369]: cannot add `Box<isize>` to `Box<isize>`
-   ╭▸ $DIR/autoderef-box-no-add.rs:25:24
-   │
-25 │     let z: isize = a.x + b.y;
-   │                    ┬── ━ ─── Box<isize>
-   │                    │
-   │                    Box<isize>
-   ╰╴
+error E0369: cannot add `Box<isize>` to `Box<isize>`
+ at $DIR/autoderef-box-no-add.rs:25:24
+  on line 25, column 20: Box<isize>
+  on line 25, column 26: Box<isize>
 note: the foreign item type `Box<isize>` doesn't implement `Add`
-   ╭▸ $SRC_DIR/alloc/src/boxed.rs:231:0
-   ⸬  $SRC_DIR/alloc/src/boxed.rs:234:1
-   │
-   ╰ note: not implement `Add`
+ at $SRC_DIR/alloc/src/boxed.rs:231:0
+ at $SRC_DIR/alloc/src/boxed.rs:234:1
+ note: not implement `Add`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4750,23 +4380,15 @@ help: trait `Future` which provides `poll` is implemented but not in scope; perh
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0599]: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
-   ╭▸ $DIR/dont-project-to-specializable-projection.rs:48:28
-   │
-48 │         match fut.as_mut().poll(ctx) {
-   │                            ━━━━ method not found in `Pin<&mut impl Future<Output = ()>>`
-   ╰╴
-   ╭▸ $SRC_DIR/core/src/future/future.rs:104:7
-   │
-   ├ note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
-   │
-   ╰ help: items from traits can only be used if the trait is in scope
+error E0599: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
+ at $DIR/dont-project-to-specializable-projection.rs:48:28: method not found in `Pin<&mut impl Future<Output = ()>>`
+ at $SRC_DIR/core/src/future/future.rs:104:7
+ note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
+ help: items from traits can only be used if the trait is in scope
 help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it
-   ╭╴
- 6 + use std::future::Future;
-   ╰╴
+ on line 6, column 1 add: use std::future::Future;
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4871,23 +4493,17 @@ note: the foreign item types don't implement required traits for this operation 
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
-   ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
-   │
-10 │     (Error::new(ErrorKind::Other, "2"), thread::current())
-   │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
-11 │         == (Error::new(ErrorKind::Other, "2"), thread::current());
-   │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
-   ╰╴
+error E0369: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+ at $DIR/binary-op-not-allowed-issue-125631.rs:11:9
+  on line 10: (std::io::Error, Thread)
+  on line 11, column 12: (std::io::Error, Thread)
 note: the foreign item types don't implement required traits for this operation to be valid
-   ╭▸ $SRC_DIR/std/src/io/error.rs:65:0
-   │
-   ╰ note: not implement `PartialEq`
-   ╭▸ $SRC_DIR/std/src/thread/mod.rs:1415:0
-   │
-   ╰ note: not implement `PartialEq`
+ at $SRC_DIR/std/src/io/error.rs:65:0
+ note: not implement `PartialEq`
+ at $SRC_DIR/std/src/thread/mod.rs:1415:0
+ note: not implement `PartialEq`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -4964,18 +4580,12 @@ error: cannot find derive macro `Eqr` in this scope
 
     let expected_no_graphics = str![[r#"
 error: cannot find derive macro `Eqr` in this scope
-  ╭▸ $DIR/deriving-meta-unknown-trait.rs:1:10
-  │
-1 │ #[derive(Eqr)]
-  │          ━━━ help: a derive macro with a similar name exists: `Eq`
-  ╰╴
-  ╭▸ $SRC_DIR/core/src/cmp.rs:356:0
-  │
-  ├ note: similarly named derive macro `Eq` defined here
-  │
-  ╰ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+ at $DIR/deriving-meta-unknown-trait.rs:1:10: help: a derive macro with a similar name exists: `Eq`
+ at $SRC_DIR/core/src/cmp.rs:356:0
+ note: similarly named derive macro `Eq` defined here
+ note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5087,29 +4697,23 @@ note: the traits `Iterator` and `ToTokens` must be implemented
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
-   ╭▸ $DIR/not-repeatable.rs:11:13
-   │
- 7 │ struct Ipv4Addr;
-   │ ─────────────── method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
-   ┆
-11 │     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not sat…
-   │             ━━━━━━━━━━━━━━━━━━ method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
-   │
-   ╰ note: the following trait bounds were not satisfied:
-           `Ipv4Addr: Iterator`
-           which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
-           `&Ipv4Addr: Iterator`
-           which is required by `&Ipv4Addr: proc_macro::ext::RepIteratorExt`
-           `Ipv4Addr: ToTokens`
-           which is required by `Ipv4Addr: proc_macro::ext::RepToTokensExt`
-           `&mut Ipv4Addr: Iterator`
-           which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`
+error E0599: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
+ at $DIR/not-repeatable.rs:11:13: method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
+  on line 7: method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+ note: the following trait bounds were not satisfied:
+       `Ipv4Addr: Iterator`
+       which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
+       `&Ipv4Addr: Iterator`
+       which is required by `&Ipv4Addr: proc_macro::ext::RepIteratorExt`
+       `Ipv4Addr: ToTokens`
+       which is required by `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+       `&mut Ipv4Addr: Iterator`
+       which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`
 note: the traits `Iterator` and `ToTokens` must be implemented
-   ─▸ $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
-   ─▸ $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
+ at $SRC_DIR/proc_macro/src/to_tokens.rs:11:0
+ at $SRC_DIR/core/src/iter/traits/iterator.rs:39:0
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5202,19 +4806,13 @@ error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
-   ╭▸ $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23
-   │
-12 │ struct S<T>(T);
-   │ ─────────── associated type `Pr` not found for this struct
-   ┆
-28 │     let _: S::<bool>::Pr = ();
-   │                       ━━ associated item not found in `S<bool>`
-   │
-   ╰ note: the associated type was found for
-           
+error E0220: associated type `Pr` not found for `S<bool>` in the current scope
+ at $DIR/not-found-self-type-differs-shadowing-trait-item.rs:28:23: associated item not found in `S<bool>`
+  on line 12: associated type `Pr` not found for this struct
+ note: the associated type was found for
+       
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5326,29 +4924,14 @@ note: the lint level is defined here
 
     let expected_no_graphics = str![[r#"
 error: extern blocks should be unsafe
-   ╭▸ $DIR/unsafe-extern-suggestion.rs:6:1
-   │
- 6 │   extern "C" {
-   │   ╿
-   │   │
-   │ ┏━help: needs `unsafe` before the extern keyword: `unsafe`
-   │ ┃
- 7 │ ┃     //~^ ERROR extern blocks should be unsafe [missing_unsafe_on_extern]
- 8 │ ┃     //~| WARN this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
- 9 │ ┃     static TEST1: i32;
-10 │ ┃     fn test1(i: i32);
-11 │ ┃ }
-   │ ┗━┛
-   │
-   ├ warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
-   ╰ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
+ at $DIR/unsafe-extern-suggestion.rs:6:1 to 11:2
+  on line 6: help: needs `unsafe` before the extern keyword: `unsafe`
+ warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
 note: the lint level is defined here
-   ╭▸ $DIR/unsafe-extern-suggestion.rs:3:9
-   │
- 3 │ #![deny(missing_unsafe_on_extern)]
-   ╰╴        ━━━━━━━━━━━━━━━━━━━━━━━━
+ at $DIR/unsafe-extern-suggestion.rs:3:9
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5491,36 +5074,19 @@ note: function defined here
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0308]: mismatched types
-   ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:10:1
-   │
- 9 │    #[alloc_error_handler]
-   │    ────────────────────── in this procedural macro expansion
-10 │ ┏┌ fn oom(
-11 │ ┃│     info: Layout, //~^ ERROR mismatched types
-12 │ ┃│ ) { //~^^ ERROR mismatched types
-   │ ┃└─┘ arguments to this function are incorrect
-13 │ ┃      loop {}
-14 │ ┃  }
-   │ ┗━━┛ expected `Layout`, found `core::alloc::Layout`
-   │
-   ╰ note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
+error E0308: mismatched types
+ at $DIR/alloc-error-handler-bad-signature-2.rs:10:1 to 14:2: expected `Layout`, found `core::alloc::Layout`
+  on line 9: in this procedural macro expansion
+  on line 10 to line 12, column 2: arguments to this function are incorrect
+ note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
 note: `core::alloc::Layout` is defined in crate `core`
-   ─▸ $SRC_DIR/core/src/alloc/layout.rs:40:0
+ at $SRC_DIR/core/src/alloc/layout.rs:40:0
 note: `Layout` is defined in the current crate
-   ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:7:1
-   │
- 7 │ struct Layout;
-   ╰╴━━━━━━━━━━━━━
+ at $DIR/alloc-error-handler-bad-signature-2.rs:7:1
 note: function defined here
-   ╭▸ $DIR/alloc-error-handler-bad-signature-2.rs:10:4
-   │
-10 │ fn oom(
-   │    ━━━
-11 │     info: Layout, //~^ ERROR mismatched types
-   ╰╴    ────────────
+ at $DIR/alloc-error-handler-bad-signature-2.rs:10:4
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5605,16 +5171,10 @@ warning: whitespace symbol '\u{a0}' is not skipped
 
     let expected_no_graphics = str![[r#"
 warning: whitespace symbol '\u{a0}' is not skipped
-   ╭▸ $DIR/str-escape.rs:12:18
-   │
-12 │       let s = c"foo\
-   │ ┏━━━━━━━━━━━━━━━━━━┛
-13 │ ┃              bar
-   │ ┃   ╿ whitespace symbol '\u{a0}' is not skipped
-   │ ┗━━━│
-   ╰╴
+ at $DIR/str-escape.rs:12:18 to 13:4
+  on line 13: whitespace symbol '\u{a0}' is not skipped
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(
         renderer_no_graphics.render(input),
         expected_no_graphics.raw()
@@ -5730,25 +5290,18 @@ help: ensure that all possible cases are being handled by adding a match arm wit
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0004]: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
-   ╭▸ $DIR/match-privately-empty.rs:14:11
-   │
-14 │     match private::DATA {
-   │           ━━━━━━━━━━━━━ pattern `Some(Private { misc: true, .. })` not covered
-   ╰╴
+error E0004: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
+ at $DIR/match-privately-empty.rs:14:11: pattern `Some(Private { misc: true, .. })` not covered
 note: `Option<Private>` defined here
-   ╭▸ $SRC_DIR/core/src/option.rs:593:0
-   ⸬  $SRC_DIR/core/src/option.rs:601:4
-   │
-   ├ note: not covered
-   ╰ note: the matched value is of type `Option<Private>`
+ at $SRC_DIR/core/src/option.rs:593:0
+ at $SRC_DIR/core/src/option.rs:601:4
+ note: not covered
+ note: the matched value is of type `Option<Private>`
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
-   ╭╴
-33 ±         Some(private::Private { misc: false, .. }) => {},
-34 +         Some(Private { misc: true, .. }) => todo!()
-   ╰╴
+ on line 33, column 57 add: ,
+        Some(Private { misc: true, .. }) => todo!()
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5864,26 +5417,18 @@ help: consider using an opaque type instead
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0038]: the trait `Ord` is not dyn compatible
-   ╭▸ $DIR/bare-trait-dont-suggest-dyn.rs:6:33
-   │
- 6 │ fn ord_prefer_dot(s: String) -> Ord {
-   │                                 ━━━ `Ord` is not dyn compatible
-   ╰╴
+error E0038: the trait `Ord` is not dyn compatible
+ at $DIR/bare-trait-dont-suggest-dyn.rs:6:33: `Ord` is not dyn compatible
 note: for a trait to be dyn compatible it needs to allow building a vtable
       for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
-   ╭▸ $SRC_DIR/core/src/cmp.rs:961:20
-   │
-   ├ note: the trait is not dyn compatible because it uses `Self` as a type parameter
-   ⸬  $SRC_DIR/core/src/cmp.rs:338:14
-   │
-   ╰ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+ at $SRC_DIR/core/src/cmp.rs:961:20
+ note: the trait is not dyn compatible because it uses `Self` as a type parameter
+ at $SRC_DIR/core/src/cmp.rs:338:14
+ note: the trait is not dyn compatible because it uses `Self` as a type parameter
 help: consider using an opaque type instead
-   ╭╴
-11 │ fn ord_prefer_dot(s: String) -> impl Ord {
-   ╰╴                                ++++
+ on line 11, column 33 add: impl 
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -5990,23 +5535,17 @@ note: the foreign item types don't implement required traits for this operation 
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0369]: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
-   ╭▸ $DIR/binary-op-not-allowed-issue-125631.rs:11:9
-   │
-10 │     (Error::new(ErrorKind::Other, "2"), thread::current())
-   │     ────────────────────────────────────────────────────── (std::io::Error, Thread)
-11 │         == (Error::new(ErrorKind::Other, "2"), thread::current());
-   │         ━━ ────────────────────────────────────────────────────── (std::io::Error, Thread)
-   ╰╴
+error E0369: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+ at $DIR/binary-op-not-allowed-issue-125631.rs:11:9
+  on line 10: (std::io::Error, Thread)
+  on line 11, column 12: (std::io::Error, Thread)
 note: the foreign item types don't implement required traits for this operation to be valid
-   ╭▸ $SRC_DIR/std/src/io/error.rs:65:0
-   │
-   ╰ note: not implement `PartialEq`
-   ╭▸ $SRC_DIR/std/src/thread/mod.rs:1439:0
-   │
-   ╰ note: not implement `PartialEq`
+ at $SRC_DIR/std/src/io/error.rs:65:0
+ note: not implement `PartialEq`
+ at $SRC_DIR/std/src/thread/mod.rs:1439:0
+ note: not implement `PartialEq`
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6140,25 +5679,20 @@ help: consider importing one of these structs
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0433]: failed to resolve: use of undeclared type `IntoIter`
-   ╭▸ $DIR/issue-82956.rs:25:24
-   │
-25 │         let mut iter = IntoIter::new(self);
-   │                        ━━━━━━━━ use of undeclared type `IntoIter`
-   ╰╴
+error E0433: failed to resolve: use of undeclared type `IntoIter`
+ at $DIR/issue-82956.rs:25:24: use of undeclared type `IntoIter`
 help: consider importing one of these structs
-   ╭╴
- 4 + use std::array::IntoIter;
-   ├╴
- 4 + use std::collections::binary_heap::IntoIter;
-   ├╴
- 4 + use std::collections::btree_map::IntoIter;
-   ├╴
- 4 + use std::collections::btree_set::IntoIter;
-   │
-   ╰ and 9 other candidates
+ option 1
+  on line 4, column 1 add: use std::array::IntoIter;
+ option 2
+  on line 4, column 1 add: use std::collections::binary_heap::IntoIter;
+ option 3
+  on line 4, column 1 add: use std::collections::btree_map::IntoIter;
+ option 4
+  on line 4, column 1 add: use std::collections::btree_set::IntoIter;
+and 9 other candidates
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6307,34 +5841,24 @@ help: consider using the `Default` trait
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0423]: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
-   ╭▸ $DIR/multi-suggestion.rs:17:13
-   │
-17 │     let _ = std::collections::HashMap();
-   │             ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ⸬  $SRC_DIR/std/src/collections/hash/map.rs:242:0
-   │
-   ├ note: `std::collections::HashMap` defined here
-   ╰╴
+error E0423: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
+ at $DIR/multi-suggestion.rs:17:13
+ at $SRC_DIR/std/src/collections/hash/map.rs:242:0
+ note: `std::collections::HashMap` defined here
 help: you might have meant to use an associated function to build this type
-   ╭╴
-17 │     let _ = std::collections::HashMap::new();
-   ├╴                                     +++++
-17 -     let _ = std::collections::HashMap();
-17 +     let _ = std::collections::HashMap::with_capacity(_);
-   ├╴
-17 -     let _ = std::collections::HashMap();
-17 +     let _ = std::collections::HashMap::with_hasher(_);
-   ├╴
-17 -     let _ = std::collections::HashMap();
-17 +     let _ = std::collections::HashMap::with_capacity_and_hasher(_, _);
-   ╰╴
+ option 1
+  on line 17, column 38 add: ::new
+ option 2
+  on line 17, column 38 to column 40 replace with: ::with_capacity(_)
+ option 3
+  on line 17, column 38 to column 40 replace with: ::with_hasher(_)
+ option 4
+  on line 17, column 38 to column 40 replace with: ::with_capacity_and_hasher(_, _)
 help: consider using the `Default` trait
-   ╭╴
-17 │     let _ = <std::collections::HashMap as std::default::Default>::default();
-   ╰╴            +                          ++++++++++++++++++++++++++++++++++
+ on line 17, column 13 add: <
+ on line 17, column 38 add:  as std::default::Default>::default
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6528,55 +6052,27 @@ help: consider using the `Default` trait
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0423]: cannot initialize a tuple struct which contains private fields
-   ╭▸ $DIR/suggest-box-new.rs:11:19
-   │
-11 │         wtf: Some(Box(U {
-   │                   ━━━
-   ╰╴
+error E0423: cannot initialize a tuple struct which contains private fields
+ at $DIR/suggest-box-new.rs:11:19
 note: constructor is not visible here due to private fields
-   ╭▸ $SRC_DIR/alloc/src/boxed.rs:234:2
-   │
-   ├ note: private field
-   │
-   ╰ note: private field
+ at $SRC_DIR/alloc/src/boxed.rs:234:2
+ note: private field
+ note: private field
 help: you might have meant to use an associated function to build this type
-   ╭╴
-11 -         wtf: Some(Box(U {
-12 -             wtf: None,
-13 -             x: (),
-14 -         })),
-11 +         wtf: Some(Box::new(_)),
-   ├╴
-11 -         wtf: Some(Box(U {
-12 -             wtf: None,
-13 -             x: (),
-14 -         })),
-11 +         wtf: Some(Box::new_uninit()),
-   ├╴
-11 -         wtf: Some(Box(U {
-12 -             wtf: None,
-13 -             x: (),
-14 -         })),
-11 +         wtf: Some(Box::new_zeroed()),
-   ├╴
-11 -         wtf: Some(Box(U {
-12 -             wtf: None,
-13 -             x: (),
-14 -         })),
-11 +         wtf: Some(Box::new_in(_, _)),
-   │
-   ╰ and 12 other candidates
+ option 1
+  on line 11, column 22 to line 14, column 11 replace with: ::new(_)
+ option 2
+  on line 11, column 22 to line 14, column 11 replace with: ::new_uninit()
+ option 3
+  on line 11, column 22 to line 14, column 11 replace with: ::new_zeroed()
+ option 4
+  on line 11, column 22 to line 14, column 11 replace with: ::new_in(_, _)
+and 12 other candidates
 help: consider using the `Default` trait
-   ╭╴
-11 -         wtf: Some(Box(U {
-12 -             wtf: None,
-13 -             x: (),
-14 -         })),
-11 +         wtf: Some(<Box as std::default::Default>::default()),
-   ╰╴
+ on line 11, column 19 add: <
+ on line 11, column 22 to line 14, column 11 replace with:  as std::default::Default>::default()
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6708,28 +6204,21 @@ help: some of the expressions' fields have a method of the same name
     assert_data_eq!(renderer.render(input), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0599]: no method named `bar` found for struct `Thing` in the current scope
-   ╭▸ $DIR/too-many-field-suggestions.rs:25:7
-   │
- 1 │ struct Thing {
-   │ ──────────── method `bar` not found for this struct
-   ┆
-25 │     t.bar();
-   │       ━━━ method not found in `Thing`
-   ╰╴
+error E0599: no method named `bar` found for struct `Thing` in the current scope
+ at $DIR/too-many-field-suggestions.rs:25:7: method not found in `Thing`
+  on line 1: method `bar` not found for this struct
 help: some of the expressions' fields have a method of the same name
-   ╭╴
-25 │     t.a0.bar();
-   ├╴      +++
-25 │     t.a1.bar();
-   ├╴      +++
-25 │     t.a2.bar();
-   ├╴      +++
-25 │     t.a3.bar();
-   │       +++
-   ╰ and 6 other candidates
+ option 1
+  on line 25, column 7 add: a0.
+ option 2
+  on line 25, column 7 add: a1.
+ option 3
+  on line 25, column 7 add: a2.
+ option 4
+  on line 25, column 7 add: a3.
+and 6 other candidates
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6765,11 +6254,10 @@ error: invalid `--check-cfg` argument: `cfg(`
 
     let expected_no_graphics = str![[r#"
 error: invalid `--check-cfg` argument: `cfg(`
- │
- ├ note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
- ╰ note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
+ note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
+ note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6862,18 +6350,15 @@ help: the constant being evaluated
 
     let expected_no_graphics = str![[r#"
 error: constant evaluation is taking a long time
-  ╭▸ $SRC_DIR/core/src/num/mod.rs:1151:4
-  ╰ note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
-          If your compilation actually takes a long time, you can safely allow the lint.
+ at $SRC_DIR/core/src/num/mod.rs:1151:4
+ note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+       If your compilation actually takes a long time, you can safely allow the lint.
 help: the constant being evaluated
-  ╭▸ $DIR/timeout.rs:7:1
-  │
-7 │ static ROOK_ATTACKS_TABLE: () = {
-  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ├ note: `#[deny(long_running_const_eval)]` on by default
-  ╰ note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
+ at $DIR/timeout.rs:7:1
+ note: `#[deny(long_running_const_eval)]` on by default
+ note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
@@ -6930,17 +6415,11 @@ help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is 
 
     let expected_no_graphics = str![[r#"
 error: unknown start of token:  
-   ╭▸ $DIR/emitter-overflow-bad-whitespace.rs:10:1
-   │
-10 │       …
-   │ ━
-   ╰╴
+ at $DIR/emitter-overflow-bad-whitespace.rs:10:1
 help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is not
-   ╭╴
-10 │                                          fn main() {              return;              }
-   ╰╴+
+ on line 10, column 1
 "#]];
-    let renderer_no_graphics = renderer_unicode;
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -7085,40 +6564,23 @@ help: remove the extra arguments
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
 
-    let expected_no_graphics = str![[r##"
-error[E0061]: this function takes 1 argument but 3 arguments were supplied
-  ╭▸ $DIR/issue-109854.rs:2:5
-  │
-2 │       String::with_capacity(
-  │       ━━━━━━━━━━━━━━━━━━━━━
-  ┆
-5 │ ┌     r#"
-6 │ │ pub(crate) struct Person<T: Clone> {}
-7 │ │ "#,
-  │ └──┘ unexpected argument #2 of type `&'static str`
-8 │        r#""#,
-  │        ───── unexpected argument #3 of type `&'static str`
-  ╰╴
+    let expected_no_graphics = str![[r#"
+error E0061: this function takes 1 argument but 3 arguments were supplied
+ at $DIR/issue-109854.rs:2:5
+  on line 5 to line 7, column 3: unexpected argument #2 of type `&'static str`
+  on line 8: unexpected argument #3 of type `&'static str`
 note: expected `usize`, found fn item
-  ╭▸ $DIR/issue-109854.rs:4:5
-  │
-4 │     generate_setter,
-  │     ━━━━━━━━━━━━━━━
-  ╰ note: expected type `[22;1;35musize[22;39m`
-          found fn item `[22;1;35mfn() {generate_setter}[22;39m`
+ at $DIR/issue-109854.rs:4:5
+ note: expected type `[22;1;35musize[22;39m`
+       found fn item `[22;1;35mfn() {generate_setter}[22;39m`
 note: associated function defined here
-  ─▸ $SRC_DIR/alloc/src/string.rs:480:11
+ at $SRC_DIR/alloc/src/string.rs:480:11
 help: remove the extra arguments
-  ╭╴
-4 -     generate_setter,
-5 -     r#"
-6 - pub(crate) struct Person<T: Clone> {}
-7 - "#,
-8 -      r#""#,
-4 +     /* usize */,
-  ╰╴
-"##]];
-    let renderer_no_graphics = renderer_unicode;
+ on line 4, column 5 to column 20 replace with: /* usize */
+ on line 4, column 20
+ on line 7, column 3
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -7203,23 +6665,14 @@ help: otherwise remove the non-wildcard arms
 
     let expected_no_graphics = str![[r#"
 error: these match arms have identical bodies
-   ╭▸ tests/ui/match_same_arms.rs:20:9
-   │
-20 │         2 => 'b',
-   │         ━━━━━━━━
-21 │         3 => 'b',
-   │         ━━━━━━━━
-22 │         _ => 'b',
-   │         ━━━━━━━━ the wildcard arm
-   │
-   ╰ help: if this is unintentional make the arms return different values
+ at tests/ui/match_same_arms.rs:20:9
+  on line 22: the wildcard arm
+ help: if this is unintentional make the arms return different values
 help: otherwise remove the non-wildcard arms
-   ╭╴
-20 -         2 => 'b',
-21 -         3 => 'b',
-   ╰╴
+ on line 20, column 9
+ on line 21, column 9
 "#]];
-    let renderer_no_graphics = renderer_unicode;
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -7423,61 +6876,23 @@ note: DefId(..)
 
     let expected_no_graphics = str![[r#"
 error: rustc_dump_def_parents: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:13:33
-   │
-13 │ ┏ …                     {
-14 │ ┃ …                         "hi";
-15 │ ┃ …                         1
-16 │ ┃ …                     },
-   │ ┗━━━━━━━━━━━━━━━━━━━━━━━┛
-   ╰╴
+ at $DIR/dump_def_parents.rs:13:33 to 16:34
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:11:25
-   │
-11 │                         fn inhibits_dump() {
-   ╰╴                        ━━━━━━━━━━━━━━━━━━
+ at $DIR/dump_def_parents.rs:11:25
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:10:21
-   │
-10 │ ┏                     {
-11 │ ┃                         fn inhibits_dump() {
-12 │ ┃                             qux::<
-   ┆ ┇
-21 │ ┃                         1
-22 │ ┃                     },
-   ╰╴┗━━━━━━━━━━━━━━━━━━━━━┛
+ at $DIR/dump_def_parents.rs:10:21 to 22:22
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:8:13
-   │
- 8 │             || {
-   ╰╴            ━━
+ at $DIR/dump_def_parents.rs:8:13
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:7:9
-   │
- 7 │         fn baz() {
-   ╰╴        ━━━━━━━━
+ at $DIR/dump_def_parents.rs:7:9
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:5:5
-   │
- 5 │     fn foo() {
-   ╰╴    ━━━━━━━━
+ at $DIR/dump_def_parents.rs:5:5
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:4:1
-   │
- 4 │ fn bar() {
-   ╰╴━━━━━━━━
+ at $DIR/dump_def_parents.rs:4:1
 note: DefId(..)
-   ╭▸ $DIR/dump_def_parents.rs:2:1
-   │
- 2 │ ┏ #![feature(rustc_attrs)]
- 3 │ ┃
- 4 │ ┃ fn bar() {
- 5 │ ┃     fn foo() {
-   ┆ ┇
-31 │ ┃ fn main() {}
-   ╰╴┗━━━━━━━━━━━━┛
+ at $DIR/dump_def_parents.rs:2:1 to 31:13
 "#]];
-    let renderer_no_graphics = renderer_unicode;
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
@@ -7551,22 +6966,13 @@ error[E0308]: mismatched types
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
 
     let expected_no_graphics = str![[r#"
-error[E0308]: mismatched types
-   ╭▸ $DIR/long-E0308.rs:58:26
-   │
-58 │   …))))))))))))))) == Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok…
-   │ ┏━━━━━━━━━━━━━━━━━━━━━┛
-59 │ ┃ …  Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
-60 │ ┃ …      Ok(Ok(Ok(Ok(Ok(Ok(Ok("")))))))
-61 │ ┃ …  ))))))))))))))))))))))))))))))
-62 │ ┃ …))))))))))))))))))))));
-   │ ┗━━━━━━━━━━━━━━━━━━━━━━━┛ expected `Option<Result<Option<Option<_>>, _>>`, found `Result<Result<Result<_, _>, _>, _>`
-   │
-   ├ note: expected enum `Option<Result<Option...>>>>>>, _>>`
-   │          found enum `Result<Result..._>, _>, _>`
-   ├ note: the full name for the type has been written to '$TEST_BUILD_DIR/long-E0308.long-type-$LONG_TYPE_HASH.txt'
-   ╰ note: consider using `--verbose` to print the full type name to the console
+error E0308: mismatched types
+ at $DIR/long-E0308.rs:58:26 to 62:29: expected `Option<Result<Option<Option<_>>, _>>`, found `Result<Result<Result<_, _>, _>, _>`
+ note: expected enum `Option<Result<Option...>>>>>>, _>>`
+          found enum `Result<Result..._>, _>, _>`
+ note: the full name for the type has been written to '$TEST_BUILD_DIR/long-E0308.long-type-$LONG_TYPE_HASH.txt'
+ note: consider using `--verbose` to print the full type name to the console
 "#]];
-    let renderer_no_graphics = renderer_unicode;
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }

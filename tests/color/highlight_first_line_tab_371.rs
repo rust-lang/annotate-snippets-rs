@@ -20,6 +20,6 @@ fn test() {
     assert_data_eq!(renderer.render(report), expected_ascii);
 
     let expected_no_graphics = file!["highlight_first_line_tab_371.no_graphics.term.svg": TermSvg];
-    let renderer_no_graphics = renderer;
+    let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
