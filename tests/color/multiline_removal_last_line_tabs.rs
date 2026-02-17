@@ -15,4 +15,9 @@ fn test() {
     let expected_unicode = file!["multiline_removal_last_line_tabs.unicode.term.svg": TermSvg];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
+
+    let expected_no_graphics =
+        file!["multiline_removal_last_line_tabs.no_graphics.term.svg": TermSvg];
+    let renderer_no_graphics = renderer;
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
