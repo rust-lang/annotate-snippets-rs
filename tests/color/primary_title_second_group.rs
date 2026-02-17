@@ -28,4 +28,8 @@ fn case() {
     let expected_unicode = file!["primary_title_second_group.unicode.term.svg": TermSvg];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
+
+    let expected_no_graphics = file!["primary_title_second_group.no_graphics.term.svg": TermSvg];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(report), expected_no_graphics);
 }

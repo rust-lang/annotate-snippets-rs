@@ -2224,7 +2224,7 @@ fn draw_line_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usi
     buffer.puts(line, column, dots, ElementStyle::LineNumber);
 }
 
-trait MessageOrTitle {
+pub(crate) trait MessageOrTitle {
     fn level(&self) -> &Level<'_>;
     fn id(&self) -> Option<&Id<'_>>;
     fn text(&self) -> &str;
@@ -2593,14 +2593,14 @@ enum TitleStyle {
     Secondary,
 }
 
-struct PreProcessedGroup<'a> {
-    group: &'a Group<'a>,
-    elements: Vec<PreProcessedElement<'a>>,
-    primary_path: Option<&'a Cow<'a, str>>,
-    max_depth: usize,
+pub(crate) struct PreProcessedGroup<'a> {
+    pub(crate) group: &'a Group<'a>,
+    pub(crate) elements: Vec<PreProcessedElement<'a>>,
+    pub(crate) primary_path: Option<&'a Cow<'a, str>>,
+    pub(crate) max_depth: usize,
 }
 
-enum PreProcessedElement<'a> {
+pub(crate) enum PreProcessedElement<'a> {
     Message(&'a Message<'a>),
     Cause(
         (
@@ -2621,7 +2621,7 @@ enum PreProcessedElement<'a> {
     Padding(Padding),
 }
 
-fn pre_process<'a>(
+pub(crate) fn pre_process<'a>(
     groups: &'a [Group<'a>],
 ) -> (usize, Option<&'a Cow<'a, str>>, Vec<PreProcessedGroup<'a>>) {
     let mut max_line_num = 0;
