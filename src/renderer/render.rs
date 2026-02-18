@@ -1,9 +1,11 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
-use std::borrow::Cow;
-use std::cmp::{max, min, Ordering, Reverse};
-use std::collections::HashMap;
-use std::fmt;
+use alloc::borrow::{Cow, ToOwned};
+use alloc::collections::BTreeMap;
+use alloc::string::{String, ToString};
+use alloc::{format, vec, vec::Vec};
+use core::cmp::{max, min, Ordering, Reverse};
+use core::fmt;
 
 use anstyle::Style;
 
@@ -223,7 +225,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                 .render(&level, &renderer.stylesheet, &mut out_string)
                 .unwrap();
             if g != group_len - 1 {
-                use std::fmt::Write;
+                use core::fmt::Write;
 
                 writeln!(out_string).unwrap();
             }
@@ -701,7 +703,7 @@ fn render_snippet_annotations(
             !is_cont && annotated_line_idx + 1 == annotated_lines.len(),
         );
 
-        let mut to_add = HashMap::new();
+        let mut to_add = BTreeMap::new();
 
         for (depth, style) in depths {
             if let Some(index) = multilines.iter().position(|(d, _)| d == &depth) {

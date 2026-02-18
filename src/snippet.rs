@@ -1,9 +1,12 @@
 //! Structures used as an input for the library.
 
+use alloc::borrow::{Cow, ToOwned};
+use alloc::string::String;
+use alloc::{vec, vec::Vec};
+use core::ops::Range;
+
 use crate::renderer::source_map::{as_substr, TrimmedPatch};
 use crate::Level;
-use std::borrow::Cow;
-use std::ops::Range;
 
 pub(crate) const ERROR_TXT: &str = "error";
 pub(crate) const HELP_TXT: &str = "help";

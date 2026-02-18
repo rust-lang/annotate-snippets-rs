@@ -23,7 +23,7 @@ jobs:
     permissions:
       contents: none
     name: CI
-    needs: [test, msrv, lockfile, docs, rustfmt, clippy, minimal-versions]
+    needs: [test, msrv, no-std, lockfile, docs, rustfmt, clippy, minimal-versions]
     runs-on: ubuntu-latest
     if: "always()"
     steps:
@@ -68,6 +68,21 @@ jobs:
     - uses: taiki-e/install-action@cargo-hack
     - name: Default features
       run: cargo hack check --each-feature --locked --rust-version --ignore-private --workspace --lib --bins --keep-going
+  no-std:
+    name: "Check no_std"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        targets: thumbv6m-none-eabi
+    - uses: Swatinem/rust-cache@v2
+    - uses: taiki-e/install-action@cargo-hack
+    - name: Build
+      run: cargo hack check --each-feature --skip default,std --locked --lib --target thumbv6m-none-eabi --keep-going
   minimal-versions:
     name: Minimal versions
     runs-on: ubuntu-latest

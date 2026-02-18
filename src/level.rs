@@ -1,10 +1,12 @@
 //! [`Level`] constants for easy importing
 
+use alloc::borrow::Cow;
+
+use anstyle::Style;
+
 use crate::renderer::stylesheet::Stylesheet;
 use crate::snippet::{ERROR_TXT, HELP_TXT, INFO_TXT, NOTE_TXT, WARNING_TXT};
 use crate::{Message, OptionCow, Title};
-use anstyle::Style;
-use std::borrow::Cow;
 
 /// Default `error:` [`Level`]
 pub const ERROR: Level<'_> = Level {

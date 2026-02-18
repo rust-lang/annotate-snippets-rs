@@ -2,12 +2,13 @@
 //!
 //! [styled_buffer]: https://github.com/rust-lang/rust/blob/894f7a4ba6554d3797404bbf550d9919df060b97/compiler/rustc_errors/src/styled_buffer.rs
 
+use alloc::string::String;
+use alloc::{vec, vec::Vec};
+use core::fmt::{self, Write};
+
 use crate::renderer::stylesheet::Stylesheet;
 use crate::renderer::ElementStyle;
 use crate::Level;
-
-use std::fmt;
-use std::fmt::Write;
 
 #[derive(Debug)]
 pub(crate) struct StyledBuffer {

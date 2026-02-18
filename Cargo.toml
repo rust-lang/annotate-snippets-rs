@@ -124,8 +124,8 @@ pre-release-replacements = [
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-anstyle = "1.0.4"
-memchr = { version = "2.7.4", optional = true }
+anstyle = { version = "1.0.4", default-features = false }
+memchr = { version = "2.7.4", default-features = false, optional = true }
 unicode-width = "0.2.2"
 
 [dev-dependencies]
@@ -139,7 +139,8 @@ name = "bench"
 harness = false
 
 [features]
-default = []
+default = ["std"]
+std = ["anstyle/std", "memchr?/std"]
 simd = ["dep:memchr"]
 testing-colors = []
 

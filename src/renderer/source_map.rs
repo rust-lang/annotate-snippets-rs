@@ -1,8 +1,11 @@
+use alloc::borrow::Cow;
+use alloc::string::String;
+use alloc::{vec, vec::Vec};
+use core::cmp::{max, min};
+use core::ops::Range;
+
 use crate::renderer::{char_width, num_overlap, LineAnnotation, LineAnnotationType};
 use crate::{Annotation, AnnotationKind, Patch};
-use std::borrow::Cow;
-use std::cmp::{max, min};
-use std::ops::Range;
 
 #[derive(Debug)]
 pub(crate) struct SourceMap<'a> {
@@ -473,16 +476,16 @@ impl<'a> SourceMap<'a> {
             if prev_hi.line == cur_lo.line {
                 let mut count = push_trailing(&mut buf, prev_line, &prev_hi, Some(&cur_lo));
                 while count > 0 {
-                    highlights.push(std::mem::take(&mut line_highlight));
+                    highlights.push(core::mem::take(&mut line_highlight));
                     acc = 0;
                     count -= 1;
                 }
             } else {
                 acc = 0;
-                highlights.push(std::mem::take(&mut line_highlight));
+                highlights.push(core::mem::take(&mut line_highlight));
                 let mut count = push_trailing(&mut buf, prev_line, &prev_hi, None);
                 while count > 0 {
-                    highlights.push(std::mem::take(&mut line_highlight));
+                    highlights.push(core::mem::take(&mut line_highlight));
                     count -= 1;
                 }
                 // push lines between the previous and current span (if any)
@@ -490,7 +493,7 @@ impl<'a> SourceMap<'a> {
                     if let Some(line) = self.get_line(idx) {
                         buf.push_str(line.as_ref());
                         buf.push('\n');
-                        highlights.push(std::mem::take(&mut line_highlight));
+                        highlights.push(core::mem::take(&mut line_highlight));
                     }
                 }
                 if let Some(cur_line) = self.get_line(cur_lo.line) {
@@ -527,7 +530,7 @@ impl<'a> SourceMap<'a> {
             prev_line = self.get_line(prev_hi.line);
             for line in part.replacement.split('\n').skip(1) {
                 acc = 0;
-                highlights.push(std::mem::take(&mut line_highlight));
+                highlights.push(core::mem::take(&mut line_highlight));
                 let end: usize = line
                     .chars()
                     .map(|c| match c {
@@ -538,7 +541,7 @@ impl<'a> SourceMap<'a> {
                 line_highlight.push(SubstitutionHighlight { start: 0, end });
             }
         }
-        highlights.push(std::mem::take(&mut line_highlight));
+        highlights.push(core::mem::take(&mut line_highlight));
         if fold {
             // if the replacement already ends with a newline, don't print the next line
             if !buf.ends_with('\n') {
@@ -549,7 +552,7 @@ impl<'a> SourceMap<'a> {
             if let Some(snippet) = self.span_to_snippet(prev_hi.byte..source_len) {
                 buf.push_str(snippet);
                 for _ in snippet.matches('\n') {
-                    highlights.push(std::mem::take(&mut line_highlight));
+                    highlights.push(core::mem::take(&mut line_highlight));
                 }
             }
         }
