@@ -64,7 +64,7 @@
       matchDepNames: [
         'prek',
       ],
-      extractVersion: '^(?<version>\\d+\\.\\d+\\.\\d+)',
+      extractVersion: '^v(?<version>\\d+\\.\\d+\\.\\d+)',
       schedule: [
         '* * * * *',
       ],
