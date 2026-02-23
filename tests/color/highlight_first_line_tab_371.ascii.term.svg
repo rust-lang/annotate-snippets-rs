@@ -26,7 +26,7 @@
 </tspan>
     <tspan x="10px" y="64px"><tspan>  </tspan><tspan class="fg-bright-blue bold">|</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">6</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>            ts.in</tspan><tspan class="fg-bright-red">to_iter().</tspan><tspan>map(|t| {</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">6</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>            ts.into_iter()</tspan><tspan class="fg-bright-red">.map(|t| {</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan class="fg-bright-blue bold">7</tspan><tspan> </tspan><tspan class="fg-bright-red">-                 (is_true, t)</tspan>
 </tspan>
