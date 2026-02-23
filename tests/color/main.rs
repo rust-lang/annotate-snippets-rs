@@ -11,6 +11,7 @@ mod fold_leading;
 mod fold_trailing;
 mod highlight_diff_line_with_wide_characters;
 mod highlight_duplicated_diff_lines;
+mod highlight_first_line_tab_371;
 mod highlight_source;
 mod issue_9;
 mod multiline_removal_suggestion;
