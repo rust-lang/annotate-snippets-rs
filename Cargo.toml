@@ -130,7 +130,7 @@ unicode-width = "0.2.2"
 
 [dev-dependencies]
 annotate-snippets = { path = ".", features = ["testing-colors"] }
-anstream = "0.6.13"
+anstream = "1.0.0"
 divan = "0.1.14"
 snapbox = { version = "0.6.0", features = ["diff", "term-svg", "cmd", "examples"] }
 
