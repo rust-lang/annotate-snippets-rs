@@ -1723,7 +1723,16 @@ fn emit_suggestion_default(
                     // logic to show the whole prior snippet, but the current output is not
                     // too bad to begin with, so we side-step that issue here.
                     for (i, line) in snippet.lines().enumerate() {
-                        let tabs: usize = line
+                        let full_line = if i == 0 {
+                            // `snippet` starts at the first character that must be edited,
+                            // which often does not contain the indent of the line. Retrieve
+                            // the full line in order to avoid missing leading tabs.
+                            sm.get_line(span_start.line).unwrap_or_default()
+                        } else {
+                            line
+                        };
+
+                        let tabs: usize = full_line
                             .chars()
                             .take(span_start.char)
                             .map(|ch| match ch {
