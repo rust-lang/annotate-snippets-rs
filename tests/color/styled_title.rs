@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, AnnotationKind, Level, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Level, Renderer, Snippet, renderer::DecorStyle};
 use anstyle::{AnsiColor, Effects, Style};
 
 use snapbox::{assert_data_eq, file};
@@ -15,7 +15,9 @@ use c::cnb_runtime;
 "#;
 
     let title_1 = "the trait bound `CustomErrorHandler: ErrorHandler` is not satisfied";
-    let title_2 = format!("{BOLD}there are {BOLD:#}{MAGENTA}multiple different versions{MAGENTA:#}{BOLD} of crate `{BOLD:#}{MAGENTA}c{MAGENTA:#}{BOLD}` in the dependency graph{BOLD:#}");
+    let title_2 = format!(
+        "{BOLD}there are {BOLD:#}{MAGENTA}multiple different versions{MAGENTA:#}{BOLD} of crate `{BOLD:#}{MAGENTA}c{MAGENTA:#}{BOLD}` in the dependency graph{BOLD:#}"
+    );
 
     let label_1 = "the trait `ErrorHandler` is not implemented for `CustomErrorHandler`";
     let label_2 = "required by a bound introduced by this call";

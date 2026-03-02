@@ -4,15 +4,15 @@ use alloc::borrow::{Cow, ToOwned};
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
-use core::cmp::{max, min, Ordering, Reverse};
+use core::cmp::{Ordering, Reverse, max, min};
 use core::fmt;
 
 use anstyle::Style;
 
-use super::margin::Margin;
-use super::stylesheet::Stylesheet;
 use super::DecorStyle;
 use super::Renderer;
+use super::margin::Margin;
+use super::stylesheet::Stylesheet;
 use crate::level::{Level, LevelInner};
 use crate::renderer::source_map::{
     AnnotatedLineInfo, LineInfo, Loc, SourceMap, SplicedLines, SubstitutionHighlight, TrimmedPatch,
@@ -2761,7 +2761,7 @@ fn newline_count(body: &str) -> usize {
 
 #[cfg(test)]
 mod test {
-    use super::{newline_count, OUTPUT_REPLACEMENTS};
+    use super::{OUTPUT_REPLACEMENTS, newline_count};
     use snapbox::IntoData;
 
     fn format_replacements(replacements: Vec<(char, &str)>) -> String {

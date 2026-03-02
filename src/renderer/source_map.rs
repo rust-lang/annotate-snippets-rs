@@ -4,7 +4,7 @@ use alloc::{vec, vec::Vec};
 use core::cmp::{max, min};
 use core::ops::Range;
 
-use crate::renderer::{char_width, num_overlap, LineAnnotation, LineAnnotationType};
+use crate::renderer::{LineAnnotation, LineAnnotationType, char_width, num_overlap};
 use crate::{Annotation, AnnotationKind, Patch};
 
 #[derive(Debug)]

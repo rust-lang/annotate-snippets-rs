@@ -1,4 +1,4 @@
-use annotate_snippets::{renderer::DecorStyle, Group, Level, Patch, Renderer, Snippet};
+use annotate_snippets::{Group, Level, Patch, Renderer, Snippet, renderer::DecorStyle};
 
 use snapbox::{assert_data_eq, file};
 

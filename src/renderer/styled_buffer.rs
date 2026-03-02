@@ -6,9 +6,9 @@ use alloc::string::String;
 use alloc::{vec, vec::Vec};
 use core::fmt::{self, Write};
 
-use crate::renderer::stylesheet::Stylesheet;
-use crate::renderer::ElementStyle;
 use crate::Level;
+use crate::renderer::ElementStyle;
+use crate::renderer::stylesheet::Stylesheet;
 
 #[derive(Debug)]
 pub(crate) struct StyledBuffer {
