@@ -311,7 +311,7 @@ impl<'a> SourceMap<'a> {
                     self.add_annotation_to_file(&mut annotated_line_infos, line, ann.as_line());
                 }
                 let line_end = ann.end.line - 1;
-                let end_is_empty = self.get_line(line_end).map_or(false, |s| !filter(s));
+                let end_is_empty = self.get_line(line_end).is_some_and(|s| !filter(s));
                 if middle < line_end && !end_is_empty {
                     self.add_annotation_to_file(&mut annotated_line_infos, line_end, ann.as_line());
                 }
@@ -760,12 +760,9 @@ impl<'a> TrimmedPatch<'a> {
     /// it with "abx" is, since the "c" character is lost.
     pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
         self.is_replacement(sm)
-            && !sm
+            && sm
                 .span_to_snippet(self.span.clone())
-                // This should use `is_some_and` when our MSRV is >= 1.70
-                .map_or(false, |s| {
-                    as_substr(s.trim(), self.replacement.trim()).is_some()
-                })
+                .is_none_or(|s| as_substr(s.trim(), self.replacement.trim()).is_none())
     }
 
     fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {

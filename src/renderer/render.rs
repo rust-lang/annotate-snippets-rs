@@ -2469,7 +2469,7 @@ impl DisplaySuggestion {
         if has_deletion && !is_multiline {
             DisplaySuggestion::Diff
         } else if patches.len() == 1
-            && patches.first().map_or(false, |p| {
+            && patches.first().is_some_and(|p| {
                 p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
             })
         {
