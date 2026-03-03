@@ -14,6 +14,7 @@ mod highlight_duplicated_diff_lines;
 mod highlight_first_line_tab_371;
 mod highlight_source;
 mod issue_9;
+mod multiline_removal_last_line_tabs;
 mod multiline_removal_suggestion;
 mod multiple_annotations;
 mod multiple_highlight_duplicated;
