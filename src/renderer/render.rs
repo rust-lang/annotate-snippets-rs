@@ -1738,25 +1738,31 @@ fn emit_suggestion_default(
                         // overwriting existing content in the buffer
                         let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
                         let row = (row_num - 2 - (offset - i - 1)).max(min_row);
-                        // On the first line, we highlight between the start of the part
-                        // span, and the end of that line.
-                        // On the last line, we highlight between the start of the line, and
-                        // the column of the part span end.
-                        // On all others, we highlight the whole line.
-                        let start = if i == 0 {
-                            (padding as isize + (span_start.char + extra_width) as isize) as usize
-                        } else {
-                            padding
-                        };
-                        let end = if i == 0 {
-                            (padding as isize
+                        let (start, end) = if i == 0 {
+                            // On the first line, we highlight between the start of the part
+                            // span, and the end of that line.
+                            let start = (padding as isize
+                                + (span_start.char + extra_width) as isize)
+                                as usize;
+                            let end = (padding as isize
                                 + (span_start.char + extra_width) as isize
                                 + line.chars().count() as isize)
-                                as usize
+                                as usize;
+                            (start, end)
                         } else if i == newlines - 1 {
-                            (padding as isize + (span_end.char + extra_width) as isize) as usize
+                            // On the last line, we highlight between the start of the line, and
+                            // the column of the part span end.
+                            (
+                                padding,
+                                (padding as isize + (span_end.char + extra_width) as isize)
+                                    as usize,
+                            )
                         } else {
-                            (padding as isize + line.chars().count() as isize) as usize
+                            // On all others, we highlight the whole line.
+                            (
+                                padding,
+                                (padding as isize + line.chars().count() as isize) as usize,
+                            )
                         };
                         buffer.set_style_range(row, start, end, ElementStyle::Removal, true);
                     }
