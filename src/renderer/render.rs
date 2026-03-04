@@ -1732,14 +1732,7 @@ fn emit_suggestion_default(
                             line
                         };
 
-                        let tabs: usize = full_line
-                            .chars()
-                            .take(span_start.char)
-                            .map(|ch| match ch {
-                                '\t' => 3,
-                                _ => 0,
-                            })
-                            .sum();
+                        let extra_width: usize = extra_width_from_tabs(full_line, span_start.char);
                         let line = normalize_whitespace(line);
                         // Going lower than buffer_offset (+ 1) would mean
                         // overwriting existing content in the buffer
@@ -1751,36 +1744,29 @@ fn emit_suggestion_default(
                         // the column of the part span end.
                         // On all others, we highlight the whole line.
                         let start = if i == 0 {
-                            (padding as isize + (span_start.char + tabs) as isize) as usize
+                            (padding as isize + (span_start.char + extra_width) as isize) as usize
                         } else {
                             padding
                         };
                         let end = if i == 0 {
                             (padding as isize
-                                + (span_start.char + tabs) as isize
+                                + (span_start.char + extra_width) as isize
                                 + line.chars().count() as isize)
                                 as usize
                         } else if i == newlines - 1 {
-                            (padding as isize + (span_end.char + tabs) as isize) as usize
+                            (padding as isize + (span_end.char + extra_width) as isize) as usize
                         } else {
                             (padding as isize + line.chars().count() as isize) as usize
                         };
                         buffer.set_style_range(row, start, end, ElementStyle::Removal, true);
                     }
                 } else {
-                    let tabs: usize = snippet
-                        .chars()
-                        .take(span_start.char)
-                        .map(|ch| match ch {
-                            '\t' => 3,
-                            _ => 0,
-                        })
-                        .sum();
+                    let extra_width: usize = extra_width_from_tabs(snippet, span_start.char);
                     // The removed code fits all in one line.
                     buffer.set_style_range(
                         row_num - 2,
-                        (padding as isize + (span_start.char + tabs) as isize) as usize,
-                        (padding as isize + (span_end.char + tabs) as isize) as usize,
+                        (padding as isize + (span_start.char + extra_width) as isize) as usize,
+                        (padding as isize + (span_end.char + extra_width) as isize) as usize,
                         ElementStyle::Removal,
                         true,
                     );
@@ -1992,18 +1978,11 @@ fn draw_code_line(
         // This is a no-op for empty ranges
         if start != end {
             // Account for tabs when highlighting (#87972).
-            let tabs: usize = line_to_add
-                .chars()
-                .take(start)
-                .map(|ch| match ch {
-                    '\t' => 3,
-                    _ => 0,
-                })
-                .sum();
+            let extra_width: usize = extra_width_from_tabs(line_to_add, start);
             buffer.set_style_range(
                 *row_num,
-                max_line_num_len + 3 + start + tabs,
-                max_line_num_len + 3 + end + tabs,
+                max_line_num_len + 3 + start + extra_width,
+                max_line_num_len + 3 + end + extra_width,
                 ElementStyle::Addition,
                 true,
             );
@@ -2309,6 +2288,12 @@ impl MessageOrTitle for Message<'_> {
     fn allows_styling(&self) -> bool {
         true
     }
+}
+
+/// Count extra display columns from tabs in the first `n` chars of `s`.
+/// Each tab is displayed as 4 spaces, so the extra width per tab is 3.
+fn extra_width_from_tabs(s: &str, n: usize) -> usize {
+    s.chars().take(n).filter(|&ch| ch == '\t').count() * 3
 }
 
 // instead of taking the String length or dividing by 10 while > 0, we multiply a limit by 10 until
