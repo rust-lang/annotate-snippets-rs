@@ -1723,16 +1723,7 @@ fn emit_suggestion_default(
                     // logic to show the whole prior snippet, but the current output is not
                     // too bad to begin with, so we side-step that issue here.
                     for (i, line) in snippet.lines().enumerate() {
-                        let full_line = if i == 0 {
-                            // `snippet` starts at the first character that must be edited,
-                            // which often does not contain the indent of the line. Retrieve
-                            // the full line in order to avoid missing leading tabs.
-                            sm.get_line(span_start.line).unwrap_or_default()
-                        } else {
-                            line
-                        };
-
-                        let line = normalize_whitespace(line);
+                        let norm_line = normalize_whitespace(line);
                         // Going lower than buffer_offset (+ 1) would mean
                         // overwriting existing content in the buffer
                         let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
@@ -1740,17 +1731,18 @@ fn emit_suggestion_default(
                         let (start, end) = if i == 0 {
                             // On the first line, we highlight between the start of the part
                             // span, and the end of that line.
+                            let full_line = sm.get_line(span_start.line).unwrap_or_default();
                             let extra_width = extra_width_from_tabs(full_line, span_start.char);
                             let start = span_start.char + extra_width;
-                            (start, start + line.chars().count())
+                            (start, start + norm_line.chars().count())
                         } else if i == newlines - 1 {
                             // On the last line, we highlight between the start of the line, and
                             // the column of the part span end.
-                            let extra_width = extra_width_from_tabs(full_line, span_start.char);
+                            let extra_width = extra_width_from_tabs(line, span_start.char);
                             (0, span_end.char + extra_width)
                         } else {
                             // On all others, we highlight the whole line.
-                            (0, line.chars().count())
+                            (0, norm_line.chars().count())
                         };
                         buffer.set_style_range(
                             row,
