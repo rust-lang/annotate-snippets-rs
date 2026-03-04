@@ -1738,7 +1738,7 @@ fn emit_suggestion_default(
                         } else if i == newlines - 1 {
                             // On the last line, we highlight between the start of the line, and
                             // the column of the part span end.
-                            let extra_width = extra_width_from_tabs(line, span_start.char);
+                            let extra_width = extra_width_from_tabs(line, span_end.char);
                             (0, span_end.char + extra_width)
                         } else {
                             // On all others, we highlight the whole line.
