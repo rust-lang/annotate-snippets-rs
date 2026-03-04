@@ -1732,7 +1732,6 @@ fn emit_suggestion_default(
                             line
                         };
 
-                        let extra_width: usize = extra_width_from_tabs(full_line, span_start.char);
                         let line = normalize_whitespace(line);
                         // Going lower than buffer_offset (+ 1) would mean
                         // overwriting existing content in the buffer
@@ -1741,38 +1740,33 @@ fn emit_suggestion_default(
                         let (start, end) = if i == 0 {
                             // On the first line, we highlight between the start of the part
                             // span, and the end of that line.
-                            let start = (padding as isize
-                                + (span_start.char + extra_width) as isize)
-                                as usize;
-                            let end = (padding as isize
-                                + (span_start.char + extra_width) as isize
-                                + line.chars().count() as isize)
-                                as usize;
-                            (start, end)
+                            let extra_width = extra_width_from_tabs(full_line, span_start.char);
+                            let start = span_start.char + extra_width;
+                            (start, start + line.chars().count())
                         } else if i == newlines - 1 {
                             // On the last line, we highlight between the start of the line, and
                             // the column of the part span end.
-                            (
-                                padding,
-                                (padding as isize + (span_end.char + extra_width) as isize)
-                                    as usize,
-                            )
+                            let extra_width = extra_width_from_tabs(full_line, span_start.char);
+                            (0, span_end.char + extra_width)
                         } else {
                             // On all others, we highlight the whole line.
-                            (
-                                padding,
-                                (padding as isize + line.chars().count() as isize) as usize,
-                            )
+                            (0, line.chars().count())
                         };
-                        buffer.set_style_range(row, start, end, ElementStyle::Removal, true);
+                        buffer.set_style_range(
+                            row,
+                            padding + start,
+                            padding + end,
+                            ElementStyle::Removal,
+                            true,
+                        );
                     }
                 } else {
                     let extra_width: usize = extra_width_from_tabs(snippet, span_start.char);
                     // The removed code fits all in one line.
                     buffer.set_style_range(
                         row_num - 2,
-                        (padding as isize + (span_start.char + extra_width) as isize) as usize,
-                        (padding as isize + (span_end.char + extra_width) as isize) as usize,
+                        span_start.char + extra_width,
+                        span_end.char + extra_width,
                         ElementStyle::Removal,
                         true,
                     );
