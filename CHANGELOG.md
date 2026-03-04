@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.13] - 2026-03-04
+
+### Fixed
+
+- Correctly handle tabs on the first and last lines of multiline `Patch` [#373](https://github.com/rust-lang/annotate-snippets-rs/pull/373) and [#380](https://github.com/rust-lang/annotate-snippets-rs/pull/380)
+
 ## [0.12.12] - 2026-02-18
 
 ### Added
@@ -294,7 +300,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.12...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.13...HEAD
+[0.12.13]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.12...0.12.13
 [0.12.12]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.11...0.12.12
 [0.12.11]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.10..0.12.11
 [0.12.10]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.9...0.12.10
