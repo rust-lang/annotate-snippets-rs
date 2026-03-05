@@ -1707,62 +1707,64 @@ fn emit_suggestion_default(
                 //    |         <- row_num
 
                 let newlines = snippet.lines().count();
-                if newlines > 0 && row_num > newlines {
-                    let offset = match prev_lines {
-                        Some((start, end)) => {
-                            file_lines.len().saturating_sub(end.saturating_sub(start))
+                let offset = match prev_lines {
+                    Some((start, end)) => {
+                        file_lines.len().saturating_sub(end.saturating_sub(start))
+                    }
+                    None => file_lines.len(),
+                };
+                // FIXME: We check the number of rows because in some cases, like in
+                // `tests/ui/lint/invalid-nan-comparison-suggestion.rs`, the rendered
+                // suggestion will only show the first line of code being replaced. The
+                // proper way of doing this would be to change the suggestion rendering
+                // logic to show the whole prior snippet, but the current output is not
+                // too bad to begin with, so we side-step that issue here.
+                for (i, line) in snippet.lines().enumerate() {
+                    let norm_line = normalize_whitespace(line);
+                    // Going lower than buffer_offset (+ 1) would mean
+                    // overwriting existing content in the buffer
+                    let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
+                    let row = (row_num - 2 - (offset - i - 1)).max(min_row);
+                    let (start, end) = match i {
+                        0 if span_start.line == span_end.line => {
+                            // If the removed code fits all in one line, highlight between the
+                            // start and end columns of the part span.
+                            let full_line = sm.get_line(span_start.line).unwrap_or_default();
+                            // We calculate the extra width from tabs for both the start and end of
+                            // the span, as tabs could be present in the middle of the span
+                            (
+                                span_start.char + extra_width_from_tabs(full_line, span_start.char),
+                                span_end.char + extra_width_from_tabs(full_line, span_end.char),
+                            )
                         }
-                        None => file_lines.len(),
-                    };
-                    // Account for removals where the part being removed spans multiple
-                    // lines.
-                    // FIXME: We check the number of rows because in some cases, like in
-                    // `tests/ui/lint/invalid-nan-comparison-suggestion.rs`, the rendered
-                    // suggestion will only show the first line of code being replaced. The
-                    // proper way of doing this would be to change the suggestion rendering
-                    // logic to show the whole prior snippet, but the current output is not
-                    // too bad to begin with, so we side-step that issue here.
-                    for (i, line) in snippet.lines().enumerate() {
-                        let norm_line = normalize_whitespace(line);
-                        // Going lower than buffer_offset (+ 1) would mean
-                        // overwriting existing content in the buffer
-                        let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
-                        let row = (row_num - 2 - (offset - i - 1)).max(min_row);
-                        let (start, end) = if i == 0 {
+                        0 => {
                             // On the first line, we highlight between the start of the part
                             // span, and the end of that line.
                             let full_line = sm.get_line(span_start.line).unwrap_or_default();
                             let extra_width = extra_width_from_tabs(full_line, span_start.char);
                             let start = span_start.char + extra_width;
                             (start, start + norm_line.chars().count())
-                        } else if i == newlines - 1 {
+                        }
+                        x if x == newlines - 1 => {
                             // On the last line, we highlight between the start of the line, and
                             // the column of the part span end.
                             let extra_width = extra_width_from_tabs(line, span_end.char);
                             (0, span_end.char + extra_width)
-                        } else {
+                        }
+                        _ => {
                             // On all others, we highlight the whole line.
                             (0, norm_line.chars().count())
-                        };
-                        buffer.set_style_range(
-                            row,
-                            padding + start,
-                            padding + end,
-                            ElementStyle::Removal,
-                            true,
-                        );
-                    }
-                } else {
-                    let extra_width: usize = extra_width_from_tabs(snippet, span_start.char);
-                    // The removed code fits all in one line.
+                        }
+                    };
                     buffer.set_style_range(
-                        row_num - 2,
-                        span_start.char + extra_width,
-                        span_end.char + extra_width,
+                        row,
+                        padding + start,
+                        padding + end,
                         ElementStyle::Removal,
                         true,
                     );
                 }
+
                 prev_lines = Some((span_start.line, span_end.line));
             }
 
