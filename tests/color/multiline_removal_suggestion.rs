@@ -1,5 +1,5 @@
 use annotate_snippets::{
-    renderer::DecorStyle, AnnotationKind, Level, Origin, Patch, Renderer, Snippet,
+    AnnotationKind, Level, Origin, Patch, Renderer, Snippet, renderer::DecorStyle,
 };
 
 use snapbox::{assert_data_eq, file};

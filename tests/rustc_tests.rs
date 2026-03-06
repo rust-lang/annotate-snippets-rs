@@ -5,7 +5,7 @@
 use annotate_snippets::{AnnotationKind, Group, Level, Origin, Padding, Patch, Renderer, Snippet};
 
 use annotate_snippets::renderer::DecorStyle;
-use snapbox::{assert_data_eq, str, IntoData};
+use snapbox::{IntoData, assert_data_eq, str};
 
 #[test]
 fn ends_on_col0() {
@@ -3438,7 +3438,9 @@ $DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, 
     let renderer = Renderer::plain().short_message(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
-    let expected_unicode = str!["$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`"];
+    let expected_unicode = str![
+        "$DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, found `String`"
+    ];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
@@ -3477,7 +3479,9 @@ $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for 
     let renderer = Renderer::plain().short_message(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
-    let expected_unicode = str!["$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`"];
+    let expected_unicode = str![
+        "$DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for type `u32` in the current scope: method not found in `u32`"
+    ];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
@@ -3577,7 +3581,7 @@ fn main() {
     let source2 = r#"[1, 2, 3].into_iter().for_each(|n| { *n; });
 "#;
 
-    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title1 = "this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
     let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
