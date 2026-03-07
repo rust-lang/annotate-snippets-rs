@@ -227,6 +227,7 @@ pub struct Snippet<'a, T> {
     pub(crate) line_start: usize,
     pub(crate) source: Cow<'a, str>,
     pub(crate) markers: Vec<T>,
+    pub(crate) url: Option<Cow<'a, str>>,
     pub(crate) fold: bool,
 }
 
@@ -246,6 +247,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
             line_start: 1,
             source: source.into(),
             markers: vec![],
+            url: None,
             fold: true,
         }
     }
@@ -268,6 +270,20 @@ impl<'a, T: Clone> Snippet<'a, T> {
     /// </div>
     pub fn path(mut self, path: impl Into<OptionCow<'a>>) -> Self {
         self.path = path.into().0;
+        self
+    }
+
+    /// The URL to the [`source`][Self::source]. Can be a `file://` URL.
+    ///
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
+    pub fn path_url(mut self, url: impl Into<OptionCow<'a>>) -> Self {
+        self.url = url.into().0;
         self
     }
 
@@ -487,6 +503,7 @@ pub struct Origin<'a> {
     pub(crate) path: Cow<'a, str>,
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
+    pub(crate) url: Option<Cow<'a, str>>,
 }
 
 impl<'a> Origin<'a> {
@@ -502,6 +519,7 @@ impl<'a> Origin<'a> {
             path: path.into(),
             line: None,
             char_column: None,
+            url: None,
         }
     }
 
@@ -520,6 +538,20 @@ impl<'a> Origin<'a> {
     /// </div>
     pub fn char_column(mut self, char_column: usize) -> Self {
         self.char_column = Some(char_column);
+        self
+    }
+
+    /// The URL to the origin. Can be a `file://` URL.
+    ///
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Pre-styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
+    pub fn path_url(mut self, uri: impl Into<Cow<'a, str>>) -> Self {
+        self.url = Some(uri.into());
         self
     }
 }
