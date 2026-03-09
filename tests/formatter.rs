@@ -3686,7 +3686,7 @@ fn main() {
 }
 "#;
 
-    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title1 = "this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
     let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
@@ -3775,7 +3775,7 @@ fn main() {
     let suggestion_source = r#"[1, 2, 3].into_iter().for_each(|n| { *n; });
 "#;
 
-    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title1 = "this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
     let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
@@ -3867,7 +3867,7 @@ fn main() {
     let suggestion_source = r#"[1, 2, 3].into_iter().for_each(|n| { *n; });
 "#;
 
-    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title1 = "this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
     let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
@@ -3959,7 +3959,7 @@ fn main() {
     let suggestion_source = r#"[1, 2, 3].into_iter().for_each(|n| { *n; });
 "#;
 
-    let long_title1 ="this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
+    let long_title1 = "this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021";
     let long_title2 = "for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>";
     let long_title3 = "or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value";
 
