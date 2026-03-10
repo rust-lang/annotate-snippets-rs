@@ -5,7 +5,7 @@ use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
 use core::cmp::{Ordering, Reverse, max, min};
-use core::fmt;
+use core::fmt::{self, Display, Formatter};
 
 use anstyle::Style;
 
@@ -359,17 +359,12 @@ fn render_title(
         label_width += title.level().as_str().len();
         if let Some(Id { id: Some(id), url }) = &title.id() {
             buffer.append(buffer_msg_line_offset, "[", label_style);
-            if let Some(url) = url.as_ref() {
-                buffer.append(
-                    buffer_msg_line_offset,
-                    &format!("\x1B]8;;{url}\x1B\\"),
-                    label_style,
-                );
-            }
-            buffer.append(buffer_msg_line_offset, id, label_style);
-            if url.is_some() {
-                buffer.append(buffer_msg_line_offset, "\x1B]8;;\x1B\\", label_style);
-            }
+            let link = Hyperlink::from(url.as_deref());
+            buffer.append(
+                buffer_msg_line_offset,
+                &format!("{link}{id}{link:#}"),
+                label_style,
+            );
             buffer.append(buffer_msg_line_offset, "]", label_style);
             label_width += 2 + id.len();
         }
@@ -2758,6 +2753,29 @@ fn newline_count(body: &str) -> usize {
     #[cfg(not(feature = "simd"))]
     {
         body.lines().count().saturating_sub(1)
+    }
+}
+
+struct Hyperlink<'a> {
+    url: Option<&'a str>,
+}
+
+impl<'a> From<Option<&'a str>> for Hyperlink<'a> {
+    fn from(url: Option<&'a str>) -> Self {
+        Hyperlink { url }
+    }
+}
+
+impl<'a> Display for Hyperlink<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let Some(url) = self.url.as_ref() else {
+            return Ok(());
+        };
+        if f.alternate() {
+            write!(f, "\x1B]8;;\x1B\\")
+        } else {
+            write!(f, "\x1B]8;;{url}\x1B\\")
+        }
     }
 }
 
