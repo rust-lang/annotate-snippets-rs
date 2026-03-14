@@ -159,12 +159,11 @@ impl StyledBuffer {
         style: ElementStyle,
         overwrite: bool,
     ) {
-        if let Some(ref mut line) = self.lines.get_mut(line) {
-            if let Some(StyledChar { style: s, .. }) = line.get_mut(col) {
-                if overwrite || matches!(s, ElementStyle::NoStyle | ElementStyle::Quotation) {
-                    *s = style;
-                }
-            }
+        if let Some(ref mut line) = self.lines.get_mut(line)
+            && let Some(StyledChar { style: s, .. }) = line.get_mut(col)
+            && (overwrite || matches!(s, ElementStyle::NoStyle | ElementStyle::Quotation))
+        {
+            *s = style;
         }
     }
 }
