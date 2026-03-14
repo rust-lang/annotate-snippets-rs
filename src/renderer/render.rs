@@ -1447,33 +1447,39 @@ fn emit_suggestion_default(
     let (complete, parts, highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
-    if matches_previous_suggestion {
-        buffer.puts(
-            row_num - 1,
-            max_line_num_len + 1,
-            renderer.decor_style.multi_suggestion_separator(),
-            ElementStyle::LineNumber,
-        );
-    } else {
-        draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
-    }
-    if suggestion.path.as_ref() != primary_path {
-        if let Some(path) = suggestion.path.as_ref() {
-            if !matches_previous_suggestion {
-                let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-                // --> file.rs:line:col
-                //  |
-                let arrow = renderer.decor_style.file_start(is_first, false);
-                buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                let col = usize::max(max_line_num_len + 1, arrow.len());
-                buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
-                for _ in 0..max_line_num_len {
-                    buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
-                }
-                draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
-                row_num += 1;
-            }
+    match suggestion.path.as_ref() {
+        Some(path) if suggestion.path.as_ref() != primary_path && !matches_previous_suggestion => {
+            let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+            let origin = Origin::path(path.as_ref())
+                .line(loc.line)
+                .char_column(loc.char + 1);
+
+            render_origin(
+                renderer,
+                buffer,
+                max_line_num_len,
+                &origin,
+                true,
+                is_first,
+                !is_cont,
+                row_num - 1,
+            );
+            row_num += 1;
+
+            draw_col_separator_no_space(renderer, buffer, row_num - 1, max_line_num_len + 1);
+        }
+
+        _ if matches_previous_suggestion => {
+            buffer.puts(
+                row_num - 1,
+                max_line_num_len + 1,
+                renderer.decor_style.multi_suggestion_separator(),
+                ElementStyle::LineNumber,
+            );
+        }
+
+        _ => {
+            draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
         }
     }
 
