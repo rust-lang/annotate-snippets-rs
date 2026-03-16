@@ -5,7 +5,7 @@ use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
 use core::cmp::{Ordering, Reverse, max, min};
-use core::fmt;
+use core::fmt::{self, Display, Formatter};
 
 use anstyle::Style;
 
@@ -20,8 +20,8 @@ use crate::renderer::source_map::{
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
 use crate::{
-    Annotation, AnnotationKind, Element, Group, Message, Origin, Padding, Patch, Report, Snippet,
-    Title,
+    Annotation, AnnotationKind, Element, Group, Message, Origin, Padding, Patch, PathUrlFormatter,
+    Report, Snippet, Title,
 };
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
@@ -271,6 +271,13 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
             let mut origin = Origin::path(path.as_ref());
 
             let source_map = SourceMap::new(&cause.source, cause.line_start);
+            if let Some(primary_span) = cause.primary_span()
+                && let Some(path_url_formatter) = &cause.url
+            {
+                let (line, byte_col) = source_map.byte_to_line_byte_col(primary_span.start);
+                let url = path_url_formatter.format_url(line, byte_col);
+                origin.url = Some(Cow::from(url));
+            }
             let (_depth, annotated_lines) =
                 source_map.annotated_lines(cause.markers.clone(), cause.fold);
 
@@ -359,17 +366,12 @@ fn render_title(
         label_width += title.level().as_str().len();
         if let Some(Id { id: Some(id), url }) = &title.id() {
             buffer.append(buffer_msg_line_offset, "[", label_style);
-            if let Some(url) = url.as_ref() {
-                buffer.append(
-                    buffer_msg_line_offset,
-                    &format!("\x1B]8;;{url}\x1B\\"),
-                    label_style,
-                );
-            }
-            buffer.append(buffer_msg_line_offset, id, label_style);
-            if url.is_some() {
-                buffer.append(buffer_msg_line_offset, "\x1B]8;;\x1B\\", label_style);
-            }
+            let link = Hyperlink::from(url.as_deref());
+            buffer.append(
+                buffer_msg_line_offset,
+                &format!("{link}{id}{link:#}"),
+                label_style,
+            );
             buffer.append(buffer_msg_line_offset, "]", label_style);
             label_width += 2 + id.len();
         }
@@ -488,6 +490,9 @@ fn render_origin(
         _ => origin.path.to_string(),
     };
 
+    let link = Hyperlink::from(origin.url.as_deref());
+    let str = format!("{link}{str}{link:#}");
+
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
     if !renderer.short_message {
         for _ in 0..max_line_num_len {
@@ -555,6 +560,15 @@ fn render_snippet_annotations(
                 }
             }
         }
+
+        if let Some(primary_span) = snippet.primary_span()
+            && let Some(url_formatter) = &snippet.url
+        {
+            let (line, byte_col) = sm.byte_to_line_byte_col(primary_span.start);
+            let url = url_formatter.format_url(line, byte_col);
+            origin.url = Some(Cow::from(url));
+        }
+
         let buffer_msg_line_offset = buffer.num_lines();
         render_origin(
             renderer,
@@ -1098,27 +1112,26 @@ fn render_source_line(
     if annotations_position
         .iter()
         .all(|(_, ann)| matches!(ann.annotation_type, LineAnnotationType::MultilineStart(_)))
+        && let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max()
     {
-        if let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max() {
-            // Special case the following, so that we minimize overlapping multiline spans.
-            //
-            // 3 │       X0 Y0 Z0
-            //   │ ┏━━━━━┛  │  │     < We are writing these lines
-            //   │ ┃┌───────┘  │     < by reverting the "depth" of
-            //   │ ┃│┌─────────┘     < their multiline spans.
-            // 4 │ ┃││   X1 Y1 Z1
-            // 5 │ ┃││   X2 Y2 Z2
-            //   │ ┃│└────╿──│──┘ `Z` label
-            //   │ ┃└─────│──┤
-            //   │ ┗━━━━━━┥  `Y` is a good letter too
-            //   ╰╴       `X` is a good letter
-            for (pos, _) in &mut annotations_position {
-                *pos = max_pos - *pos;
-            }
-            // We know then that we don't need an additional line for the span label, saving us
-            // one line of vertical space.
-            line_len = line_len.saturating_sub(1);
+        // Special case the following, so that we minimize overlapping multiline spans.
+        //
+        // 3 │       X0 Y0 Z0
+        //   │ ┏━━━━━┛  │  │     < We are writing these lines
+        //   │ ┃┌───────┘  │     < by reverting the "depth" of
+        //   │ ┃│┌─────────┘     < their multiline spans.
+        // 4 │ ┃││   X1 Y1 Z1
+        // 5 │ ┃││   X2 Y2 Z2
+        //   │ ┃│└────╿──│──┘ `Z` label
+        //   │ ┃└─────│──┤
+        //   │ ┗━━━━━━┥  `Y` is a good letter too
+        //   ╰╴       `X` is a good letter
+        for (pos, _) in &mut annotations_position {
+            *pos = max_pos - *pos;
         }
+        // We know then that we don't need an additional line for the span label, saving us
+        // one line of vertical space.
+        line_len = line_len.saturating_sub(1);
     }
 
     // Write the column separator.
@@ -1447,7 +1460,36 @@ fn emit_suggestion_default(
     let (complete, parts, highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
-    if matches_previous_suggestion {
+    if suggestion.path.as_ref() != primary_path
+        && let Some(path) = suggestion.path.as_ref()
+        && !matches_previous_suggestion
+    {
+        let span = parts[0].span.clone();
+        let (loc, _) = sm.span_to_locations(span.clone());
+        let mut origin = Origin::path(path.as_ref())
+            .line(loc.line)
+            .char_column(loc.char + 1);
+
+        if let Some(formatter) = &suggestion.url {
+            let (line, byte_col) = sm.byte_to_line_byte_col(span.start);
+            let url = formatter.format_url(line, byte_col);
+            origin.url = Some(Cow::from(url));
+        }
+
+        render_origin(
+            renderer,
+            buffer,
+            max_line_num_len,
+            &origin,
+            true,
+            is_first,
+            !is_cont,
+            row_num - 1,
+        );
+        row_num += 1;
+
+        draw_col_separator_no_space(renderer, buffer, row_num - 1, max_line_num_len + 1);
+    } else if matches_previous_suggestion {
         buffer.puts(
             row_num - 1,
             max_line_num_len + 1,
@@ -1456,25 +1498,6 @@ fn emit_suggestion_default(
         );
     } else {
         draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
-    }
-    if suggestion.path.as_ref() != primary_path {
-        if let Some(path) = suggestion.path.as_ref() {
-            if !matches_previous_suggestion {
-                let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-                // --> file.rs:line:col
-                //  |
-                let arrow = renderer.decor_style.file_start(is_first, false);
-                buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                let col = usize::max(max_line_num_len + 1, arrow.len());
-                buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
-                for _ in 0..max_line_num_len {
-                    buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
-                }
-                draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
-                row_num += 1;
-            }
-        }
     }
 
     if let DisplaySuggestion::Diff = show_code_change {
@@ -2756,6 +2779,29 @@ fn newline_count(body: &str) -> usize {
     #[cfg(not(feature = "simd"))]
     {
         body.lines().count().saturating_sub(1)
+    }
+}
+
+struct Hyperlink<'a> {
+    url: Option<&'a str>,
+}
+
+impl<'a> From<Option<&'a str>> for Hyperlink<'a> {
+    fn from(url: Option<&'a str>) -> Self {
+        Hyperlink { url }
+    }
+}
+
+impl<'a> Display for Hyperlink<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let Some(url) = self.url.as_ref() else {
+            return Ok(());
+        };
+        if f.alternate() {
+            write!(f, "\x1B]8;;\x1B\\")
+        } else {
+            write!(f, "\x1B]8;;{url}\x1B\\")
+        }
     }
 }
 
