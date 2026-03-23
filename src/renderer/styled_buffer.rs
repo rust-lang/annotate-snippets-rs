@@ -99,7 +99,7 @@ impl StyledBuffer {
     }
 
     pub(crate) fn replace(&mut self, line: usize, start: usize, end: usize, string: &str) {
-        if start == end {
+        if start >= end {
             return;
         }
         // If the replacement range would be out of bounds, do nothing, as we
@@ -107,9 +107,16 @@ impl StyledBuffer {
         if start > self.lines[line].len() || end > self.lines[line].len() {
             return;
         }
-        let _ = self.lines[line].drain(start..(end - string.chars().count()));
+        let char_count = string.chars().count();
+        let drain_end = end.saturating_sub(char_count);
+        if drain_end <= start {
+            return;
+        }
+        let _ = self.lines[line].drain(start..drain_end);
         for (i, c) in string.chars().enumerate() {
-            self.lines[line][start + i] = StyledChar::new(c, ElementStyle::LineNumber);
+            if start + i < self.lines[line].len() {
+                self.lines[line][start + i] = StyledChar::new(c, ElementStyle::LineNumber);
+            }
         }
     }
 

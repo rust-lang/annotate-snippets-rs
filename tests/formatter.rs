@@ -5070,3 +5070,52 @@ help: consider importing this module instead
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn narrow_term_width_no_panic() {
+    // Regression test: term_width <= 10 caused a panic in StyledBuffer::replace
+    // when rendering an annotation whose display width exceeds 10 columns.
+    //
+    // The span-trimming logic computes pad = max(term_width / 3, 5), then calls
+    // replace(start + pad, end - pad, "..."). When term_width is 0, pad = 5,
+    // and for a span of width 11-12, start + 5 > end - 5, producing an inverted
+    // range that panics in Vec::drain.
+    //
+    // Reproduces in rustc 1.94.0+ with:
+    //   echo 'pub fn f() { let mut foo_bar = 0; }' > ice.rs
+    //   rustc --diagnostic-width=0 --crate-type lib ice.rs
+    //
+    // https://github.com/furkanmamuk/rustc-ice-diagnostic-width-panic
+
+    // Simulate the unused_mut diagnostic: annotation over "mut foo_bar"
+    // Span columns 17..29 = 12 display columns (just over the width>10 threshold)
+    let source = "pub fn f() { let mut foo_bar = 0; }";
+    let input = &[Level::WARNING
+        .primary_title("variable does not need to be mutable")
+        .element(
+            Snippet::source(source).path("ice.rs").annotation(
+                AnnotationKind::Primary
+                    .span(17..29)
+                    .label("help: remove this `mut`"),
+            ),
+        )];
+
+    // Must not panic at any width, including 0
+    for w in 0..=20 {
+        let renderer = Renderer::plain().term_width(w);
+        let _ = renderer.render(input);
+    }
+
+    // Also test with a very wide annotation (the original trimming use case)
+    let wide_source = "let x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];";
+    let wide_input = &[Level::ERROR.primary_title("type mismatch").element(
+        Snippet::source(wide_source)
+            .path("test.rs")
+            .annotation(AnnotationKind::Primary.span(8..68).label("expected &[u8]")),
+    )];
+
+    for w in 0..=20 {
+        let renderer = Renderer::plain().term_width(w);
+        let _ = renderer.render(wide_input);
+    }
+}
