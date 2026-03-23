@@ -1392,24 +1392,28 @@ fn render_source_line(
             continue;
         };
         let width = annotation.end.display - annotation.start.display;
-        if width > margin.term_width * 2 && width > 10 {
+        if margin.term_width > 0 && width > margin.term_width * 2 && width > 10 {
             // If the terminal is *too* small, we keep at least a tiny bit of the span for
             // display.
             let pad = max(margin.term_width / 3, 5);
-            // Code line
-            buffer.replace(
-                line_offset,
-                annotation.start.display + pad,
-                annotation.end.display - pad,
-                renderer.decor_style.margin(),
-            );
-            // Underline line
-            buffer.replace(
-                line_offset + 1,
-                annotation.start.display + pad,
-                annotation.end.display - pad,
-                renderer.decor_style.margin(),
-            );
+            let replace_start = annotation.start.display + pad;
+            let replace_end = annotation.end.display.saturating_sub(pad);
+            if replace_start < replace_end {
+                // Code line
+                buffer.replace(
+                    line_offset,
+                    replace_start,
+                    replace_end,
+                    renderer.decor_style.margin(),
+                );
+                // Underline line
+                buffer.replace(
+                    line_offset + 1,
+                    replace_start,
+                    replace_end,
+                    renderer.decor_style.margin(),
+                );
+            }
         }
     }
     annotations_position
