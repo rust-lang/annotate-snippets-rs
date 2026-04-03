@@ -5072,7 +5072,6 @@ help: consider importing this module instead
 }
 
 #[test]
-#[should_panic]
 fn dont_panic_narrow_term_width_short_span() {
     let source = "pub fn f() { let mut foo_bar = 0; }";
     let input = &[Level::WARNING

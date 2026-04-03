@@ -106,11 +106,13 @@ impl StyledBuffer {
         // can't replace things that don't exist.
         if start > self.lines[line].len() || end > self.lines[line].len() {
             return;
-        }
-        let _ = self.lines[line].drain(start..(end - string.chars().count()));
-        for (i, c) in string.chars().enumerate() {
-            self.lines[line][start + i] = StyledChar::new(c, ElementStyle::LineNumber);
-        }
+        };
+        self.lines[line].splice(
+            start..end,
+            string
+                .chars()
+                .map(|c| StyledChar::new(c, ElementStyle::LineNumber)),
+        );
     }
 
     /// For given `line` inserts `string` with `style` before old content of that line,
