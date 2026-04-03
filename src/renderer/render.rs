@@ -1399,15 +1399,15 @@ fn render_source_line(
             // Code line
             buffer.replace(
                 line_offset,
-                annotation.start.display + pad,
-                annotation.end.display - pad,
+                code_offset + (annotation.start.display + pad).saturating_sub(left),
+                code_offset + (annotation.end.display - pad).saturating_sub(left),
                 renderer.decor_style.margin(),
             );
             // Underline line
             buffer.replace(
                 line_offset + 1,
-                annotation.start.display + pad,
-                annotation.end.display - pad,
+                code_offset + (annotation.start.display + pad).saturating_sub(left),
+                code_offset + (annotation.end.display - pad).saturating_sub(left),
                 renderer.decor_style.margin(),
             );
         }
