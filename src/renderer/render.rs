@@ -1392,10 +1392,13 @@ fn render_source_line(
             continue;
         };
         let width = annotation.end.display - annotation.start.display;
-        if width > margin.term_width * 2 && width > 10 {
+
+        static MIN_PAD: usize = 5;
+        let margin_width = str_width(renderer.decor_style.margin());
+        if width > margin.term_width * 2 && width > (MIN_PAD * 2 + margin_width) {
             // If the terminal is *too* small, we keep at least a tiny bit of the span for
             // display.
-            let pad = max(margin.term_width / 3, 5);
+            let pad = max(margin.term_width / 3, MIN_PAD);
             // Code line
             buffer.replace(
                 line_offset,

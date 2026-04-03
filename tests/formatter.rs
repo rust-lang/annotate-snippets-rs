@@ -5087,8 +5087,8 @@ fn dont_panic_narrow_term_width_short_span() {
 warning: variable does not need to be mutable
  --> ice.rs:1:18
   |
-1 | ...et mut f...o_bar = ...
-  |       ^^^^^...^^^^^ help: remove this `mut`
+1 | ...et mut foo_bar = ...
+  |       ^^^^^^^^^^^ help: remove this `mut`
 "#]];
     let renderer = Renderer::plain().term_width(8);
     assert_data_eq!(renderer.render(input), expected_ascii);
@@ -5097,8 +5097,8 @@ warning: variable does not need to be mutable
 warning: variable does not need to be mutable
   ╭▸ ice.rs:1:18
   │
-1 │ … let mut f…o_bar = 0;…
-  ╰╴      ━━━━━…━━━━━ help: remove this `mut`
+1 │ … let mut foo_bar = 0;…
+  ╰╴      ━━━━━━━━━━━ help: remove this `mut`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
