@@ -2303,8 +2303,8 @@ fn main() {}
 error[E0038]: mismatched types
  --> $DIR/long-span.rs:2:15
   |
-2 | ... = [0, 0, 0,...];
-  |       ^^^^^^^^^...^ expected `u8`, found `[{integer}; 1680]`
+2 | ... = [... 0, 0, 0];
+  |       ^...^^^^^^^^^ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
     let renderer = Renderer::plain().term_width(8);
@@ -2314,8 +2314,8 @@ error[E0038]: mismatched types
 error[E0038]: mismatched types
   ╭▸ $DIR/long-span.rs:2:15
   │
-2 │ …u8 = [0, 0, 0,…];
-  ╰╴      ━━━━━━━━━…━ expected `u8`, found `[{integer}; 1680]`
+2 │ …u8 = [… 0, 0, 0];
+  ╰╴      ━…━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2345,8 +2345,8 @@ fn main() {}
 error[E0038]: mismatched types
   ╭▸ $DIR/long-span.rs:2:15
   │
-2 │ …u8 = [0, 0, 0,…];
-  ╰╴      ━━━━━━━━━…━ expected `u8`, found `[{integer}; 1680]`
+2 │ …u8 = [… 0, 0, 0];
+  ╰╴      ━…━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
     let renderer = Renderer::plain()
@@ -2358,8 +2358,8 @@ error[E0038]: mismatched types
 error[E0038]: mismatched types
   ╭▸ $DIR/long-span.rs:2:15
   │
-2 │ …u8 = [0, 0, 0,…];
-  ╰╴      ━━━━━━━━━…━ expected `u8`, found `[{integer}; 1680]`
+2 │ …u8 = [… 0, 0, 0];
+  ╰╴      ━…━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2389,8 +2389,8 @@ fn main() {}
 error[E0038]: mismatched types
   ╭▸ $DIR/long-span.rs:2:15
   │
-2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0… 0, 0, 0, 0, 0, 0, 0];
-  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+2 │ …u8 = [0, 0, 0, 0, 0, 0, 0,…0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  ╰╴      ━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
     let renderer = Renderer::plain()
@@ -2402,8 +2402,8 @@ error[E0038]: mismatched types
 error[E0038]: mismatched types
   ╭▸ $DIR/long-span.rs:2:15
   │
-2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0… 0, 0, 0, 0, 0, 0, 0];
-  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+2 │ …u8 = [0, 0, 0, 0, 0, 0, 0,…0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  ╰╴      ━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -2433,8 +2433,8 @@ fn main() {}
 error[E0038]: mismatched types
  --> $DIR/long-span.rs:2:15
   |
-2 | ... = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,..., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u8`, found `[{integer}; 1680]`
+2 | ... = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ... 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^...^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u8`, found `[{integer}; 1680]`
 "#]];
 
     let renderer = Renderer::plain().term_width(120);
@@ -2444,8 +2444,8 @@ error[E0038]: mismatched types
 error[E0038]: mismatched types
   ╭▸ $DIR/long-span.rs:2:15
   │
-2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,…, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
+2 │ …u8 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, … 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  ╰╴      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━…━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ expected `u8`, found `[{integer}; 1680]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -3532,15 +3532,15 @@ pub struct Foo; //~^ ERROR
 error: this URL is not a hyperlink
  --> $DIR/diagnostic-width.rs:4:41
   |
-4 | ... a http://link.com
-  |       ^^^^^^^^^^^^^^^
+4 | ... a h.../link.com
+  |       ^...^^^^^^^^^
   |
   = note: bare URLs are not automatically turned into clickable links
 note: the lint level is defined here
  --> $DIR/diagnostic-width.rs:2:9
   |
-2 | ...ny(rus...re_urls)]
-  |       ^^^...^^^^^^^
+2 | ...ny(r...bare_urls)]
+  |       ^...^^^^^^^^^
 help: use an automatic link instead
   |
 4 | /// This is a long line that contains a <http://link.com>
@@ -3553,15 +3553,15 @@ help: use an automatic link instead
 error: this URL is not a hyperlink
   ╭▸ $DIR/diagnostic-width.rs:4:41
   │
-4 │ …ns a http://link.com
-  │       ━━━━━━━━━━━━━━━
+4 │ …ns a h…/link.com
+  │       ━…━━━━━━━━━
   │
   ╰ note: bare URLs are not automatically turned into clickable links
 note: the lint level is defined here
   ╭▸ $DIR/diagnostic-width.rs:2:9
   │
-2 │ …deny(rus…re_urls)]
-  ╰╴      ━━━…━━━━━━━
+2 │ …deny(r…bare_urls)]
+  ╰╴      ━…━━━━━━━━━
 help: use an automatic link instead
   ╭╴
 4 │ /// This is a long line that contains a <http://link.com>
