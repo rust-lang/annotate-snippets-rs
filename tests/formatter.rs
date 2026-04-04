@@ -5070,3 +5070,36 @@ help: consider importing this module instead
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn dont_panic_narrow_term_width_short_span() {
+    let source = "pub fn f() { let mut foo_bar = 0; }";
+    let input = &[Level::WARNING
+        .primary_title("variable does not need to be mutable")
+        .element(
+            Snippet::source(source).path("ice.rs").annotation(
+                AnnotationKind::Primary
+                    .span(17..28)
+                    .label("help: remove this `mut`"),
+            ),
+        )];
+    let expected_ascii = str![[r#"
+warning: variable does not need to be mutable
+ --> ice.rs:1:18
+  |
+1 | ...et mut foo_bar = ...
+  |       ^^^^^^^^^^^ help: remove this `mut`
+"#]];
+    let renderer = Renderer::plain().term_width(8);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+warning: variable does not need to be mutable
+  ╭▸ ice.rs:1:18
+  │
+1 │ … let mut foo_bar = 0;…
+  ╰╴      ━━━━━━━━━━━ help: remove this `mut`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
