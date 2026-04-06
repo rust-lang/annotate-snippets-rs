@@ -13,6 +13,8 @@ mod highlight_diff_line_with_wide_characters;
 mod highlight_duplicated_diff_lines;
 mod highlight_first_line_tab_371;
 mod highlight_source;
+mod highlight_source_multi_width_chars;
+mod highlight_source_zero_width_chars;
 mod issue_9;
 mod multiline_removal_last_line_tabs;
 mod multiline_removal_suggestion;
