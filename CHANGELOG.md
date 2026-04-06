@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.15] - 2026-04-06
+
+### Fixed
+
+- Source highlighting no longer misaligns when source contains zero-width or multi-width characters [#400](https://github.com/rust-lang/annotate-snippets-rs/pull/400)
+
 ## [0.12.14] - 2026-04-04
 
 ### Fixed
@@ -309,7 +315,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.14...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.15...HEAD
+[0.12.15]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.14...0.12.15
 [0.12.14]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.13...0.12.14
 [0.12.13]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.12...0.12.13
 [0.12.12]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.11...0.12.12
