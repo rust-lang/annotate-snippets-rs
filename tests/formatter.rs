@@ -8,15 +8,26 @@ use snapbox::{assert_data_eq, str};
 #[test]
 fn test_i_29() {
     let input = &[Level::ERROR.primary_title("oops").element(
-        Snippet::source("First line\r\nSecond oops line")
+        Snippet::source("First line\r\nSecond oops \u{0001} line")
             .path("<current file>")
             .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
     )];
+    let expected_forced_ascii = str![[r#"
+error: oops
+ --> <current file>:2:8
+  |
+2 | Second oops <SOH> line
+  |        ^^^^ oops
+"#]];
+
+    let renderer = Renderer::plain().force_ascii();
+    assert_data_eq!(renderer.render(input), expected_forced_ascii);
+
     let expected_ascii = str![[r#"
 error: oops
  --> <current file>:2:8
   |
-2 | Second oops line
+2 | Second oops ␁ line
   |        ^^^^ oops
 "#]];
 
@@ -27,7 +38,7 @@ error: oops
 error: oops
   ╭▸ <current file>:2:8
   │
-2 │ Second oops line
+2 │ Second oops ␁ line
   ╰╴       ━━━━ oops
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
@@ -3323,6 +3334,24 @@ fn foo() {
                 )
                 .element(Level::NOTE.message("this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)")),
        ];
+
+    let expected_forced_ascii = str![[r#"
+error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
+ --> $DIR/not-utf8.rs:6:5
+  |
+6 |     include!("not-utf8.bin");
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+note: byte `193` is not valid utf-8
+ --> $DIR/not-utf8.bin:1:1
+  |
+1 | <?>|<?><STX>!5<?>cc<NAK><STX><?><?>i<?><?>WWj<?><?><?>'<?>}<?><DC2><?>J<?><?><?><?>W<?><RS>O<?>@<?><?><?><?><FS>w<?>V<?><?><?>LO<?><?...
+  | ^
+  = note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+
+    let renderer = Renderer::plain().force_ascii();
+    assert_data_eq!(renderer.render(input), expected_forced_ascii);
 
     let expected_ascii = str![[r#"
 error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8

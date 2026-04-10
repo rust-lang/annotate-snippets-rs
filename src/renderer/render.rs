@@ -30,7 +30,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
         render_short_message(renderer, groups).unwrap()
     } else {
-        let (max_line_num, og_primary_path, groups) = pre_process(groups);
+        let (max_line_num, og_primary_path, groups) = pre_process(groups, renderer.force_ascii);
         let max_line_num_len = if renderer.anonymized_line_numbers {
             ANONYMIZED_LINE_NUM.len()
         } else {
@@ -270,7 +270,7 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
         if let Some(path) = &cause.path {
             let mut origin = Origin::path(path.as_ref());
 
-            let source_map = SourceMap::new(&cause.source, cause.line_start);
+            let source_map = SourceMap::new(&cause.source, cause.line_start, renderer.force_ascii);
             let (_depth, annotated_lines) =
                 source_map.annotated_lines(cause.markers.clone(), cause.fold);
 
@@ -403,7 +403,10 @@ fn render_title(
     let (title_str, style) = if title.allows_styling() {
         (title.text().to_owned(), ElementStyle::NoStyle)
     } else {
-        (normalize_whitespace(title.text()), title_element_style)
+        (
+            normalize_whitespace(title.text(), renderer.force_ascii),
+            title_element_style,
+        )
     };
     for (i, text) in title_str.split('\n').enumerate() {
         if i != 0 {
@@ -509,6 +512,7 @@ fn render_snippet_annotations(
     is_cont: bool,
     is_first: bool,
 ) {
+    let force_ascii = renderer.force_ascii;
     if let Some(path) = &snippet.path {
         let mut origin = Origin::path(path.as_ref());
         // print out the span location and spacer before we print the annotated source
@@ -661,12 +665,15 @@ fn render_snippet_annotations(
     let mut label_right_margin = 0;
     let mut max_line_len = 0;
     for line_info in annotated_lines {
-        max_line_len = max(max_line_len, str_width(line_info.line));
+        max_line_len = max(max_line_len, str_width(line_info.line, force_ascii));
         for ann in &line_info.annotations {
             span_right_margin = max(span_right_margin, ann.start.display);
             span_right_margin = max(span_right_margin, ann.end.display);
             // FIXME: account for labels not in the same line
-            let label_right = ann.label.as_ref().map_or(0, |l| str_width(l) + 1);
+            let label_right = ann
+                .label
+                .as_ref()
+                .map_or(0, |l| str_width(l, force_ascii) + 1);
             label_right_margin = max(label_right_margin, ann.end.display + label_right);
         }
     }
@@ -775,7 +782,7 @@ fn render_snippet_annotations(
                     draw_line(
                         renderer,
                         buffer,
-                        &normalize_whitespace(unannotated_line),
+                        &normalize_whitespace(unannotated_line, force_ascii),
                         annotated_lines[annotated_line_idx + 1].line_index - 1,
                         last_buffer_line_num,
                         width_offset,
@@ -846,7 +853,7 @@ fn render_source_line(
     //   |  vertical divider between the column number and the code
     //   column number
 
-    let source_string = normalize_whitespace(line_info.line);
+    let source_string = normalize_whitespace(line_info.line, renderer.force_ascii);
 
     let line_offset = buffer.num_lines();
 
@@ -1380,6 +1387,8 @@ fn render_source_line(
         }
     }
 
+    let force_ascii = renderer.force_ascii;
+
     // We look for individual *long* spans, and we trim the *middle*, so that we render
     // LL | ...= [0, 0, 0, ..., 0, 0];
     //    |      ^^^^^^^^^^...^^^^^^^ expected `&[u8]`, found `[{integer}; 1680]`
@@ -1394,7 +1403,7 @@ fn render_source_line(
         let width = annotation.end.display - annotation.start.display;
 
         static MIN_PAD: usize = 5;
-        let margin_width = str_width(renderer.decor_style.margin());
+        let margin_width = str_width(renderer.decor_style.margin(), force_ascii);
         if width > margin.term_width * 2 && width > (MIN_PAD * 2 + margin_width) {
             // If the terminal is *too* small, we keep at least a tiny bit of the span for
             // display.
@@ -1446,6 +1455,7 @@ fn emit_suggestion_default(
     is_cont: bool,
 ) {
     let buffer_offset = buffer.num_lines();
+    let force_ascii = renderer.force_ascii;
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
     let (complete, parts, highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
@@ -1513,7 +1523,7 @@ fn emit_suggestion_default(
             buffer.puts(
                 row_num - 1 + line - line_start.line,
                 max_line_num_len + 3,
-                &normalize_whitespace(sm.get_line(line).unwrap()),
+                &normalize_whitespace(sm.get_line(line).unwrap(), force_ascii),
                 ElementStyle::Removal,
             );
         }
@@ -1574,7 +1584,7 @@ fn emit_suggestion_default(
                 }
 
                 let placeholder = renderer.decor_style.margin();
-                let padding = str_width(placeholder);
+                let padding = str_width(placeholder, force_ascii);
                 buffer.puts(
                     row_num,
                     max_line_num_len.saturating_sub(padding),
@@ -1642,11 +1652,14 @@ fn emit_suggestion_default(
             };
             // ...or trailing spaces. Account for substitutions containing unicode
             // characters.
-            let sub_len: usize = str_width(if is_whitespace_addition {
-                &part.replacement
-            } else {
-                part.replacement.trim()
-            });
+            let sub_len: usize = str_width(
+                if is_whitespace_addition {
+                    &part.replacement
+                } else {
+                    part.replacement.trim()
+                },
+                force_ascii,
+            );
 
             let offset: isize = offsets
                 .iter()
@@ -1723,7 +1736,7 @@ fn emit_suggestion_default(
                 // logic to show the whole prior snippet, but the current output is not
                 // too bad to begin with, so we side-step that issue here.
                 for (i, line) in snippet.lines().enumerate() {
-                    let norm_line = normalize_whitespace(line);
+                    let norm_line = normalize_whitespace(line, force_ascii);
                     // Going lower than buffer_offset (+ 1) would mean
                     // overwriting existing content in the buffer
                     let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
@@ -1772,7 +1785,7 @@ fn emit_suggestion_default(
             }
 
             // length of the code after substitution
-            let full_sub_len = str_width(&part.replacement) as isize;
+            let full_sub_len = str_width(&part.replacement, force_ascii) as isize;
 
             // length of the code to be substituted
             let snippet_len = span_end_pos as isize - span_start_pos as isize;
@@ -1787,7 +1800,7 @@ fn emit_suggestion_default(
     // if we elided some lines, add an ellipsis
     if lines.next().is_some() {
         let placeholder = renderer.decor_style.margin();
-        let padding = str_width(placeholder);
+        let padding = str_width(placeholder, force_ascii);
         buffer.puts(
             row_num,
             max_line_num_len.saturating_sub(padding),
@@ -1822,6 +1835,7 @@ fn draw_code_line(
     file_lines: &[&LineInfo<'_>],
     is_multiline: bool,
 ) {
+    let force_ascii = renderer.force_ascii;
     if let DisplaySuggestion::Diff = show_code_change {
         // We need to print more than one line if the span we need to remove is multiline.
         // For more info: https://github.com/rust-lang/rust/issues/92741
@@ -1839,7 +1853,7 @@ fn draw_code_line(
                 "- ",
                 ElementStyle::Removal,
             );
-            let line = normalize_whitespace(line_to_remove.line);
+            let line = normalize_whitespace(line_to_remove.line, force_ascii);
             buffer.puts(
                 *row_num - 1,
                 max_line_num_len + 3,
@@ -1873,7 +1887,7 @@ fn draw_code_line(
             buffer.puts(
                 *row_num - 1,
                 max_line_num_len + 3,
-                &normalize_whitespace(last_line.line),
+                &normalize_whitespace(last_line.line, force_ascii),
                 ElementStyle::NoStyle,
             );
             if line_to_add.trim().is_empty() {
@@ -1901,7 +1915,7 @@ fn draw_code_line(
                 buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
                 buffer.append(
                     *row_num,
-                    &normalize_whitespace(line_to_add),
+                    &normalize_whitespace(line_to_add, force_ascii),
                     ElementStyle::NoStyle,
                 );
             }
@@ -1939,7 +1953,7 @@ fn draw_code_line(
         buffer.puts(
             *row_num,
             max_line_num_len + 3,
-            &normalize_whitespace(line_to_add),
+            &normalize_whitespace(line_to_add, force_ascii),
             ElementStyle::NoStyle,
         );
     } else if let DisplaySuggestion::Add = show_code_change {
@@ -1952,7 +1966,7 @@ fn draw_code_line(
         buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
         buffer.append(
             *row_num,
-            &normalize_whitespace(line_to_add),
+            &normalize_whitespace(line_to_add, force_ascii),
             ElementStyle::NoStyle,
         );
     } else {
@@ -1965,7 +1979,7 @@ fn draw_code_line(
         draw_col_separator(renderer, buffer, *row_num, max_line_num_len + 1);
         buffer.append(
             *row_num,
-            &normalize_whitespace(line_to_add),
+            &normalize_whitespace(line_to_add, force_ascii),
             ElementStyle::NoStyle,
         );
     }
@@ -2002,7 +2016,8 @@ fn draw_line(
 ) -> usize {
     // Tabs are assumed to have been replaced by spaces in calling code.
     debug_assert!(!source_string.contains('\t'));
-    let line_len = str_width(source_string);
+    let force_ascii = renderer.force_ascii;
+    let line_len = str_width(source_string, force_ascii);
     // Create the source line we will highlight.
     let mut left = margin.left(line_len);
     let right = margin.right(line_len);
@@ -2012,7 +2027,7 @@ fn draw_line(
     let code: String = source_string
         .chars()
         .skip_while(|ch| {
-            let w = char_width(*ch);
+            let w = char_width(*ch, force_ascii);
             // If `skipped` is less than `left`, always skip the next `ch`,
             // even if `ch` is a multi-width char that would make `skipped`
             // exceed `left`. This ensures that we do not exceed term width on
@@ -2026,7 +2041,7 @@ fn draw_line(
         })
         .take_while(|ch| {
             // Make sure that the trimming on the right will fall within the terminal width.
-            taken += char_width(*ch);
+            taken += char_width(*ch, force_ascii);
             taken <= (right - left)
         })
         .collect();
@@ -2035,13 +2050,13 @@ fn draw_line(
         left += skipped - left;
     }
     let placeholder = renderer.decor_style.margin();
-    let padding = str_width(placeholder);
+    let padding = str_width(placeholder, force_ascii);
     let (width_taken, bytes_taken) = if margin.was_cut_left() {
         // We have stripped some code/whitespace from the beginning, make it clear.
         let mut bytes_taken = 0;
         let mut width_taken = 0;
         for ch in code.chars() {
-            width_taken += char_width(ch);
+            width_taken += char_width(ch, force_ascii);
             bytes_taken += ch.len_utf8();
 
             if width_taken >= padding {
@@ -2072,7 +2087,7 @@ fn draw_line(
         let mut char_taken = 0;
         let mut width_taken_inner = 0;
         for ch in code.chars().rev() {
-            width_taken_inner += char_width(ch);
+            width_taken_inner += char_width(ch, force_ascii);
             char_taken += 1;
 
             if width_taken_inner >= padding {
@@ -2317,11 +2332,11 @@ fn num_decimal_digits(num: usize) -> usize {
     MAX_DIGITS
 }
 
-fn str_width(s: &str) -> usize {
-    s.chars().map(char_width).sum()
+fn str_width(s: &str, force_ascii: bool) -> usize {
+    s.chars().map(|ch| char_width(ch, force_ascii)).sum()
 }
 
-pub(crate) fn char_width(ch: char) -> usize {
+pub(crate) fn char_width(ch: char, force_ascii: bool) -> usize {
     // FIXME: `unicode_width` sometimes disagrees with terminals on how wide a `char` is. For now,
     // just accept that sometimes the code line will be longer than desired.
     match ch {
@@ -2335,7 +2350,20 @@ pub(crate) fn char_width(ch: char) -> usize {
         | '\u{0014}' | '\u{0015}' | '\u{0016}' | '\u{0017}' | '\u{0018}' | '\u{0019}'
         | '\u{001A}' | '\u{001B}' | '\u{001C}' | '\u{001D}' | '\u{001E}' | '\u{001F}'
         | '\u{007F}' | '\u{202A}' | '\u{202B}' | '\u{202D}' | '\u{202E}' | '\u{2066}'
-        | '\u{2067}' | '\u{2068}' | '\u{202C}' | '\u{2069}' => 1,
+        | '\u{2067}' | '\u{2068}' | '\u{202C}' | '\u{2069}'
+            if !force_ascii =>
+        {
+            1
+        }
+        _ if force_ascii && !(32..=126).contains(&(ch as u32)) => {
+            if let Ok(i) = OUTPUT_REPLACEMENTS_ASCII.binary_search_by_key(&ch, |(k, _)| *k)
+                && let Some((_, replacement)) = OUTPUT_REPLACEMENTS_ASCII.get(i)
+            {
+                replacement.len()
+            } else {
+                3 // <?>
+            }
+        }
         _ => unicode_width::UnicodeWidthChar::width(ch).unwrap_or(1),
     }
 }
@@ -2490,10 +2518,53 @@ impl DisplaySuggestion {
 
 // We replace some characters so the CLI output is always consistent and underlines aligned.
 // Keep the following list in sync with `rustc_span::char_width`.
+const OUTPUT_REPLACEMENTS_ASCII: &[(char, &str)] = &[
+    ('\0', "<NUL>"),
+    ('\u{0001}', "<SOH>"),
+    ('\u{0002}', "<STX>"),
+    ('\u{0003}', "<ETX>"),
+    ('\u{0004}', "<EOT>"),
+    ('\u{0005}', "<END>"),
+    ('\u{0006}', "<ACK>"),
+    ('\u{0007}', "<BEL>"),
+    ('\u{0008}', "<BS>"),
+    ('\t', "    "), // We do our own tab replacement
+    ('\u{000b}', "<VT>"),
+    ('\u{000c}', "<FF>"),
+    ('\u{000d}', "<CH>"),
+    ('\u{000e}', "<SS>"),
+    ('\u{000f}', "<SI>"),
+    ('\u{0010}', "<DLE>"),
+    ('\u{0011}', "<DC1>"),
+    ('\u{0012}', "<DC2>"),
+    ('\u{0013}', "<DC3>"),
+    ('\u{0014}', "<DC4>"),
+    ('\u{0015}', "<NAK>"),
+    ('\u{0016}', "<SYN>"),
+    ('\u{0017}', "<ETB>"),
+    ('\u{0018}', "<CAN>"),
+    ('\u{0019}', "<EM>"),
+    ('\u{001a}', "<SUB>"),
+    ('\u{001b}', "<ESC>"),
+    ('\u{001c}', "<FS>"),
+    ('\u{001d}', "<GS>"),
+    ('\u{001e}', "<RS>"),
+    ('\u{001f}', "<US>"),
+    ('\u{007f}', "<DEL>"),
+    ('\u{200d}', ""), // Replace ZWJ for consistent terminal output of grapheme clusters.
+    ('\u{202a}', "<?>"), // The following unicode text flow control characters are inconsistently
+    ('\u{202b}', "<?>"), // supported across CLIs and can cause confusion due to the bytes on disk
+    ('\u{202c}', "<?>"), // not corresponding to the visible source code, so we replace them always.
+    ('\u{202d}', "<?>"),
+    ('\u{202e}', "<?>"),
+    ('\u{2066}', "<?>"),
+    ('\u{2067}', "<?>"),
+    ('\u{2068}', "<?>"),
+    ('\u{2069}', "<?>"),
+];
 const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
     // In terminals without Unicode support the following will be garbled, but in *all* terminals
-    // the underlying codepoint will be as well. We could gate this replacement behind a "unicode
-    // support" gate.
+    // the underlying codepoint will be as well. In such terminals, use the `force_ascii` mode.
     ('\0', "␀"),
     ('\u{0001}', "␁"),
     ('\u{0002}', "␂"),
@@ -2538,13 +2609,19 @@ const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
     ('\u{2069}', "�"),
 ];
 
-pub(crate) fn normalize_whitespace(s: &str) -> String {
+pub(crate) fn normalize_whitespace(s: &str, force_ascii: bool) -> String {
+    let replacements = if force_ascii {
+        OUTPUT_REPLACEMENTS_ASCII
+    } else {
+        OUTPUT_REPLACEMENTS
+    };
     // Scan the input string for a character in the ordered table above.
     // If it's present, replace it with its alternative string (it can be more than 1 char!).
     // Otherwise, retain the input char.
     s.chars().fold(String::with_capacity(s.len()), |mut s, c| {
-        match OUTPUT_REPLACEMENTS.binary_search_by_key(&c, |(k, _)| *k) {
-            Ok(i) => s.push_str(OUTPUT_REPLACEMENTS[i].1),
+        match replacements.binary_search_by_key(&c, |(k, _)| *k) {
+            Ok(i) => s.push_str(replacements[i].1),
+            _ if force_ascii && !(32..=126).contains(&(c as u32)) => s.push_str("<?>"),
             _ => s.push(c),
         }
         s
@@ -2641,6 +2718,7 @@ enum PreProcessedElement<'a> {
 
 fn pre_process<'a>(
     groups: &'a [Group<'a>],
+    force_ascii: bool,
 ) -> (usize, Option<&'a Cow<'a, str>>, Vec<PreProcessedGroup<'a>>) {
     let mut max_line_num = 0;
     let mut og_primary_path = None;
@@ -2655,7 +2733,7 @@ fn pre_process<'a>(
                     elements.push(PreProcessedElement::Message(message));
                 }
                 Element::Cause(cause) => {
-                    let sm = SourceMap::new(&cause.source, cause.line_start);
+                    let sm = SourceMap::new(&cause.source, cause.line_start, force_ascii);
                     let (depth, annotated_lines) =
                         sm.annotated_lines(cause.markers.clone(), cause.fold);
 
@@ -2686,7 +2764,7 @@ fn pre_process<'a>(
                     elements.push(PreProcessedElement::Cause((cause, sm, annotated_lines)));
                 }
                 Element::Suggestion(suggestion) => {
-                    let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
+                    let sm = SourceMap::new(&suggestion.source, suggestion.line_start, force_ascii);
                     if let Some((complete, patches, highlights)) =
                         sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
                     {

@@ -10,6 +10,11 @@ fn case() {
             .annotation(AnnotationKind::Primary.span(14..26).highlight_source(true)),
     )];
 
+    let expected_forced_ascii =
+        file!["highlight_source_multi_width_chars.forced_ascii.term.svg": TermSvg];
+    let renderer = Renderer::styled().force_ascii();
+    assert_data_eq!(renderer.render(report), expected_forced_ascii);
+
     let expected_ascii = file!["highlight_source_multi_width_chars.ascii.term.svg": TermSvg];
     let renderer = Renderer::styled();
     assert_data_eq!(renderer.render(report), expected_ascii);
