@@ -16,6 +16,7 @@ mod highlight_source;
 mod highlight_source_multi_width_chars;
 mod highlight_source_zero_width_chars;
 mod issue_9;
+mod multiline_removal_indent;
 mod multiline_removal_last_line_tabs;
 mod multiline_removal_suggestion;
 mod multiple_annotations;
