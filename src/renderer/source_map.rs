@@ -556,10 +556,8 @@ impl<'a> SourceMap<'a> {
                 }
             }
         }
-        // remove trailing newlines
-        while buf.ends_with('\n') {
-            buf.pop();
-        }
+        // remove trailing whitespace
+        buf.truncate(buf.trim_end().len());
         if highlights.iter().all(|parts| parts.is_empty()) {
             None
         } else {
