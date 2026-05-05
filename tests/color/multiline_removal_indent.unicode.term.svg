@@ -21,11 +21,11 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>  </tspan><tspan class="fg-bright-blue bold">╭╴</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan class="fg-bright-blue bold">2</tspan><tspan> </tspan><tspan class="fg-bright-red">-   local function f()</tspan>
+    <tspan x="10px" y="46px"><tspan class="fg-bright-blue bold">2</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>  </tspan><tspan class="fg-bright-red">local function f()</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-red">-     p</tspan><tspan>rint()</tspan>
+    <tspan x="10px" y="64px"><tspan class="fg-bright-blue bold">3</tspan><tspan> </tspan><tspan class="fg-bright-red">-     print()</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">4</tspan><tspan> </tspan><tspan class="fg-bright-red">- </tspan><tspan>  end</tspan>
+    <tspan x="10px" y="82px"><tspan class="fg-bright-blue bold">4</tspan><tspan> </tspan><tspan class="fg-bright-red">-   end</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>  </tspan><tspan class="fg-bright-blue bold">╰╴</tspan>
 </tspan>

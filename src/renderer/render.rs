@@ -1539,6 +1539,7 @@ fn emit_suggestion_default(
                     buffer,
                     &mut row_num,
                     &[],
+                    &[],
                     p + line_start.line,
                     l,
                     show_code_change,
@@ -1563,6 +1564,7 @@ fn emit_suggestion_default(
                         renderer,
                         buffer,
                         &mut row_num,
+                        &[],
                         &[],
                         p + line_start.line,
                         l,
@@ -1589,6 +1591,7 @@ fn emit_suggestion_default(
                         buffer,
                         &mut row_num,
                         &[],
+                        &[],
                         p + line_start.line,
                         l,
                         show_code_change,
@@ -1604,6 +1607,7 @@ fn emit_suggestion_default(
             buffer,
             &mut row_num,
             &highlight_parts,
+            &replaced_highlights,
             line_pos + line_start.line,
             line,
             show_code_change,
@@ -1676,23 +1680,6 @@ fn emit_suggestion_default(
                     );
                 }
             }
-            if let DisplaySuggestion::Diff = show_code_change {
-                let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
-
-                for (i, (line_info, parts)) in
-                    file_lines.iter().zip(&replaced_highlights).enumerate()
-                {
-                    let row = (row_num - 2 - (file_lines.len() - i - 1)).max(min_row);
-                    style_substitution_highlights(
-                        parts,
-                        ElementStyle::Removal,
-                        row,
-                        line_info.line,
-                        max_line_num_len,
-                        buffer,
-                    );
-                }
-            }
 
             // length of the code after substitution
             let full_sub_len = str_width(&part.replacement) as isize;
@@ -1738,6 +1725,7 @@ fn draw_code_line(
     buffer: &mut StyledBuffer,
     row_num: &mut usize,
     highlight_parts: &[SubstitutionHighlight],
+    replaced_parts: &[Vec<SubstitutionHighlight>],
     line_num: usize,
     line_to_add: &str,
     show_code_change: DisplaySuggestion,
@@ -1749,7 +1737,7 @@ fn draw_code_line(
         // We need to print more than one line if the span we need to remove is multiline.
         // For more info: https://github.com/rust-lang/rust/issues/92741
         let lines_to_remove = file_lines.iter().take(file_lines.len() - 1);
-        for (index, line_to_remove) in lines_to_remove.enumerate() {
+        for (index, (line_to_remove, parts)) in lines_to_remove.zip(replaced_parts).enumerate() {
             buffer.puts(
                 *row_num - 1,
                 0,
@@ -1769,6 +1757,14 @@ fn draw_code_line(
                 &line,
                 ElementStyle::NoStyle,
             );
+            style_substitution_highlights(
+                parts,
+                ElementStyle::Removal,
+                *row_num - 1,
+                line_to_remove.line,
+                max_line_num_len,
+                buffer,
+            );
             *row_num += 1;
         }
         // If the last line is exactly equal to the line we need to add, we can skip both of
@@ -1780,6 +1776,16 @@ fn draw_code_line(
         let last_line = &file_lines.last().unwrap();
         if last_line.line == line_to_add {
             *row_num -= 2;
+            // The last original line collapses into the previous drawn row, so
+            // fold its replaced-code highlights onto that row too.
+            style_substitution_highlights(
+                replaced_parts.last().unwrap(),
+                ElementStyle::Removal,
+                *row_num,
+                last_line.line,
+                max_line_num_len,
+                buffer,
+            );
         } else {
             buffer.puts(
                 *row_num - 1,
@@ -1799,6 +1805,15 @@ fn draw_code_line(
                 &normalize_whitespace(last_line.line),
                 ElementStyle::NoStyle,
             );
+            style_substitution_highlights(
+                replaced_parts.last().unwrap(),
+                ElementStyle::Removal,
+                *row_num - 1,
+                last_line.line,
+                max_line_num_len,
+                buffer,
+            );
+
             if line_to_add.trim().is_empty() {
                 *row_num -= 1;
             } else {
