@@ -536,10 +536,28 @@ impl<'a> SourceMap<'a> {
         while buf.ends_with('\n') {
             buf.pop();
         }
+
+        let (bounding_lo, bounding_hi) = self.span_to_locations(lo..hi);
+        let line_count = bounding_hi.line.saturating_sub(bounding_lo.line) + 1;
+        let mut replaced_highlights: Vec<Vec<SubstitutionHighlight>> = vec![Vec::new(); line_count];
+        for part in &trimmed_patches {
+            let (cur_lo, cur_hi) = self.span_to_locations(part.span.clone());
+            for line in cur_lo.line..=cur_hi.line {
+                let start = if line == cur_lo.line { cur_lo.char } else { 0 };
+                let end = if line == cur_hi.line {
+                    cur_hi.char
+                } else {
+                    self.get_line(line).unwrap_or_default().chars().count()
+                };
+                replaced_highlights[line - bounding_lo.line]
+                    .push(SubstitutionHighlight { start, end });
+            }
+        }
+
         if highlights.iter().all(|parts| parts.is_empty()) {
             None
         } else {
-            Some((buf, trimmed_patches, highlights))
+            Some((buf, trimmed_patches, highlights, replaced_highlights))
         }
     }
 }
@@ -699,6 +717,10 @@ impl<'a> Iterator for CursorLines<'a> {
 pub(crate) type SplicedLines<'a> = (
     String,
     Vec<TrimmedPatch<'a>>,
+    // Char spans to highlight per line of the post-substitution output.
+    Vec<Vec<SubstitutionHighlight>>,
+    // Char spans of the replaced (original) code, per original line in the
+    // bounding range covered by the splice.
     Vec<Vec<SubstitutionHighlight>>,
 );
 
