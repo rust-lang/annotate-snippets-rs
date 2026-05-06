@@ -1098,27 +1098,26 @@ fn render_source_line(
     if annotations_position
         .iter()
         .all(|(_, ann)| matches!(ann.annotation_type, LineAnnotationType::MultilineStart(_)))
+        && let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max()
     {
-        if let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max() {
-            // Special case the following, so that we minimize overlapping multiline spans.
-            //
-            // 3 │       X0 Y0 Z0
-            //   │ ┏━━━━━┛  │  │     < We are writing these lines
-            //   │ ┃┌───────┘  │     < by reverting the "depth" of
-            //   │ ┃│┌─────────┘     < their multiline spans.
-            // 4 │ ┃││   X1 Y1 Z1
-            // 5 │ ┃││   X2 Y2 Z2
-            //   │ ┃│└────╿──│──┘ `Z` label
-            //   │ ┃└─────│──┤
-            //   │ ┗━━━━━━┥  `Y` is a good letter too
-            //   ╰╴       `X` is a good letter
-            for (pos, _) in &mut annotations_position {
-                *pos = max_pos - *pos;
-            }
-            // We know then that we don't need an additional line for the span label, saving us
-            // one line of vertical space.
-            line_len = line_len.saturating_sub(1);
+        // Special case the following, so that we minimize overlapping multiline spans.
+        //
+        // 3 │       X0 Y0 Z0
+        //   │ ┏━━━━━┛  │  │     < We are writing these lines
+        //   │ ┃┌───────┘  │     < by reverting the "depth" of
+        //   │ ┃│┌─────────┘     < their multiline spans.
+        // 4 │ ┃││   X1 Y1 Z1
+        // 5 │ ┃││   X2 Y2 Z2
+        //   │ ┃│└────╿──│──┘ `Z` label
+        //   │ ┃└─────│──┤
+        //   │ ┗━━━━━━┥  `Y` is a good letter too
+        //   ╰╴       `X` is a good letter
+        for (pos, _) in &mut annotations_position {
+            *pos = max_pos - *pos;
         }
+        // We know then that we don't need an additional line for the span label, saving us
+        // one line of vertical space.
+        line_len = line_len.saturating_sub(1);
     }
 
     // Write the column separator.
@@ -1450,7 +1449,29 @@ fn emit_suggestion_default(
     let (complete, parts, highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
-    if matches_previous_suggestion {
+    if suggestion.path.as_ref() != primary_path
+        && let Some(path) = suggestion.path.as_ref()
+        && !matches_previous_suggestion
+    {
+        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+        let origin = Origin::path(path.as_ref())
+            .line(loc.line)
+            .char_column(loc.char + 1);
+
+        render_origin(
+            renderer,
+            buffer,
+            max_line_num_len,
+            &origin,
+            true,
+            is_first,
+            !is_cont,
+            row_num - 1,
+        );
+        row_num += 1;
+
+        draw_col_separator_no_space(renderer, buffer, row_num - 1, max_line_num_len + 1);
+    } else if matches_previous_suggestion {
         buffer.puts(
             row_num - 1,
             max_line_num_len + 1,
@@ -1459,25 +1480,6 @@ fn emit_suggestion_default(
         );
     } else {
         draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
-    }
-    if suggestion.path.as_ref() != primary_path {
-        if let Some(path) = suggestion.path.as_ref() {
-            if !matches_previous_suggestion {
-                let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-                // --> file.rs:line:col
-                //  |
-                let arrow = renderer.decor_style.file_start(is_first, false);
-                buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                let col = usize::max(max_line_num_len + 1, arrow.len());
-                buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
-                for _ in 0..max_line_num_len {
-                    buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
-                }
-                draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
-                row_num += 1;
-            }
-        }
     }
 
     if let DisplaySuggestion::Diff = show_code_change {
