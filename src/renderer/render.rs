@@ -1974,12 +1974,14 @@ fn draw_code_line(
     for &SubstitutionHighlight { start, end } in highlight_parts {
         // This is a no-op for empty ranges
         if start != end {
-            // Account for tabs when highlighting (#87972).
-            let extra_width: usize = extra_width_from_tabs(line_to_add, start);
+            // We calculate the extra width from tabs for both the start and end
+            // of the span, as tabs could be present in the middle of the span
+            let extra_width_start: usize = extra_width_from_tabs(line_to_add, start);
+            let extra_width_end: usize = extra_width_from_tabs(line_to_add, end);
             buffer.set_style_range(
                 *row_num,
-                max_line_num_len + 3 + start + extra_width,
-                max_line_num_len + 3 + end + extra_width,
+                max_line_num_len + 3 + start + extra_width_start,
+                max_line_num_len + 3 + end + extra_width_end,
                 ElementStyle::Addition,
                 true,
             );
