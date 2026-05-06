@@ -566,6 +566,19 @@ impl<'a> SourceMap<'a> {
             Some((buf, trimmed_patches, highlights))
         }
     }
+
+    pub(crate) fn byte_to_line_byte_col(&self, byte: usize) -> (usize, usize) {
+        let start_info = self
+            .lines
+            .iter()
+            .find(|info| byte >= info.start_byte && byte < info.end_byte)
+            .unwrap_or(self.lines.last().unwrap());
+
+        let line = start_info.line_index;
+        let byte_col = byte - start_info.start_byte;
+
+        (line, byte_col)
+    }
 }
 
 #[derive(Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
