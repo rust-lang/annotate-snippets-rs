@@ -1970,24 +1970,42 @@ fn draw_code_line(
         );
     }
 
-    // Colorize addition/replacements with green.
+    style_substitution_highlights(
+        highlight_parts,
+        ElementStyle::Addition,
+        *row_num,
+        line_to_add,
+        max_line_num_len,
+        buffer,
+    );
+
+    *row_num += 1;
+}
+
+fn style_substitution_highlights(
+    highlight_parts: &[SubstitutionHighlight],
+    style: ElementStyle,
+    row_num: usize,
+    unnormalized_line: &str,
+    max_line_num_len: usize,
+    buffer: &mut StyledBuffer,
+) {
     for &SubstitutionHighlight { start, end } in highlight_parts {
         // This is a no-op for empty ranges
         if start != end {
             // We calculate the extra width from tabs for both the start and end
             // of the span, as tabs could be present in the middle of the span
-            let extra_width_start: usize = extra_width_from_tabs(line_to_add, start);
-            let extra_width_end: usize = extra_width_from_tabs(line_to_add, end);
+            let extra_width_start: usize = extra_width_from_tabs(unnormalized_line, start);
+            let extra_width_end: usize = extra_width_from_tabs(unnormalized_line, end);
             buffer.set_style_range(
-                *row_num,
+                row_num,
                 max_line_num_len + 3 + start + extra_width_start,
                 max_line_num_len + 3 + end + extra_width_end,
-                ElementStyle::Addition,
+                style,
                 true,
             );
         }
     }
-    *row_num += 1;
 }
 
 #[allow(clippy::too_many_arguments)]
