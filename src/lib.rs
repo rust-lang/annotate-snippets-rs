@@ -116,7 +116,7 @@ mod snippet;
 /// This is important for untrusted input, as it can contain
 /// invalid unicode sequences.
 pub fn normalize_untrusted_str(s: &str) -> String {
-    renderer::normalize_whitespace(s)
+    renderer::normalize_whitespace(s, false)
 }
 
 #[doc(inline)]

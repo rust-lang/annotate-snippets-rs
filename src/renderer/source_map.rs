@@ -11,10 +11,11 @@ use crate::{Annotation, AnnotationKind, Patch};
 pub(crate) struct SourceMap<'a> {
     lines: Vec<LineInfo<'a>>,
     pub(crate) source: &'a str,
+    force_ascii: bool,
 }
 
 impl<'a> SourceMap<'a> {
-    pub(crate) fn new(source: &'a str, line_start: usize) -> Self {
+    pub(crate) fn new(source: &'a str, line_start: usize, force_ascii: bool) -> Self {
         // Empty sources do have a "line", but it is empty, so we need to add
         // a line with an empty string to the source map.
         if source.is_empty() {
@@ -27,6 +28,7 @@ impl<'a> SourceMap<'a> {
                     end_line_size: 0,
                 }],
                 source,
+                force_ascii,
             };
         }
 
@@ -51,6 +53,7 @@ impl<'a> SourceMap<'a> {
         Self {
             lines: mapping,
             source,
+            force_ascii,
         }
     }
 
@@ -71,7 +74,7 @@ impl<'a> SourceMap<'a> {
             [0..(span.start - start_info.start_byte).min(start_info.line.len())]
             .chars()
             .fold((0, 0), |(char_pos, byte_pos), c| {
-                let display = char_width(c);
+                let display = char_width(c, self.force_ascii);
                 (char_pos + 1, byte_pos + display)
             });
         // correct the char pos if we are highlighting the end of a line
@@ -98,7 +101,7 @@ impl<'a> SourceMap<'a> {
             [0..(span.end - end_info.start_byte).min(end_info.line.len())]
             .chars()
             .fold((0, 0), |(char_pos, byte_pos), c| {
-                let display = char_width(c);
+                let display = char_width(c, self.force_ascii);
                 (char_pos + 1, byte_pos + display)
             });
 

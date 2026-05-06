@@ -111,6 +111,7 @@ pub struct Renderer {
     decor_style: DecorStyle,
     stylesheet: Stylesheet,
     short_message: bool,
+    force_ascii: bool,
 }
 
 impl Renderer {
@@ -122,6 +123,7 @@ impl Renderer {
             decor_style: DecorStyle::Ascii,
             stylesheet: Stylesheet::plain(),
             short_message: false,
+            force_ascii: false,
         }
     }
 
@@ -188,6 +190,12 @@ impl Renderer {
     /// ```
     pub const fn anonymized_line_numbers(mut self, anonymized_line_numbers: bool) -> Self {
         self.anonymized_line_numbers = anonymized_line_numbers;
+        self
+    }
+
+    /// Makes it so that *every* non-ASCII character in the terminal output is replaced.
+    pub const fn force_ascii(mut self) -> Self {
+        self.force_ascii = true;
         self
     }
 }
