@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.16] - 2026-05-06
+
+### Fixed
+
+- Correctly format suggestion paths when DecorStyle::Unicode [#414](https://github.com/rust-lang/annotate-snippets-rs/pull/414)
+- Correctly highlight multi-line removals that leave only whitespace [#413](https://github.com/rust-lang/annotate-snippets-rs/pull/413)
+
 ## [0.12.15] - 2026-04-06
 
 ### Fixed
@@ -315,7 +322,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.15...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.16...HEAD
+[0.12.16]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.15...0.12.16
 [0.12.15]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.14...0.12.15
 [0.12.14]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.13...0.12.14
 [0.12.13]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.12...0.12.13
