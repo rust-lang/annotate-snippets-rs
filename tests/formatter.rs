@@ -5103,3 +5103,77 @@ warning: variable does not need to be mutable
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn suggestion_different_path_than_primary() {
+    let source = r#"    foo.bar();"#;
+    let secondary_source = r#"fn bar(&self) {"#;
+    let input = &[
+        Level::ERROR
+            .primary_title("method `five_years` is private")
+            .id("E0624")
+            .element(
+                Snippet::source(source)
+                    .path("lib.rs")
+                    .annotation(AnnotationKind::Primary.span(8..13).label("private method")),
+            )
+            .element(
+                Snippet::source(secondary_source)
+                    .path("other.rs")
+                    .annotation(
+                        AnnotationKind::Context
+                            .span(3..13)
+                            .label("private method defined here"),
+                    ),
+            ),
+        Level::HELP
+            .secondary_title("consider making `bar` public")
+            .element(
+                Snippet::source(secondary_source)
+                    .path("other.rs")
+                    .patch(Patch::new(0..0, "pub ")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0624]: method `five_years` is private
+ --> lib.rs:1:9
+  |
+1 |     foo.bar();
+  |         ^^^^^ private method
+  |
+ ::: other.rs:1:4
+  |
+1 | fn bar(&self) {
+  |    ---------- private method defined here
+  |
+help: consider making `bar` public
+ --> other.rs:1:1
+  |
+1 | pub fn bar(&self) {
+  | +++
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0624]: method `five_years` is private
+  ╭▸ lib.rs:1:9
+  │
+1 │     foo.bar();
+  │         ━━━━━ private method
+  │
+  ⸬  other.rs:1:4
+  │
+1 │ fn bar(&self) {
+  │    ────────── private method defined here
+  ╰╴
+help: consider making `bar` public
+  ╭▸ other.rs:1:1
+  │
+1 │ pub fn bar(&self) {
+  ╰╴+++
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}

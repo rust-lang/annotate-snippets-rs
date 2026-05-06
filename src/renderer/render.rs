@@ -1469,7 +1469,7 @@ fn emit_suggestion_default(
                 let arrow = renderer.decor_style.file_start(is_first, false);
                 buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
                 let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                let col = usize::max(max_line_num_len + 1, arrow.len());
+                let col = usize::max(max_line_num_len + 1, str_width(arrow));
                 buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
                 for _ in 0..max_line_num_len {
                     buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
