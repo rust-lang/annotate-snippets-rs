@@ -1447,7 +1447,7 @@ fn emit_suggestion_default(
 ) {
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-    let (complete, parts, highlights) = spliced_lines;
+    let (complete, parts, highlights, replaced_highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
     if matches_previous_suggestion {
@@ -1539,6 +1539,7 @@ fn emit_suggestion_default(
                     buffer,
                     &mut row_num,
                     &[],
+                    &[],
                     p + line_start.line,
                     l,
                     show_code_change,
@@ -1563,6 +1564,7 @@ fn emit_suggestion_default(
                         renderer,
                         buffer,
                         &mut row_num,
+                        &[],
                         &[],
                         p + line_start.line,
                         l,
@@ -1589,6 +1591,7 @@ fn emit_suggestion_default(
                         buffer,
                         &mut row_num,
                         &[],
+                        &[],
                         p + line_start.line,
                         l,
                         show_code_change,
@@ -1604,6 +1607,7 @@ fn emit_suggestion_default(
             buffer,
             &mut row_num,
             &highlight_parts,
+            &replaced_highlights,
             line_pos + line_start.line,
             line,
             show_code_change,
@@ -1621,9 +1625,7 @@ fn emit_suggestion_default(
     if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
         show_code_change
     {
-        let mut prev_lines: Option<(usize, usize)> = None;
         for part in parts {
-            let snippet = sm.span_to_snippet(part.span.clone()).unwrap_or_default();
             let (span_start, span_end) = sm.span_to_locations(part.span.clone());
             let span_start_pos = span_start.display;
             let span_end_pos = span_end.display;
@@ -1678,98 +1680,6 @@ fn emit_suggestion_default(
                     );
                 }
             }
-            if let DisplaySuggestion::Diff = show_code_change {
-                // Colorize removal with red in diff format.
-
-                // Below, there's some tricky buffer indexing going on. `row_num` at this
-                // point corresponds to:
-                //
-                //    |
-                // LL | CODE
-                //    | ++++  <- `row_num`
-                //
-                // in the buffer. When we have a diff format output, we end up with
-                //
-                //    |
-                // LL - OLDER   <- row_num - 2
-                // LL + NEWER
-                //    |         <- row_num
-                //
-                // The `row_num - 2` is to select the buffer line that has the "old version
-                // of the diff" at that point. When the removal is a single line, `i` is
-                // `0`, `newlines` is `1` so `(newlines - i - 1)` ends up being `0`, so row
-                // points at `LL - OLDER`. When the removal corresponds to multiple lines,
-                // we end up with `newlines > 1` and `i` being `0..newlines - 1`.
-                //
-                //    |
-                // LL - OLDER   <- row_num - 2 - (newlines - last_i - 1)
-                // LL - CODE
-                // LL - BEING
-                // LL - REMOVED <- row_num - 2 - (newlines - first_i - 1)
-                // LL + NEWER
-                //    |         <- row_num
-
-                let newlines = snippet.lines().count();
-                let offset = match prev_lines {
-                    Some((start, end)) => {
-                        file_lines.len().saturating_sub(end.saturating_sub(start))
-                    }
-                    None => file_lines.len(),
-                };
-                // FIXME: We check the number of rows because in some cases, like in
-                // `tests/ui/lint/invalid-nan-comparison-suggestion.rs`, the rendered
-                // suggestion will only show the first line of code being replaced. The
-                // proper way of doing this would be to change the suggestion rendering
-                // logic to show the whole prior snippet, but the current output is not
-                // too bad to begin with, so we side-step that issue here.
-                for (i, line) in snippet.lines().enumerate() {
-                    let norm_line = normalize_whitespace(line);
-                    // Going lower than buffer_offset (+ 1) would mean
-                    // overwriting existing content in the buffer
-                    let min_row = buffer_offset + usize::from(!matches_previous_suggestion);
-                    let row = (row_num - 2 - (offset - i - 1)).max(min_row);
-                    let (start, end) = match i {
-                        0 if span_start.line == span_end.line => {
-                            // If the removed code fits all in one line, highlight between the
-                            // start and end columns of the part span.
-                            let full_line = sm.get_line(span_start.line).unwrap_or_default();
-                            // We calculate the extra width from tabs for both the start and end of
-                            // the span, as tabs could be present in the middle of the span
-                            (
-                                span_start.char + extra_width_from_tabs(full_line, span_start.char),
-                                span_end.char + extra_width_from_tabs(full_line, span_end.char),
-                            )
-                        }
-                        0 => {
-                            // On the first line, we highlight between the start of the part
-                            // span, and the end of that line.
-                            let full_line = sm.get_line(span_start.line).unwrap_or_default();
-                            let extra_width = extra_width_from_tabs(full_line, span_start.char);
-                            let start = span_start.char + extra_width;
-                            (start, start + norm_line.chars().count())
-                        }
-                        x if x == newlines - 1 => {
-                            // On the last line, we highlight between the start of the line, and
-                            // the column of the part span end.
-                            let extra_width = extra_width_from_tabs(line, span_end.char);
-                            (0, span_end.char + extra_width)
-                        }
-                        _ => {
-                            // On all others, we highlight the whole line.
-                            (0, norm_line.chars().count())
-                        }
-                    };
-                    buffer.set_style_range(
-                        row,
-                        padding + start,
-                        padding + end,
-                        ElementStyle::Removal,
-                        true,
-                    );
-                }
-
-                prev_lines = Some((span_start.line, span_end.line));
-            }
 
             // length of the code after substitution
             let full_sub_len = str_width(&part.replacement) as isize;
@@ -1815,6 +1725,7 @@ fn draw_code_line(
     buffer: &mut StyledBuffer,
     row_num: &mut usize,
     highlight_parts: &[SubstitutionHighlight],
+    replaced_parts: &[Vec<SubstitutionHighlight>],
     line_num: usize,
     line_to_add: &str,
     show_code_change: DisplaySuggestion,
@@ -1826,7 +1737,7 @@ fn draw_code_line(
         // We need to print more than one line if the span we need to remove is multiline.
         // For more info: https://github.com/rust-lang/rust/issues/92741
         let lines_to_remove = file_lines.iter().take(file_lines.len() - 1);
-        for (index, line_to_remove) in lines_to_remove.enumerate() {
+        for (index, (line_to_remove, parts)) in lines_to_remove.zip(replaced_parts).enumerate() {
             buffer.puts(
                 *row_num - 1,
                 0,
@@ -1846,6 +1757,14 @@ fn draw_code_line(
                 &line,
                 ElementStyle::NoStyle,
             );
+            style_substitution_highlights(
+                parts,
+                ElementStyle::Removal,
+                *row_num - 1,
+                line_to_remove.line,
+                max_line_num_len,
+                buffer,
+            );
             *row_num += 1;
         }
         // If the last line is exactly equal to the line we need to add, we can skip both of
@@ -1857,6 +1776,16 @@ fn draw_code_line(
         let last_line = &file_lines.last().unwrap();
         if last_line.line == line_to_add {
             *row_num -= 2;
+            // The last original line collapses into the previous drawn row, so
+            // fold its replaced-code highlights onto that row too.
+            style_substitution_highlights(
+                replaced_parts.last().unwrap(),
+                ElementStyle::Removal,
+                *row_num,
+                last_line.line,
+                max_line_num_len,
+                buffer,
+            );
         } else {
             buffer.puts(
                 *row_num - 1,
@@ -1876,6 +1805,15 @@ fn draw_code_line(
                 &normalize_whitespace(last_line.line),
                 ElementStyle::NoStyle,
             );
+            style_substitution_highlights(
+                replaced_parts.last().unwrap(),
+                ElementStyle::Removal,
+                *row_num - 1,
+                last_line.line,
+                max_line_num_len,
+                buffer,
+            );
+
             if line_to_add.trim().is_empty() {
                 *row_num -= 1;
             } else {
@@ -1970,22 +1908,42 @@ fn draw_code_line(
         );
     }
 
-    // Colorize addition/replacements with green.
+    style_substitution_highlights(
+        highlight_parts,
+        ElementStyle::Addition,
+        *row_num,
+        line_to_add,
+        max_line_num_len,
+        buffer,
+    );
+
+    *row_num += 1;
+}
+
+fn style_substitution_highlights(
+    highlight_parts: &[SubstitutionHighlight],
+    style: ElementStyle,
+    row_num: usize,
+    unnormalized_line: &str,
+    max_line_num_len: usize,
+    buffer: &mut StyledBuffer,
+) {
     for &SubstitutionHighlight { start, end } in highlight_parts {
         // This is a no-op for empty ranges
         if start != end {
-            // Account for tabs when highlighting (#87972).
-            let extra_width: usize = extra_width_from_tabs(line_to_add, start);
+            // We calculate the extra width from tabs for both the start and end
+            // of the span, as tabs could be present in the middle of the span
+            let extra_width_start: usize = extra_width_from_tabs(unnormalized_line, start);
+            let extra_width_end: usize = extra_width_from_tabs(unnormalized_line, end);
             buffer.set_style_range(
-                *row_num,
-                max_line_num_len + 3 + start + extra_width,
-                max_line_num_len + 3 + end + extra_width,
-                ElementStyle::Addition,
+                row_num,
+                max_line_num_len + 3 + start + extra_width_start,
+                max_line_num_len + 3 + end + extra_width_end,
+                style,
                 true,
             );
         }
     }
-    *row_num += 1;
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -2687,7 +2645,7 @@ fn pre_process<'a>(
                 }
                 Element::Suggestion(suggestion) => {
                     let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
-                    if let Some((complete, patches, highlights)) =
+                    if let Some((complete, patches, highlights, replaced_highlights)) =
                         sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
                     {
                         let display_suggestion = DisplaySuggestion::new(&complete, &patches, &sm);
@@ -2720,7 +2678,7 @@ fn pre_process<'a>(
                         elements.push(PreProcessedElement::Suggestion((
                             suggestion,
                             sm,
-                            (complete, patches, highlights),
+                            (complete, patches, highlights, replaced_highlights),
                             display_suggestion,
                         )));
                     }
