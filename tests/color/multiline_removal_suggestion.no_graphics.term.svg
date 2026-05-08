@@ -1,0 +1,35 @@
+<svg width="1658px" height="146px" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .fg { fill: #AAAAAA }
+    .bg { fill: #000000 }
+    .container {
+      padding: 0 10px;
+      line-height: 18px;
+    }
+    tspan {
+      font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+      white-space: pre;
+      line-height: 18px;
+    }
+  </style>
+
+  <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
+
+  <text xml:space="preserve" class="container fg">
+    <tspan x="10px" y="28px"><tspan>error E0277: `(bool, HashSet&lt;u8&gt;)` is not an iterator</tspan>
+</tspan>
+    <tspan x="10px" y="46px"><tspan>at $DIR/multiline-removal-suggestion.rs, on line 21, column 8: `(bool, HashSet&lt;u8&gt;)` is not an iterator</tspan>
+</tspan>
+    <tspan x="10px" y="64px"><tspan>help: the trait `Iterator` is not implemented for `(bool, HashSet&lt;u8&gt;)`</tspan>
+</tspan>
+    <tspan x="10px" y="82px"><tspan>note: required for `(bool, HashSet&lt;u8&gt;)` to implement `IntoIterator`</tspan>
+</tspan>
+    <tspan x="10px" y="100px"><tspan>note: required by a bound in `flatten`</tspan>
+</tspan>
+    <tspan x="10px" y="118px"><tspan>at /rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs, on line 1556, column 4</tspan>
+</tspan>
+    <tspan x="10px" y="136px"><tspan>help: consider removing this method call, as the receiver has type `std::vec::IntoIter&lt;HashSet&lt;u8&gt;&gt;` and `std::vec::IntoIter&lt;HashSet&lt;u8&gt;&gt;: Iterator` trivially holds: at line 15, column 17, add ``</tspan>
+</tspan>
+  </text>
+
+</svg>

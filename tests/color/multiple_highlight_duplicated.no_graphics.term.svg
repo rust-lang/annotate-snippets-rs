@@ -1,0 +1,33 @@
+<svg width="740px" height="128px" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .fg { fill: #AAAAAA }
+    .bg { fill: #000000 }
+    .container {
+      padding: 0 10px;
+      line-height: 18px;
+    }
+    tspan {
+      font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+      white-space: pre;
+      line-height: 18px;
+    }
+  </style>
+
+  <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
+
+  <text xml:space="preserve" class="container fg">
+    <tspan x="10px" y="28px"><tspan>error E0061: this function takes 6 arguments but 7 arguments were supplied</tspan>
+</tspan>
+    <tspan x="10px" y="46px"><tspan>at $DIR/wrong-highlight-span-extra-arguments-147070.rs, on line 17, column 15</tspan>
+</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 24: unexpected argument #7 of type `String`</tspan>
+</tspan>
+    <tspan x="10px" y="82px"><tspan>note: associated function defined here</tspan>
+</tspan>
+    <tspan x="10px" y="100px"><tspan>at $DIR/wrong-highlight-span-extra-arguments-147070.rs, on line 4, column 19</tspan>
+</tspan>
+    <tspan x="10px" y="118px"><tspan>help: remove the extra argument: at line 23, column 24, add one of ``, ``, ``, ``, ``</tspan>
+</tspan>
+  </text>
+
+</svg>

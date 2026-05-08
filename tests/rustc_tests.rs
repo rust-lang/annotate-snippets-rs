@@ -43,6 +43,13 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 2, column 10: test
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn ends_on_col2() {
@@ -83,6 +90,13 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 2, column 10: test
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn non_nested() {
@@ -140,6 +154,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `X` is a good letter
+ on line 3: `Y` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn nested() {
@@ -194,6 +216,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `X` is a good letter
+ on line 3: `Y` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn different_overlap() {
@@ -252,6 +282,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 6: `X` is a good letter
+ on line 4: `Y` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn triple_overlap() {
@@ -314,6 +352,15 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `X` is a good letter
+ on line 3: `Y` is a good letter too
+ on line 3: `Z` label
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn triple_exact_overlap() {
@@ -374,6 +421,15 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `X` is a good letter
+ on line 3: `Y` is a good letter too
+ on line 3: `Z` label
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn minimum_depth() {
@@ -441,6 +497,15 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 6: `X` is a good letter
+ on line 4: `Y` is a good letter too
+ on line 5: `Z`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn non_overlapping() {
@@ -497,6 +562,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `X` is a good letter
+ on line 5: `Y` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn overlapping_start_and_end() {
@@ -557,6 +630,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 6: `X` is a good letter
+ on line 4: `Y` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_primary_without_message() {
@@ -597,6 +678,15 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 7: 
+ on line 3: `a` is a good letter
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_secondary_without_message() {
@@ -636,6 +726,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `a` is a good letter
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_primary_without_message_2() {
@@ -680,6 +778,15 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 7: `b` is a good letter
+ on line 3: 
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_secondary_without_message_2() {
@@ -723,6 +830,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: 
+ on line 3: `b` is a good letter
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_secondary_without_message_3() {
@@ -766,6 +881,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `a` is a good letter
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_without_message() {
@@ -801,6 +924,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: 
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_without_message_2() {
@@ -837,6 +968,15 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 7: 
+ on line 3: 
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn multiple_labels_with_message() {
@@ -886,6 +1026,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `a` is a good letter
+ on line 3: `b` is a good letter
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn ingle_label_with_message() {
@@ -924,6 +1072,13 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: `a` is a good letter
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn single_label_without_message() {
@@ -958,6 +1113,13 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn long_snippet() {
@@ -1036,6 +1198,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 6: `X` is a good letter
+ on line 4: `Y` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 #[test]
 fn long_snippet_multiple_spans() {
@@ -1120,6 +1290,14 @@ error: foo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+at test.rs, on line 3, column 6: `Y` is a good letter
+ on line 7: `Z` is a good letter too
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1182,6 +1360,16 @@ error: this file contains an unclosed delimiter
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: this file contains an unclosed delimiter
+at $DIR/issue-91334.rs, on line 7, column 23
+ on line 7: unclosed delimiter
+ on line 7: unclosed delimiter
+ on line 7: missing open `(` for this delimiter
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1286,6 +1474,16 @@ help: use `break` on its own without a value inside this `while` loop
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0571: `break` with value from a `while` loop
+at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: can only break with a value inside `loop` or breakable block
+ on line 21: you can't `break` with a value in a `while` loop
+help: use `break` on its own without a value inside this `while` loop
+at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: break
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1518,6 +1716,16 @@ note: required by a bound in `is_transmutable`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: `V0usize` cannot be safely transmuted into `[usize; 2]`
+at $DIR/primitive_reprs_should_have_correct_length.rs, on line 144, column 44: the size of `V0usize` is smaller than the size of `[usize; 2]`
+note: required by a bound in `is_transmutable`
+at $DIR/primitive_reprs_should_have_correct_length.rs, on line 12, column 14: required by this bound in `is_transmutable`
+ on line 10: required by a bound in this function
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1578,6 +1786,13 @@ error[E027s7]: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E027s7: `&[u8; 0]` cannot be safely transmuted into `&[u16; 0]`
+at $DIR/align-fail.rs, on line 21, column 55: the minimum alignment of `&[u8; 0]` (1) should be greater than that of `&[u16; 0]` (2)
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1677,6 +1892,16 @@ error[E0618]: expected function, found `{integer}`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0618: expected function, found `{integer}`
+at $DIR/missing-semicolon.rs, on line 5, column 13
+ on line 4: `x` has type `{integer}`
+ on line 5: call expression requires function
+ on line 5: help: consider using a semicolon here to finish the statement: `;`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1830,6 +2055,19 @@ note: the lint level is defined here
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
+at $DIR/auxiliary/nested-macro-rules.rs, on line 7, column 9
+ on line 4: in this expansion of `nested_macro_rules::outer_macro!`
+at $DIR/nested-macro-rules.rs, on line 23, column 5: in this macro invocation
+help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
+note: a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute
+note: the lint level is defined here
+at $DIR/nested-macro-rules.rs, on line 8, column 9
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1936,6 +2174,15 @@ help: you must specify a type for this binding, like `i32`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0689: can't call method `pow` on ambiguous numeric type `{integer}`
+at $DIR/method-on-ambiguous-numeric-type.rs, on line 37, column 9
+help: you must specify a type for this binding, like `i32`
+at $DIR/auxiliary/macro-in-other-crate.rs, on line 3, column 35: : i32
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1992,6 +2239,13 @@ error[E0282]: type annotations needed
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0282: type annotations needed
+at $DIR/issue-42234-unknown-receiver-type.rs, on line 15, column 10: cannot infer type of the type parameter `S` declared on the method `sum`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2185,6 +2439,25 @@ help: ensure that all possible cases are being handled by adding a match arm wit
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0004: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+at $DIR/empty-match.rs, on line 71, column 24: patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
+note: `NonEmptyEnum5` defined here
+at $DIR/empty-match.rs, on line 38, column 10
+ on line 39: not covered
+ on line 40: not covered
+ on line 41: not covered
+ on line 42: not covered
+ on line 43: not covered
+note: the matched value is of type `NonEmptyEnum5`
+note: match arms with guards don't count towards exhaustivity
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms
+at $DIR/empty-match.rs, on line 17, column 33: ,
+                _ => todo!()
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2277,6 +2550,18 @@ note: for a trait to be dyn compatible it needs to allow building a vtable
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0038: the trait alias `EqAlias` is not dyn compatible
+at $DIR/object-fail.rs, on line 7, column 17: `EqAlias` is not dyn compatible
+note: for a trait to be dyn compatible it needs to allow building a vtable
+      for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
+at $SRC_DIR/core/src/cmp.rs, on line 334, column 14
+note: ...because it uses `Self` as a type parameter
+at $DIR/object-fail.rs, on line 3, column 7: this trait is not dyn compatible...
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2319,6 +2604,13 @@ error[E0038]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0038: mismatched types
+at $DIR/long-span.rs, on line 2, column 15: expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2363,6 +2655,13 @@ error[E0038]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0038: mismatched types
+at $DIR/long-span.rs, on line 2, column 15: expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2407,6 +2706,13 @@ error[E0038]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0038: mismatched types
+at $DIR/long-span.rs, on line 2, column 15: expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2449,6 +2755,13 @@ error[E0038]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0038: mismatched types
+at $DIR/long-span.rs, on line 2, column 15: expected `u8`, found `[{integer}; 1680]`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2562,6 +2875,18 @@ help: you might have meant to use `Iterator::for_each`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: `Iterator::map` call that discard the iterator's values
+at $DIR/lint_map_unit_fn.rs, on line 11, column 18
+ on line 11: after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+ on line 11: this function returns `()`, which is likely not what you wanted
+ on line 11: called `Iterator::map` with callable that returns `()`
+note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
+help: you might have meant to use `Iterator::for_each`: at line 11, column 17, add `for_each`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2641,6 +2966,14 @@ help: escape the character
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: character constant must be escaped: `/n`
+at $DIR/bad-char-literals.rs, on line 10, column 6
+help: escape the character: at line 10, column 5, add `/n`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2708,6 +3041,15 @@ note: frontmatter opening here was not closed
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unclosed frontmatter
+at $DIR/unclosed-1.rs, on line 1, column 1
+note: frontmatter opening here was not closed
+at $DIR/unclosed-1.rs, on line 1, column 1
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2782,6 +3124,15 @@ note: frontmatter opening here was not closed
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unclosed frontmatter
+at $DIR/unclosed-2.rs, on line 1, column 1
+note: frontmatter opening here was not closed
+at $DIR/unclosed-2.rs, on line 1, column 1
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2853,6 +3204,15 @@ note: frontmatter close should not be preceded by whitespace
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: invalid preceding whitespace for frontmatter close
+at $DIR/unclosed-3.rs, on line 12, column 1
+note: frontmatter close should not be preceded by whitespace
+at $DIR/unclosed-3.rs, on line 12, column 1
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2919,6 +3279,15 @@ note: frontmatter opening here was not closed
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unclosed frontmatter
+at $DIR/unclosed-4.rs, on line 1, column 1
+note: frontmatter opening here was not closed
+at $DIR/unclosed-4.rs, on line 1, column 1
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2987,6 +3356,15 @@ note: frontmatter opening here was not closed
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unclosed frontmatter
+at $DIR/unclosed-5.rs, on line 1, column 1
+note: frontmatter opening here was not closed
+at $DIR/unclosed-5.rs, on line 1, column 1
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3166,6 +3544,17 @@ help: a unit variant with a similar name exists
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0532: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
+at $DIR/pat-tuple-field-count-cross.rs, on line 35, column 9
+at $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs, on line 11, column 15: similarly named unit variant `Z0` defined here
+ on line 11: `E1::Z1` defined here
+help: use the tuple variant pattern syntax instead: at line 35, column 8, add `E1::Z1()`
+help: a unit variant with a similar name exists: at line 35, column 12, add `Z0`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3243,6 +3632,16 @@ error[E0758]: unterminated block comment
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0758: unterminated block comment
+at $DIR/unterminated-nested-comment.rs, on line 1, column 1
+ on line 1: unterminated block comment
+ on line 3: ...as last nested comment starts here, maybe you want to close this instead?
+ on line 4: ...and last nested comment terminates here.
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3326,6 +3725,17 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+at $DIR/file.txt, on line 3, column 1: expected `&[u8]`, found `&str`
+at $DIR/mismatched-types.rs, on line 2, column 12: expected due to this
+ on line 2: in this macro invocation
+note: expected reference `&[u8]`
+         found reference `&'static str`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3387,6 +3797,16 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+at $DIR/mismatched-types.rs, on line 3, column 19: expected `&str`, found `&[u8; 0]`
+ on line 3: expected due to this
+note: expected reference `&str`
+         found reference `&'static [u8; 0]`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3443,6 +3863,17 @@ $DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, 
     ];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+at $DIR/short-error-format.rs, on line 6, column 9: expected `u32`, found `String`
+ on line 6: arguments to this function are incorrect
+note: function defined here
+at $DIR/short-error-format.rs, on line 3, column 4
+ on line 3: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3484,6 +3915,13 @@ $DIR/short-error-format.rs:8:7: error[E0599]: no method named `salut` found for 
     ];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0599: no method named `salut` found for type `u32` in the current scope
+at $DIR/short-error-format.rs, on line 8, column 7: method not found in `u32`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3569,6 +4007,17 @@ help: use an automatic link instead
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: this URL is not a hyperlink
+at $DIR/diagnostic-width.rs, on line 4, column 41
+note: bare URLs are not automatically turned into clickable links
+note: the lint level is defined here
+at $DIR/diagnostic-width.rs, on line 2, column 9
+help: use an automatic link instead: at line 4, column 40, add `<`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3660,6 +4109,18 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+at lint_example.rs, on line 3, column 11
+warning: this changes meaning in Rust 2021
+note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity: at line 3, column 10, add `iter`
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value: at line 3, column 1, add `IntoIterator::into_iter(`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3764,6 +4225,19 @@ note: the foreign item type `Box<isize>` doesn't implement `Add`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0369: cannot add `Box<isize>` to `Box<isize>`
+at $DIR/autoderef-box-no-add.rs, on line 25, column 24
+ on line 25: Box<isize>
+ on line 25: Box<isize>
+note: the foreign item type `Box<isize>` doesn't implement `Add`
+at $SRC_DIR/alloc/src/boxed.rs, on line 231, column 0
+at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 1
+note: not implement `Add`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3904,6 +4378,17 @@ help: trait `Future` which provides `poll` is implemented but not in scope; perh
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0599: no method named `poll` found for struct `Pin<&mut impl Future<Output = ()>>` in the current scope
+at $DIR/dont-project-to-specializable-projection.rs, on line 48, column 28: method not found in `Pin<&mut impl Future<Output = ()>>`
+at $SRC_DIR/core/src/future/future.rs, on line 104, column 7
+note: the method is available for `Pin<&mut impl Future<Output = ()>>` here
+help: items from traits can only be used if the trait is in scope
+help: trait `Future` which provides `poll` is implemented but not in scope; perhaps you want to import it: at line 6, column 1, add `use std::future::Future;`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4005,6 +4490,20 @@ note: the foreign item types don't implement required traits for this operation 
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0369: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+at $DIR/binary-op-not-allowed-issue-125631.rs, on line 11, column 9
+ on line 10: (std::io::Error, Thread)
+ on line 11: (std::io::Error, Thread)
+note: the foreign item types don't implement required traits for this operation to be valid
+at $SRC_DIR/std/src/io/error.rs, on line 65, column 0
+note: not implement `PartialEq`
+at $SRC_DIR/std/src/thread/mod.rs, on line 1415, column 0
+note: not implement `PartialEq`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4077,6 +4576,16 @@ error: cannot find derive macro `Eqr` in this scope
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: cannot find derive macro `Eqr` in this scope
+at $DIR/deriving-meta-unknown-trait.rs, on line 1, column 10: help: a derive macro with a similar name exists: `Eq`
+at $SRC_DIR/core/src/cmp.rs, on line 356, column 0
+note: similarly named derive macro `Eq` defined here
+note: duplicate diagnostic emitted due to `-Z deduplicate-diagnostics=no`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4185,6 +4694,26 @@ note: the traits `Iterator` and `ToTokens` must be implemented
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0599: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
+at $DIR/not-repeatable.rs, on line 11, column 13: method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
+ on line 7: method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+note: the following trait bounds were not satisfied:
+      `Ipv4Addr: Iterator`
+      which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
+      `&Ipv4Addr: Iterator`
+      which is required by `&Ipv4Addr: proc_macro::ext::RepIteratorExt`
+      `Ipv4Addr: ToTokens`
+      which is required by `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+      `&mut Ipv4Addr: Iterator`
+      which is required by `&mut Ipv4Addr: proc_macro::ext::RepIteratorExt`
+note: the traits `Iterator` and `ToTokens` must be implemented
+at $SRC_DIR/proc_macro/src/to_tokens.rs, on line 11, column 0
+at $SRC_DIR/core/src/iter/traits/iterator.rs, on line 39, column 0
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4274,6 +4803,16 @@ error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0220: associated type `Pr` not found for `S<bool>` in the current scope
+at $DIR/not-found-self-type-differs-shadowing-trait-item.rs, on line 28, column 23: associated item not found in `S<bool>`
+ on line 12: associated type `Pr` not found for this struct
+note: the associated type was found for
+      
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4381,6 +4920,18 @@ note: the lint level is defined here
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: extern blocks should be unsafe
+at $DIR/unsafe-extern-suggestion.rs, on line 6, column 1
+ on line 6: help: needs `unsafe` before the extern keyword: `unsafe`
+warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
+note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
+note: the lint level is defined here
+at $DIR/unsafe-extern-suggestion.rs, on line 3, column 9
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4520,6 +5071,23 @@ note: function defined here
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+at $DIR/alloc-error-handler-bad-signature-2.rs, on line 10, column 1: expected `Layout`, found `core::alloc::Layout`
+ on line 9: in this procedural macro expansion
+ on line 10: arguments to this function are incorrect
+note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
+note: `core::alloc::Layout` is defined in crate `core`
+at $SRC_DIR/core/src/alloc/layout.rs, on line 40, column 0
+note: `Layout` is defined in the current crate
+at $DIR/alloc-error-handler-bad-signature-2.rs, on line 7, column 1
+note: function defined here
+at $DIR/alloc-error-handler-bad-signature-2.rs, on line 10, column 4
+ on line 11: 
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4600,6 +5168,14 @@ warning: whitespace symbol '\u{a0}' is not skipped
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode.raw());
+
+    let expected_no_graphics = str![[r#"
+warning: whitespace symbol '\u{a0}' is not skipped
+at $DIR/str-escape.rs, on line 12, column 18
+ on line 13: whitespace symbol '\u{a0}' is not skipped
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics.raw());
 }
 
 #[test]
@@ -4709,6 +5285,20 @@ help: ensure that all possible cases are being handled by adding a match arm wit
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0004: non-exhaustive patterns: `Some(Private { misc: true, .. })` not covered
+at $DIR/match-privately-empty.rs, on line 14, column 11: pattern `Some(Private { misc: true, .. })` not covered
+note: `Option<Private>` defined here
+at $SRC_DIR/core/src/option.rs, on line 593, column 0
+at $SRC_DIR/core/src/option.rs, on line 601, column 4
+note: not covered
+note: the matched value is of type `Option<Private>`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown: at line 33, column 56, add `,
+        Some(Private { misc: true, .. }) => todo!()`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4821,6 +5411,20 @@ help: consider using an opaque type instead
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0038: the trait `Ord` is not dyn compatible
+at $DIR/bare-trait-dont-suggest-dyn.rs, on line 6, column 33: `Ord` is not dyn compatible
+note: for a trait to be dyn compatible it needs to allow building a vtable
+      for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
+at $SRC_DIR/core/src/cmp.rs, on line 961, column 20
+note: the trait is not dyn compatible because it uses `Self` as a type parameter
+at $SRC_DIR/core/src/cmp.rs, on line 338, column 14
+note: the trait is not dyn compatible because it uses `Self` as a type parameter
+help: consider using an opaque type instead: at line 11, column 32, add `impl `
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4924,6 +5528,20 @@ note: the foreign item types don't implement required traits for this operation 
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0369: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
+at $DIR/binary-op-not-allowed-issue-125631.rs, on line 11, column 9
+ on line 10: (std::io::Error, Thread)
+ on line 11: (std::io::Error, Thread)
+note: the foreign item types don't implement required traits for this operation to be valid
+at $SRC_DIR/std/src/io/error.rs, on line 65, column 0
+note: not implement `PartialEq`
+at $SRC_DIR/std/src/thread/mod.rs, on line 1439, column 0
+note: not implement `PartialEq`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5054,6 +5672,14 @@ help: consider importing one of these structs
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0433: failed to resolve: use of undeclared type `IntoIter`
+at $DIR/issue-82956.rs, on line 25, column 24: use of undeclared type `IntoIter`
+help: consider importing one of these structs: at line 4, column 1, add one of `use std::array::IntoIter;`, `use std::collections::binary_heap::IntoIter;`, `use std::collections::btree_map::IntoIter;`, `use std::collections::btree_set::IntoIter;` or 9 other candidates
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5199,6 +5825,17 @@ help: consider using the `Default` trait
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0423: expected function, tuple struct or tuple variant, found struct `std::collections::HashMap`
+at $DIR/multi-suggestion.rs, on line 17, column 13
+at $SRC_DIR/std/src/collections/hash/map.rs, on line 242, column 0
+note: `std::collections::HashMap` defined here
+help: you might have meant to use an associated function to build this type: at line 17, column 37, add one of `::new()`, `::with_capacity(_)`, `::with_hasher(_)`, `::with_capacity_and_hasher(_, _)`
+help: consider using the `Default` trait: at line 17, column 12, add `<`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5389,6 +6026,19 @@ help: consider using the `Default` trait
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0423: cannot initialize a tuple struct which contains private fields
+at $DIR/suggest-box-new.rs, on line 11, column 19
+note: constructor is not visible here due to private fields
+at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 2
+note: private field
+note: private field
+help: you might have meant to use an associated function to build this type: at line 11, column 21, add one of `::new(_)`, `::new_uninit()`, `::new_zeroed()`, `::new_in(_, _)` or 12 other candidates
+help: consider using the `Default` trait: at line 11, column 18, add `<`
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5517,6 +6167,15 @@ help: some of the expressions' fields have a method of the same name
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0599: no method named `bar` found for struct `Thing` in the current scope
+at $DIR/too-many-field-suggestions.rs, on line 25, column 7: method not found in `Thing`
+ on line 1: method `bar` not found for this struct
+help: some of the expressions' fields have a method of the same name: at line 25, column 6, add one of `a0.`, `a1.`, `a2.`, `a3.` or 6 other candidates
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5548,6 +6207,14 @@ error: invalid `--check-cfg` argument: `cfg(`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: invalid `--check-cfg` argument: `cfg(`
+note: expected `cfg(name, values("value1", "value2", ... "valueN"))`
+note: visit <https://doc.rust-lang.org/nightly/rustc/check-cfg.html> for more details
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5636,6 +6303,19 @@ help: the constant being evaluated
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: constant evaluation is taking a long time
+at $SRC_DIR/core/src/num/mod.rs, on line 1151, column 4
+note: this lint makes sure the compiler doesn't get stuck due to infinite loops in const eval.
+      If your compilation actually takes a long time, you can safely allow the lint.
+help: the constant being evaluated
+at $DIR/timeout.rs, on line 7, column 1
+note: `#[deny(long_running_const_eval)]` on by default
+note: this error originates in the macro `uint_impl` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5688,6 +6368,14 @@ help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is 
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unknown start of token:  
+at $DIR/emitter-overflow-bad-whitespace.rs, on line 10, column 1
+help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is not: at line 10, column 1, add ` `
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -5830,6 +6518,22 @@ help: remove the extra arguments
 "##]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0061: this function takes 1 argument but 3 arguments were supplied
+at $DIR/issue-109854.rs, on line 2, column 5
+ on line 5: unexpected argument #2 of type `&'static str`
+ on line 8: unexpected argument #3 of type `&'static str`
+note: expected `usize`, found fn item
+at $DIR/issue-109854.rs, on line 4, column 5
+note: expected type `[22;1;35musize[22;39m`
+      found fn item `[22;1;35mfn() {generate_setter}[22;39m`
+note: associated function defined here
+at $SRC_DIR/alloc/src/string.rs, on line 480, column 11
+help: remove the extra arguments: at line 4, column 4, add `/* usize */`
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -5910,4 +6614,14 @@ help: otherwise remove the non-wildcard arms
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: these match arms have identical bodies
+at tests/ui/match_same_arms.rs, on line 20, column 9
+ on line 22: the wildcard arm
+help: if this is unintentional make the arms return different values
+help: otherwise remove the non-wildcard arms: at line 20, column 8, add ``
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }

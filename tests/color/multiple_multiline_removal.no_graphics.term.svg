@@ -1,0 +1,37 @@
+<svg width="1675px" height="164px" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .fg { fill: #AAAAAA }
+    .bg { fill: #000000 }
+    .container {
+      padding: 0 10px;
+      line-height: 18px;
+    }
+    tspan {
+      font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+      white-space: pre;
+      line-height: 18px;
+    }
+  </style>
+
+  <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
+
+  <text xml:space="preserve" class="container fg">
+    <tspan x="10px" y="28px"><tspan>error E0423: cannot initialize a tuple struct which contains private fields</tspan>
+</tspan>
+    <tspan x="10px" y="46px"><tspan>at $DIR/suggest-box-new.rs, on line 8, column 19</tspan>
+</tspan>
+    <tspan x="10px" y="64px"><tspan>note: constructor is not visible here due to private fields</tspan>
+</tspan>
+    <tspan x="10px" y="82px"><tspan>at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 2</tspan>
+</tspan>
+    <tspan x="10px" y="100px"><tspan>note: private field</tspan>
+</tspan>
+    <tspan x="10px" y="118px"><tspan>note: private field</tspan>
+</tspan>
+    <tspan x="10px" y="136px"><tspan>help: you might have meant to use an associated function to build this type: at line 8, column 21, add one of `::new(_)`, `::new_uninit()`, `::new_zeroed()`, `::new_in(_, _)` or 12 other candidates</tspan>
+</tspan>
+    <tspan x="10px" y="154px"><tspan>help: consider using the `Default` trait: at line 8, column 18, add `&lt;`</tspan>
+</tspan>
+  </text>
+
+</svg>
