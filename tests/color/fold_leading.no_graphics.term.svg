@@ -18,7 +18,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error E0308: invalid type: integer `20`, expected a bool</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>at Cargo.toml, on line 11, column 13: </tspan>
+    <tspan x="10px" y="46px"><tspan>at Cargo.toml, on line 11, column 13</tspan>
 </tspan>
   </text>
 

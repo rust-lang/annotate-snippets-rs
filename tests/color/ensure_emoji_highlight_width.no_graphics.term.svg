@@ -18,7 +18,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error: invalid character ` ` in package name: `haha this isn't a valid name 🐛`, characters must be Unicode XID characters (numbers, `-`, `_`, or most letters)</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>at &lt;file&gt;, on line 7, column 1: </tspan>
+    <tspan x="10px" y="46px"><tspan>at &lt;file&gt;, on line 7, column 1</tspan>
 </tspan>
   </text>
 

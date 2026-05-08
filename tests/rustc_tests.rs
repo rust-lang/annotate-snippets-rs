@@ -681,9 +681,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 7: 
+at test.rs, on line 3, column 7
  on line 3, column 3: `a` is a good letter
- on line 3, column 11: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -730,7 +729,6 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `a` is a good letter
- on line 3, column 7: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -782,8 +780,6 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 7: `b` is a good letter
- on line 3, column 3: 
- on line 3, column 11: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -833,7 +829,7 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: 
+at test.rs, on line 3, column 3
  on line 3, column 7: `b` is a good letter
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -885,7 +881,6 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `a` is a good letter
- on line 3, column 7: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -927,8 +922,7 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: 
- on line 3, column 7: 
+at test.rs, on line 3, column 3
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -971,9 +965,7 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 7: 
- on line 3, column 3: 
- on line 3, column 11: 
+at test.rs, on line 3, column 7
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1116,7 +1108,7 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: 
+at test.rs, on line 3, column 3
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -3870,7 +3862,6 @@ at $DIR/short-error-format.rs, on line 6, column 9: expected `u32`, found `Strin
  on line 6, column 5: arguments to this function are incorrect
 note: function defined here
 at $DIR/short-error-format.rs, on line 3, column 4
- on line 3, column 8: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -5084,7 +5075,6 @@ note: `Layout` is defined in the current crate
 at $DIR/alloc-error-handler-bad-signature-2.rs, on line 7, column 1
 note: function defined here
 at $DIR/alloc-error-handler-bad-signature-2.rs, on line 10, column 4
- on line 11, column 5: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);

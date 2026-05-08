@@ -5390,7 +5390,6 @@ at $DIR/trimmed_multiline_suggestion.rs, on line 5, column 5
  on line 7, column 9: argument #2 of type `char` is missing
 note: function defined here
 at $DIR/trimmed_multiline_suggestion.rs, on line 1, column 4
- on line 1, column 44: 
 help: provide the argument: at line 5, column 35, add `(
         variable_name,
         /* char */,

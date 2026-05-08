@@ -61,7 +61,8 @@ pub(crate) fn render_no_graphics(
                     annotations.sort_by_key(|a| (Reverse(a.kind.is_primary()), a.span.start));
 
                     for (i, annotation) in annotations.iter().enumerate() {
-                        if i > 0 && annotation.label.is_none() {
+                        let label = annotation.label.as_ref().filter(|s| !s.is_empty());
+                        if i > 0 && label.is_none() {
                             continue;
                         }
                         let (lo, _) =
@@ -78,7 +79,7 @@ pub(crate) fn render_no_graphics(
                             &format!(" on line {}, column {}", lo.line, lo.char + 1),
                             ElementStyle::NoStyle,
                         );
-                        if let Some(label) = &annotation.label {
+                        if let Some(label) = label {
                             buffer.append(line, ": ", ElementStyle::NoStyle);
                             buffer.append(line, label, ElementStyle::NoStyle);
                         }
