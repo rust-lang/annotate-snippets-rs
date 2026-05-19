@@ -113,7 +113,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at <current file>, on line 1, column 3: Good morning
+at <current file>, from line 1, column 3 to line 2, column 4: Good morning
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -671,7 +671,7 @@ error: dummy
 
     let expected_no_graphics = str![[r#"
 error: dummy
-at file/path, on line 4, column 1
+at file/path, from line 4, column 1 to line 5, column 4
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -714,7 +714,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 1
+at file/path, from line 3, column 1 to line 4, column 8
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -797,7 +797,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 1
+at file/path, from line 3, column 1 to line 4, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -844,7 +844,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at <current file>, on line 1, column 2
+at <current file>, from line 1, column 2 to line 2, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -967,7 +967,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 2
+at file/path, from line 3, column 2 to line 4, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1009,7 +1009,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 3
+at file/path, from line 3, column 3 to line 4, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1099,7 +1099,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at <current file>, on line 1, column 4
+at <current file>, from line 1, column 4 to line 2, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1141,7 +1141,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 2
+at file/path, from line 3, column 2 to line 4, column 2
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1183,7 +1183,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 3
+at file/path, from line 3, column 3 to line 4, column 2
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1225,7 +1225,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 2
+at file/path, from line 3, column 2 to line 4, column 2
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1272,7 +1272,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at <current file>, on line 1, column 4
+at <current file>, from line 1, column 4 to line 2, column 2
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1316,7 +1316,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 2
+at file/path, from line 3, column 2 to line 5, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1363,7 +1363,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 3
+at file/path, from line 3, column 3 to line 4, column 3
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1407,7 +1407,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 3
+at file/path, from line 3, column 3 to line 5, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1449,7 +1449,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 2
+at file/path, from line 3, column 2 to line 4, column 3
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1491,7 +1491,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-at file/path, on line 3, column 2
+at file/path, from line 3, column 2 to line 4, column 3
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1605,7 +1605,7 @@ error: unused optional dependency
 
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
- on line 4, column 42: I need this to be really long so I can test overlaps
+ from line 4, column 42 to line 7, column 43: I need this to be really long so I can test overlaps
  on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -1678,8 +1678,8 @@ error: unused optional dependency
 
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
- on line 4, column 9: I need this to be really long so I can test overlaps
- on line 4, column 42: I need this to be really long so I can test overlaps
+ from line 4, column 9 to line 7, column 26: I need this to be really long so I can test overlaps
+ from line 4, column 42 to line 7, column 43: I need this to be really long so I can test overlaps
  on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -1764,9 +1764,9 @@ error: unused optional dependency
 
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
- on line 4, column 9: I need this to be really long so I can test overlaps
- on line 4, column 42: I need this to be really long so I can test overlaps
- on line 5, column 4: I need this to be really long so I can test overlaps
+ from line 4, column 9 to line 7, column 26: I need this to be really long so I can test overlaps
+ from line 4, column 42 to line 7, column 43: I need this to be really long so I can test overlaps
+ from line 5, column 4 to line 8, column 5: I need this to be really long so I can test overlaps
  on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2896,7 +2896,7 @@ note: expected this to be `Foo`
 
     let expected_no_graphics = str![[r#"
 error E0271: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
-at $DIR/E0271.rs, on line 20, column 5: type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
+at $DIR/E0271.rs, from line 20, column 5 to line 32, column 6: type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
 note: expected this to be `Foo`
 at $DIR/E0271.rs, on line 10, column 18
 note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
@@ -3018,7 +3018,7 @@ note: expected this to be `Foo`
 
     let expected_no_graphics = str![[r#"
 error E0271: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
-at $DIR/E0271.rs, on line 20, column 5: type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
+at $DIR/E0271.rs, from line 20, column 5 to line 32, column 6: type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
 note: expected this to be `Foo`
 at $DIR/E0271.rs, on line 10, column 18
 note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
@@ -3217,8 +3217,8 @@ error[E0308]: mismatched types
 
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
-at $DIR/long-E0308.rs, on line 48, column 9: expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
- on line 24, column 12: expected due to this
+at $DIR/long-E0308.rs, from line 48, column 9 to line 52, column 35: expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
+ from line 24, column 12 to line 48, column 6: expected due to this
 note: expected struct `Atype<Btype<..., i32>, i32>`
            found enum `Result<Result<..., _>, _>`
 note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
@@ -3336,7 +3336,7 @@ at $DIR/unicode-output.rs, on line 23, column 11: one type is more general than 
 note: expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`
             found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`
 note: function defined here
-at $DIR/unicode-output.rs, on line 12, column 10
+at $DIR/unicode-output.rs, from line 12, column 10 to line 14, column 4
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -3386,7 +3386,7 @@ error: title
 
     let expected_no_graphics = str![[r#"
 error: title
- on line 3, column 11: annotation
+ from line 3, column 11 to line 5, column 2: annotation
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -4111,7 +4111,7 @@ suggestion[S0123]: use `break` on its own without a value inside this `while` lo
 
     let expected_no_graphics = str![[r#"
 error E0571: `break` with value from a `while` loop
-at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: can only break with a value inside `loop` or breakable block
+at $DIR/issue-114529-illegal-break-with-value.rs, from line 22, column 9 to line 24, column 11: can only break with a value inside `loop` or breakable block
  on line 21, column 5: you can't `break` with a value in a `while` loop
 suggestion S0123: use `break` on its own without a value inside this `while` loop: at line 22, column 8, add `break`
 "#]];
@@ -5219,8 +5219,8 @@ warning: whatever
 
     let expected_no_graphics = str![[r#"
 warning: whatever
-at whatever, on line 1, column 1: blah
- on line 1, column 1: blah
+at whatever, from line 1, column 1 to line 3, column 22: blah
+ from line 1, column 1 to line 3, column 22: blah
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(report), expected_no_graphics);
@@ -5508,7 +5508,7 @@ help: add a `;` here
 
     let expected_no_graphics = str![[r#"
 error: consider adding a `;` to the last statement for consistent formatting
-at tests/ui/semicolon_if_nothing_returned_testing.rs, on line 4, column 5
+at tests/ui/semicolon_if_nothing_returned_testing.rs, from line 4, column 5 to line 10, column 7
 note: the lint level is defined here
 at tests/ui/semicolon_if_nothing_returned_testing.rs, on line 2, column 9
 help: add a `;` here: at line 4, column 4, add `nums.iter().for_each(|x| {

@@ -46,7 +46,7 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 2, column 10: test
+at test.rs, from line 2, column 10 to line 3, column 2: test
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -93,7 +93,7 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 2, column 10: test
+at test.rs, from line 2, column 10 to line 5, column 4: test
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -157,8 +157,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: `X` is a good letter
- on line 3, column 6: `Y` is a good letter too
+at test.rs, from line 3, column 3 to line 5, column 5: `X` is a good letter
+ from line 3, column 6 to line 5, column 8: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -219,8 +219,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: `X` is a good letter
- on line 3, column 6: `Y` is a good letter too
+at test.rs, from line 3, column 3 to line 4, column 8: `X` is a good letter
+ from line 3, column 6 to line 4, column 5: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -285,8 +285,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 6: `X` is a good letter
- on line 4, column 9: `Y` is a good letter too
+at test.rs, from line 3, column 6 to line 5, column 5: `X` is a good letter
+ from line 4, column 9 to line 6, column 5: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -355,9 +355,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: `X` is a good letter
- on line 3, column 6: `Y` is a good letter too
- on line 3, column 9: `Z` label
+at test.rs, from line 3, column 3 to line 5, column 5: `X` is a good letter
+ from line 3, column 6 to line 5, column 8: `Y` is a good letter too
+ from line 3, column 9 to line 5, column 11: `Z` label
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -424,9 +424,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: `X` is a good letter
- on line 3, column 3: `Y` is a good letter too
- on line 3, column 3: `Z` label
+at test.rs, from line 3, column 3 to line 5, column 5: `X` is a good letter
+ from line 3, column 3 to line 5, column 5: `Y` is a good letter too
+ from line 3, column 3 to line 5, column 5: `Z` label
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -500,9 +500,9 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 6: `X` is a good letter
- on line 4, column 6: `Y` is a good letter too
- on line 5, column 3: `Z`
+at test.rs, from line 3, column 6 to line 4, column 5: `X` is a good letter
+ from line 4, column 6 to line 5, column 11: `Y` is a good letter too
+ from line 5, column 3 to line 6, column 8: `Z`
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -565,8 +565,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 3: `X` is a good letter
- on line 5, column 6: `Y` is a good letter too
+at test.rs, from line 3, column 3 to line 4, column 5: `X` is a good letter
+ from line 5, column 6 to line 6, column 11: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -633,8 +633,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 6: `X` is a good letter
- on line 4, column 9: `Y` is a good letter too
+at test.rs, from line 3, column 6 to line 4, column 5: `X` is a good letter
+ from line 4, column 9 to line 6, column 11: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1193,8 +1193,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 6: `X` is a good letter
- on line 4, column 9: `Y` is a good letter too
+at test.rs, from line 3, column 6 to line 4, column 5: `X` is a good letter
+ from line 4, column 9 to line 16, column 11: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1285,8 +1285,8 @@ error: foo
 
     let expected_no_graphics = str![[r#"
 error: foo
-at test.rs, on line 3, column 6: `Y` is a good letter
- on line 7, column 9: `Z` is a good letter too
+at test.rs, from line 3, column 6 to line 16, column 8: `Y` is a good letter
+ from line 7, column 9 to line 11, column 11: `Z` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1469,10 +1469,10 @@ help: use `break` on its own without a value inside this `while` loop
 
     let expected_no_graphics = str![[r#"
 error E0571: `break` with value from a `while` loop
-at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: can only break with a value inside `loop` or breakable block
+at $DIR/issue-114529-illegal-break-with-value.rs, from line 22, column 9 to line 24, column 11: can only break with a value inside `loop` or breakable block
  on line 21, column 5: you can't `break` with a value in a `while` loop
 help: use `break` on its own without a value inside this `while` loop
-at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: break
+at $DIR/issue-114529-illegal-break-with-value.rs, from line 22, column 9 to line 24, column 11: break
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1713,7 +1713,7 @@ note: required by a bound in `is_transmutable`
 error E0277: `V0usize` cannot be safely transmuted into `[usize; 2]`
 at $DIR/primitive_reprs_should_have_correct_length.rs, on line 144, column 44: the size of `V0usize` is smaller than the size of `[usize; 2]`
 note: required by a bound in `is_transmutable`
-at $DIR/primitive_reprs_should_have_correct_length.rs, on line 12, column 14: required by this bound in `is_transmutable`
+at $DIR/primitive_reprs_should_have_correct_length.rs, from line 12, column 14 to line 19, column 11: required by this bound in `is_transmutable`
  on line 10, column 12: required by a bound in this function
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -1889,7 +1889,7 @@ error[E0618]: expected function, found `{integer}`
 error E0618: expected function, found `{integer}`
 at $DIR/missing-semicolon.rs, on line 5, column 13
  on line 4, column 9: `x` has type `{integer}`
- on line 5, column 13: call expression requires function
+ from line 5, column 13 to line 6, column 7: call expression requires function
  on line 5, column 14: help: consider using a semicolon here to finish the statement: `;`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2050,7 +2050,7 @@ note: the lint level is defined here
 
     let expected_no_graphics = str![[r#"
 warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
-at $DIR/auxiliary/nested-macro-rules.rs, on line 7, column 9
+at $DIR/auxiliary/nested-macro-rules.rs, from line 7, column 9 to line 12, column 10
  on line 4, column 1: in this expansion of `nested_macro_rules::outer_macro!`
 at $DIR/nested-macro-rules.rs, on line 23, column 5: in this macro invocation
 help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
@@ -2870,10 +2870,10 @@ help: you might have meant to use `Iterator::for_each`
 
     let expected_no_graphics = str![[r#"
 error: `Iterator::map` call that discard the iterator's values
-at $DIR/lint_map_unit_fn.rs, on line 11, column 18
- on line 11, column 18: after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+at $DIR/lint_map_unit_fn.rs, from line 11, column 18 to line 14, column 7
+ from line 11, column 18 to line 14, column 7: after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
  on line 11, column 22: this function returns `()`, which is likely not what you wanted
- on line 11, column 22: called `Iterator::map` with callable that returns `()`
+ from line 11, column 22 to line 14, column 6: called `Iterator::map` with callable that returns `()`
 note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
 help: you might have meant to use `Iterator::for_each`: at line 11, column 17, add `for_each`
 "#]];
@@ -2961,7 +2961,7 @@ help: escape the character
 
     let expected_no_graphics = str![[r#"
 error: character constant must be escaped: `/n`
-at $DIR/bad-char-literals.rs, on line 10, column 6
+at $DIR/bad-char-literals.rs, from line 10, column 6 to line 11, column 1
 help: escape the character: at line 10, column 5, add `/n`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -3036,7 +3036,7 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-at $DIR/unclosed-1.rs, on line 1, column 1
+at $DIR/unclosed-1.rs, from line 1, column 1 to line 7, column 1
 note: frontmatter opening here was not closed
 at $DIR/unclosed-1.rs, on line 1, column 1
 "#]];
@@ -3119,7 +3119,7 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-at $DIR/unclosed-2.rs, on line 1, column 1
+at $DIR/unclosed-2.rs, from line 1, column 1 to line 15, column 3
 note: frontmatter opening here was not closed
 at $DIR/unclosed-2.rs, on line 1, column 1
 "#]];
@@ -3274,7 +3274,7 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-at $DIR/unclosed-4.rs, on line 1, column 1
+at $DIR/unclosed-4.rs, from line 1, column 1 to line 3, column 1
 note: frontmatter opening here was not closed
 at $DIR/unclosed-4.rs, on line 1, column 1
 "#]];
@@ -3351,7 +3351,7 @@ note: frontmatter opening here was not closed
 
     let expected_no_graphics = str![[r#"
 error: unclosed frontmatter
-at $DIR/unclosed-5.rs, on line 1, column 1
+at $DIR/unclosed-5.rs, from line 1, column 1 to line 7, column 1
 note: frontmatter opening here was not closed
 at $DIR/unclosed-5.rs, on line 1, column 1
 "#]];
@@ -3627,7 +3627,7 @@ error[E0758]: unterminated block comment
 
     let expected_no_graphics = str![[r#"
 error E0758: unterminated block comment
-at $DIR/unterminated-nested-comment.rs, on line 1, column 1
+at $DIR/unterminated-nested-comment.rs, from line 1, column 1 to line 4, column 4
  on line 1, column 1: unterminated block comment
  on line 3, column 1: ...as last nested comment starts here, maybe you want to close this instead?
  on line 4, column 1: ...and last nested comment terminates here.
@@ -4914,7 +4914,7 @@ note: the lint level is defined here
 
     let expected_no_graphics = str![[r#"
 error: extern blocks should be unsafe
-at $DIR/unsafe-extern-suggestion.rs, on line 6, column 1
+at $DIR/unsafe-extern-suggestion.rs, from line 6, column 1 to line 11, column 2
  on line 6, column 1: help: needs `unsafe` before the extern keyword: `unsafe`
 warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
 note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
@@ -5065,9 +5065,9 @@ note: function defined here
 
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
-at $DIR/alloc-error-handler-bad-signature-2.rs, on line 10, column 1: expected `Layout`, found `core::alloc::Layout`
+at $DIR/alloc-error-handler-bad-signature-2.rs, from line 10, column 1 to line 14, column 2: expected `Layout`, found `core::alloc::Layout`
  on line 9, column 1: in this procedural macro expansion
- on line 10, column 1: arguments to this function are incorrect
+ from line 10, column 1 to line 12, column 2: arguments to this function are incorrect
 note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
 note: `core::alloc::Layout` is defined in crate `core`
 at $SRC_DIR/core/src/alloc/layout.rs, on line 40, column 0
@@ -5161,7 +5161,7 @@ warning: whitespace symbol '\u{a0}' is not skipped
 
     let expected_no_graphics = str![[r#"
 warning: whitespace symbol '\u{a0}' is not skipped
-at $DIR/str-escape.rs, on line 12, column 18
+at $DIR/str-escape.rs, from line 12, column 18 to line 13, column 4
  on line 13, column 3: whitespace symbol '\u{a0}' is not skipped
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -6512,7 +6512,7 @@ help: remove the extra arguments
     let expected_no_graphics = str![[r#"
 error E0061: this function takes 1 argument but 3 arguments were supplied
 at $DIR/issue-109854.rs, on line 2, column 5
- on line 5, column 5: unexpected argument #2 of type `&'static str`
+ from line 5, column 5 to line 7, column 3: unexpected argument #2 of type `&'static str`
  on line 8, column 6: unexpected argument #3 of type `&'static str`
 note: expected `usize`, found fn item
 at $DIR/issue-109854.rs, on line 4, column 5

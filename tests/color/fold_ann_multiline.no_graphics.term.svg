@@ -1,4 +1,4 @@
-<svg width="835px" height="74px" xmlns="http://www.w3.org/2000/svg">
+<svg width="928px" height="74px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
@@ -18,7 +18,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error E0308: mismatched types</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>at src/format.rs, on line 52, column 1: expected enum `std::option::Option`, found ()</tspan>
+    <tspan x="10px" y="46px"><tspan>at src/format.rs, from line 52, column 1 to line 72, column 6: expected enum `std::option::Option`, found ()</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan> on line 51, column 6: expected `std::option::Option&lt;std::string::String&gt;` because of return type</tspan>
 </tspan>

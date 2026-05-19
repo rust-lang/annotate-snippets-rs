@@ -1,4 +1,4 @@
-<svg width="740px" height="56px" xmlns="http://www.w3.org/2000/svg">
+<svg width="919px" height="56px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
@@ -18,7 +18,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error E0027: pattern does not mention fields `lineno`, `content`</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>at src/display_list.rs, on line 139, column 32: missing fields `lineno`, `content`</tspan>
+    <tspan x="10px" y="46px"><tspan>at src/display_list.rs, from line 139, column 32 to line 141, column 26: missing fields `lineno`, `content`</tspan>
 </tspan>
   </text>
 

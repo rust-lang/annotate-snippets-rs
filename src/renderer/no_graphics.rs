@@ -65,7 +65,7 @@ pub(crate) fn render_no_graphics(
                         if i > 0 && label.is_none() {
                             continue;
                         }
-                        let (lo, _) =
+                        let (lo, hi) =
                             sm.span_to_locations(annotation.span.start..annotation.span.end);
                         if i == 0 {
                             if let Some(path) = &snippet.path {
@@ -74,11 +74,22 @@ pub(crate) fn render_no_graphics(
                                 buffer.append(line, ",", ElementStyle::NoStyle);
                             }
                         }
+
+                        let (prefix, suffix) = if lo.line == hi.line {
+                            ("on", String::new())
+                        } else {
+                            (
+                                "from",
+                                format!(" to line {}, column {}", hi.line, hi.char + 1),
+                            )
+                        };
+
                         buffer.append(
                             line,
-                            &format!(" on line {}, column {}", lo.line, lo.char + 1),
+                            &format!(" {prefix} line {}, column {}{suffix}", lo.line, lo.char + 1),
                             ElementStyle::NoStyle,
                         );
+
                         if let Some(label) = label {
                             buffer.append(line, ": ", ElementStyle::NoStyle);
                             buffer.append(line, label, ElementStyle::NoStyle);

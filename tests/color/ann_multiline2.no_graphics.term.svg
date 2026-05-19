@@ -1,4 +1,4 @@
-<svg width="740px" height="56px" xmlns="http://www.w3.org/2000/svg">
+<svg width="810px" height="56px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
@@ -18,7 +18,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error E####: spacing error found</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>at foo.txt, on line 26, column 12: this should not be on separate lines</tspan>
+    <tspan x="10px" y="46px"><tspan>at foo.txt, from line 26, column 12 to line 27, column 1: this should not be on separate lines</tspan>
 </tspan>
   </text>
 
