@@ -22,13 +22,13 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan>at src/main.rs, on line 5, column 17: the trait `ErrorHandler` is not implemented for `CustomErrorHandler`</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 5: required by a bound introduced by this call</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 5, column 5: required by a bound introduced by this call</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan>help: </tspan><tspan class="bold">there are </tspan><tspan class="fg-magenta bold">multiple different versions</tspan><tspan class="bold"> of crate `</tspan><tspan class="fg-magenta bold">c</tspan><tspan class="bold">` in the dependency graph</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan>at src/main.rs, on line 1, column 5: one version of crate `c` is used here, as a dependency of crate `b`</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan> on line 2: one version of crate `c` is used here, as a direct dependency of the current crate</tspan>
+    <tspan x="10px" y="118px"><tspan> on line 2, column 5: one version of crate `c` is used here, as a direct dependency of the current crate</tspan>
 </tspan>
   </text>
 

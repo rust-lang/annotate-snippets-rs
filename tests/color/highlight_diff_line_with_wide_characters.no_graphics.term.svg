@@ -20,7 +20,7 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan>at $DIR/highlight_diff_line_with_wide_characters.rs, on line 3, column 18: here</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 1: similarly named struct `啊啊啊啊` defined here</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 1, column 1: similarly named struct `啊啊啊啊` defined here</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan>help: a struct with a similar name exists: `啊啊啊啊`: at line 3, column 17, add `啊啊啊啊`</tspan>
 </tspan>

@@ -158,7 +158,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `X` is a good letter
- on line 3: `Y` is a good letter too
+ on line 3, column 6: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -220,7 +220,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `X` is a good letter
- on line 3: `Y` is a good letter too
+ on line 3, column 6: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -286,7 +286,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 6: `X` is a good letter
- on line 4: `Y` is a good letter too
+ on line 4, column 9: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -356,8 +356,8 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `X` is a good letter
- on line 3: `Y` is a good letter too
- on line 3: `Z` label
+ on line 3, column 6: `Y` is a good letter too
+ on line 3, column 9: `Z` label
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -425,8 +425,8 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `X` is a good letter
- on line 3: `Y` is a good letter too
- on line 3: `Z` label
+ on line 3, column 3: `Y` is a good letter too
+ on line 3, column 3: `Z` label
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -501,8 +501,8 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 6: `X` is a good letter
- on line 4: `Y` is a good letter too
- on line 5: `Z`
+ on line 4, column 6: `Y` is a good letter too
+ on line 5, column 3: `Z`
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -566,7 +566,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `X` is a good letter
- on line 5: `Y` is a good letter too
+ on line 5, column 6: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -634,7 +634,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 6: `X` is a good letter
- on line 4: `Y` is a good letter too
+ on line 4, column 9: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -682,8 +682,8 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 7: 
- on line 3: `a` is a good letter
- on line 3: 
+ on line 3, column 3: `a` is a good letter
+ on line 3, column 11: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -730,7 +730,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `a` is a good letter
- on line 3: 
+ on line 3, column 7: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -782,8 +782,8 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 7: `b` is a good letter
- on line 3: 
- on line 3: 
+ on line 3, column 3: 
+ on line 3, column 11: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -834,7 +834,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: 
- on line 3: `b` is a good letter
+ on line 3, column 7: `b` is a good letter
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -885,7 +885,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `a` is a good letter
- on line 3: 
+ on line 3, column 7: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -928,7 +928,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: 
- on line 3: 
+ on line 3, column 7: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -972,8 +972,8 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 7: 
- on line 3: 
- on line 3: 
+ on line 3, column 3: 
+ on line 3, column 11: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1030,7 +1030,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 3: `a` is a good letter
- on line 3: `b` is a good letter
+ on line 3, column 7: `b` is a good letter
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1202,7 +1202,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 6: `X` is a good letter
- on line 4: `Y` is a good letter too
+ on line 4, column 9: `Y` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1294,7 +1294,7 @@ error: foo
     let expected_no_graphics = str![[r#"
 error: foo
 at test.rs, on line 3, column 6: `Y` is a good letter
- on line 7: `Z` is a good letter too
+ on line 7, column 9: `Z` is a good letter too
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1364,9 +1364,9 @@ error: this file contains an unclosed delimiter
     let expected_no_graphics = str![[r#"
 error: this file contains an unclosed delimiter
 at $DIR/issue-91334.rs, on line 7, column 23
- on line 7: unclosed delimiter
- on line 7: unclosed delimiter
- on line 7: missing open `(` for this delimiter
+ on line 7, column 7: unclosed delimiter
+ on line 7, column 15: unclosed delimiter
+ on line 7, column 20: missing open `(` for this delimiter
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1478,7 +1478,7 @@ help: use `break` on its own without a value inside this `while` loop
     let expected_no_graphics = str![[r#"
 error E0571: `break` with value from a `while` loop
 at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: can only break with a value inside `loop` or breakable block
- on line 21: you can't `break` with a value in a `while` loop
+ on line 21, column 5: you can't `break` with a value in a `while` loop
 help: use `break` on its own without a value inside this `while` loop
 at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: break
 "#]];
@@ -1722,7 +1722,7 @@ error E0277: `V0usize` cannot be safely transmuted into `[usize; 2]`
 at $DIR/primitive_reprs_should_have_correct_length.rs, on line 144, column 44: the size of `V0usize` is smaller than the size of `[usize; 2]`
 note: required by a bound in `is_transmutable`
 at $DIR/primitive_reprs_should_have_correct_length.rs, on line 12, column 14: required by this bound in `is_transmutable`
- on line 10: required by a bound in this function
+ on line 10, column 12: required by a bound in this function
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1896,9 +1896,9 @@ error[E0618]: expected function, found `{integer}`
     let expected_no_graphics = str![[r#"
 error E0618: expected function, found `{integer}`
 at $DIR/missing-semicolon.rs, on line 5, column 13
- on line 4: `x` has type `{integer}`
- on line 5: call expression requires function
- on line 5: help: consider using a semicolon here to finish the statement: `;`
+ on line 4, column 9: `x` has type `{integer}`
+ on line 5, column 13: call expression requires function
+ on line 5, column 14: help: consider using a semicolon here to finish the statement: `;`
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -2059,7 +2059,7 @@ note: the lint level is defined here
     let expected_no_graphics = str![[r#"
 warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be written at top level module
 at $DIR/auxiliary/nested-macro-rules.rs, on line 7, column 9
- on line 4: in this expansion of `nested_macro_rules::outer_macro!`
+ on line 4, column 1: in this expansion of `nested_macro_rules::outer_macro!`
 at $DIR/nested-macro-rules.rs, on line 23, column 5: in this macro invocation
 help: remove the `#[macro_export]` or move this `macro_rules!` outside the of the current function `main`
 note: a `macro_rules!` definition is non-local if it is nested inside an item and has a `#[macro_export]` attribute
@@ -2445,11 +2445,11 @@ error E0004: non-exhaustive patterns: `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, 
 at $DIR/empty-match.rs, on line 71, column 24: patterns `NonEmptyEnum5::V1`, `NonEmptyEnum5::V2`, `NonEmptyEnum5::V3` and 2 more not covered
 note: `NonEmptyEnum5` defined here
 at $DIR/empty-match.rs, on line 38, column 10
- on line 39: not covered
- on line 40: not covered
- on line 41: not covered
- on line 42: not covered
- on line 43: not covered
+ on line 39, column 9: not covered
+ on line 40, column 9: not covered
+ on line 41, column 9: not covered
+ on line 42, column 9: not covered
+ on line 43, column 9: not covered
 note: the matched value is of type `NonEmptyEnum5`
 note: match arms with guards don't count towards exhaustivity
 help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern as shown, or multiple match arms
@@ -2879,9 +2879,9 @@ help: you might have meant to use `Iterator::for_each`
     let expected_no_graphics = str![[r#"
 error: `Iterator::map` call that discard the iterator's values
 at $DIR/lint_map_unit_fn.rs, on line 11, column 18
- on line 11: after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
- on line 11: this function returns `()`, which is likely not what you wanted
- on line 11: called `Iterator::map` with callable that returns `()`
+ on line 11, column 18: after this call to map, the resulting iterator is `impl Iterator<Item = ()>`, which means the only information carried by the iterator is the number of items
+ on line 11, column 22: this function returns `()`, which is likely not what you wanted
+ on line 11, column 22: called `Iterator::map` with callable that returns `()`
 note: `Iterator::map`, like many of the methods on `Iterator`, gets executed lazily, meaning that its effects won't be visible until it is iterated
 help: you might have meant to use `Iterator::for_each`: at line 11, column 17, add `for_each`
 "#]];
@@ -3549,7 +3549,7 @@ help: a unit variant with a similar name exists
 error E0532: expected unit struct, unit variant or constant, found tuple variant `E1::Z1`
 at $DIR/pat-tuple-field-count-cross.rs, on line 35, column 9
 at $DIR/auxiliary/declarations-for-tuple-field-count-errors.rs, on line 11, column 15: similarly named unit variant `Z0` defined here
- on line 11: `E1::Z1` defined here
+ on line 11, column 19: `E1::Z1` defined here
 help: use the tuple variant pattern syntax instead: at line 35, column 8, add `E1::Z1()`
 help: a unit variant with a similar name exists: at line 35, column 12, add `Z0`
 "#]];
@@ -3636,9 +3636,9 @@ error[E0758]: unterminated block comment
     let expected_no_graphics = str![[r#"
 error E0758: unterminated block comment
 at $DIR/unterminated-nested-comment.rs, on line 1, column 1
- on line 1: unterminated block comment
- on line 3: ...as last nested comment starts here, maybe you want to close this instead?
- on line 4: ...and last nested comment terminates here.
+ on line 1, column 1: unterminated block comment
+ on line 3, column 1: ...as last nested comment starts here, maybe you want to close this instead?
+ on line 4, column 1: ...and last nested comment terminates here.
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -3730,7 +3730,7 @@ error[E0308]: mismatched types
 error E0308: mismatched types
 at $DIR/file.txt, on line 3, column 1: expected `&[u8]`, found `&str`
 at $DIR/mismatched-types.rs, on line 2, column 12: expected due to this
- on line 2: in this macro invocation
+ on line 2, column 20: in this macro invocation
 note: expected reference `&[u8]`
          found reference `&'static str`
 "#]];
@@ -3801,7 +3801,7 @@ error[E0308]: mismatched types
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/mismatched-types.rs, on line 3, column 19: expected `&str`, found `&[u8; 0]`
- on line 3: expected due to this
+ on line 3, column 12: expected due to this
 note: expected reference `&str`
          found reference `&'static [u8; 0]`
 "#]];
@@ -3867,10 +3867,10 @@ $DIR/short-error-format.rs:6:9: error[E0308]: mismatched types: expected `u32`, 
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/short-error-format.rs, on line 6, column 9: expected `u32`, found `String`
- on line 6: arguments to this function are incorrect
+ on line 6, column 5: arguments to this function are incorrect
 note: function defined here
 at $DIR/short-error-format.rs, on line 3, column 4
- on line 3: 
+ on line 3, column 8: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -4229,8 +4229,8 @@ note: the foreign item type `Box<isize>` doesn't implement `Add`
     let expected_no_graphics = str![[r#"
 error E0369: cannot add `Box<isize>` to `Box<isize>`
 at $DIR/autoderef-box-no-add.rs, on line 25, column 24
- on line 25: Box<isize>
- on line 25: Box<isize>
+ on line 25, column 20: Box<isize>
+ on line 25, column 26: Box<isize>
 note: the foreign item type `Box<isize>` doesn't implement `Add`
 at $SRC_DIR/alloc/src/boxed.rs, on line 231, column 0
 at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 1
@@ -4494,8 +4494,8 @@ note: the foreign item types don't implement required traits for this operation 
     let expected_no_graphics = str![[r#"
 error E0369: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
 at $DIR/binary-op-not-allowed-issue-125631.rs, on line 11, column 9
- on line 10: (std::io::Error, Thread)
- on line 11: (std::io::Error, Thread)
+ on line 10, column 5: (std::io::Error, Thread)
+ on line 11, column 12: (std::io::Error, Thread)
 note: the foreign item types don't implement required traits for this operation to be valid
 at $SRC_DIR/std/src/io/error.rs, on line 65, column 0
 note: not implement `PartialEq`
@@ -4698,7 +4698,7 @@ note: the traits `Iterator` and `ToTokens` must be implemented
     let expected_no_graphics = str![[r#"
 error E0599: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not satisfied
 at $DIR/not-repeatable.rs, on line 11, column 13: method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
- on line 7: method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
+ on line 7, column 1: method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
 note: the following trait bounds were not satisfied:
       `Ipv4Addr: Iterator`
       which is required by `Ipv4Addr: proc_macro::ext::RepIteratorExt`
@@ -4807,7 +4807,7 @@ error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
     let expected_no_graphics = str![[r#"
 error E0220: associated type `Pr` not found for `S<bool>` in the current scope
 at $DIR/not-found-self-type-differs-shadowing-trait-item.rs, on line 28, column 23: associated item not found in `S<bool>`
- on line 12: associated type `Pr` not found for this struct
+ on line 12, column 1: associated type `Pr` not found for this struct
 note: the associated type was found for
       
 "#]];
@@ -4924,7 +4924,7 @@ note: the lint level is defined here
     let expected_no_graphics = str![[r#"
 error: extern blocks should be unsafe
 at $DIR/unsafe-extern-suggestion.rs, on line 6, column 1
- on line 6: help: needs `unsafe` before the extern keyword: `unsafe`
+ on line 6, column 1: help: needs `unsafe` before the extern keyword: `unsafe`
 warning: this is accepted in the current edition (Rust 2015) but is a hard error in Rust 2024!
 note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2024/unsafe-extern.html>
 note: the lint level is defined here
@@ -5075,8 +5075,8 @@ note: function defined here
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/alloc-error-handler-bad-signature-2.rs, on line 10, column 1: expected `Layout`, found `core::alloc::Layout`
- on line 9: in this procedural macro expansion
- on line 10: arguments to this function are incorrect
+ on line 9, column 1: in this procedural macro expansion
+ on line 10, column 1: arguments to this function are incorrect
 note: `core::alloc::Layout` and `Layout` have similar names, but are actually distinct types
 note: `core::alloc::Layout` is defined in crate `core`
 at $SRC_DIR/core/src/alloc/layout.rs, on line 40, column 0
@@ -5084,7 +5084,7 @@ note: `Layout` is defined in the current crate
 at $DIR/alloc-error-handler-bad-signature-2.rs, on line 7, column 1
 note: function defined here
 at $DIR/alloc-error-handler-bad-signature-2.rs, on line 10, column 4
- on line 11: 
+ on line 11, column 5: 
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -5172,7 +5172,7 @@ warning: whitespace symbol '\u{a0}' is not skipped
     let expected_no_graphics = str![[r#"
 warning: whitespace symbol '\u{a0}' is not skipped
 at $DIR/str-escape.rs, on line 12, column 18
- on line 13: whitespace symbol '\u{a0}' is not skipped
+ on line 13, column 3: whitespace symbol '\u{a0}' is not skipped
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics.raw());
@@ -5532,8 +5532,8 @@ note: the foreign item types don't implement required traits for this operation 
     let expected_no_graphics = str![[r#"
 error E0369: binary operation `==` cannot be applied to type `(std::io::Error, Thread)`
 at $DIR/binary-op-not-allowed-issue-125631.rs, on line 11, column 9
- on line 10: (std::io::Error, Thread)
- on line 11: (std::io::Error, Thread)
+ on line 10, column 5: (std::io::Error, Thread)
+ on line 11, column 12: (std::io::Error, Thread)
 note: the foreign item types don't implement required traits for this operation to be valid
 at $SRC_DIR/std/src/io/error.rs, on line 65, column 0
 note: not implement `PartialEq`
@@ -6171,7 +6171,7 @@ help: some of the expressions' fields have a method of the same name
     let expected_no_graphics = str![[r#"
 error E0599: no method named `bar` found for struct `Thing` in the current scope
 at $DIR/too-many-field-suggestions.rs, on line 25, column 7: method not found in `Thing`
- on line 1: method `bar` not found for this struct
+ on line 1, column 1: method `bar` not found for this struct
 help: some of the expressions' fields have a method of the same name: at line 25, column 6, add one of `a0.`, `a1.`, `a2.`, `a3.` or 6 other candidates
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -6522,8 +6522,8 @@ help: remove the extra arguments
     let expected_no_graphics = str![[r#"
 error E0061: this function takes 1 argument but 3 arguments were supplied
 at $DIR/issue-109854.rs, on line 2, column 5
- on line 5: unexpected argument #2 of type `&'static str`
- on line 8: unexpected argument #3 of type `&'static str`
+ on line 5, column 5: unexpected argument #2 of type `&'static str`
+ on line 8, column 6: unexpected argument #3 of type `&'static str`
 note: expected `usize`, found fn item
 at $DIR/issue-109854.rs, on line 4, column 5
 note: expected type `[22;1;35musize[22;39m`
@@ -6618,7 +6618,7 @@ help: otherwise remove the non-wildcard arms
     let expected_no_graphics = str![[r#"
 error: these match arms have identical bodies
 at tests/ui/match_same_arms.rs, on line 20, column 9
- on line 22: the wildcard arm
+ on line 22, column 9: the wildcard arm
 help: if this is unintentional make the arms return different values
 help: otherwise remove the non-wildcard arms: at line 20, column 8, add ``
 "#]];

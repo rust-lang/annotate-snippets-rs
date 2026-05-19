@@ -156,7 +156,7 @@ error:
     let expected_no_graphics = str![[r#"
 error: 
 at <current file>, on line 1, column 1: Sushi1
- on line 2: Sushi2
+ on line 2, column 3: Sushi2
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -342,7 +342,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-on line 5403, column 8: Test annotation
+ on line 5403, column 8: Test annotation
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -520,7 +520,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-on line 1, column 1: Example string
+ on line 1, column 1: Example string
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -561,8 +561,8 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-on line 1, column 1: Example string
- on line 1: Second line
+ on line 1, column 1: Example string
+ on line 1, column 1: Second line
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1544,7 +1544,7 @@ error: unused optional dependency
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
 at Cargo.toml, on line 4, column 1: I need this to be really long so I can test overlaps
- on line 4: This should also be long but not too long
+ on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1605,8 +1605,8 @@ error: unused optional dependency
 
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
-on line 4, column 42: I need this to be really long so I can test overlaps
- on line 4: This should also be long but not too long
+ on line 4, column 42: I need this to be really long so I can test overlaps
+ on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1678,9 +1678,9 @@ error: unused optional dependency
 
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
-on line 4, column 9: I need this to be really long so I can test overlaps
- on line 4: I need this to be really long so I can test overlaps
- on line 4: This should also be long but not too long
+ on line 4, column 9: I need this to be really long so I can test overlaps
+ on line 4, column 42: I need this to be really long so I can test overlaps
+ on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1764,10 +1764,10 @@ error: unused optional dependency
 
     let expected_no_graphics = str![[r#"
 error: unused optional dependency
-on line 4, column 9: I need this to be really long so I can test overlaps
- on line 4: I need this to be really long so I can test overlaps
- on line 5: I need this to be really long so I can test overlaps
- on line 4: This should also be long but not too long
+ on line 4, column 9: I need this to be really long so I can test overlaps
+ on line 4, column 42: I need this to be really long so I can test overlaps
+ on line 5, column 4: I need this to be really long so I can test overlaps
+ on line 4, column 28: This should also be long but not too long
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -1919,7 +1919,7 @@ help: you might have meant to use one of the following enum variants
 
     let expected_no_graphics = str![[r#"
 error E0423: expected value, found enum `A`
-on line 1, column 5
+ on line 1, column 5
 help: you might have meant to use one of the following enum variants: at line 1, column 4, add one of `(A::Tuple())`, `A::Unit`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2018,8 +2018,8 @@ help: the following traits which provide `pick` are implemented but not in scope
 
     let expected_no_graphics = str![[r#"
 error E0599: no method named `pick` found for struct `Chaenomeles` in the current scope
-on line 18, column 25: method not found in `Chaenomeles`
- on line 3: method `pick` not found for this struct
+ on line 18, column 25: method not found in `Chaenomeles`
+ on line 3, column 5: method `pick` not found for this struct
 help: the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them: at line 2, column 1, add one of `use banana::Apple;`, `use banana::Peach;`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2080,7 +2080,7 @@ help: make these changes and things will work
 
     let expected_no_graphics = str![[r#"
 error E0423: expected value, found enum `A`
-on line 1, column 5
+ on line 1, column 5
 help: make these changes and things will work: at line 1, column 4, add `(A::Tuple())`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2140,7 +2140,7 @@ help: make these changes and things will work
 
     let expected_no_graphics = str![[r#"
 error E0423: Found `ThisIsVeryLong`
-on line 1, column 5
+ on line 1, column 5
 help: make these changes and things will work: at line 1, column 4, add `(A::Tuple())`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2248,10 +2248,10 @@ help: try explicitly pass `&Self` into the Closure as an argument
 
     let expected_no_graphics = str![[r#"
 error E0502: cannot borrow `*self` as mutable because it is also borrowed as immutable
-on line 2, column 13: immutable borrow occurs here
- on line 3: first borrow occurs due to use of `*self` in closure
- on line 5: mutable borrow occurs here
- on line 6: immutable borrow later used here
+ on line 2, column 13: immutable borrow occurs here
+ on line 3, column 9: first borrow occurs due to use of `*self` in closure
+ on line 5, column 5: mutable borrow occurs here
+ on line 6, column 5: immutable borrow later used here
 help: try explicitly pass `&Self` into the Closure as an argument: at line 2, column 13, add `this: &Self`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2353,9 +2353,9 @@ help: if you want to call `next` on a iterator within the loop, consider using `
 
     let expected_no_graphics = str![[r#"
 error E0499: cannot borrow `chars` as mutable more than once at a time
-on line 5, column 9: second mutable borrow occurs here
- on line 4: first mutable borrow occurs here
- on line 4: first borrow later used here
+ on line 5, column 9: second mutable borrow occurs here
+ on line 4, column 15: first mutable borrow occurs here
+ on line 4, column 15: first borrow later used here
 help: if you want to call `next` on a iterator within the loop, consider using `while let`: at line 4, column 4, add `let iter = chars.by_ref();
     while let Some(`
 "#]];
@@ -2452,7 +2452,7 @@ help: if you import `cell`, refer to it directly
 
     let expected_no_graphics = str![[r#"
 error E0433: failed to resolve: use of undeclared crate or module `st`
-on line 13, column 10: use of undeclared crate or module `st`
+ on line 13, column 10: use of undeclared crate or module `st`
 help: there is a crate or module with a similar name: at line 13, column 9, add `std`
 help: consider importing this module: at line 2, column 1, add `use std::cell;`
 help: if you import `cell`, refer to it directly: at line 13, column 9, add ``
@@ -2545,8 +2545,8 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
 
     let expected_no_graphics = str![[r#"
 error E0277: the size for values of type `T` cannot be known at compilation time
-on line 4, column 16: doesn't have a size known at compile-time
- on line 4: this type parameter needs to be `Sized`
+ on line 4, column 16: doesn't have a size known at compile-time
+ on line 4, column 8: this type parameter needs to be `Sized`
 help: consider removing the `?Sized` bound to make the type parameter `Sized`: at line 6, column 1, add ``
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -2700,12 +2700,12 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
     let expected_no_graphics = str![[r#"
 error E0277: the size for values of type `T` cannot be known at compilation time
 at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs, on line 4, column 16: doesn't have a size known at compile-time
- on line 4: this type parameter needs to be `Sized`
+ on line 4, column 8: this type parameter needs to be `Sized`
 note: required by an implicit `Sized` bound in `Wrapper`
 at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs, on line 2, column 16: required by the implicit `Sized` requirement on this type parameter in `Wrapper`
 help: you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`
 at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs, on line 2, column 16: this could be changed to `T: ?Sized`...
- on line 2: ...if indirection were used here: `Box<T>`
+ on line 2, column 19: ...if indirection were used here: `Box<T>`
 help: consider removing the `?Sized` bound to make the type parameter `Sized`: at line 6, column 4, add ``
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -3218,7 +3218,7 @@ error[E0308]: mismatched types
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/long-E0308.rs, on line 48, column 9: expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
- on line 24: expected due to this
+ on line 24, column 12: expected due to this
 note: expected struct `Atype<Btype<..., i32>, i32>`
            found enum `Result<Result<..., _>, _>`
 note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
@@ -3332,7 +3332,7 @@ note: function defined here
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/unicode-output.rs, on line 23, column 11: one type is more general than the other
- on line 23: arguments to this function are incorrect
+ on line 23, column 5: arguments to this function are incorrect
 note: expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`
             found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`
 note: function defined here
@@ -3386,7 +3386,7 @@ error: title
 
     let expected_no_graphics = str![[r#"
 error: title
-on line 3, column 11: annotation
+ on line 3, column 11: annotation
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -3420,7 +3420,7 @@ fn trim_unicode_annotate_ascii_end_with_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 170: expected item"];
+    let expected_no_graphics = str![" on line 1, column 170: expected item"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3448,7 +3448,7 @@ fn trim_unicode_annotate_ascii_end_no_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 170"];
+    let expected_no_graphics = str![" on line 1, column 170"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3481,7 +3481,7 @@ fn trim_unicode_annotate_unicode_end_with_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 170: expected item"];
+    let expected_no_graphics = str![" on line 1, column 170: expected item"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3509,7 +3509,7 @@ fn trim_unicode_annotate_unicode_end_no_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 170"];
+    let expected_no_graphics = str![" on line 1, column 170"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3542,7 +3542,7 @@ fn trim_unicode_annotate_unicode_middle_with_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 86: expected item"];
+    let expected_no_graphics = str![" on line 1, column 86: expected item"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3570,7 +3570,7 @@ fn trim_unicode_annotate_unicode_middle_no_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 86"];
+    let expected_no_graphics = str![" on line 1, column 86"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3603,7 +3603,7 @@ fn trim_ascii_annotate_ascii_end_with_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 335: expected item"];
+    let expected_no_graphics = str![" on line 1, column 335: expected item"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3631,7 +3631,7 @@ fn trim_ascii_annotate_ascii_end_no_label() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 1, column 335"];
+    let expected_no_graphics = str![" on line 1, column 335"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -3691,7 +3691,7 @@ error[E0308]: mismatched types
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/non-whitespace-trimming-unicode.rs, on line 4, column 415: expected `()`, found integer
- on line 4: expected due to this
+ on line 4, column 410: expected due to this
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -3779,8 +3779,8 @@ help: create an owned `String` from a string reference
     let expected_no_graphics = str![[r#"
 error E0369: cannot add `&str` to `&str`
 at $DIR/non-1-width-unicode-multiline-label.rs, on line 7, column 260: `+` cannot be used to concatenate two `&str` strings
- on line 7: &str
- on line 7: &str
+ on line 7, column 245: &str
+ on line 7, column 262: &str
 note: string concatenation requires an owned `String` on the left
 help: create an owned `String` from a string reference: at line 7, column 258, add `.to_owned()`
 "#]];
@@ -3925,7 +3925,7 @@ error[E0308]: mismatched types
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/mismatched-types.rs, on line 3, column 19: expected `&str`, found `&[u8; 0]`
- on line 3: expected due to this
+ on line 3, column 12: expected due to this
 expected reference `&str`
 found reference `&'static [u8; 0]`
 "#]];
@@ -3996,7 +3996,7 @@ error[E0308]: mismatched types
     let expected_no_graphics = str![[r#"
 error E0308: mismatched types
 at $DIR/mismatched-types.rs, on line 3, column 19: expected `&str`, found `&[u8; 0]`
- on line 3: expected due to this
+ on line 3, column 12: expected due to this
 custom: expected reference `&str`
         found reference `&'static [u8; 0]`
 "#]];
@@ -4112,7 +4112,7 @@ suggestion[S0123]: use `break` on its own without a value inside this `while` lo
     let expected_no_graphics = str![[r#"
 error E0571: `break` with value from a `while` loop
 at $DIR/issue-114529-illegal-break-with-value.rs, on line 22, column 9: can only break with a value inside `loop` or breakable block
- on line 21: you can't `break` with a value in a `while` loop
+ on line 21, column 5: you can't `break` with a value in a `while` loop
 suggestion S0123: use `break` on its own without a value inside this `while` loop: at line 22, column 8, add `break`
 "#]];
     let renderer = renderer.no_graphics(true);
@@ -4173,7 +4173,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 
     let expected_no_graphics = str![[r#"
 error E0277: the size for values of type `T` cannot be known at compilation time
-on line 9, column 1
+ on line 9, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -4215,7 +4215,7 @@ fn empty_span_start_line() {
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 
-    let expected_no_graphics = str!["on line 9, column 1: E112"];
+    let expected_no_graphics = str![" on line 9, column 1: E112"];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
 }
@@ -4604,7 +4604,7 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-on line 1, column 5: annotation
+ on line 1, column 5: annotation
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -4654,8 +4654,8 @@ error:
 
     let expected_no_graphics = str![[r#"
 error: 
-on line 1, column 5: annotation
-on line 1, column 5: annotation
+ on line 1, column 5: annotation
+ on line 1, column 5: annotation
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -4934,7 +4934,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 
     let expected_no_graphics = str![[r#"
 error E0277: the size for values of type `T` cannot be known at compilation time
-on line 12, column 1
+ on line 12, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -4987,7 +4987,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 
     let expected_no_graphics = str![[r#"
 error E0277: the size for values of type `T` cannot be known at compilation time
-on line 12, column 1
+ on line 12, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -5220,7 +5220,7 @@ warning: whatever
     let expected_no_graphics = str![[r#"
 warning: whatever
 at whatever, on line 1, column 1: blah
- on line 1: blah
+ on line 1, column 1: blah
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(report), expected_no_graphics);
@@ -5271,7 +5271,7 @@ error: ensure single line at line 0 rendered correctly with group line lined up
     let expected_no_graphics = str![[r#"
 error: ensure single line at line 0 rendered correctly with group line lined up
 at Cargo.toml, on line 0, column 8: unexpected token
- on line 0: while parsing statement
+ on line 0, column 1: while parsing statement
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -5387,10 +5387,10 @@ help: provide the argument
     let expected_no_graphics = str![[r#"
 error E0061: this function takes 6 arguments but 5 arguments were supplied
 at $DIR/trimmed_multiline_suggestion.rs, on line 5, column 5
- on line 7: argument #2 of type `char` is missing
+ on line 7, column 9: argument #2 of type `char` is missing
 note: function defined here
 at $DIR/trimmed_multiline_suggestion.rs, on line 1, column 4
- on line 1: 
+ on line 1, column 44: 
 help: provide the argument: at line 5, column 35, add `(
         variable_name,
         /* char */,
@@ -5627,7 +5627,7 @@ help: provide the argument
     let expected_no_graphics = str![[r#"
 error E0061: this function takes 6 arguments but 5 arguments were supplied
 at $DIR/trimmed_multiline_suggestion.rs, on line 3, column 5
- on line 5: argument #2 of type `char` is missing
+ on line 5, column 9: argument #2 of type `char` is missing
 help: provide the argument: at line 3, column 35, add `(
         variable_name,
         /* char */,
@@ -5741,7 +5741,7 @@ help: consider importing this module
 
     let expected_no_graphics = str![[r#"
 error E0433: failed to resolve: use of undeclared crate or module `st`
-on line 13, column 10: use of undeclared crate or module `st`
+ on line 13, column 10: use of undeclared crate or module `st`
 help: consider importing this module: at line 2, column 1, add `use std::cell;`
 "#]];
     let renderer = renderer.no_graphics(true);

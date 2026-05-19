@@ -18,11 +18,11 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan>error: </tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>on line 97, column 17: Variable defined here</tspan>
+    <tspan x="10px" y="46px"><tspan> on line 97, column 17: Variable defined here</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 99: Referenced here</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 99, column 14: Referenced here</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan> on line 101: Referenced again here</tspan>
+    <tspan x="10px" y="82px"><tspan> on line 101, column 14: Referenced again here</tspan>
 </tspan>
   </text>
 

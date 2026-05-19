@@ -64,7 +64,7 @@ error[E0599]: no method named `build` found for struct `PartialTest<true, false>
     let expected_no_graphics = str![[r#"
 error E0599: no method named `build` found for struct `PartialTest<true, false>` in the current scope
 at tests/no_compile/missing_fields_in_builder.rs, on line 12, column 33: method not found in `PartialTest<true, false>`
- on line 3: method `build` not found for this struct
+ on line 3, column 1: method `build` not found for this struct
 note: the method was found for
       - `PartialTest<true, true>`
 "#]];
@@ -148,7 +148,7 @@ help: one of the expressions' fields has a method of the same name
     let expected_no_graphics = str![[r#"
 error E0599: no method named `with_bar` found for struct `PartialTest<true, true>` in the current scope
 at tests/no_compile/missing_fields_in_builder.rs, on line 15, column 45: method not found in `PartialTest<true, true>`
- on line 3: method `with_bar` not found for this struct
+ on line 3, column 1: method `with_bar` not found for this struct
 note: the method was found for
       - `PartialTest<foo_bitfield, false>`
 help: one of the expressions' fields has a method of the same name: at line 15, column 44, add `value.`

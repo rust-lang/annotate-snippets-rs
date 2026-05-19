@@ -20,7 +20,7 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan>at $DIR/wrong-highlight-span-extra-arguments-147070.rs, on line 17, column 15</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 24: unexpected argument #7 of type `String`</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 24, column 9: unexpected argument #7 of type `String`</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan>note: associated function defined here</tspan>
 </tspan>

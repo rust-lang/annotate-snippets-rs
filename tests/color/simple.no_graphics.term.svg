@@ -20,7 +20,7 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan>at src/format_color.rs, on line 171, column 9: unexpected token</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 169: expected one of `.`, `;`, `?`, or an operator here</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 169, column 11: expected one of `.`, `;`, `?`, or an operator here</tspan>
 </tspan>
   </text>
 

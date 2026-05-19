@@ -20,7 +20,7 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan>at $DIR/non-whitespace-trimming.rs, on line 4, column 233: expected due to this</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 4: expected `()`, found integer</tspan>
+    <tspan x="10px" y="64px"><tspan> on line 4, column 238: expected `()`, found integer</tspan>
 </tspan>
   </text>
 

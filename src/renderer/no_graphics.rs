@@ -70,20 +70,14 @@ pub(crate) fn render_no_graphics(
                             if let Some(path) = &snippet.path {
                                 buffer.append(line, "at ", ElementStyle::NoStyle);
                                 buffer.append(line, path, ElementStyle::NoStyle);
-                                buffer.append(line, ", ", ElementStyle::NoStyle);
+                                buffer.append(line, ",", ElementStyle::NoStyle);
                             }
-                            buffer.append(
-                                line,
-                                &format!("on line {}, column {}", lo.line, lo.char + 1),
-                                ElementStyle::NoStyle,
-                            );
-                        } else {
-                            buffer.append(
-                                line,
-                                &format!(" on line {}", lo.line),
-                                ElementStyle::NoStyle,
-                            );
                         }
+                        buffer.append(
+                            line,
+                            &format!(" on line {}, column {}", lo.line, lo.char + 1),
+                            ElementStyle::NoStyle,
+                        );
                         if let Some(label) = &annotation.label {
                             buffer.append(line, ": ", ElementStyle::NoStyle);
                             buffer.append(line, label, ElementStyle::NoStyle);
