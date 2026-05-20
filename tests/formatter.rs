@@ -1700,7 +1700,7 @@ error[E0599]: no method named `pick` found for struct `Chaenomeles` in the curre
    ╭▸ 
  3 │     pub struct Chaenomeles;
    │     ────────────────────── method `pick` not found for this struct
-   ‡
+   ┆
 18 │     banana::Chaenomeles.pick()
    │                         ━━━━ method not found in `Chaenomeles`
    ╰╴
@@ -2491,7 +2491,7 @@ error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Resu
 21 │ ┃         Ok::<_, ()>(
 22 │ ┃             Err::<(), _>(
 23 │ ┃                 Ok::<_, ()>(
-   ‡ ┃
+   ┆ ┇
 32 │ ┃     )
    │ ┗━━━━━┛ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    ╰╴
@@ -2602,7 +2602,7 @@ error[E0271]: type mismatch resolving `<Result<Result<(), Result<Result<(), Resu
 21 │ ┃         Ok::<_, ()>(
 22 │ ┃             Err::<(), _>(
 23 │ ┃                 Ok::<_, ()>(
-   ‡ ┃
+   ┆ ┇
 32 │ ┃     )
    │ ┗━━━━━┛ type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
    ╰╴
@@ -2785,7 +2785,7 @@ error[E0308]: mismatched types
 25 │ │        Btype<
 26 │ │          Ctype<
 27 │ │            Atype<
-   ‡ │
+   ┆ ┆
 47 │ │        i32
 48 │ │      > = Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(Ok(O…
    │ │┏━━━━━│━━━┛
@@ -4309,7 +4309,7 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
    ╭▸ 
 12 │ cargo
    │ ━━━━━
-   ‡
+   ┆
 18 │ zappy
    ╰╴
 "#]];
@@ -4800,7 +4800,7 @@ error: consider adding a `;` to the last statement for consistent formatting
  5 │ ┃         if *x > 0 {
  6 │ ┃             println!("Positive number");
  7 │ ┃         } else {
-   ‡ ┃
+   ┆ ┇
 10 │ ┃     })
    │ ┗━━━━━━┛
    ╰╴

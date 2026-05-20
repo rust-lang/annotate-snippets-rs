@@ -77,7 +77,7 @@ error: foo
   │
 2 │   fn foo() {
   │ ┏━━━━━━━━━━┛
-  ‡ ┃
+  ┆ ┇
 5 │ ┃   }
   ╰╴┗━━━┛ test
 "#]];
@@ -1029,7 +1029,7 @@ error: foo
  5 │  │ 1
  6 │  │ 2
  7 │  │ 3
-   ‡  │
+   ┆  ┆
 15 │  │   X2 Y2 Z2
 16 │  │   X3 Y3 Z3
    ╰╴ └──────────┘ `Y` is a good letter too
@@ -1113,7 +1113,7 @@ error: foo
 10 │ ┃│ 6
 11 │ ┃│   X2 Y2 Z2
    │ ┃└──────────┘ `Z` is a good letter too
-   ‡ ┃
+   ┆ ┇
 15 │ ┃  10
 16 │ ┃    X3 Y3 Z3
    ╰╴┗━━━━━━━━┛ `Y` is a good letter
@@ -1512,7 +1512,7 @@ note: required by a bound in `is_transmutable`
  13 │ ┃             Assume {
  14 │ ┃                 alignment: true,
  15 │ ┃                 lifetimes: true,
-    ‡ ┃
+    ┆ ┇
  19 │ ┃         }>
     ╰╴┗━━━━━━━━━━┛ required by this bound in `is_transmutable`
 "#]];
@@ -1806,7 +1806,7 @@ warning: non-local `macro_rules!` definition, `#[macro_export]` macro should be 
    │
  4 │   macro_rules! outer_macro {
    │   ──────────────────────── in this expansion of `nested_macro_rules::outer_macro!`
-   ‡
+   ┆
  7 │ ┏         macro_rules! inner_macro {
  8 │ ┃             ($bang_macro:ident, $attr_macro:ident) => {
  9 │ ┃                 $bang_macro!($name);
@@ -2696,7 +2696,7 @@ error: unclosed frontmatter
   ╭▸ $DIR/unclosed-1.rs:1:1
   │
 1 │ ┏ ----cargo
-  ‡ ┃
+  ┆ ┇
 7 │ ┃
   │ ┗━┛
   ╰╴
@@ -2769,7 +2769,7 @@ error: unclosed frontmatter
    ╭▸ $DIR/unclosed-2.rs:1:1
    │
  1 │ ┏ ----cargo
-   ‡ ┃
+   ┆ ┇
 14 │ ┃     "----"
 15 │ ┃ }
    │ ┗━━┛
@@ -2975,7 +2975,7 @@ error: unclosed frontmatter
   ╭▸ $DIR/unclosed-5.rs:1:1
   │
 1 │ ┏ ----cargo
-  ‡ ┃
+  ┆ ┇
 7 │ ┃
   │ ┗━┛
   ╰╴
@@ -4166,7 +4166,7 @@ error[E0599]: the method `quote_into_iter` exists for struct `Ipv4Addr`, but its
    │
  7 │ struct Ipv4Addr;
    │ ─────────────── method `quote_into_iter` not found for this struct because it doesn't satisfy `Ipv4Addr: Iterator`, `Ipv4Addr: ToTokens`, `Ipv4Addr: proc_macro::ext::RepIteratorExt` or `Ipv4Addr: proc_macro::ext::RepToTokensExt`
-   ‡
+   ┆
 11 │     let _ = quote! { $($ip)* }; //~ ERROR the method `quote_into_iter` exists for struct `Ipv4Addr`, but its trait bounds were not sat…
    │             ━━━━━━━━━━━━━━━━━━ method cannot be called on `Ipv4Addr` due to unsatisfied trait bounds
    │
@@ -4265,7 +4265,7 @@ error[E0220]: associated type `Pr` not found for `S<bool>` in the current scope
    │
 12 │ struct S<T>(T);
    │ ─────────── associated type `Pr` not found for this struct
-   ‡
+   ┆
 28 │     let _: S::<bool>::Pr = ();
    │                       ━━ associated item not found in `S<bool>`
    │
@@ -5499,7 +5499,7 @@ error[E0599]: no method named `bar` found for struct `Thing` in the current scop
    │
  1 │ struct Thing {
    │ ──────────── method `bar` not found for this struct
-   ‡
+   ┆
 25 │     t.bar();
    │       ━━━ method not found in `Thing`
    ╰╴
@@ -5801,7 +5801,7 @@ error[E0061]: this function takes 1 argument but 3 arguments were supplied
   │
 2 │       String::with_capacity(
   │       ━━━━━━━━━━━━━━━━━━━━━
-  ‡
+  ┆
 5 │ ┌     r#"
 6 │ │ pub(crate) struct Person<T: Clone> {}
 7 │ │ "#,

@@ -717,7 +717,7 @@ fn render_snippet_annotations(
         // the code in this line.
         for (depth, style) in &multilines {
             for line in previous_buffer_line..buffer.num_lines() {
-                draw_multiline_line(renderer, buffer, line, width_offset, *depth, *style);
+                draw_multiline_line(renderer, buffer, line, width_offset, *depth, *style, false);
             }
         }
         // check to see if we need to print out or elide lines that come between
@@ -740,6 +740,7 @@ fn render_snippet_annotations(
                             width_offset,
                             *depth,
                             *style,
+                            true,
                         );
                     }
                     if let Some(line) = annotated_lines.get(annotated_line_idx) {
@@ -759,6 +760,7 @@ fn render_snippet_annotations(
                                     } else {
                                         ElementStyle::UnderlineSecondary
                                     },
+                                    true,
                                 );
                             }
                         }
@@ -792,6 +794,7 @@ fn render_snippet_annotations(
                             width_offset,
                             *depth,
                             *style,
+                            false,
                         );
                     }
                     if let Some(line) = annotated_lines.get(annotated_line_idx) {
@@ -808,6 +811,7 @@ fn render_snippet_annotations(
                                     } else {
                                         ElementStyle::UnderlineSecondary
                                     },
+                                    false,
                                 );
                             }
                         }
@@ -2078,12 +2082,25 @@ fn draw_multiline_line(
     offset: usize,
     depth: usize,
     style: ElementStyle,
+    elided: bool,
 ) {
     let chr = match (style, renderer.decor_style) {
         (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Ascii) => '|',
         (_, DecorStyle::Ascii) => '|',
-        (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Unicode) => '┃',
-        (_, DecorStyle::Unicode) => '│',
+        (ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary, DecorStyle::Unicode) => {
+            if elided {
+                '┇'
+            } else {
+                '┃'
+            }
+        }
+        (_, DecorStyle::Unicode) => {
+            if elided {
+                '┆'
+            } else {
+                '│'
+            }
+        }
     };
     buffer.putc(line, offset + depth - 1, chr, style);
 }
@@ -2203,7 +2220,7 @@ fn draw_note_separator(
 fn draw_line_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usize, col: usize) {
     let (column, dots) = match renderer.decor_style {
         DecorStyle::Ascii => (0, "..."),
-        DecorStyle::Unicode => (col - 2, "‡"),
+        DecorStyle::Unicode => (col - 2, "┆"),
     };
     buffer.puts(line, column, dots, ElementStyle::LineNumber);
 }
