@@ -2,28 +2,45 @@ use core::cmp::Reverse;
 use core::fmt;
 
 use crate::{
-    Id, Level, Renderer, Report,
-    renderer::{ElementStyle, render::MessageOrTitle, source_map, styled_buffer::StyledBuffer},
+    Id, Renderer, Report,
+    renderer::{
+        ElementStyle,
+        render::{MessageOrTitle, PreProcessedElement, PreProcessedGroup, pre_process},
+        source_map,
+        styled_buffer::StyledBuffer,
+    },
 };
 
 pub(crate) fn render_no_graphics(
     renderer: &Renderer,
     groups: Report<'_>,
 ) -> Result<String, fmt::Error> {
-    let mut buffer = StyledBuffer::new();
-    let mut line = 0;
+    let mut output = String::new();
+    let group_len = groups.len();
+    let (_max_line_num, _og_primary_path, groups) = pre_process(groups);
 
-    for group in groups {
+    for (
+        g,
+        PreProcessedGroup {
+            group,
+            elements,
+            primary_path: _,
+            max_depth: _,
+        },
+    ) in groups.into_iter().enumerate()
+    {
+        let mut buffer = StyledBuffer::new();
+        let mut line = 0;
         if let Some(title) = &group.title {
             render_title(title, &mut line, &mut buffer);
         }
 
-        let mut message_iter = group.elements.iter().enumerate().peekable();
+        let mut message_iter = elements.into_iter().enumerate().peekable();
         let mut last_suggestion_path = None;
         while let Some((_i, section)) = message_iter.next() {
             let peek = message_iter.peek().map(|(_, s)| s);
             match section {
-                crate::Element::Message(message) => {
+                PreProcessedElement::Message(message) => {
                     if last_suggestion_path.is_some() && message.level.name == Some(None) {
                         let text = message.text.as_ref();
                         let text = text.strip_prefix("and ").unwrap_or(text);
@@ -37,7 +54,7 @@ pub(crate) fn render_no_graphics(
                         render_title(message, &mut line, &mut buffer);
                     }
                 }
-                crate::Element::Cause(snippet) => {
+                PreProcessedElement::Cause((snippet, _, _)) => {
                     let sm = source_map::SourceMap::new(&snippet.source, snippet.line_start);
 
                     let mut annotations = snippet.markers.iter().collect::<Vec<_>>();
@@ -74,12 +91,18 @@ pub(crate) fn render_no_graphics(
                         line += 1;
                     }
                 }
-                crate::Element::Suggestion(suggestion) => {
+                PreProcessedElement::Suggestion((
+                    suggestion,
+                    _source_map,
+                    _spliced_lines,
+                    _display_suggestion,
+                )) => {
                     let Some(first_patch) = suggestion.markers.first() else {
                         continue;
                     };
                     let sm = source_map::SourceMap::new(&suggestion.source, suggestion.line_start);
-                    let next_is_suggestion = matches!(peek, Some(crate::Element::Suggestion(_)));
+                    let next_is_suggestion =
+                        matches!(peek, Some(PreProcessedElement::Suggestion(_)));
 
                     let no_preceding_line = line == 0;
                     if no_preceding_line {
@@ -117,7 +140,7 @@ pub(crate) fn render_no_graphics(
                     }
                     last_suggestion_path = Some(suggestion.path.as_ref());
                 }
-                crate::Element::Origin(origin) => {
+                PreProcessedElement::Origin(origin) => {
                     buffer.append(line, "at ", ElementStyle::NoStyle);
                     buffer.append(line, &origin.path, ElementStyle::NoStyle);
                     if let Some(origin_line) = origin.line {
@@ -132,13 +155,16 @@ pub(crate) fn render_no_graphics(
                     }
                     line += 1;
                 }
-                crate::Element::Padding(_) => {}
+                PreProcessedElement::Padding(_) => {}
             }
+        }
+
+        buffer.render(&group.primary_level, &renderer.stylesheet, &mut output)?;
+        if g != group_len - 1 {
+            output.push('\n');
         }
     }
 
-    let mut output = String::new();
-    buffer.render(&Level::ERROR, &renderer.stylesheet, &mut output)?;
     Ok(output)
 }
 
