@@ -57,11 +57,11 @@ impl StyledBuffer {
                     current_style = ch_style;
                     write!(str, "{current_style}")?;
                 }
-                write!(str, "{ch}")?;
+                str.push(*ch);
             }
             write!(str, "{current_style:#}")?;
             if i != self.lines.len() - 1 {
-                writeln!(str)?;
+                str.push('\n');
             }
         }
         Ok(())

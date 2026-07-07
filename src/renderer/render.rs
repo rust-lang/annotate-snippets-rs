@@ -225,9 +225,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                 .render(&level, &renderer.stylesheet, &mut out_string)
                 .unwrap();
             if g != group_len - 1 {
-                use core::fmt::Write;
-
-                writeln!(out_string).unwrap();
+                out_string.push('\n');
             }
         }
         out_string
