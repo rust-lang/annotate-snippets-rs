@@ -1,6 +1,6 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
-use alloc::borrow::{Cow, ToOwned};
+use alloc::borrow::Cow;
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
@@ -225,9 +225,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                 .render(&level, &renderer.stylesheet, &mut out_string)
                 .unwrap();
             if g != group_len - 1 {
-                use core::fmt::Write;
-
-                writeln!(out_string).unwrap();
+                out_string.push('\n');
             }
         }
         out_string
@@ -401,7 +399,7 @@ fn render_title(
     });
 
     let (title_str, style) = if title.allows_styling() {
-        (title.text().to_owned(), ElementStyle::NoStyle)
+        (Cow::Borrowed(title.text()), ElementStyle::NoStyle)
     } else {
         (normalize_whitespace(title.text()), title_element_style)
     };
@@ -2513,17 +2511,25 @@ const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
     ('\u{2069}', "�"),
 ];
 
-pub(crate) fn normalize_whitespace(s: &str) -> String {
+pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
+    if !s
+        .chars()
+        .any(|user| OUTPUT_REPLACEMENTS.iter().any(|(bad, _)| user == *bad))
+    {
+        return Cow::Borrowed(s);
+    }
+
     // Scan the input string for a character in the ordered table above.
     // If it's present, replace it with its alternative string (it can be more than 1 char!).
     // Otherwise, retain the input char.
-    s.chars().fold(String::with_capacity(s.len()), |mut s, c| {
+    let normalized = s.chars().fold(String::with_capacity(s.len()), |mut s, c| {
         match OUTPUT_REPLACEMENTS.binary_search_by_key(&c, |(k, _)| *k) {
             Ok(i) => s.push_str(OUTPUT_REPLACEMENTS[i].1),
             _ => s.push(c),
         }
         s
-    })
+    });
+    Cow::Owned(normalized)
 }
 
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]

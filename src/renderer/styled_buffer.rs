@@ -46,6 +46,9 @@ impl StyledBuffer {
         stylesheet: &Stylesheet,
         str: &mut String,
     ) -> Result<(), fmt::Error> {
+        let capacity = self.lines.iter().map(|line| line.len()).sum();
+        str.reserve(capacity);
+
         for (i, line) in self.lines.iter().enumerate() {
             let mut current_style = stylesheet.none;
             for StyledChar { ch, style } in line {
@@ -57,11 +60,11 @@ impl StyledBuffer {
                     current_style = ch_style;
                     write!(str, "{current_style}")?;
                 }
-                write!(str, "{ch}")?;
+                str.push(*ch);
             }
             write!(str, "{current_style:#}")?;
             if i != self.lines.len() - 1 {
-                writeln!(str)?;
+                str.push('\n');
             }
         }
         Ok(())
@@ -82,8 +85,14 @@ impl StyledBuffer {
     /// If `line` does not exist in our buffer, adds empty lines up to the given
     /// and fills the last line with unstyled whitespace.
     pub(crate) fn puts(&mut self, line: usize, col: usize, string: &str, style: ElementStyle) {
-        for (offset, c) in string.chars().enumerate() {
-            self.putc(line, col + offset, c, style);
+        self.ensure_lines(line);
+        let line = &mut self.lines[line];
+        for (offset, chr) in string.chars().enumerate() {
+            let col = col + offset;
+            if col >= line.len() {
+                line.resize(col + 1, StyledChar::SPACE);
+            }
+            line[col] = StyledChar::new(chr, style);
         }
     }
 
