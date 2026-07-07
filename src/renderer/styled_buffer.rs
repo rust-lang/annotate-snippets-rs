@@ -46,6 +46,9 @@ impl StyledBuffer {
         stylesheet: &Stylesheet,
         str: &mut String,
     ) -> Result<(), fmt::Error> {
+        let capacity = self.lines.iter().map(|line| line.len()).sum();
+        str.reserve(capacity);
+
         for (i, line) in self.lines.iter().enumerate() {
             let mut current_style = stylesheet.none;
             for StyledChar { ch, style } in line {
