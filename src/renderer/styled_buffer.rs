@@ -87,7 +87,11 @@ impl StyledBuffer {
     pub(crate) fn puts(&mut self, line: usize, col: usize, string: &str, style: ElementStyle) {
         for (offset, chr) in string.chars().enumerate() {
             let col = col + offset;
-            self.putc(line, col, chr, style);
+            self.ensure_lines(line);
+            if col >= self.lines[line].len() {
+                self.lines[line].resize(col + 1, StyledChar::SPACE);
+            }
+            self.lines[line][col] = StyledChar::new(chr, style);
         }
     }
 
