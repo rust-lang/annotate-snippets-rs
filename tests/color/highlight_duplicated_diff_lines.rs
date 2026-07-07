@@ -6,9 +6,9 @@ use snapbox::{assert_data_eq, file};
 fn case() {
     // https://github.com/rust-lang/rust/blob/4b94758d2ba7d0ef71ccf5fde29ce4bc5d6fe2a4/tests/ui/argument-suggestions/wrong-highlight-span-extra-arguments-147070.rs
 
-    let source = r#"struct Thingie;
+    let source = r#"struct Thingy;
 
-impl Thingie {
+impl Thingy {
     pub(crate) fn new(
         _a: String,
         _b: String,
@@ -22,7 +22,7 @@ impl Thingie {
 }
 
 fn main() {
-    let foo = Thingie::new(
+    let foo = Thingy::new(
         String::from(""),
         String::from(""),
         String::from(""),
@@ -44,24 +44,24 @@ fn main() {
                     .path(path)
                     .annotation(
                         AnnotationKind::Context
-                            .span(429..445)
+                            .span(426..442)
                             .label("unexpected argument #7 of type `String`"),
                     )
-                    .annotation(AnnotationKind::Primary.span(251..263)),
+                    .annotation(AnnotationKind::Primary.span(249..260)),
             ),
         Level::NOTE
             .secondary_title("associated function defined here")
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .annotation(AnnotationKind::Primary.span(50..53)),
+                    .annotation(AnnotationKind::Primary.span(48..51)),
             ),
         Level::HELP
             .secondary_title("remove the extra argument")
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .patch(Patch::new(419..445, "")),
+                    .patch(Patch::new(413..439, "")),
             ),
     ];
 
