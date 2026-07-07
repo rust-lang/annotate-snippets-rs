@@ -4,9 +4,9 @@ use snapbox::{assert_data_eq, file};
 
 #[test]
 fn case() {
-    let source = r#"struct Thingie;
+    let source = r#"struct Thingy;
 
-impl Thingie {
+impl Thingy {
     pub(crate) fn new(
         _a: String,
         _b: String,
@@ -20,7 +20,7 @@ impl Thingie {
 }
 
 fn main() {
-    let foo = Thingie::new(
+    let foo = Thingy::new(
         String::from(""),
         String::from(""),
         String::from(""),
@@ -42,44 +42,44 @@ fn main() {
                     .path(path)
                     .annotation(
                         AnnotationKind::Context
-                            .span(429..445)
+                            .span(426..442)
                             .label("unexpected argument #7 of type `String`"),
                     )
-                    .annotation(AnnotationKind::Primary.span(251..263)),
+                    .annotation(AnnotationKind::Primary.span(249..260)),
             ),
         Level::NOTE
             .secondary_title("associated function defined here")
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .annotation(AnnotationKind::Primary.span(50..53)),
+                    .annotation(AnnotationKind::Primary.span(48..51)),
             ),
         Level::HELP
             .secondary_title("remove the extra argument")
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .patch(Patch::new(419..445, "")),
+                    .patch(Patch::new(416..442, "")),
             )
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .patch(Patch::new(266..292, "")),
+                    .patch(Patch::new(263..289, "")),
             )
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .patch(Patch::new(289..315, "")),
+                    .patch(Patch::new(286..312, "")),
             )
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .patch(Patch::new(403..420, "")),
+                    .patch(Patch::new(400..417, "")),
             )
             .element(
                 Snippet::source(source)
                     .path(path)
-                    .patch(Patch::new(419..445, "")),
+                    .patch(Patch::new(416..442, "")),
             ),
     ];
 
