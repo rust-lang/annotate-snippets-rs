@@ -124,22 +124,6 @@ impl StyledBuffer {
         );
     }
 
-    /// For given `line` inserts `string` with `style` before old content of that line,
-    /// adding lines if needed
-    pub(crate) fn prepend(&mut self, line: usize, string: &str, style: ElementStyle) {
-        self.ensure_lines(line);
-        let string_len = string.chars().count();
-
-        if !self.lines[line].is_empty() {
-            // Push the old content over to make room for new content
-            for _ in 0..string_len {
-                self.lines[line].insert(0, StyledChar::SPACE);
-            }
-        }
-
-        self.puts(line, 0, string, style);
-    }
-
     pub(crate) fn num_lines(&self) -> usize {
         self.lines.len()
     }
