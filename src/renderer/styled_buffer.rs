@@ -88,7 +88,7 @@ impl StyledBuffer {
         self.ensure_lines(line);
         let line = &mut self.lines[line];
 
-        let last_col = string.chars().enumerate().last().map(|(i, _)| col + i);
+        let last_col = string.chars().count().checked_sub(1).map(|i| col + i);
         if let Some(last_col) = last_col {
             if last_col >= line.len() {
                 line.resize(last_col + 1, StyledChar::SPACE);
