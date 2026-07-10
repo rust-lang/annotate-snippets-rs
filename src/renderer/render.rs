@@ -1451,16 +1451,6 @@ fn emit_suggestion_default(
     let (complete, parts, highlights, replaced_highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
-    if matches_previous_suggestion {
-        buffer.puts(
-            row_num - 1,
-            max_line_num_len + 1,
-            renderer.decor_style.multi_suggestion_separator(),
-            ElementStyle::LineNumber,
-        );
-    } else {
-        draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
-    }
     if suggestion.path.as_ref() != primary_path
         && let Some(path) = suggestion.path.as_ref()
         && !matches_previous_suggestion
@@ -1478,6 +1468,15 @@ fn emit_suggestion_default(
         }
         draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
         row_num += 1;
+    } else if matches_previous_suggestion {
+        buffer.puts(
+            row_num - 1,
+            max_line_num_len + 1,
+            renderer.decor_style.multi_suggestion_separator(),
+            ElementStyle::LineNumber,
+        );
+    } else {
+        draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
     }
 
     if let DisplaySuggestion::Diff = show_code_change {
