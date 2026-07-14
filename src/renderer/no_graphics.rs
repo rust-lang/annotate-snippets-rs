@@ -183,7 +183,7 @@ pub(crate) fn render_no_graphics(
                                 &format!(" {on} line {}, column {col}", lo.line),
                                 ElementStyle::NoStyle,
                             );
-                            if replacement.trim().len() > 0 {
+                            if !replacement.trim().is_empty() {
                                 // If it is a removal, we shorten the output.
                                 //
                                 // help: suggestion message to remove something
@@ -196,7 +196,7 @@ pub(crate) fn render_no_graphics(
                     if next_is_suggestion || last_suggestion_path.is_some() {
                         // Multiple suggestions.
                         buffer.append(line, &format!("  {replacement}"), ElementStyle::NoStyle);
-                    } else if replacement.trim().len() > 0 {
+                    } else if !replacement.trim().is_empty() {
                         // Single addition suggestion
                         buffer.append(line, &format!("`{replacement}`"), ElementStyle::NoStyle);
                     }
