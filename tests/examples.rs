@@ -1,3 +1,4 @@
+#![feature(os_str_display)]
 use std::collections::BTreeSet;
 
 #[test]

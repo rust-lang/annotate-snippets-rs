@@ -1,11 +1,15 @@
-<svg width="1675px" height="164px" xmlns="http://www.w3.org/2000/svg">
+<svg width="740px" height="290px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
+    .fg-bright-cyan { fill: #55FFFF }
+    .fg-bright-green { fill: #55FF55 }
+    .fg-bright-red { fill: #FF5555 }
     .container {
       padding: 0 10px;
       line-height: 18px;
     }
+    .bold { font-weight: bold; }
     tspan {
       font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
       white-space: pre;
@@ -16,21 +20,35 @@
   <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
 
   <text xml:space="preserve" class="container fg">
-    <tspan x="10px" y="28px"><tspan>error E0423: cannot initialize a tuple struct which contains private fields</tspan>
+    <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan> E0423: </tspan><tspan class="bold">cannot initialize a tuple struct which contains private fields</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan>at $DIR/suggest-box-new.rs, on line 8, column 19</tspan>
+    <tspan x="10px" y="46px"><tspan> at $DIR/suggest-box-new.rs, on line 8, column 19</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan>note: constructor is not visible here due to private fields</tspan>
+    <tspan x="10px" y="64px"><tspan class="fg-bright-green bold">note</tspan><tspan>: </tspan><tspan class="bold">constructor is not visible here due to private fields</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan>at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 2</tspan>
+    <tspan x="10px" y="82px"><tspan> at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 2</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan>note: private field</tspan>
+    <tspan x="10px" y="100px"><tspan class="fg-bright-green bold">note</tspan><tspan>: private field</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan>note: private field</tspan>
+    <tspan x="10px" y="118px"><tspan class="fg-bright-green bold">note</tspan><tspan>: private field</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan>help: you might have meant to use an associated function to build this type: at line 8, column 21, add one of `::new(_)`, `::new_uninit()`, `::new_zeroed()`, `::new_in(_, _)` or 12 other candidates</tspan>
+    <tspan x="10px" y="136px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">you might have meant to use an associated function to build this type</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan>help: consider using the `Default` trait: at line 8, column 18, add `&lt;`</tspan>
+    <tspan x="10px" y="154px"><tspan> at line 8, column 21, add one of</tspan>
+</tspan>
+    <tspan x="10px" y="172px"><tspan>  ::new(_)</tspan>
+</tspan>
+    <tspan x="10px" y="190px"><tspan>  ::new_uninit()</tspan>
+</tspan>
+    <tspan x="10px" y="208px"><tspan>  ::new_zeroed()</tspan>
+</tspan>
+    <tspan x="10px" y="226px"><tspan>  ::new_in(_, _)</tspan>
+</tspan>
+    <tspan x="10px" y="244px"><tspan>  or 12 other candidates</tspan>
+</tspan>
+    <tspan x="10px" y="262px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">consider using the `Default` trait</tspan>
+</tspan>
+    <tspan x="10px" y="280px"><tspan> at line 8, column 18, add `&lt;`</tspan>
 </tspan>
   </text>
 

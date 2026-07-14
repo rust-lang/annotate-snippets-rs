@@ -2,10 +2,12 @@
   <style>
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
+    .fg-bright-red { fill: #FF5555 }
     .container {
       padding: 0 10px;
       line-height: 18px;
     }
+    .bold { font-weight: bold; }
     tspan {
       font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
       white-space: pre;
@@ -16,7 +18,7 @@
   <rect width="100%" height="100%" y="0" rx="4.5" class="bg" />
 
   <text xml:space="preserve" class="container fg">
-    <tspan x="10px" y="28px"><tspan>error: </tspan>
+    <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan>: </tspan>
 </tspan>
     <tspan x="10px" y="46px"><tspan> on line 97, column 17: Variable defined here</tspan>
 </tspan>

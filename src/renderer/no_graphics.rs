@@ -32,7 +32,7 @@ pub(crate) fn render_no_graphics(
         let mut buffer = StyledBuffer::new();
         let mut line = 0;
         if let Some(title) = &group.title {
-            render_title(title, &mut line, &mut buffer);
+            render_title(title, &mut line, &mut buffer, ElementStyle::MainHeaderMsg);
         }
 
         let mut message_iter = elements.into_iter().enumerate().peekable();
@@ -45,13 +45,12 @@ pub(crate) fn render_no_graphics(
                         let text = message.text.as_ref();
                         let text = text.strip_prefix("and ").unwrap_or(text);
 
-                        let target = line - 1;
-                        buffer.append(target, " or ", ElementStyle::NoStyle);
-                        buffer.append(target, text, ElementStyle::NoStyle);
+                        buffer.append(line, "  or ", ElementStyle::NoStyle);
+                        buffer.append(line, text, ElementStyle::NoStyle);
                         last_suggestion_path = None;
                     } else {
                         last_suggestion_path = None;
-                        render_title(message, &mut line, &mut buffer);
+                        render_title(message, &mut line, &mut buffer, ElementStyle::HeaderMsg);
                     }
                 }
                 PreProcessedElement::Cause((snippet, _, _)) => {
@@ -69,7 +68,7 @@ pub(crate) fn render_no_graphics(
                             sm.span_to_locations(annotation.span.start..annotation.span.end);
                         if i == 0 {
                             if let Some(path) = &snippet.path {
-                                buffer.append(line, "at ", ElementStyle::NoStyle);
+                                buffer.append(line, " at ", ElementStyle::NoStyle);
                                 buffer.append(line, path, ElementStyle::NoStyle);
                                 buffer.append(line, ",", ElementStyle::NoStyle);
                             }
@@ -114,24 +113,24 @@ pub(crate) fn render_no_graphics(
                     if no_preceding_line {
                         line += 1;
                     }
-                    let target = line - 1;
                     if last_suggestion_path.is_none() {
                         let (lo, _) =
                             sm.span_to_locations(first_patch.span.start..first_patch.span.end);
                         let col = lo.char.max(1);
-                        let separator = if no_preceding_line { "" } else { ": " };
+                        let separator = " ";
                         if next_is_suggestion {
                             buffer.append(
-                                target,
+                                line,
                                 &format!(
-                                    "{separator}at line {}, column {col}, add one of ",
+                                    "{separator}at line {}, column {col}, add one of",
                                     lo.line
                                 ),
                                 ElementStyle::NoStyle,
                             );
+                            line += 1;
                         } else {
                             buffer.append(
-                                target,
+                                line,
                                 &format!("{separator}at line {}, column {col}, add ", lo.line),
                                 ElementStyle::NoStyle,
                             );
@@ -139,15 +138,17 @@ pub(crate) fn render_no_graphics(
                     }
 
                     let replacement = first_patch.replacement.trim_end_matches('\n');
-                    buffer.append(target, &format!("`{replacement}`"), ElementStyle::NoStyle);
-
-                    if next_is_suggestion {
-                        buffer.append(target, ", ", ElementStyle::NoStyle);
+                    if next_is_suggestion || last_suggestion_path.is_some() {
+                        buffer.append(line, &format!("  {replacement}"), ElementStyle::NoStyle);
+                    } else {
+                        buffer.append(line, &format!("`{replacement}`"), ElementStyle::NoStyle);
                     }
+                    line += 1;
+
                     last_suggestion_path = Some(suggestion.path.as_ref());
                 }
                 PreProcessedElement::Origin(origin) => {
-                    buffer.append(line, "at ", ElementStyle::NoStyle);
+                    buffer.append(line, " at ", ElementStyle::NoStyle);
                     buffer.append(line, &origin.path, ElementStyle::NoStyle);
                     if let Some(origin_line) = origin.line {
                         buffer.append(
@@ -174,11 +175,20 @@ pub(crate) fn render_no_graphics(
     Ok(output)
 }
 
-fn render_title(title: &dyn MessageOrTitle, line: &mut usize, buffer: &mut StyledBuffer) {
+fn render_title(
+    title: &dyn MessageOrTitle,
+    line: &mut usize,
+    buffer: &mut StyledBuffer,
+    style: ElementStyle,
+) {
     let mut label_width = 0;
 
     if title.level().name != Some(None) {
-        buffer.append(*line, title.level().as_str(), ElementStyle::NoStyle);
+        buffer.append(
+            *line,
+            title.level().as_str(),
+            ElementStyle::Level(title.level().level),
+        );
         label_width += title.level().as_str().len();
 
         if let Some(Id {
@@ -200,7 +210,7 @@ fn render_title(title: &dyn MessageOrTitle, line: &mut usize, buffer: &mut Style
         if i != 0 {
             buffer.append(*line, &padding, ElementStyle::NoStyle);
         }
-        buffer.append(*line, text, ElementStyle::NoStyle);
+        buffer.append(*line, text, style);
         *line += 1;
     }
 }
