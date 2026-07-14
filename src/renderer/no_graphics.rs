@@ -59,6 +59,7 @@ pub(crate) fn render_no_graphics(
                     let mut annotations = snippet.markers.iter().collect::<Vec<_>>();
                     annotations.sort_by_key(|a| (Reverse(a.kind.is_primary()), a.span.start));
 
+                    let start_line = line;
                     for (i, annotation) in annotations.iter().enumerate() {
                         let label = annotation.label.as_ref().filter(|s| !s.is_empty());
                         if i > 0 && label.is_none() {
@@ -83,9 +84,14 @@ pub(crate) fn render_no_graphics(
                             )
                         };
 
+                        let indent = if start_line == line { "" } else { " " };
                         buffer.append(
                             line,
-                            &format!(" {prefix} line {}, column {}{suffix}", lo.line, lo.char + 1),
+                            &format!(
+                                " {indent}{prefix} line {}, column {}{suffix}",
+                                lo.line,
+                                lo.char + 1
+                            ),
                             ElementStyle::NoStyle,
                         );
 

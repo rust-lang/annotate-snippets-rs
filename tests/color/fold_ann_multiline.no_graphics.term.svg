@@ -22,7 +22,7 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan> at src/format.rs, from line 52, column 1 to line 72, column 6: expected enum `std::option::Option`, found ()</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> on line 51, column 6: expected `std::option::Option&lt;std::string::String&gt;` because of return type</tspan>
+    <tspan x="10px" y="64px"><tspan>  on line 51, column 6: expected `std::option::Option&lt;std::string::String&gt;` because of return type</tspan>
 </tspan>
   </text>
 
