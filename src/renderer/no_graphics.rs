@@ -2,7 +2,7 @@ use core::cmp::Reverse;
 use core::fmt;
 
 use crate::{
-    Id, Message, Renderer, Report,
+    Id, Renderer, Report,
     renderer::{
         ElementStyle,
         render::{MessageOrTitle, PreProcessedElement, PreProcessedGroup, pre_process},
@@ -26,7 +26,7 @@ pub(crate) fn render_no_graphics(
     //   at line LL, column KK, add `suggestion`
 
     let mut output = String::new();
-    let (_max_line_num, _og_primary_path, groups) = pre_process(groups);
+    let (_max_line_num, og_primary_path, groups) = pre_process(groups);
 
     let mut iter = groups.into_iter().peekable();
     while let Some(PreProcessedGroup {
@@ -144,6 +144,20 @@ pub(crate) fn render_no_graphics(
                         let (lo, _) =
                             sm.span_to_locations(first_patch.span.start..first_patch.span.end);
                         let col = lo.char.max(1);
+                        let on = match (&suggestion.path, og_primary_path) {
+                            (Some(path), Some(primary)) if path != primary => {
+                                // We only include the file path when it is different to the
+                                // primary file.
+                                //
+                                // `at $DIR/file.txt, on line LL, column CC: label`
+                                //  ^^^^^^^^^^^^^^^^^
+                                buffer.append(line, " at ", ElementStyle::NoStyle);
+                                buffer.append(line, path, ElementStyle::NoStyle);
+                                buffer.append(line, ",", ElementStyle::NoStyle);
+                                "on"
+                            }
+                            _ => "at",
+                        };
                         if next_is_suggestion {
                             // We have multiple suggestions. We will render on their own line, first
                             // the message, then the position, and finally each of the suggestions.
@@ -154,7 +168,7 @@ pub(crate) fn render_no_graphics(
                             //   second suggestion
                             buffer.append(
                                 line,
-                                &format!(" at line {}, column {col}, add one of", lo.line),
+                                &format!(" {on} line {}, column {col}, add one of", lo.line),
                                 ElementStyle::NoStyle,
                             );
                             line += 1;
@@ -166,7 +180,7 @@ pub(crate) fn render_no_graphics(
                             //  at line LL, column CC, add `addition`
                             buffer.append(
                                 line,
-                                &format!(" at line {}, column {col}", lo.line),
+                                &format!(" {on} line {}, column {col}", lo.line),
                                 ElementStyle::NoStyle,
                             );
                             if replacement.trim().len() > 0 {

@@ -5952,7 +5952,7 @@ error E0624: method `five_years` is private
  at lib.rs, on line 1, column 9: private method
  at other.rs, on line 1, column 4: private method defined here
 help: consider making `bar` public
- at line 1, column 1, add `pub `
+ at other.rs, on line 1, column 1, add `pub `
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);

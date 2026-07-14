@@ -383,3 +383,57 @@ note: this error originates in the macro `hello` (in Nightly builds, run with -Z
     let renderer_no_graphics = Renderer::plain().no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
+
+#[test]
+fn foreign_suggestion() {
+    let source1 = r#"
+fn main() {
+    hello!();
+}
+"#;
+    let source2 = r#"
+macro_rules! hello {
+    () => {{ foo() }}
+}
+"#;
+    let report = &[
+        Level::ERROR.primary_title("foo").element(
+            Snippet::source(source1)
+                .path("$DIR/foo.rs")
+                .annotation(AnnotationKind::Primary.span(17..25)),
+        ),
+        Level::HELP
+            .secondary_title("consider removing this")
+            .element(
+                Snippet::source(source2)
+                    .path("$DIR/macro.rs")
+                    .patch(Patch::new(35..40, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: foo
+  --> $DIR/foo.rs:3:5
+   |
+LL |     hello!();
+   |     ^^^^^^^^
+   |
+help: consider removing this
+  --> $DIR/macro.rs:3:14
+   |
+LL -     () => {{ foo() }}
+LL +     () => {{  }}
+   |
+"#]];
+    let renderer_ascii = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer_ascii.render(report), expected_ascii);
+
+    let expected_no_graphics = str![[r#"
+error: foo
+ at $DIR/foo.rs, on line 3, column 5
+help: consider removing this
+ at $DIR/macro.rs, on line 3, column 13
+"#]];
+    let renderer_no_graphics = Renderer::plain().no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
+}
