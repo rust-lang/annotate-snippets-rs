@@ -32,7 +32,7 @@
 </tspan>
     <tspan x="10px" y="118px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">remove the extra argument</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan> at line 23, column 21, add ``</tspan>
+    <tspan x="10px" y="136px"><tspan> at line 23, column 21</tspan>
 </tspan>
   </text>
 

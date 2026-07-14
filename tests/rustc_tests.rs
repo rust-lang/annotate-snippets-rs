@@ -6398,7 +6398,7 @@ help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is 
 error: unknown start of token:  
  at $DIR/emitter-overflow-bad-whitespace.rs, on line 10, column 1
 help: Unicode character ' ' (No-Break Space) looks like ' ' (Space), but it is not
- at line 10, column 1, add ` `
+ at line 10, column 1
 "#]];
     let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
@@ -6648,7 +6648,7 @@ error: these match arms have identical bodies
  on line 22, column 9: the wildcard arm
 help: if this is unintentional make the arms return different values
 help: otherwise remove the non-wildcard arms
- at line 20, column 8, add ``
+ at line 20, column 8
 "#]];
     let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);

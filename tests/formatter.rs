@@ -2468,7 +2468,7 @@ help: there is a crate or module with a similar name
 help: consider importing this module
  at line 2, column 1, add `use std::cell;`
 help: if you import `cell`, refer to it directly
- at line 13, column 9, add ``
+ at line 13, column 9
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -2561,7 +2561,7 @@ error E0277: the size for values of type `T` cannot be known at compilation time
  on line 4, column 16: doesn't have a size known at compile-time
  on line 4, column 8: this type parameter needs to be `Sized`
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
- at line 6, column 1, add ``
+ at line 6, column 1
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -2721,7 +2721,7 @@ help: you could relax the implicit `Sized` bound on `T` if it were used through 
  at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs, on line 2, column 16: this could be changed to `T: ?Sized`...
  on line 2, column 19: ...if indirection were used here: `Box<T>`
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
- at line 6, column 4, add ``
+ at line 6, column 4
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);
@@ -2798,7 +2798,7 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
     let expected_no_graphics = str![[r#"
 error E0277: the size for values of type `T` cannot be known at compilation time
 help: consider removing the `?Sized` bound to make the type parameter `Sized`
- at line 8, column 2, add ``
+ at line 8, column 2
 "#]];
     let renderer = renderer.no_graphics(true);
     assert_data_eq!(renderer.render(input), expected_no_graphics);

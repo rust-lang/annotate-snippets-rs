@@ -113,6 +113,7 @@ pub(crate) fn render_no_graphics(
                     if no_preceding_line {
                         line += 1;
                     }
+                    let replacement = first_patch.replacement.trim_end_matches('\n');
                     if last_suggestion_path.is_none() {
                         let (lo, _) =
                             sm.span_to_locations(first_patch.span.start..first_patch.span.end);
@@ -131,16 +132,19 @@ pub(crate) fn render_no_graphics(
                         } else {
                             buffer.append(
                                 line,
-                                &format!("{separator}at line {}, column {col}, add ", lo.line),
+                                &format!("{separator}at line {}, column {col}", lo.line),
                                 ElementStyle::NoStyle,
                             );
+                            if replacement.trim().len() > 0 {
+                                // If it is a removal, we shorten the output.
+                                buffer.append(line, ", add ", ElementStyle::NoStyle);
+                            }
                         }
                     }
 
-                    let replacement = first_patch.replacement.trim_end_matches('\n');
                     if next_is_suggestion || last_suggestion_path.is_some() {
                         buffer.append(line, &format!("  {replacement}"), ElementStyle::NoStyle);
-                    } else {
+                    } else if replacement.trim().len() > 0 {
                         buffer.append(line, &format!("`{replacement}`"), ElementStyle::NoStyle);
                     }
                     line += 1;
