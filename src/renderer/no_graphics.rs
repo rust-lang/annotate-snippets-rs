@@ -2,7 +2,7 @@ use core::cmp::Reverse;
 use core::fmt;
 
 use crate::{
-    Id, Renderer, Report,
+    Id, Message, Renderer, Report,
     renderer::{
         ElementStyle,
         render::{MessageOrTitle, PreProcessedElement, PreProcessedGroup, pre_process},
@@ -15,19 +15,26 @@ pub(crate) fn render_no_graphics(
     renderer: &Renderer,
     groups: Report<'_>,
 ) -> Result<String, fmt::Error> {
+    // We will render output as follows:
+    //
+    // error EXXXX: main message
+    //  on $DIR/file.ext, line LL, column CC: span label
+    //   at line LL, column KK: span label
+    // note: note message
+    //  on $DIR/file.ext, line LL, column CC
+    // help: suggestion message
+    //   at line LL, column KK, add `suggestion`
+
     let mut output = String::new();
-    let group_len = groups.len();
     let (_max_line_num, _og_primary_path, groups) = pre_process(groups);
 
-    for (
-        g,
-        PreProcessedGroup {
-            group,
-            elements,
-            primary_path: _,
-            max_depth: _,
-        },
-    ) in groups.into_iter().enumerate()
+    let mut iter = groups.into_iter().peekable();
+    while let Some(PreProcessedGroup {
+        group,
+        elements,
+        primary_path: _,
+        max_depth: _,
+    }) = iter.next()
     {
         let mut buffer = StyledBuffer::new();
         let mut line = 0;
@@ -69,6 +76,8 @@ pub(crate) fn render_no_graphics(
                             sm.span_to_locations(annotation.span.start..annotation.span.end);
                         if i == 0 {
                             if let Some(path) = &snippet.path {
+                                // `at $DIR/file.txt, on line LL, column CC: label`
+                                //  ^^^^^^^^^^^^^^^^^
                                 buffer.append(line, " at ", ElementStyle::NoStyle);
                                 buffer.append(line, path, ElementStyle::NoStyle);
                                 buffer.append(line, ",", ElementStyle::NoStyle);
@@ -76,14 +85,21 @@ pub(crate) fn render_no_graphics(
                         }
 
                         let (prefix, suffix) = if lo.line == hi.line {
+                            // `on line LL, column CC`
+                            //  ^^
                             ("on", String::new())
                         } else {
+                            // This is a multiline highlight, so we mention both the start and the
+                            // end. `from line LL, column CC to line MM, column DD`
+                            //       ^^^^                   ^^^^^^^^^^^^^^^^^^^^^^
                             (
                                 "from",
                                 format!(" to line {}, column {}", hi.line, hi.char + 1),
                             )
                         };
 
+                        // If the position within the file is on its own line, without a path, we
+                        // indent it one space further.
                         let indent = if start_line == line { "" } else { " " };
                         buffer.append(
                             line,
@@ -96,6 +112,10 @@ pub(crate) fn render_no_graphics(
                         );
 
                         if let Some(label) = label {
+                            // If the span has a label, we render it to the right of the position
+                            // information.
+                            // `on line LL, column CC: this is the label`
+                            //                       ^^^^^^^^^^^^^^^^^^^
                             buffer.append(line, ": ", ElementStyle::NoStyle);
                             buffer.append(line, label, ElementStyle::NoStyle);
                         }
@@ -124,33 +144,46 @@ pub(crate) fn render_no_graphics(
                         let (lo, _) =
                             sm.span_to_locations(first_patch.span.start..first_patch.span.end);
                         let col = lo.char.max(1);
-                        let separator = " ";
                         if next_is_suggestion {
+                            // We have multiple suggestions. We will render on their own line, first
+                            // the message, then the position, and finally each of the suggestions.
+                            //
+                            // help: suggestion message
+                            //  at line LL, column CC, add one of
+                            //   first suggestion
+                            //   second suggestion
                             buffer.append(
                                 line,
-                                &format!(
-                                    "{separator}at line {}, column {col}, add one of",
-                                    lo.line
-                                ),
+                                &format!(" at line {}, column {col}, add one of", lo.line),
                                 ElementStyle::NoStyle,
                             );
                             line += 1;
                         } else {
+                            // We have a single suggestion. We will render first the message, then
+                            // the position followed by the suggestion on the next line.
+                            //
+                            // help: suggestion message
+                            //  at line LL, column CC, add `addition`
                             buffer.append(
                                 line,
-                                &format!("{separator}at line {}, column {col}", lo.line),
+                                &format!(" at line {}, column {col}", lo.line),
                                 ElementStyle::NoStyle,
                             );
                             if replacement.trim().len() > 0 {
                                 // If it is a removal, we shorten the output.
+                                //
+                                // help: suggestion message to remove something
+                                //  at line LL, column CC
                                 buffer.append(line, ", add ", ElementStyle::NoStyle);
                             }
                         }
                     }
 
                     if next_is_suggestion || last_suggestion_path.is_some() {
+                        // Multiple suggestions.
                         buffer.append(line, &format!("  {replacement}"), ElementStyle::NoStyle);
                     } else if replacement.trim().len() > 0 {
+                        // Single addition suggestion
                         buffer.append(line, &format!("`{replacement}`"), ElementStyle::NoStyle);
                     }
                     line += 1;
@@ -177,7 +210,7 @@ pub(crate) fn render_no_graphics(
         }
 
         buffer.render(&group.primary_level, &renderer.stylesheet, &mut output)?;
-        if g != group_len - 1 {
+        if iter.peek().is_some() {
             output.push('\n');
         }
     }
@@ -194,6 +227,8 @@ fn render_title(
     let mut label_width = 0;
 
     if title.level().name != Some(None) {
+        // error EXXXX: message
+        // ^^^^^
         buffer.append(
             *line,
             title.level().as_str(),
@@ -206,15 +241,21 @@ fn render_title(
             url: _,
         }) = &title.id()
         {
+            // error EXXXX: message
+            //       ^^^^^
             buffer.append(*line, " ", ElementStyle::NoStyle);
             buffer.append(*line, id, ElementStyle::NoStyle);
             label_width += 1 + id.len();
         }
+        // error EXXXX: message
+        //            ^
         buffer.append(*line, ": ", ElementStyle::NoStyle);
         label_width += 2;
     }
     let padding = " ".repeat(label_width);
 
+    // error EXXXX: message
+    //              ^^^^^^^
     let title_str = title.text();
     for (i, text) in title_str.split('\n').enumerate() {
         if i != 0 {
