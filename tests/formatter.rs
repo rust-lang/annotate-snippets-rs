@@ -5177,3 +5177,60 @@ help: consider making `bar` public
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn ensure_col_with_second_snippet_without_folding() {
+    let input = &[Level::ERROR
+        .primary_title("main diagnostic message")
+        .id("test-diagnostics")
+        .element(
+            Snippet::source("aardvark\nbeetle\ncanary\n")
+                .path("animals")
+                .fold(false)
+                .annotation(AnnotationKind::Primary.span(0..8)),
+        )
+        .element(
+            Snippet::source("inchworm\njackrabbit\nkangaroo\n")
+                .path("animals")
+                .fold(false)
+                .annotation(AnnotationKind::Context.span(20..28)),
+        )];
+
+    let expected_ascii = str![[r#"
+error[test-diagnostics]: main diagnostic message
+ --> animals:1:1
+  |
+1 | aardvark
+  | ^^^^^^^^
+2 | beetle
+3 | canary
+  |
+ ::: animals:1
+  |
+1 | inchworm
+2 | jackrabbit
+3 | kangaroo
+  | --------
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[test-diagnostics]: main diagnostic message
+  ╭▸ animals:1:1
+  │
+1 │ aardvark
+  │ ━━━━━━━━
+2 │ beetle
+3 │ canary
+  │
+  ⸬  animals:1
+  │
+1 │ inchworm
+2 │ jackrabbit
+3 │ kangaroo
+  ╰╴────────
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
