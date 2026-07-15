@@ -1,4 +1,4 @@
-<svg width="860px" height="74px" xmlns="http://www.w3.org/2000/svg">
+<svg width="740px" height="74px" xmlns="http://www.w3.org/2000/svg">
   <style>
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
@@ -20,9 +20,9 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan>: </tspan><tspan class="bold">expected one of `.`, `;`, `?`, or an operator, found `for`</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at src/format_color.rs, on line 171, column 9: unexpected token</tspan>
+    <tspan x="10px" y="46px"><tspan> at src/format_color.rs:171:9: unexpected token</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan>  from line 169, column 11 to line 170, column 1: expected one of `.`, `;`, `?`, or an operator here</tspan>
+    <tspan x="10px" y="64px"><tspan>  on 169:11 to 170:1: expected one of `.`, `;`, `?`, or an operator here</tspan>
 </tspan>
   </text>
 

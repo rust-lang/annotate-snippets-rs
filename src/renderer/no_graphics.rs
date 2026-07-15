@@ -19,12 +19,12 @@ pub(crate) fn render_no_graphics(
     // We will render output as follows:
     //
     // error EXXXX: main message
-    //  on $DIR/file.ext, line LL, column CC: span label
-    //   at line LL, column KK: span label
+    //  on $DIR/file.ext:LL:CC: span label
+    //   at LL:KK: span label
     // note: note message
-    //  on $DIR/file.ext, line LL, column CC
+    //  on $DIR/file.ext:LL:CC
     // help: suggestion message
-    //   at line LL, column KK, add `suggestion`
+    //   at LL:KK, add `suggestion`
 
     let mut output = String::new();
     let (_max_line_num, og_primary_path, groups) = pre_process(groups);
@@ -67,7 +67,6 @@ pub(crate) fn render_no_graphics(
                     let mut annotations = snippet.markers.iter().collect::<Vec<_>>();
                     annotations.sort_by_key(|a| (Reverse(a.kind.is_primary()), a.span.start));
 
-                    let start_line = line;
                     for (i, annotation) in annotations.iter().enumerate() {
                         let label = annotation.label.as_ref().filter(|s| !s.is_empty());
                         if i > 0 && label.is_none() {
@@ -77,46 +76,40 @@ pub(crate) fn render_no_graphics(
                             sm.span_to_locations(annotation.span.start..annotation.span.end);
                         if i == 0 {
                             if let Some(path) = &snippet.path {
-                                // `at $DIR/file.txt, on line LL, column CC: label`
+                                // `at $DIR/file.txt:LL:CC: label`
                                 //  ^^^^^^^^^^^^^^^^^
                                 buffer.append(line, " at ", ElementStyle::NoStyle);
                                 buffer.append(line, path, ElementStyle::NoStyle);
-                                buffer.append(line, ",", ElementStyle::NoStyle);
+                                buffer.append(line, ":", ElementStyle::NoStyle);
                             }
+                        } else {
+                            // We are not printing the path, so instead we show `on LL:CC`
+                            buffer.append(line, "  on ", ElementStyle::NoStyle);
                         }
 
-                        let (prefix, suffix) = if lo.line == hi.line {
-                            // `on line LL, column CC`
-                            //  ^^
-                            ("on", String::new())
-                        } else {
-                            // This is a multiline highlight, so we mention both the start and the
-                            // end. `from line LL, column CC to line MM, column DD`
-                            //       ^^^^                   ^^^^^^^^^^^^^^^^^^^^^^
-                            (
-                                "from",
-                                format!(" to line {}, column {}", hi.line, hi.char + 1),
-                            )
-                        };
-
-                        // If the position within the file is on its own line, without a path, we
-                        // indent it one space further.
-                        let indent = if start_line == line { "" } else { " " };
+                        // `at $DIR/file.txt:LL:CC: label`
+                        //                   ^^^^^
                         buffer.append(
                             line,
-                            &format!(
-                                " {indent}{prefix} line {}, column {}{suffix}",
-                                lo.line,
-                                lo.char + 1
-                            ),
+                            &format!("{}:{}", lo.line, lo.char + 1),
                             ElementStyle::NoStyle,
                         );
+                        if lo.line != hi.line {
+                            // This is a multiline highlight, so we mention both the start and the
+                            // end. `LL:CC to MM:DD`
+                            //            ^^^^^^^^^
+                            buffer.append(
+                                line,
+                                &format!(" to {}:{}", hi.line, hi.char + 1),
+                                ElementStyle::NoStyle,
+                            );
+                        }
 
                         if let Some(label) = label {
                             // If the span has a label, we render it to the right of the position
                             // information.
-                            // `on line LL, column CC: this is the label`
-                            //                       ^^^^^^^^^^^^^^^^^^^
+                            // `at $DIR/file.txt:LL:CC: this is the label`
+                            //                        ^^^^^^^^^^^^^^^^^^^
                             buffer.append(line, ": ", ElementStyle::NoStyle);
                             buffer.append(line, label, ElementStyle::NoStyle);
                         }
@@ -145,20 +138,21 @@ pub(crate) fn render_no_graphics(
                         let (lo, _) =
                             sm.span_to_locations(first_patch.span.start..first_patch.span.end);
                         let col = lo.char.max(1);
-                        let on = match (&suggestion.path, og_primary_path) {
+                        match (&suggestion.path, og_primary_path) {
                             (Some(path), Some(primary)) if path != primary => {
                                 // We only include the file path when it is different to the
                                 // primary file.
                                 //
-                                // `at $DIR/file.txt, on line LL, column CC: label`
+                                // `at $DIR/file.txt:LL:CC: label`
                                 //  ^^^^^^^^^^^^^^^^^
                                 buffer.append(line, " at ", ElementStyle::NoStyle);
                                 buffer.append(line, path, ElementStyle::NoStyle);
-                                buffer.append(line, ",", ElementStyle::NoStyle);
-                                "on"
+                                buffer.append(line, ":", ElementStyle::NoStyle);
                             }
-                            _ => "at",
-                        };
+                            _ => {
+                                buffer.append(line, " at ", ElementStyle::NoStyle);
+                            }
+                        }
                         if next_is_suggestion {
                             // We have multiple suggestions. We will render on their own line, first
                             // the message, then the position, and finally each of the suggestions.
@@ -169,7 +163,7 @@ pub(crate) fn render_no_graphics(
                             //   second suggestion
                             buffer.append(
                                 line,
-                                &format!(" {on} line {}, column {col}, add one of", lo.line),
+                                &format!("{}:{col}, add one of", lo.line),
                                 ElementStyle::NoStyle,
                             );
                             line += 1;
@@ -178,10 +172,10 @@ pub(crate) fn render_no_graphics(
                             // the position followed by the suggestion on the next line.
                             //
                             // help: suggestion message
-                            //  at line LL, column CC, add `addition`
+                            //  at line LL:CC, add `addition`
                             buffer.append(
                                 line,
-                                &format!(" {on} line {}, column {col}", lo.line),
+                                &format!("{}:{col}", lo.line),
                                 ElementStyle::NoStyle,
                             );
                             if !replacement.trim().is_empty() {
@@ -196,10 +190,13 @@ pub(crate) fn render_no_graphics(
 
                     if next_is_suggestion || last_suggestion_path.is_some() {
                         // Multiple suggestions.
-                        buffer.append(line, &format!("  {replacement}"), ElementStyle::NoStyle);
+                        buffer.append(line, "  ", ElementStyle::NoStyle);
+                        buffer.append(line, &replacement, ElementStyle::NoStyle);
                     } else if !replacement.trim().is_empty() {
                         // Single addition suggestion
-                        buffer.append(line, &format!("`{replacement}`"), ElementStyle::NoStyle);
+                        buffer.append(line, &format!("`"), ElementStyle::NoStyle);
+                        buffer.append(line, &replacement, ElementStyle::NoStyle);
+                        buffer.append(line, &format!("`"), ElementStyle::NoStyle);
                     }
                     line += 1;
 
@@ -209,13 +206,9 @@ pub(crate) fn render_no_graphics(
                     buffer.append(line, " at ", ElementStyle::NoStyle);
                     buffer.append(line, &origin.path, ElementStyle::NoStyle);
                     if let Some(origin_line) = origin.line {
-                        buffer.append(
-                            line,
-                            &format!(", on line {origin_line}"),
-                            ElementStyle::NoStyle,
-                        );
+                        buffer.append(line, &format!(":{origin_line}"), ElementStyle::NoStyle);
                         if let Some(col) = origin.char_column {
-                            buffer.append(line, &format!(", column {col}"), ElementStyle::NoStyle);
+                            buffer.append(line, &format!(":{col}"), ElementStyle::NoStyle);
                         }
                     }
                     line += 1;

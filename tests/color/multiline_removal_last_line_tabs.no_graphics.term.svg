@@ -18,7 +18,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px">
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at line 1, column 1</tspan>
+    <tspan x="10px" y="46px"><tspan> at 1:1</tspan>
 </tspan>
   </text>
 

@@ -21,11 +21,11 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan> E0308: </tspan><tspan class="bold">mismatched types</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at $DIR/file.txt, on line 3, column 1: the macro expands to this string</tspan>
+    <tspan x="10px" y="46px"><tspan> at $DIR/file.txt:3:1: the macro expands to this string</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> at $DIR/mismatched-types.rs, on line 2, column 20: expected `&amp;[u8]`, found `&amp;str`</tspan>
+    <tspan x="10px" y="64px"><tspan> at $DIR/mismatched-types.rs:2:20: expected `&amp;[u8]`, found `&amp;str`</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan>  on line 2, column 12: expected due to this</tspan>
+    <tspan x="10px" y="82px"><tspan>  on 2:12: expected due to this</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan class="fg-bright-green bold">note</tspan><tspan>: expected reference `&amp;[u8]`</tspan>
 </tspan>

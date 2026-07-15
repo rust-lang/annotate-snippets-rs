@@ -63,8 +63,8 @@ error[E0599]: no method named `build` found for struct `PartialTest<true, false>
 
     let expected_no_graphics = str![[r#"
 error E0599: no method named `build` found for struct `PartialTest<true, false>` in the current scope
- at tests/no_compile/missing_fields_in_builder.rs, on line 12, column 33: method not found in `PartialTest<true, false>`
-  on line 3, column 1: method `build` not found for this struct
+ at tests/no_compile/missing_fields_in_builder.rs:12:33: method not found in `PartialTest<true, false>`
+  on 3:1: method `build` not found for this struct
 note: the method was found for
       - `PartialTest<true, true>`
 "#]];
@@ -147,12 +147,12 @@ help: one of the expressions' fields has a method of the same name
 
     let expected_no_graphics = str![[r#"
 error E0599: no method named `with_bar` found for struct `PartialTest<true, true>` in the current scope
- at tests/no_compile/missing_fields_in_builder.rs, on line 15, column 45: method not found in `PartialTest<true, true>`
-  on line 3, column 1: method `with_bar` not found for this struct
+ at tests/no_compile/missing_fields_in_builder.rs:15:45: method not found in `PartialTest<true, true>`
+  on 3:1: method `with_bar` not found for this struct
 note: the method was found for
       - `PartialTest<foo_bitfield, false>`
 help: one of the expressions' fields has a method of the same name
- at line 15, column 44, add `value.`
+ at 15:44, add `value.`
 "#]];
     let renderer_no_graphics = Renderer::plain().no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
@@ -227,9 +227,9 @@ help: consider importing one of these structs
 
     let expected_no_graphics = str![[r#"
 error E0425: cannot find type `Iter` in this scope
- at $DIR/missing-type.rs, on line 5, column 12: not found in this scope
+ at $DIR/missing-type.rs:5:12: not found in this scope
 help: consider importing one of these structs
- at line 4, column 1, add one of
+ at 4:1, add one of
   use std::collections::binary_heap::Iter;
   use std::collections::btree_map::Iter;
   use std::collections::btree_set::Iter;
@@ -298,8 +298,8 @@ LL |     fn private_method(&self) {}
 
     let expected_no_graphics = str![[r#"
 error E0624: method `private_method` is private
- at $DIR/multiple-files.rs, on line 7, column 35: private method
- at $DIR/auxiliary/other_file.rs, on line 5, column 5: private method defined here
+ at $DIR/multiple-files.rs:7:35: private method
+ at $DIR/auxiliary/other_file.rs:5:5: private method defined here
 "#]];
     let renderer_no_graphics = Renderer::plain().no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
@@ -375,9 +375,9 @@ LL |     hello!(hi hi);
 
     let expected_no_graphics = str![[r#"
 error: hello to you, too!
- at $DIR/multispan.rs, on line 18, column 5
+ at $DIR/multispan.rs:18:5
 note: found these 'hi's
- at $DIR/multispan.rs, on line 18, column 12
+ at $DIR/multispan.rs:18:12
 note: this error originates in the macro `hello` (in Nightly builds, run with -Z macro-backtrace for more info)
 "#]];
     let renderer_no_graphics = Renderer::plain().no_graphics(true);
@@ -430,9 +430,9 @@ LL +     () => {{  }}
 
     let expected_no_graphics = str![[r#"
 error: foo
- at $DIR/foo.rs, on line 3, column 5
+ at $DIR/foo.rs:3:5
 help: consider removing this
- at $DIR/macro.rs, on line 3, column 13
+ at $DIR/macro.rs:3:13
 "#]];
     let renderer_no_graphics = Renderer::plain().no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);

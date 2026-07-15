@@ -22,7 +22,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan> E0277: </tspan><tspan class="bold">`(bool, HashSet&lt;u8&gt;)` is not an iterator</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at $DIR/multiline-removal-suggestion.rs, on line 21, column 8: `(bool, HashSet&lt;u8&gt;)` is not an iterator</tspan>
+    <tspan x="10px" y="46px"><tspan> at $DIR/multiline-removal-suggestion.rs:21:8: `(bool, HashSet&lt;u8&gt;)` is not an iterator</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: the trait `Iterator` is not implemented for `(bool, HashSet&lt;u8&gt;)`</tspan>
 </tspan>
@@ -30,11 +30,11 @@
 </tspan>
     <tspan x="10px" y="100px"><tspan class="fg-bright-green bold">note</tspan><tspan>: </tspan><tspan class="bold">required by a bound in `flatten`</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan> at /rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs, on line 1556, column 4</tspan>
+    <tspan x="10px" y="118px"><tspan> at /rustc/FAKE_PREFIX/library/core/src/iter/traits/iterator.rs:1556:4</tspan>
 </tspan>
     <tspan x="10px" y="136px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">consider removing this method call, as the receiver has type `std::vec::IntoIter&lt;HashSet&lt;u8&gt;&gt;` and `std::vec::IntoIter&lt;HashSet&lt;u8&gt;&gt;: Iterator` trivially holds</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan> at line 15, column 17</tspan>
+    <tspan x="10px" y="154px"><tspan> at 15:17</tspan>
 </tspan>
   </text>
 

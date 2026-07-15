@@ -20,7 +20,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan> E0308: </tspan><tspan class="bold">invalid type: integer `20`, expected a bool</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at Cargo.toml, on line 11, column 13</tspan>
+    <tspan x="10px" y="46px"><tspan> at Cargo.toml:11:13</tspan>
 </tspan>
   </text>
 

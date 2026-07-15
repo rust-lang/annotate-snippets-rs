@@ -20,7 +20,7 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan>: </tspan><tspan class="bold">&lt;sample error message&gt;</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at line 6, column 17</tspan>
+    <tspan x="10px" y="46px"><tspan> at 6:17</tspan>
 </tspan>
   </text>
 

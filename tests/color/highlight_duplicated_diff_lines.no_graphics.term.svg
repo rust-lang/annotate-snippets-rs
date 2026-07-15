@@ -22,17 +22,17 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan> E0061: </tspan><tspan class="bold">this function takes 6 arguments but 7 arguments were supplied</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at $DIR/wrong-highlight-span-extra-arguments-147070.rs, on line 17, column 15</tspan>
+    <tspan x="10px" y="46px"><tspan> at $DIR/wrong-highlight-span-extra-arguments-147070.rs:17:15</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan>  on line 24, column 9: unexpected argument #7 of type `String`</tspan>
+    <tspan x="10px" y="64px"><tspan>  on 24:9: unexpected argument #7 of type `String`</tspan>
 </tspan>
     <tspan x="10px" y="82px"><tspan class="fg-bright-green bold">note</tspan><tspan>: </tspan><tspan class="bold">associated function defined here</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan> at $DIR/wrong-highlight-span-extra-arguments-147070.rs, on line 4, column 19</tspan>
+    <tspan x="10px" y="100px"><tspan> at $DIR/wrong-highlight-span-extra-arguments-147070.rs:4:19</tspan>
 </tspan>
     <tspan x="10px" y="118px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">remove the extra argument</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan> at line 23, column 21</tspan>
+    <tspan x="10px" y="136px"><tspan> at 23:21</tspan>
 </tspan>
   </text>
 

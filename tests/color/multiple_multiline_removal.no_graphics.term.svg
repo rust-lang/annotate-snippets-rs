@@ -22,11 +22,11 @@
   <text xml:space="preserve" class="container fg">
     <tspan x="10px" y="28px"><tspan class="fg-bright-red bold">error</tspan><tspan> E0423: </tspan><tspan class="bold">cannot initialize a tuple struct which contains private fields</tspan>
 </tspan>
-    <tspan x="10px" y="46px"><tspan> at $DIR/suggest-box-new.rs, on line 8, column 19</tspan>
+    <tspan x="10px" y="46px"><tspan> at $DIR/suggest-box-new.rs:8:19</tspan>
 </tspan>
     <tspan x="10px" y="64px"><tspan class="fg-bright-green bold">note</tspan><tspan>: </tspan><tspan class="bold">constructor is not visible here due to private fields</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan> at $SRC_DIR/alloc/src/boxed.rs, on line 234, column 2</tspan>
+    <tspan x="10px" y="82px"><tspan> at $SRC_DIR/alloc/src/boxed.rs:234:2</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan class="fg-bright-green bold">note</tspan><tspan>: private field</tspan>
 </tspan>
@@ -34,7 +34,7 @@
 </tspan>
     <tspan x="10px" y="136px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">you might have meant to use an associated function to build this type</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan> at line 8, column 21, add one of</tspan>
+    <tspan x="10px" y="154px"><tspan> at 8:21, add one of</tspan>
 </tspan>
     <tspan x="10px" y="172px"><tspan>  ::new(_)</tspan>
 </tspan>
@@ -48,7 +48,7 @@
 </tspan>
     <tspan x="10px" y="262px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">consider using the `Default` trait</tspan>
 </tspan>
-    <tspan x="10px" y="280px"><tspan> at line 8, column 18, add `&lt;`</tspan>
+    <tspan x="10px" y="280px"><tspan> at 8:18, add `&lt;`</tspan>
 </tspan>
   </text>
 
