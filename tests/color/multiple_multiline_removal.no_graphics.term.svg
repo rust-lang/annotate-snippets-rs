@@ -36,19 +36,19 @@
 </tspan>
     <tspan x="10px" y="154px"><tspan> at 8:21, add one of</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan>  ::new(_)</tspan>
+    <tspan x="10px" y="172px"><tspan>  </tspan><tspan class="fg-bright-green">::new(_)</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan>  ::new_uninit()</tspan>
+    <tspan x="10px" y="190px"><tspan>  </tspan><tspan class="fg-bright-green">::new_uninit()</tspan>
 </tspan>
-    <tspan x="10px" y="208px"><tspan>  ::new_zeroed()</tspan>
+    <tspan x="10px" y="208px"><tspan>  </tspan><tspan class="fg-bright-green">::new_zeroed()</tspan>
 </tspan>
-    <tspan x="10px" y="226px"><tspan>  ::new_in(_, _)</tspan>
+    <tspan x="10px" y="226px"><tspan>  </tspan><tspan class="fg-bright-green">::new_in(_, _)</tspan>
 </tspan>
     <tspan x="10px" y="244px"><tspan>  or 12 other candidates</tspan>
 </tspan>
     <tspan x="10px" y="262px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: </tspan><tspan class="bold">consider using the `Default` trait</tspan>
 </tspan>
-    <tspan x="10px" y="280px"><tspan> at 8:18, add `&lt;`</tspan>
+    <tspan x="10px" y="280px"><tspan> at 8:18, add `</tspan><tspan class="fg-bright-green">&lt;</tspan><tspan>`</tspan>
 </tspan>
   </text>
 
