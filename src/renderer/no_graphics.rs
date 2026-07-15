@@ -191,12 +191,12 @@ pub(crate) fn render_no_graphics(
                     if next_is_suggestion || last_suggestion_path.is_some() {
                         // Multiple suggestions.
                         buffer.append(line, "  ", ElementStyle::NoStyle);
-                        buffer.append(line, &replacement, ElementStyle::Addition);
+                        buffer.append(line, replacement, ElementStyle::Addition);
                     } else if !replacement.trim().is_empty() {
                         // Single addition suggestion
-                        buffer.append(line, &format!("`"), ElementStyle::NoStyle);
-                        buffer.append(line, &replacement, ElementStyle::Addition);
-                        buffer.append(line, &format!("`"), ElementStyle::NoStyle);
+                        buffer.append(line, "`", ElementStyle::NoStyle);
+                        buffer.append(line, replacement, ElementStyle::Addition);
+                        buffer.append(line, "`", ElementStyle::NoStyle);
                     }
                     line += 1;
 
