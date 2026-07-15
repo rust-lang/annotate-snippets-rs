@@ -337,7 +337,7 @@ fn render_title(
         ),
         TitleStyle::Secondary => {
             for _ in 0..max_line_num_len {
-                buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
+                buffer.append(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
             }
 
             draw_note_separator(
@@ -444,8 +444,14 @@ fn render_origin(
     alone: bool,
     buffer_msg_line_offset: usize,
 ) {
+    if !renderer.short_message {
+        for _ in 0..max_line_num_len {
+            buffer.append(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
+        }
+    }
+
     if is_primary && !renderer.short_message {
-        buffer.prepend(
+        buffer.append(
             buffer_msg_line_offset,
             renderer.decor_style.file_start(is_first, alone),
             ElementStyle::LineNumber,
@@ -471,7 +477,7 @@ fn render_origin(
         //     buffer_msg_line_offset += 1;
         // }
         // Then, the secondary file indicator
-        buffer.prepend(
+        buffer.append(
             buffer_msg_line_offset,
             renderer.decor_style.secondary_file_start(),
             ElementStyle::LineNumber,
@@ -485,13 +491,7 @@ fn render_origin(
         (Some(line), None) => format!("{}:{}", origin.path, line),
         _ => origin.path.to_string(),
     };
-
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
-    if !renderer.short_message {
-        for _ in 0..max_line_num_len {
-            buffer.prepend(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
-        }
-    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1100,27 +1100,26 @@ fn render_source_line(
     if annotations_position
         .iter()
         .all(|(_, ann)| matches!(ann.annotation_type, LineAnnotationType::MultilineStart(_)))
+        && let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max()
     {
-        if let Some(max_pos) = annotations_position.iter().map(|(pos, _)| *pos).max() {
-            // Special case the following, so that we minimize overlapping multiline spans.
-            //
-            // 3 │       X0 Y0 Z0
-            //   │ ┏━━━━━┛  │  │     < We are writing these lines
-            //   │ ┃┌───────┘  │     < by reverting the "depth" of
-            //   │ ┃│┌─────────┘     < their multiline spans.
-            // 4 │ ┃││   X1 Y1 Z1
-            // 5 │ ┃││   X2 Y2 Z2
-            //   │ ┃│└────╿──│──┘ `Z` label
-            //   │ ┃└─────│──┤
-            //   │ ┗━━━━━━┥  `Y` is a good letter too
-            //   ╰╴       `X` is a good letter
-            for (pos, _) in &mut annotations_position {
-                *pos = max_pos - *pos;
-            }
-            // We know then that we don't need an additional line for the span label, saving us
-            // one line of vertical space.
-            line_len = line_len.saturating_sub(1);
+        // Special case the following, so that we minimize overlapping multiline spans.
+        //
+        // 3 │       X0 Y0 Z0
+        //   │ ┏━━━━━┛  │  │     < We are writing these lines
+        //   │ ┃┌───────┘  │     < by reverting the "depth" of
+        //   │ ┃│┌─────────┘     < their multiline spans.
+        // 4 │ ┃││   X1 Y1 Z1
+        // 5 │ ┃││   X2 Y2 Z2
+        //   │ ┃│└────╿──│──┘ `Z` label
+        //   │ ┃└─────│──┤
+        //   │ ┗━━━━━━┥  `Y` is a good letter too
+        //   ╰╴       `X` is a good letter
+        for (pos, _) in &mut annotations_position {
+            *pos = max_pos - *pos;
         }
+        // We know then that we don't need an additional line for the span label, saving us
+        // one line of vertical space.
+        line_len = line_len.saturating_sub(1);
     }
 
     // Write the column separator.
@@ -1452,7 +1451,24 @@ fn emit_suggestion_default(
     let (complete, parts, highlights, replaced_highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
-    if matches_previous_suggestion {
+    if suggestion.path.as_ref() != primary_path
+        && let Some(path) = suggestion.path.as_ref()
+        && !matches_previous_suggestion
+    {
+        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+        // --> file.rs:line:col
+        //  |
+        for _ in 0..max_line_num_len {
+            buffer.append(row_num - 1, " ", ElementStyle::NoStyle);
+        }
+        let arrow = renderer.decor_style.file_start(is_first, false);
+        buffer.append(row_num - 1, arrow, ElementStyle::LineNumber);
+        let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
+        buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
+
+        draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
+        row_num += 1;
+    } else if matches_previous_suggestion {
         buffer.puts(
             row_num - 1,
             max_line_num_len + 1,
@@ -1461,25 +1477,6 @@ fn emit_suggestion_default(
         );
     } else {
         draw_col_separator_start(renderer, buffer, row_num - 1, max_line_num_len + 1);
-    }
-    if suggestion.path.as_ref() != primary_path {
-        if let Some(path) = suggestion.path.as_ref() {
-            if !matches_previous_suggestion {
-                let (loc, _) = sm.span_to_locations(parts[0].span.clone());
-                // --> file.rs:line:col
-                //  |
-                let arrow = renderer.decor_style.file_start(is_first, false);
-                buffer.puts(row_num - 1, 0, arrow, ElementStyle::LineNumber);
-                let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
-                let col = usize::max(max_line_num_len + 1, str_width(arrow));
-                buffer.puts(row_num - 1, col, &message, ElementStyle::LineAndColumn);
-                for _ in 0..max_line_num_len {
-                    buffer.prepend(row_num - 1, " ", ElementStyle::NoStyle);
-                }
-                draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
-                row_num += 1;
-            }
-        }
     }
 
     if let DisplaySuggestion::Diff = show_code_change {
