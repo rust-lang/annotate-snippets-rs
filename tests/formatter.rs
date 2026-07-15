@@ -5179,7 +5179,7 @@ help: consider making `bar` public
 }
 
 #[test]
-fn ensure_col_with_second_snippet_without_folding() {
+fn prefer_first_annotation_on_secondary_snippets() {
     let input = &[Level::ERROR
         .primary_title("main diagnostic message")
         .id("test-diagnostics")
@@ -5205,7 +5205,7 @@ error[test-diagnostics]: main diagnostic message
 2 | beetle
 3 | canary
   |
- ::: animals:1
+ ::: animals:3:1
   |
 1 | inchworm
 2 | jackrabbit
@@ -5224,7 +5224,7 @@ error[test-diagnostics]: main diagnostic message
 2 │ beetle
 3 │ canary
   │
-  ⸬  animals:1
+  ⸬  animals:3:1
   │
 1 │ inchworm
 2 │ jackrabbit

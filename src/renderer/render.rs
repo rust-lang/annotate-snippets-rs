@@ -546,7 +546,11 @@ fn render_snippet_annotations(
                 buffer_msg_line_offset,
                 max_line_num_len + 1,
             );
-            if let Some(first_line) = annotated_lines.first() {
+            if let Some(first_line) = annotated_lines
+                .iter()
+                .find(|l| !l.annotations.is_empty())
+                .or(annotated_lines.first())
+            {
                 origin.line = Some(first_line.line_index);
                 if let Some(first_annotation) = first_line.annotations.first() {
                     origin.char_column = Some(first_annotation.start.char + 1);
