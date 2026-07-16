@@ -5234,3 +5234,43 @@ error[test-diagnostics]: main diagnostic message
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn consistent_indentation_with_trailing_newline() {
+    let input = &[Level::ERROR
+        .primary_title("main diagnostic message")
+        .id("test-diagnostic")
+        .element(
+            Snippet::source("dog\nelephant\nfinch\n")
+                .path("spacey-animals")
+                .fold(false)
+                .line_start(7)
+                .annotation(AnnotationKind::Primary.span(4..12)),
+        )];
+    let expected_ascii = str![[r#"
+error[test-diagnostic]: main diagnostic message
+ --> spacey-animals:8:1
+  |
+7 | dog
+8 | elephant
+  | ^^^^^^^^
+9 | finch
+  |
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[test-diagnostic]: main diagnostic message
+  ╭▸ spacey-animals:8:1
+  │
+7 │ dog
+8 │ elephant
+  │ ━━━━━━━━
+9 │ finch
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
