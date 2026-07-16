@@ -5247,18 +5247,6 @@ fn consistent_indentation_with_trailing_newline() {
                 .line_start(7)
                 .annotation(AnnotationKind::Primary.span(4..12)),
         )];
-    #[cfg(feature = "simd")]
-    let expected_ascii = str![[r#"
-error[test-diagnostic]: main diagnostic message
-  --> spacey-animals:8:1
-   |
- 7 | dog
- 8 | elephant
-   | ^^^^^^^^
- 9 | finch
-   |
-"#]];
-    #[cfg(not(feature = "simd"))]
     let expected_ascii = str![[r#"
 error[test-diagnostic]: main diagnostic message
  --> spacey-animals:8:1
@@ -5273,18 +5261,6 @@ error[test-diagnostic]: main diagnostic message
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
-    #[cfg(feature = "simd")]
-    let expected_unicode = str![[r#"
-error[test-diagnostic]: main diagnostic message
-   ╭▸ spacey-animals:8:1
-   │
- 7 │ dog
- 8 │ elephant
-   │ ━━━━━━━━
- 9 │ finch
-   ╰╴
-"#]];
-    #[cfg(not(feature = "simd"))]
     let expected_unicode = str![[r#"
 error[test-diagnostic]: main diagnostic message
   ╭▸ spacey-animals:8:1

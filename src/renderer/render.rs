@@ -2736,7 +2736,10 @@ fn pre_process<'a>(
 fn newline_count(body: &str) -> usize {
     #[cfg(feature = "simd")]
     {
-        memchr::memchr_iter(b'\n', body.as_bytes()).count()
+        // Trailing newlines do not count towards the number of lines
+        // (this is based into `str::lines`)
+        let trailing_newline = body.ends_with('\n');
+        memchr::memchr_iter(b'\n', body.as_bytes()).count() - usize::from(trailing_newline)
     }
     #[cfg(not(feature = "simd"))]
     {
@@ -2788,26 +2791,14 @@ mod test {
 
         assert_eq!(newline_count("one"), 0);
 
-        #[cfg(feature = "simd")]
-        assert_eq!(newline_count("one\n"), 1);
-        #[cfg(not(feature = "simd"))]
         assert_eq!(newline_count("one\n"), 0);
 
         assert_eq!(newline_count("one\ntwo"), 1);
 
-        #[cfg(feature = "simd")]
-        assert_eq!(newline_count("one\ntwo\n"), 2);
-        #[cfg(not(feature = "simd"))]
         assert_eq!(newline_count("one\ntwo\n"), 1);
 
-        #[cfg(feature = "simd")]
-        assert_eq!(newline_count("one\n\n"), 2);
-        #[cfg(not(feature = "simd"))]
         assert_eq!(newline_count("one\n\n"), 1);
 
-        #[cfg(feature = "simd")]
-        assert_eq!(newline_count("one\r\ntwo\r\n"), 2);
-        #[cfg(not(feature = "simd"))]
         assert_eq!(newline_count("one\r\ntwo\r\n"), 1);
     }
 }
