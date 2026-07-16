@@ -2782,9 +2782,32 @@ mod test {
                 [dependencies]
                 bar = { base = '^^not-valid^^', path = 'bar' }
             "#;
-        let actual_count = newline_count(source);
-        let expected_count = 10;
+        assert_eq!(newline_count(source), 10);
 
-        assert_eq!(expected_count, actual_count);
+        assert_eq!(newline_count(""), 0);
+
+        assert_eq!(newline_count("one"), 0);
+
+        #[cfg(feature = "simd")]
+        assert_eq!(newline_count("one\n"), 1);
+        #[cfg(not(feature = "simd"))]
+        assert_eq!(newline_count("one\n"), 0);
+
+        assert_eq!(newline_count("one\ntwo"), 1);
+
+        #[cfg(feature = "simd")]
+        assert_eq!(newline_count("one\ntwo\n"), 2);
+        #[cfg(not(feature = "simd"))]
+        assert_eq!(newline_count("one\ntwo\n"), 1);
+
+        #[cfg(feature = "simd")]
+        assert_eq!(newline_count("one\n\n"), 2);
+        #[cfg(not(feature = "simd"))]
+        assert_eq!(newline_count("one\n\n"), 1);
+
+        #[cfg(feature = "simd")]
+        assert_eq!(newline_count("one\r\ntwo\r\n"), 2);
+        #[cfg(not(feature = "simd"))]
+        assert_eq!(newline_count("one\r\ntwo\r\n"), 1);
     }
 }
