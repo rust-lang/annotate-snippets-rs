@@ -878,6 +878,39 @@ fn render_source_line(
         return vec![];
     }
 
+    // Apply `highlight_source` styling for multiline annotations here, before the fast paths
+    // below (the "short start" case just below, and the "only connector lines" case further
+    // down) get a chance to return without ever reaching the per-annotation styling logic that
+    // handles it for single-line annotations. Even when those fast paths aren't taken, the
+    // per-annotation styling logic matches on `MultilineStart`/`MultilineEnd` first to draw the
+    // horizontal connector, which made the `highlight_source` arm structurally unreachable for
+    // multiline annotations (see issue #427: `highlight_source` was silently ignored on them).
+    for ann in &line_info.annotations {
+        if !ann.highlight_source {
+            continue;
+        }
+        let (start_char, end_char) = match ann.annotation_type {
+            LineAnnotationType::Singleline => continue,
+            // The span starts partway through this line and runs to the end of it.
+            LineAnnotationType::MultilineStart(_) => {
+                let rest_of_line = line_info.line[ann.start.byte..].chars().count();
+                (ann.start.char, ann.start.char + rest_of_line)
+            }
+            // The span runs from the start of this line up to `end`.
+            LineAnnotationType::MultilineEnd(_) => (0, ann.end.char),
+            // The span fully covers this line.
+            LineAnnotationType::MultilineLine(_) => (0, line_info.line.chars().count()),
+        };
+        let underline = renderer.decor_style.underline(ann.is_primary());
+        buffer.set_style_range(
+            line_offset,
+            (code_offset + start_char).saturating_sub(left),
+            (code_offset + end_char).saturating_sub(left),
+            underline.style,
+            ann.is_primary(),
+        );
+    }
+
     // Special case when there's only one annotation involved, it is the start of a multiline
     // span and there's no text at the beginning of the code line. Instead of doing the whole
     // graph:
