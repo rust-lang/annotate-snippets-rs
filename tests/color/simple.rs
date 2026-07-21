@@ -34,4 +34,8 @@ fn case() {
     let expected_unicode = file!["simple.unicode.term.svg": TermSvg];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = file!["simple.no_graphics.term.svg": TermSvg];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(input), expected_no_graphics);
 }

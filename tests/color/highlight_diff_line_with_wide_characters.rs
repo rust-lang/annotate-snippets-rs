@@ -41,4 +41,9 @@ const 哦哦: 啊啊啊啊 = 哈哈哈哈 {}; // some comment"#;
         file!["highlight_diff_line_with_wide_characters.unicode.term.svg": TermSvg];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
+
+    let expected_no_graphics =
+        file!["highlight_diff_line_with_wide_characters.no_graphics.term.svg": TermSvg];
+    let renderer = renderer.no_graphics(true);
+    assert_data_eq!(renderer.render(report), expected_no_graphics);
 }
