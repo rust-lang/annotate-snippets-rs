@@ -31,7 +31,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
         render_short_message(renderer, groups).unwrap()
     } else {
         let (max_line_num, og_primary_path, groups) = pre_process(groups);
-        let max_line_num_len = if renderer.anonymized_line_numbers {
+        let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
             ANONYMIZED_LINE_NUM.len()
         } else {
             num_decimal_digits(max_line_num)
@@ -2197,7 +2197,7 @@ fn draw_col_separator_no_space_with_style(
 fn maybe_anonymized(renderer: &Renderer, line_num: usize, max_line_num_len: usize) -> String {
     format!(
         "{:>max_line_num_len$}",
-        if renderer.anonymized_line_numbers {
+        if renderer.anonymized_snippet_line_numbers {
             Cow::Borrowed(ANONYMIZED_LINE_NUM)
         } else {
             Cow::Owned(line_num.to_string())

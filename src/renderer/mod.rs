@@ -106,7 +106,7 @@ pub const DEFAULT_REMOVAL_STYLE: Style = AnsiColor::BrightRed.on_default();
 /// ```
 #[derive(Clone, Debug)]
 pub struct Renderer {
-    anonymized_line_numbers: bool,
+    anonymized_snippet_line_numbers: bool,
     term_width: usize,
     decor_style: DecorStyle,
     stylesheet: Stylesheet,
@@ -117,7 +117,7 @@ impl Renderer {
     /// No terminal styling
     pub const fn plain() -> Self {
         Self {
-            anonymized_line_numbers: false,
+            anonymized_snippet_line_numbers: false,
             term_width: DEFAULT_TERM_WIDTH,
             decor_style: DecorStyle::Ascii,
             stylesheet: Stylesheet::plain(),
@@ -186,8 +186,8 @@ impl Renderer {
     ///    |                                   ^^ expected (), found integer
     ///    |
     /// ```
-    pub const fn anonymized_line_numbers(mut self, anonymized_line_numbers: bool) -> Self {
-        self.anonymized_line_numbers = anonymized_line_numbers;
+    pub const fn anonymized_line_numbers(mut self, yes: bool) -> Self {
+        self.anonymized_snippet_line_numbers = yes;
         self
     }
 }
