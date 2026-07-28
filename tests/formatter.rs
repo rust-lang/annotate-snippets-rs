@@ -500,7 +500,7 @@ error:
 }
 
 #[test]
-fn test_anon_lines() {
+fn test_anonymized_origin_path() {
     let source = "This is an example\nof content lines\n\nabc";
     let input = &[Level::ERROR.primary_title("").element(
         Snippet::<Annotation<'_>>::source(source)
@@ -523,6 +523,84 @@ error:
 error: 
    ╭▸ 
 56 │ This is an example
+57 │ of content lines
+58 │
+59 │ abc
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn test_anonymized_line_numbers() {
+    let source = "This is an example\nof content lines\n\nabc";
+    let input = &[Level::ERROR.primary_title("").element(
+        Snippet::<Annotation<'_>>::source(source)
+            .path("foo.txt")
+            .line_start(56)
+            .fold(false)
+            .annotation(AnnotationKind::Primary.span(0..2)),
+    )];
+    let expected_ascii = str![[r#"
+error: 
+  --> foo.txt:56:1
+   |
+LL | This is an example
+   | ^^
+LL | of content lines
+LL |
+LL | abc
+   |
+"#]];
+    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+   ╭▸ foo.txt:56:1
+   │
+LL │ This is an example
+   │ ━━
+LL │ of content lines
+LL │
+LL │ abc
+   ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn test_anonymized_origin_line_numbers() {
+    let source = "This is an example\nof content lines\n\nabc";
+    let input = &[Level::ERROR.primary_title("").element(
+        Snippet::<Annotation<'_>>::source(source)
+            .path("foo.txt")
+            .line_start(56)
+            .fold(false)
+            .annotation(AnnotationKind::Primary.span(0..2)),
+    )];
+    let expected_ascii = str![[r#"
+error: 
+  --> foo.txt:56:1
+   |
+56 | This is an example
+   | ^^
+57 | of content lines
+58 |
+59 | abc
+   |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: 
+   ╭▸ foo.txt:56:1
+   │
+56 │ This is an example
+   │ ━━
 57 │ of content lines
 58 │
 59 │ abc
