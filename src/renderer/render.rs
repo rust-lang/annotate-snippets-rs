@@ -1,6 +1,7 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
 use alloc::borrow::Cow;
+use alloc::borrow::ToOwned;
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
@@ -484,12 +485,17 @@ fn render_origin(
         );
     }
 
-    let str = match (&origin.line, &origin.char_column) {
-        (Some(line), Some(col)) => {
-            format!("{}:{}:{}", origin.path, line, col)
+    let str = {
+        use core::fmt::Write as _;
+
+        let mut buffer = origin.path.as_ref().to_owned();
+        if let Some(line) = origin.line {
+            write!(&mut buffer, ":{line}").unwrap();
+            if let Some(col) = origin.char_column {
+                write!(&mut buffer, ":{col}").unwrap();
+            }
         }
-        (Some(line), None) => format!("{}:{}", origin.path, line),
-        _ => origin.path.to_string(),
+        buffer
     };
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
 }
