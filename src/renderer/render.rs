@@ -356,6 +356,10 @@ fn render_title(
         buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
         label_width += title.level().as_str().len();
         if let Some(Id { id: Some(id), url }) = &title.id() {
+            let mut url = url.as_ref();
+            if !renderer.hyperlink {
+                url = None;
+            }
             buffer.append(buffer_msg_line_offset, "[", label_style);
             if let Some(url) = url.as_ref() {
                 buffer.append(

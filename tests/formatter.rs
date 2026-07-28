@@ -5303,7 +5303,7 @@ fn main() {
         )];
 
     let expected_ascii = str![[r#"
-error[]8;;https://doc.rust-lang.org/error_codes/E0308.html/E0308]8;;/]: mismatched types
+error[E0308]: mismatched types
  --> $DIR/terminal_urls.rs:3:9
   |
 3 |     let () = 4; //~ ERROR
@@ -5316,7 +5316,7 @@ error[]8;;https://doc.rust-lang.org/error_codes/E0308.html/E0308]8;;/]: mism
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
-error[]8;;https://doc.rust-lang.org/error_codes/E0308.html/E0308]8;;/]: mismatched types
+error[E0308]: mismatched types
   ╭▸ $DIR/terminal_urls.rs:3:9
   │
 3 │     let () = 4; //~ ERROR
