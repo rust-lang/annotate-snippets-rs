@@ -490,7 +490,12 @@ fn render_origin(
 
         let mut buffer = origin.path.as_ref().to_owned();
         if let Some(line) = origin.line {
-            write!(&mut buffer, ":{line}").unwrap();
+            if renderer.anonymized_origin_line_numbers {
+                let line = ANONYMIZED_LINE_NUM;
+                write!(&mut buffer, ":{line}").unwrap();
+            } else {
+                write!(&mut buffer, ":{line}").unwrap();
+            }
             if let Some(col) = origin.char_column {
                 write!(&mut buffer, ":{col}").unwrap();
             }
@@ -1473,9 +1478,14 @@ fn emit_suggestion_default(
         }
         let arrow = renderer.decor_style.file_start(is_first, false);
         buffer.append(row_num - 1, arrow, ElementStyle::LineNumber);
-        let display_line = loc.line;
         let display_col = loc.char + 1;
-        let message = format!("{path}:{display_line}:{display_col}");
+        let message = if renderer.anonymized_origin_line_numbers {
+            let display_line = ANONYMIZED_LINE_NUM;
+            format!("{path}:{display_line}:{display_col}")
+        } else {
+            let display_line = loc.line;
+            format!("{path}:{display_line}:{display_col}")
+        };
         buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
 
         draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);

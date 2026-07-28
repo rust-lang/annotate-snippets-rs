@@ -583,7 +583,7 @@ fn test_anonymized_origin_line_numbers() {
     )];
     let expected_ascii = str![[r#"
 error: 
-  --> foo.txt:56:1
+  --> foo.txt:LL:1
    |
 56 | This is an example
    | ^^
@@ -592,12 +592,12 @@ error:
 59 | abc
    |
 "#]];
-    let renderer = Renderer::plain();
+    let renderer = Renderer::plain().anonymized_origin_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: 
-   ╭▸ foo.txt:56:1
+   ╭▸ foo.txt:LL:1
    │
 56 │ This is an example
    │ ━━

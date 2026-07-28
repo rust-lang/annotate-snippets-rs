@@ -106,6 +106,7 @@ pub const DEFAULT_REMOVAL_STYLE: Style = AnsiColor::BrightRed.on_default();
 /// ```
 #[derive(Clone, Debug)]
 pub struct Renderer {
+    anonymized_origin_line_numbers: bool,
     anonymized_snippet_line_numbers: bool,
     term_width: usize,
     decor_style: DecorStyle,
@@ -117,6 +118,7 @@ impl Renderer {
     /// No terminal styling
     pub const fn plain() -> Self {
         Self {
+            anonymized_origin_line_numbers: false,
             anonymized_snippet_line_numbers: false,
             term_width: DEFAULT_TERM_WIDTH,
             decor_style: DecorStyle::Ascii,
@@ -198,6 +200,24 @@ impl Renderer {
     )]
     pub const fn anonymized_line_numbers(mut self, yes: bool) -> Self {
         self.anonymized_snippet_line_numbers = yes;
+        self
+    }
+
+    /// Anonymize origin line numbers
+    ///
+    /// When enabled, line numbers are replaced with `LL` which is useful for tests.
+    ///
+    /// # Example
+    ///
+    /// ```text
+    ///   --> $DIR/whitespace-trimming.rs:LL:193
+    ///   |
+    /// 4 | ...                   let _: () = 42;
+    ///   |                                   ^^ expected (), found integer
+    ///   |
+    /// ```
+    pub const fn anonymized_origin_line_numbers(mut self, yes: bool) -> Self {
+        self.anonymized_origin_line_numbers = yes;
         self
     }
 }
