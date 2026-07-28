@@ -300,16 +300,16 @@ fn test_format_footer_title() {
         .element(Level::ERROR.message("This __is__ a title"))];
     let expected_ascii = str![[r#"
 error: 
-  |
-  = error: This __is__ a title
+ |
+ = error: This __is__ a title
 "#]];
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
 error: 
-  │
-  ╰ error: This __is__ a title
+ │
+ ╰ error: This __is__ a title
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
@@ -324,7 +324,7 @@ fn test_multi_group_no_snippet() {
     ];
     let expected_ascii = str![[r#"
 error: the core problem
-  |
+ |
 note: more information
 help: a way to fix this
 "#]];
@@ -333,7 +333,7 @@ help: a way to fix this
 
     let expected_unicode = str![[r#"
 error: the core problem
-  ╰╴
+ ╰╴
 note: more information
 help: a way to fix this
 "#]];
