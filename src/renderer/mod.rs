@@ -191,19 +191,11 @@ impl Renderer {
         self
     }
 
-    /// Anonymize snippet line numbers
-    ///
-    /// When enabled, line numbers are replaced with `LL` which is useful for tests.
-    ///
-    /// # Example
-    ///
-    /// ```text
-    ///   --> $DIR/whitespace-trimming.rs:4:193
-    ///    |
-    /// LL | ...                   let _: () = 42;
-    ///    |                                   ^^ expected (), found integer
-    ///    |
-    /// ```
+    /// Deprecated, replaced with [`Self::anonymized_snippet_line_numbers`]
+    #[deprecated(
+        since = "0.12.17",
+        note = "replaced with `Renderer::anonymized_snippet_line_numbers`"
+    )]
     pub const fn anonymized_line_numbers(mut self, yes: bool) -> Self {
         self.anonymized_snippet_line_numbers = yes;
         self

@@ -533,7 +533,7 @@ error:
 }
 
 #[test]
-fn test_anonymized_line_numbers() {
+fn test_anonymized_snippet_line_numbers() {
     let source = "This is an example\nof content lines\n\nabc";
     let input = &[Level::ERROR.primary_title("").element(
         Snippet::<Annotation<'_>>::source(source)
@@ -553,7 +553,7 @@ LL |
 LL | abc
    |
 "#]];
-    let renderer = Renderer::plain().anonymized_line_numbers(true);
+    let renderer = Renderer::plain().anonymized_snippet_line_numbers(true);
     assert_data_eq!(renderer.render(input), expected_ascii);
 
     let expected_unicode = str![[r#"
