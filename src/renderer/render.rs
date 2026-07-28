@@ -1467,7 +1467,9 @@ fn emit_suggestion_default(
         }
         let arrow = renderer.decor_style.file_start(is_first, false);
         buffer.append(row_num - 1, arrow, ElementStyle::LineNumber);
-        let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
+        let display_line = loc.line;
+        let display_col = loc.char + 1;
+        let message = format!("{path}:{display_line}:{display_col}");
         buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
 
         draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
