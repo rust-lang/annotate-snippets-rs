@@ -1,6 +1,7 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
 use alloc::borrow::Cow;
+use alloc::borrow::ToOwned;
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
@@ -31,7 +32,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
         render_short_message(renderer, groups).unwrap()
     } else {
         let (max_line_num, og_primary_path, groups) = pre_process(groups);
-        let max_line_num_len = if renderer.anonymized_line_numbers {
+        let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
             ANONYMIZED_LINE_NUM.len()
         } else {
             num_decimal_digits(max_line_num)
@@ -488,12 +489,22 @@ fn render_origin(
         );
     }
 
-    let str = match (&origin.line, &origin.char_column) {
-        (Some(line), Some(col)) => {
-            format!("{}:{}:{}", origin.path, line, col)
+    let str = {
+        use core::fmt::Write as _;
+
+        let mut buffer = origin.path.as_ref().to_owned();
+        if let Some(line) = origin.line {
+            if renderer.anonymized_origin_line_numbers {
+                let line = ANONYMIZED_LINE_NUM;
+                write!(&mut buffer, ":{line}").unwrap();
+            } else {
+                write!(&mut buffer, ":{line}").unwrap();
+            }
+            if let Some(col) = origin.char_column {
+                write!(&mut buffer, ":{col}").unwrap();
+            }
         }
-        (Some(line), None) => format!("{}:{}", origin.path, line),
-        _ => origin.path.to_string(),
+        buffer
     };
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
 }
@@ -1471,7 +1482,14 @@ fn emit_suggestion_default(
         }
         let arrow = renderer.decor_style.file_start(is_first, false);
         buffer.append(row_num - 1, arrow, ElementStyle::LineNumber);
-        let message = format!("{}:{}:{}", path, loc.line, loc.char + 1);
+        let display_col = loc.char + 1;
+        let message = if renderer.anonymized_origin_line_numbers {
+            let display_line = ANONYMIZED_LINE_NUM;
+            format!("{path}:{display_line}:{display_col}")
+        } else {
+            let display_line = loc.line;
+            format!("{path}:{display_line}:{display_col}")
+        };
         buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
 
         draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
@@ -2201,7 +2219,7 @@ fn draw_col_separator_no_space_with_style(
 fn maybe_anonymized(renderer: &Renderer, line_num: usize, max_line_num_len: usize) -> String {
     format!(
         "{:>max_line_num_len$}",
-        if renderer.anonymized_line_numbers {
+        if renderer.anonymized_snippet_line_numbers {
             Cow::Borrowed(ANONYMIZED_LINE_NUM)
         } else {
             Cow::Owned(line_num.to_string())
