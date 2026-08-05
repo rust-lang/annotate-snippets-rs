@@ -5274,3 +5274,56 @@ error[test-diagnostic]: main diagnostic message
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn plain_hides_id_url() {
+    let source = r#"//@ compile-flags: -Zterminal-urls=yes
+fn main() {
+    let () = 4; //~ ERROR
+}
+"#;
+    let input = &[Level::ERROR
+        .primary_title("mismatched types")
+        .id("E0308")
+        .id_url("https://doc.rust-lang.org/error_codes/E0308.html")
+        .element(
+            Snippet::source(source)
+                .line_start(1)
+                .path("$DIR/terminal_urls.rs")
+                .annotation(
+                    AnnotationKind::Primary
+                        .span(59..61)
+                        .label("expected integer, found `()`"),
+                )
+                .annotation(
+                    AnnotationKind::Context
+                        .span(64..65)
+                        .label("this expression has type `{integer}`"),
+                ),
+        )];
+
+    let expected_ascii = str![[r#"
+error[E0308]: mismatched types
+ --> $DIR/terminal_urls.rs:3:9
+  |
+3 |     let () = 4; //~ ERROR
+  |         ^^   - this expression has type `{integer}`
+  |         |
+  |         expected integer, found `()`
+"#]];
+
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0308]: mismatched types
+  ╭▸ $DIR/terminal_urls.rs:3:9
+  │
+3 │     let () = 4; //~ ERROR
+  │         ┯━   ─ this expression has type `{integer}`
+  │         │
+  ╰╴        expected integer, found `()`
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}

@@ -110,6 +110,7 @@ pub struct Renderer {
     term_width: usize,
     decor_style: DecorStyle,
     stylesheet: Stylesheet,
+    hyperlink: bool,
     short_message: bool,
 }
 
@@ -121,6 +122,7 @@ impl Renderer {
             term_width: DEFAULT_TERM_WIDTH,
             decor_style: DecorStyle::Ascii,
             stylesheet: Stylesheet::plain(),
+            hyperlink: false,
             short_message: false,
         }
     }
@@ -149,6 +151,7 @@ impl Renderer {
                 addition: DEFAULT_ADDITION_STYLE,
                 removal: DEFAULT_REMOVAL_STYLE,
             },
+            hyperlink: true,
             ..Self::plain()
         }
     }
@@ -265,6 +268,12 @@ impl Renderer {
     /// Override the output style for all other text
     pub const fn none(mut self, style: Style) -> Self {
         self.stylesheet.none = style;
+        self
+    }
+
+    /// Override whether hyperlinks should be emitted
+    pub const fn hyperlink(mut self, hyperlink: bool) -> Self {
+        self.hyperlink = hyperlink;
         self
     }
 }
