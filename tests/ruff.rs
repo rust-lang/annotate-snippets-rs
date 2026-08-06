@@ -1,4 +1,4 @@
-use annotate_snippets::{AnnotationKind, Group, Level, Renderer, Snippet};
+use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Renderer, Snippet};
 
 use annotate_snippets::renderer::DecorStyle;
 use snapbox::{assert_data_eq, str};
@@ -25,20 +25,22 @@ fn example_code() {
         Group::with_title(
             Level::HELP.secondary_title("This violates the Liskov Substitution Principle"),
         ),
-        Group::with_title(Level::HELP.secondary_title(
-            "It is recommended for `__eq__` to work with arbitrary objects, for example:",
-        )),
-        Group::with_title(Level::HELP.secondary_title("")),
-        Group::with_title(
-            Level::HELP.secondary_title("    def __eq__(self, other: object) -> bool:"),
-        ),
-        Group::with_title(Level::HELP.secondary_title("        if not isinstance(other, A):")),
-        Group::with_title(Level::HELP.secondary_title("        if not isinstance(other, A):")),
-        Group::with_title(Level::HELP.secondary_title("            return False")),
-        Group::with_title(
-            Level::HELP.secondary_title("        return <logic to compare two `A` instances>"),
-        ),
-        Group::with_title(Level::HELP.secondary_title("")),
+        Level::HELP
+            .secondary_title(
+                "It is recommended for `__eq__` to work with arbitrary objects, for example:",
+            )
+            .element(
+                Snippet::<Annotation<'_>>::source(
+                    "\
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, A):
+        if not isinstance(other, A):
+            return False
+        return <logic to compare two `A` instances>
+",
+                )
+                .fold(false),
+            ),
     ];
     let expected_ascii = str![[r#"
 error[invalid-method-override]: Invalid override of method `__eq__`
@@ -50,13 +52,13 @@ error[invalid-method-override]: Invalid override of method `__eq__`
 info: incompatible return types: `NotBoolable` is not assignable to `bool`
 help: This violates the Liskov Substitution Principle
 help: It is recommended for `__eq__` to work with arbitrary objects, for example:
-help: 
-help:     def __eq__(self, other: object) -> bool:
-help:         if not isinstance(other, A):
-help:         if not isinstance(other, A):
-help:             return False
-help:         return <logic to compare two `A` instances>
-help: 
+  |
+1 | def __eq__(self, other: object) -> bool:
+2 |         if not isinstance(other, A):
+3 |         if not isinstance(other, A):
+4 |             return False
+5 |         return <logic to compare two `A` instances>
+  |
 "#]];
 
     let renderer = Renderer::plain();
@@ -72,13 +74,13 @@ error[invalid-method-override]: Invalid override of method `__eq__`
 info: incompatible return types: `NotBoolable` is not assignable to `bool`
 help: This violates the Liskov Substitution Principle
 help: It is recommended for `__eq__` to work with arbitrary objects, for example:
-help: 
-help:     def __eq__(self, other: object) -> bool:
-help:         if not isinstance(other, A):
-help:         if not isinstance(other, A):
-help:             return False
-help:         return <logic to compare two `A` instances>
-help: 
+  ╭▸ 
+1 │ def __eq__(self, other: object) -> bool:
+2 │         if not isinstance(other, A):
+3 │         if not isinstance(other, A):
+4 │             return False
+5 │         return <logic to compare two `A` instances>
+  ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
