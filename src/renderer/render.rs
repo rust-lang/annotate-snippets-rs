@@ -357,22 +357,15 @@ fn render_title(
         buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
         label_width += title.level().as_str().len();
         if let Some(Id { id: Some(id), url }) = &title.id() {
-            let mut url = url.as_ref();
-            if !renderer.hyperlink {
-                url = None;
-            }
+            let url = url
+                .as_deref()
+                .filter(|_| renderer.hyperlink)
+                .map(Hyperlink::with_url)
+                .unwrap_or_default();
             buffer.append(buffer_msg_line_offset, "[", label_style);
-            if let Some(url) = url.as_ref() {
-                buffer.append(
-                    buffer_msg_line_offset,
-                    &format!("\x1B]8;;{url}\x1B\\"),
-                    label_style,
-                );
-            }
+            buffer.append(buffer_msg_line_offset, &format!("{url}"), label_style);
             buffer.append(buffer_msg_line_offset, id, label_style);
-            if url.is_some() {
-                buffer.append(buffer_msg_line_offset, "\x1B]8;;\x1B\\", label_style);
-            }
+            buffer.append(buffer_msg_line_offset, &format!("{url:#}"), label_style);
             buffer.append(buffer_msg_line_offset, "]", label_style);
             label_width += 2 + id.len();
         }
@@ -2775,6 +2768,35 @@ fn newline_count(body: &str) -> usize {
     #[cfg(not(feature = "simd"))]
     {
         body.lines().count().saturating_sub(1)
+    }
+}
+
+struct Hyperlink<D: fmt::Display> {
+    url: Option<D>,
+}
+
+impl<D: fmt::Display> Hyperlink<D> {
+    pub(crate) fn with_url(url: D) -> Self {
+        Self { url: Some(url) }
+    }
+}
+
+impl<D: fmt::Display> Default for Hyperlink<D> {
+    fn default() -> Self {
+        Self { url: None }
+    }
+}
+
+impl<D: fmt::Display> fmt::Display for Hyperlink<D> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Some(url) = self.url.as_ref() else {
+            return Ok(());
+        };
+        if f.alternate() {
+            write!(f, "\x1B]8;;\x1B\\")
+        } else {
+            write!(f, "\x1B]8;;{url}\x1B\\")
+        }
     }
 }
 
