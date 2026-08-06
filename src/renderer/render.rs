@@ -353,7 +353,8 @@ fn render_title(
     };
 
     let mut label_width = 0;
-    if title.level().name != Some(None) {
+    let level_is_visible = title.level().name != Some(None);
+    if level_is_visible {
         buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
         label_width += title.level().as_str().len();
 
