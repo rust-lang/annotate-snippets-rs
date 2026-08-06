@@ -3439,6 +3439,54 @@ note: byte `193` is not valid utf-8
 }
 
 #[test]
+fn test_format_no_severity() {
+    let input = &[Group::with_title(
+        Level::ERROR
+            .no_name()
+            .primary_title("This is a title")
+            .id("E0001"),
+    )];
+
+    let expected_ascii = str!["This is a title"];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str!["This is a title"];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn test_format_no_id() {
+    let input = &[Group::with_title(
+        Level::ERROR.primary_title("This is a title"),
+    )];
+
+    let expected_ascii = str!["error: This is a title"];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str!["error: This is a title"];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
+fn test_format_no_severity_or_id() {
+    let input = &[Group::with_title(
+        Level::ERROR.no_name().primary_title("This is a title"),
+    )];
+
+    let expected_ascii = str!["This is a title"];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str!["This is a title"];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+}
+
+#[test]
 fn secondary_title_no_level_text() {
     let source = r#"fn main() {
     let b: &[u8] = include_str!("file.txt");    //~ ERROR mismatched types
