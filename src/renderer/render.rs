@@ -351,24 +351,31 @@ fn render_title(
             (ElementStyle::MainHeaderMsg, ElementStyle::NoStyle)
         }
     };
-    let mut label_width = 0;
 
+    let mut label_width = 0;
     if title.level().name != Some(None) {
         buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
         label_width += title.level().as_str().len();
+
         if let Some(Id { id: Some(id), url }) = &title.id() {
             let url = url
                 .as_deref()
                 .filter(|_| renderer.hyperlink)
                 .map(Hyperlink::with_url)
                 .unwrap_or_default();
+
             buffer.append(buffer_msg_line_offset, "[", label_style);
+            label_width += 1;
+
             buffer.append(buffer_msg_line_offset, &format!("{url}"), label_style);
             buffer.append(buffer_msg_line_offset, id, label_style);
             buffer.append(buffer_msg_line_offset, &format!("{url:#}"), label_style);
+            label_width += id.len();
+
             buffer.append(buffer_msg_line_offset, "]", label_style);
-            label_width += 2 + id.len();
+            label_width += 1;
         }
+
         buffer.append(buffer_msg_line_offset, ": ", title_element_style);
         label_width += 2;
     }
