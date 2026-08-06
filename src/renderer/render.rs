@@ -354,9 +354,11 @@ fn render_title(
 
     let mut label_width = 0;
     let level_is_visible = title.level().name != Some(None);
-    if level_is_visible {
-        buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
-        label_width += title.level().as_str().len();
+    if level_is_visible || title.id().is_some() {
+        if level_is_visible {
+            buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
+            label_width += title.level().as_str().len();
+        }
 
         if let Some(Id { id: Some(id), url }) = &title.id() {
             let url = url
@@ -365,16 +367,20 @@ fn render_title(
                 .map(Hyperlink::with_url)
                 .unwrap_or_default();
 
-            buffer.append(buffer_msg_line_offset, "[", label_style);
-            label_width += 1;
+            if level_is_visible {
+                buffer.append(buffer_msg_line_offset, "[", label_style);
+                label_width += 1;
+            }
 
             buffer.append(buffer_msg_line_offset, &format!("{url}"), label_style);
             buffer.append(buffer_msg_line_offset, id, label_style);
             buffer.append(buffer_msg_line_offset, &format!("{url:#}"), label_style);
             label_width += id.len();
 
-            buffer.append(buffer_msg_line_offset, "]", label_style);
-            label_width += 1;
+            if level_is_visible {
+                buffer.append(buffer_msg_line_offset, "]", label_style);
+                label_width += 1;
+            }
         }
 
         buffer.append(buffer_msg_line_offset, ": ", title_element_style);
