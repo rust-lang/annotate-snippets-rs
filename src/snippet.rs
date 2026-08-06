@@ -227,6 +227,7 @@ pub struct Snippet<'a, T> {
     pub(crate) line_start: usize,
     pub(crate) source: Cow<'a, str>,
     pub(crate) markers: Vec<T>,
+    pub(crate) line_numbering: bool,
     pub(crate) fold: bool,
 }
 
@@ -246,8 +247,17 @@ impl<'a, T: Clone> Snippet<'a, T> {
             line_start: 1,
             source: source.into(),
             markers: vec![],
+            line_numbering: true,
             fold: true,
         }
+    }
+
+    /// Whether to show the line number for each line (default: `true`)
+    ///
+    /// The default is `line_numbering(true)`, showing line numbers
+    pub fn line_numbering(mut self, yes: bool) -> Self {
+        self.line_numbering = yes;
+        self
     }
 
     /// When manually [`fold`][Self::fold]ing,

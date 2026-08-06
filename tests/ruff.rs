@@ -39,6 +39,7 @@ fn example_code() {
         return <logic to compare two `A` instances>
 ",
                 )
+                .line_numbering(false)
                 .fold(false),
             ),
     ];
@@ -53,11 +54,11 @@ info: incompatible return types: `NotBoolable` is not assignable to `bool`
 help: This violates the Liskov Substitution Principle
 help: It is recommended for `__eq__` to work with arbitrary objects, for example:
   |
-1 | def __eq__(self, other: object) -> bool:
-2 |         if not isinstance(other, A):
-3 |         if not isinstance(other, A):
-4 |             return False
-5 |         return <logic to compare two `A` instances>
+  | def __eq__(self, other: object) -> bool:
+  |         if not isinstance(other, A):
+  |         if not isinstance(other, A):
+  |             return False
+  |         return <logic to compare two `A` instances>
   |
 "#]];
 
@@ -75,11 +76,11 @@ info: incompatible return types: `NotBoolable` is not assignable to `bool`
 help: This violates the Liskov Substitution Principle
 help: It is recommended for `__eq__` to work with arbitrary objects, for example:
   ╭▸ 
-1 │ def __eq__(self, other: object) -> bool:
-2 │         if not isinstance(other, A):
-3 │         if not isinstance(other, A):
-4 │             return False
-5 │         return <logic to compare two `A` instances>
+  │ def __eq__(self, other: object) -> bool:
+  │         if not isinstance(other, A):
+  │         if not isinstance(other, A):
+  │             return False
+  │         return <logic to compare two `A` instances>
   ╰╴
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
