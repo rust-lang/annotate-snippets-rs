@@ -514,6 +514,12 @@ fn format_origin(origin: &Origin<'_>, anonymized_origin_line_numbers: bool) -> S
     if let Some(path) = &origin.path {
         write!(&mut buffer, "{path}").unwrap();
     }
+    if let Some(section) = &origin.section {
+        if !buffer.is_empty() {
+            write!(&mut buffer, ":").unwrap();
+        }
+        write!(&mut buffer, "{section}").unwrap();
+    }
     if let Some(line) = origin.line {
         if anonymized_origin_line_numbers {
             let line = ANONYMIZED_LINE_NUM;

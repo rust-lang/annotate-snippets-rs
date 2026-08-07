@@ -97,6 +97,7 @@ pub(crate) fn render_no_graphics(
                         render_path(
                             &mut output,
                             snippet.path.as_deref(),
+                            snippet.section.as_deref(),
                             Some(snippet.line_start),
                             None,
                             renderer.anonymized_origin_line_numbers,
@@ -130,6 +131,7 @@ pub(crate) fn render_no_graphics(
                                 render_path(
                                     &mut output,
                                     Some(path),
+                                    snippet.section.as_deref(),
                                     Some(lo.line),
                                     Some(lo.char + 1),
                                     renderer.anonymized_origin_line_numbers,
@@ -153,6 +155,7 @@ pub(crate) fn render_no_graphics(
                                 render_path(
                                     &mut output,
                                     None,
+                                    snippet.section.as_deref(),
                                     Some(lo.line),
                                     col,
                                     renderer.anonymized_origin_line_numbers,
@@ -249,6 +252,7 @@ pub(crate) fn render_no_graphics(
                             render_path(
                                 &mut output,
                                 path,
+                                suggestion.section.as_deref(),
                                 Some(lo.line),
                                 Some(lo.char + 1),
                                 renderer.anonymized_origin_line_numbers,
@@ -281,6 +285,7 @@ pub(crate) fn render_no_graphics(
                             render_path(
                                 &mut output,
                                 path,
+                                suggestion.section.as_deref(),
                                 Some(lo.line),
                                 col,
                                 renderer.anonymized_origin_line_numbers,
@@ -312,6 +317,7 @@ pub(crate) fn render_no_graphics(
                     render_path(
                         &mut output,
                         origin.path.as_deref(),
+                        origin.section.as_deref(),
                         origin.line,
                         origin.char_column,
                         renderer.anonymized_origin_line_numbers,
@@ -432,11 +438,12 @@ fn render_title(
 /// Print out a file position optimized for the data available.
 ///
 /// When the `path` is available, we print `at PATH:LL:CC`, which is detected by terminals and
-/// editors as a path to a specific place in a file. Otherwise, we print`on line LL, column CC`,
-/// for the elements that are available.
+/// editors as a path to a specific place in a file. A section is included between the path and
+/// line number, or described separately when there is no path.
 fn render_path(
     output: &mut String,
     path: Option<&str>,
+    section: Option<&str>,
     line: Option<usize>,
     col: Option<usize>,
     anonymized_origin_line_numbers: bool,
@@ -452,6 +459,9 @@ fn render_path(
     if let Some(path) = path {
         // `at $DIR/file.txt`
         write!(output, "at {path}")?;
+        if let Some(section) = section {
+            write!(output, ":{section}")?;
+        }
         if let Some(line) = line {
             // `at $DIR/file.txt:LL`
             write!(output, ":{line}")?;
@@ -463,6 +473,9 @@ fn render_path(
     } else if let Some(line) = line {
         // We are not printing the path, so instead we show
         // ` on line LL`
+        if let Some(section) = section {
+            write!(output, "in {section}, ")?;
+        }
         write!(output, "on line {line}")?;
         if let Some(col) = col {
             // ` on line LL, column CC`.
