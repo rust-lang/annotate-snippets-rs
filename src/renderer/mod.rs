@@ -18,6 +18,7 @@
 //! anstream::println!("{output}");
 //! ```
 
+pub(crate) mod no_graphics;
 pub(crate) mod render;
 pub(crate) mod source_map;
 pub(crate) mod stylesheet;
@@ -113,6 +114,7 @@ pub struct Renderer {
     stylesheet: Stylesheet,
     hyperlink: bool,
     short_message: bool,
+    no_graphics: bool,
 }
 
 impl Renderer {
@@ -126,6 +128,7 @@ impl Renderer {
             stylesheet: Stylesheet::plain(),
             hyperlink: false,
             short_message: false,
+            no_graphics: false,
         }
     }
 
@@ -156,6 +159,11 @@ impl Renderer {
             hyperlink: true,
             ..Self::plain()
         }
+    }
+
+    pub const fn no_graphics(mut self, no_graphics: bool) -> Self {
+        self.no_graphics = no_graphics;
+        self
     }
 
     /// Abbreviate the message
@@ -228,7 +236,11 @@ impl Renderer {
 impl Renderer {
     /// Render a diagnostic [`Report`]
     pub fn render(&self, groups: Report<'_>) -> String {
-        render::render(self, groups)
+        if self.no_graphics {
+            no_graphics::render_no_graphics(self, groups).unwrap()
+        } else {
+            render::render(self, groups)
+        }
     }
 }
 
