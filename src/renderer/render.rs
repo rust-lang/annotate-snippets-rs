@@ -313,7 +313,7 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
     Ok(out_string)
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn render_title(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -438,7 +438,7 @@ fn render_title(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn render_origin(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -509,7 +509,7 @@ fn render_origin(
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn render_snippet_annotations(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -842,7 +842,7 @@ fn render_snippet_annotations(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn render_source_line(
     renderer: &Renderer,
     line_info: &AnnotatedLineInfo<'_>,
@@ -1451,7 +1451,7 @@ fn render_source_line(
         .collect::<Vec<_>>()
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn emit_suggestion_default(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -1685,8 +1685,8 @@ fn emit_suggestion_default(
                     }
                 })
                 .sum();
-            let underline_start = (span_start_pos + start) as isize + offset;
-            let underline_end = (span_start_pos + start + sub_len) as isize + offset;
+            let underline_start = (span_start_pos + start).cast_signed() + offset;
+            let underline_end = (span_start_pos + start + sub_len).cast_signed() + offset;
             assert!(underline_start >= 0 && underline_end >= 0);
             let padding: usize = max_line_num_len + 3;
             for p in underline_start..underline_end {
@@ -1695,7 +1695,7 @@ fn emit_suggestion_default(
                     // underline with `+`.
                     buffer.putc(
                         row_num,
-                        (padding as isize + p) as usize,
+                        (padding.cast_signed() + p).cast_unsigned(),
                         if part.is_addition(sm) {
                             '+'
                         } else {
@@ -1707,10 +1707,10 @@ fn emit_suggestion_default(
             }
 
             // length of the code after substitution
-            let full_sub_len = str_width(&part.replacement) as isize;
+            let full_sub_len = str_width(&part.replacement).cast_signed();
 
             // length of the code to be substituted
-            let snippet_len = span_end_pos as isize - span_start_pos as isize;
+            let snippet_len = span_end_pos.cast_signed() - span_start_pos.cast_signed();
             // For multiple substitutions, use the position *after* the previous
             // substitutions have happened, only when further substitutions are
             // located strictly after.
@@ -1744,7 +1744,7 @@ fn emit_suggestion_default(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn draw_code_line(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -1971,7 +1971,7 @@ fn style_substitution_highlights(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
 fn draw_line(
     renderer: &Renderer,
     buffer: &mut StyledBuffer,
@@ -2470,20 +2470,20 @@ impl DisplaySuggestion {
             .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
         let is_multiline = complete.lines().count() > 1;
         if has_deletion && !is_multiline {
-            DisplaySuggestion::Diff
+            Self::Diff
         } else if patches.len() == 1
             && patches.first().is_some_and(|p| {
                 p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
             })
         {
             // We are adding a line(s) of code before code that was already there.
-            DisplaySuggestion::Add
+            Self::Add
         } else if (patches.len() != 1 || patches[0].replacement.trim() != complete.trim())
             && !is_multiline
         {
-            DisplaySuggestion::Underline
+            Self::Underline
         } else {
-            DisplaySuggestion::None
+            Self::None
         }
     }
 }
@@ -2579,16 +2579,16 @@ pub(crate) enum ElementStyle {
 impl ElementStyle {
     pub(crate) fn color_spec(&self, level: &Level<'_>, stylesheet: &Stylesheet) -> Style {
         match self {
-            ElementStyle::Addition => stylesheet.addition,
-            ElementStyle::Removal => stylesheet.removal,
-            ElementStyle::LineAndColumn => stylesheet.none,
-            ElementStyle::LineNumber => stylesheet.line_num,
-            ElementStyle::Quotation => stylesheet.none,
-            ElementStyle::MainHeaderMsg => stylesheet.emphasis,
-            ElementStyle::UnderlinePrimary | ElementStyle::LabelPrimary => level.style(stylesheet),
-            ElementStyle::UnderlineSecondary | ElementStyle::LabelSecondary => stylesheet.context,
-            ElementStyle::HeaderMsg | ElementStyle::NoStyle => stylesheet.none,
-            ElementStyle::Level(lvl) => lvl.style(stylesheet),
+            Self::Addition => stylesheet.addition,
+            Self::Removal => stylesheet.removal,
+            Self::LineAndColumn => stylesheet.none,
+            Self::LineNumber => stylesheet.line_num,
+            Self::Quotation => stylesheet.none,
+            Self::MainHeaderMsg => stylesheet.emphasis,
+            Self::UnderlinePrimary | Self::LabelPrimary => level.style(stylesheet),
+            Self::UnderlineSecondary | Self::LabelSecondary => stylesheet.context,
+            Self::HeaderMsg | Self::NoStyle => stylesheet.none,
+            Self::Level(lvl) => lvl.style(stylesheet),
         }
     }
 }

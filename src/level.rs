@@ -60,11 +60,11 @@ pub struct Level<'a> {
 
 /// # Constructors
 impl<'a> Level<'a> {
-    pub const ERROR: Level<'a> = ERROR;
-    pub const WARNING: Level<'a> = WARNING;
-    pub const INFO: Level<'a> = INFO;
-    pub const NOTE: Level<'a> = NOTE;
-    pub const HELP: Level<'a> = HELP;
+    pub const ERROR: Self = ERROR;
+    pub const WARNING: Self = WARNING;
+    pub const INFO: Self = INFO;
+    pub const NOTE: Self = NOTE;
+    pub const HELP: Self = HELP;
 }
 
 impl<'a> Level<'a> {
@@ -162,7 +162,7 @@ impl<'a> Level<'a> {
     #[doc = include_str!("../examples/custom_level.rs")]
     /// ```
     #[doc = include_str!("../examples/custom_level.svg")]
-    pub fn with_name(self, name: impl Into<OptionCow<'a>>) -> Level<'a> {
+    pub fn with_name(self, name: impl Into<OptionCow<'a>>) -> Self {
         Level {
             name: Some(name.into().0),
             level: self.level,
@@ -206,7 +206,7 @@ impl<'a> Level<'a> {
     ///         ),
     /// ];
     /// ```
-    pub fn no_name(self) -> Level<'a> {
+    pub fn no_name(self) -> Self {
         self.with_name(None::<&str>)
     }
 }
@@ -223,11 +223,11 @@ pub(crate) enum LevelInner {
 impl LevelInner {
     pub(crate) fn style(self, stylesheet: &Stylesheet) -> Style {
         match self {
-            LevelInner::Error => stylesheet.error,
-            LevelInner::Warning => stylesheet.warning,
-            LevelInner::Info => stylesheet.info,
-            LevelInner::Note => stylesheet.note,
-            LevelInner::Help => stylesheet.help,
+            Self::Error => stylesheet.error,
+            Self::Warning => stylesheet.warning,
+            Self::Info => stylesheet.info,
+            Self::Note => stylesheet.note,
+            Self::Help => stylesheet.help,
         }
     }
 }
