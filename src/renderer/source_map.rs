@@ -494,15 +494,15 @@ impl<'a> SourceMap<'a> {
                 })
                 .sum();
             line_highlight.push(SubstitutionHighlight {
-                start: (cur_lo.char as isize + acc) as usize,
-                end: (cur_lo.char as isize + acc + len) as usize,
+                start: (cur_lo.char.cast_signed() + acc).cast_unsigned(),
+                end: (cur_lo.char.cast_signed() + acc + len).cast_unsigned(),
             });
             buf.push_str(&part.replacement);
             // Account for the difference between the width of the current code and the
             // snippet being suggested, so that the *later* suggestions are correctly
             // aligned on the screen. Note that cur_hi and cur_lo can be on different
             // lines, so cur_hi.col can be smaller than cur_lo.col
-            acc += len - (cur_hi.char as isize - cur_lo.char as isize);
+            acc += len - (cur_hi.char.cast_signed() - cur_lo.char.cast_signed());
             prev_hi = cur_hi;
             prev_line = self.get_line(prev_hi.line);
             for line in part.replacement.split('\n').skip(1) {
@@ -676,9 +676,9 @@ impl EndLine {
     /// The number of characters this line ending occupies in bytes.
     pub(crate) fn len(self) -> usize {
         match self {
-            EndLine::Eof => 0,
-            EndLine::Lf => 1,
-            EndLine::Crlf => 2,
+            Self::Eof => 0,
+            Self::Lf => 1,
+            Self::Crlf => 2,
         }
     }
 }
