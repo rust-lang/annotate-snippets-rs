@@ -11,6 +11,7 @@ env:
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
   CLICOLOR: 1
+  CARGO_INCREMENTAL: 0
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -37,9 +38,7 @@ jobs:
       with:
         persist-credentials: false
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
-      with:
-        toolchain: ${{ matrix.rust }}
+      run: rustup update --no-self-update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
     - name: Initialize cache
       uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
     - name: Install cargo-hack
@@ -64,9 +63,7 @@ jobs:
       with:
         persist-credentials: false
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
-      with:
-        toolchain: stable
+      run: rustup update --no-self-update stable && rustup default stable
     - name: Initialize cache
       uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
     - name: Install cargo-hack
