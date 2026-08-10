@@ -284,7 +284,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
 
 impl<'a> Snippet<'a, Annotation<'a>> {
     /// Highlight and describe a span of text within the [`source`][Self::source]
-    pub fn annotation(mut self, annotation: Annotation<'a>) -> Snippet<'a, Annotation<'a>> {
+    pub fn annotation(mut self, annotation: Annotation<'a>) -> Self {
         self.markers.push(annotation);
         self
     }
@@ -298,7 +298,7 @@ impl<'a> Snippet<'a, Annotation<'a>> {
 
 impl<'a> Snippet<'a, Patch<'a>> {
     /// Suggest to the user an edit to the [`source`][Self::source]
-    pub fn patch(mut self, patch: Patch<'a>) -> Snippet<'a, Patch<'a>> {
+    pub fn patch(mut self, patch: Patch<'a>) -> Self {
         self.markers.push(patch);
         self
     }
@@ -403,7 +403,7 @@ impl AnnotationKind {
     }
 
     pub(crate) fn is_primary(&self) -> bool {
-        matches!(self, AnnotationKind::Primary)
+        matches!(self, Self::Primary)
     }
 }
 

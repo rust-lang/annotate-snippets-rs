@@ -318,53 +318,53 @@ pub enum DecorStyle {
 impl DecorStyle {
     fn col_separator(&self) -> char {
         match self {
-            DecorStyle::Ascii => '|',
-            DecorStyle::Unicode => '│',
+            Self::Ascii => '|',
+            Self::Unicode => '│',
         }
     }
 
     fn note_separator(&self, is_cont: bool) -> &str {
         match self {
-            DecorStyle::Ascii => "= ",
-            DecorStyle::Unicode if is_cont => "├ ",
-            DecorStyle::Unicode => "╰ ",
+            Self::Ascii => "= ",
+            Self::Unicode if is_cont => "├ ",
+            Self::Unicode => "╰ ",
         }
     }
 
     fn multi_suggestion_separator(&self) -> &'static str {
         match self {
-            DecorStyle::Ascii => "|",
-            DecorStyle::Unicode => "├╴",
+            Self::Ascii => "|",
+            Self::Unicode => "├╴",
         }
     }
 
     fn file_start(&self, is_first: bool, alone: bool) -> &'static str {
         match self {
-            DecorStyle::Ascii => "--> ",
-            DecorStyle::Unicode if is_first && alone => " ─▸ ",
-            DecorStyle::Unicode if is_first => " ╭▸ ",
-            DecorStyle::Unicode => " ├▸ ",
+            Self::Ascii => "--> ",
+            Self::Unicode if is_first && alone => " ─▸ ",
+            Self::Unicode if is_first => " ╭▸ ",
+            Self::Unicode => " ├▸ ",
         }
     }
 
     fn secondary_file_start(&self) -> &'static str {
         match self {
-            DecorStyle::Ascii => "::: ",
-            DecorStyle::Unicode => " ⸬  ",
+            Self::Ascii => "::: ",
+            Self::Unicode => " ⸬  ",
         }
     }
 
     fn diff(&self) -> char {
         match self {
-            DecorStyle::Ascii => '~',
-            DecorStyle::Unicode => '±',
+            Self::Ascii => '~',
+            Self::Unicode => '±',
         }
     }
 
     fn margin(&self) -> &'static str {
         match self {
-            DecorStyle::Ascii => "...",
-            DecorStyle::Unicode => "…",
+            Self::Ascii => "...",
+            Self::Unicode => "…",
         }
     }
 
@@ -394,7 +394,7 @@ impl DecorStyle {
         //                        ┗━━┛ < bottom_right
 
         match (self, is_primary) {
-            (DecorStyle::Ascii, true) => UnderlineParts {
+            (Self::Ascii, true) => UnderlineParts {
                 style: ElementStyle::UnderlinePrimary,
                 underline: '^',
                 label_start: '^',
@@ -411,7 +411,7 @@ impl DecorStyle {
                 multiline_end_same_line: '^',
                 multiline_bottom_right_with_text: '|',
             },
-            (DecorStyle::Ascii, false) => UnderlineParts {
+            (Self::Ascii, false) => UnderlineParts {
                 style: ElementStyle::UnderlineSecondary,
                 underline: '-',
                 label_start: '-',
@@ -428,7 +428,7 @@ impl DecorStyle {
                 multiline_end_same_line: '-',
                 multiline_bottom_right_with_text: '|',
             },
-            (DecorStyle::Unicode, true) => UnderlineParts {
+            (Self::Unicode, true) => UnderlineParts {
                 style: ElementStyle::UnderlinePrimary,
                 underline: '━',
                 label_start: '┯',
@@ -445,7 +445,7 @@ impl DecorStyle {
                 multiline_end_same_line: '┛',
                 multiline_bottom_right_with_text: '┥',
             },
-            (DecorStyle::Unicode, false) => UnderlineParts {
+            (Self::Unicode, false) => UnderlineParts {
                 style: ElementStyle::UnderlineSecondary,
                 underline: '─',
                 label_start: '┬',

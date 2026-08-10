@@ -366,7 +366,7 @@ help: a way to fix this
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "Annotation range `0..7` is beyond the end of buffer `5`")]
 fn test_i26() {
     let source = "short";
     let label = "label";
