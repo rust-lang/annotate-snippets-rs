@@ -216,10 +216,8 @@ jobs:
     - name: Install cargo-tarpaulin
       run: cargo install cargo-tarpaulin
     - name: Gather coverage
-      run: cargo tarpaulin --out xml --timeout 120
-    - name: Upload coverage report
-      if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-      uses: actions/upload-code-coverage@1c15be36fc3733ba839b1dd643bd9556e4426dc1 # v1.4.1
+      run: cargo tarpaulin --output-dir coverage --out lcov --timeout 120
+    - name: Publish to Coveralls
+      uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2.3.8
       with:
-        file: cobertura.xml
-        language: Rust
+        github-token: ${{ secrets.GITHUB_TOKEN }}
