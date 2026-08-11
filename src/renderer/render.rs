@@ -725,6 +725,7 @@ fn render_snippet_annotations(
             max_line_num_len,
             margin,
             !is_cont && annotated_line_idx + 1 == annotated_lines.len(),
+            snippet.line_numbering,
         );
 
         let mut to_add = BTreeMap::new();
@@ -808,6 +809,7 @@ fn render_snippet_annotations(
                         code_offset,
                         max_line_num_len,
                         margin,
+                        snippet.line_numbering,
                     );
 
                     for (depth, style) in &multilines {
@@ -859,6 +861,7 @@ fn render_source_line(
     max_line_num_len: usize,
     margin: Margin,
     close_window: bool,
+    line_numbering: bool,
 ) -> Vec<(usize, ElementStyle)> {
     // Draw:
     //
@@ -888,6 +891,7 @@ fn render_source_line(
         code_offset,
         max_line_num_len,
         margin,
+        line_numbering,
     );
 
     // If there are no annotations, we are done
@@ -1533,7 +1537,7 @@ fn emit_suggestion_default(
             buffer.puts(
                 row_num - 1 + line - line_start.line,
                 0,
-                &maybe_anonymized(renderer, line, max_line_num_len),
+                &maybe_anonymized(renderer, line, max_line_num_len, suggestion.line_numbering),
                 ElementStyle::LineNumber,
             );
             buffer.puts(
@@ -1578,6 +1582,7 @@ fn emit_suggestion_default(
                     max_line_num_len,
                     &file_lines,
                     is_multiline,
+                    suggestion.line_numbering,
                 );
             }),
             // Print first unhighlighted line, "..." and last unhighlighted line, like so:
@@ -1604,6 +1609,7 @@ fn emit_suggestion_default(
                         max_line_num_len,
                         &file_lines,
                         is_multiline,
+                        suggestion.line_numbering,
                     );
                 }
 
@@ -1630,6 +1636,7 @@ fn emit_suggestion_default(
                         max_line_num_len,
                         &file_lines,
                         is_multiline,
+                        suggestion.line_numbering,
                     );
                 }
             }
@@ -1646,6 +1653,7 @@ fn emit_suggestion_default(
             max_line_num_len,
             &file_lines,
             is_multiline,
+            suggestion.line_numbering,
         );
     }
 
@@ -1764,6 +1772,7 @@ fn draw_code_line(
     max_line_num_len: usize,
     file_lines: &[&LineInfo<'_>],
     is_multiline: bool,
+    line_numbering: bool,
 ) {
     if let DisplaySuggestion::Diff = show_code_change {
         // We need to print more than one line if the span we need to remove is multiline.
@@ -1773,7 +1782,7 @@ fn draw_code_line(
             buffer.puts(
                 *row_num - 1,
                 0,
-                &maybe_anonymized(renderer, line_num + index, max_line_num_len),
+                &maybe_anonymized(renderer, line_num + index, max_line_num_len, line_numbering),
                 ElementStyle::LineNumber,
             );
             buffer.puts(
@@ -1822,7 +1831,12 @@ fn draw_code_line(
             buffer.puts(
                 *row_num - 1,
                 0,
-                &maybe_anonymized(renderer, line_num + file_lines.len() - 1, max_line_num_len),
+                &maybe_anonymized(
+                    renderer,
+                    line_num + file_lines.len() - 1,
+                    max_line_num_len,
+                    line_numbering,
+                ),
                 ElementStyle::LineNumber,
             );
             buffer.puts(
@@ -1865,7 +1879,7 @@ fn draw_code_line(
                 buffer.puts(
                     *row_num,
                     0,
-                    &maybe_anonymized(renderer, line_num, max_line_num_len),
+                    &maybe_anonymized(renderer, line_num, max_line_num_len, line_numbering),
                     ElementStyle::LineNumber,
                 );
                 buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
@@ -1880,7 +1894,7 @@ fn draw_code_line(
         buffer.puts(
             *row_num,
             0,
-            &maybe_anonymized(renderer, line_num, max_line_num_len),
+            &maybe_anonymized(renderer, line_num, max_line_num_len, line_numbering),
             ElementStyle::LineNumber,
         );
         match &highlight_parts {
@@ -1916,7 +1930,7 @@ fn draw_code_line(
         buffer.puts(
             *row_num,
             0,
-            &maybe_anonymized(renderer, line_num, max_line_num_len),
+            &maybe_anonymized(renderer, line_num, max_line_num_len, line_numbering),
             ElementStyle::LineNumber,
         );
         buffer.puts(*row_num, max_line_num_len + 1, "+ ", ElementStyle::Addition);
@@ -1929,7 +1943,7 @@ fn draw_code_line(
         buffer.puts(
             *row_num,
             0,
-            &maybe_anonymized(renderer, line_num, max_line_num_len),
+            &maybe_anonymized(renderer, line_num, max_line_num_len, line_numbering),
             ElementStyle::LineNumber,
         );
         draw_col_separator(renderer, buffer, *row_num, max_line_num_len + 1);
@@ -1989,6 +2003,7 @@ fn draw_line(
     code_offset: usize,
     max_line_num_len: usize,
     margin: Margin,
+    line_numbering: bool,
 ) -> usize {
     // Tabs are assumed to have been replaced by spaces in calling code.
     debug_assert!(!source_string.contains('\t'));
@@ -2081,7 +2096,7 @@ fn draw_line(
     buffer.puts(
         line_offset,
         0,
-        &maybe_anonymized(renderer, line_index, max_line_num_len),
+        &maybe_anonymized(renderer, line_index, max_line_num_len, line_numbering),
         ElementStyle::LineNumber,
     );
 
@@ -2223,10 +2238,17 @@ fn draw_col_separator_no_space_with_style(
     buffer.putc(line, col, chr, style);
 }
 
-fn maybe_anonymized(renderer: &Renderer, line_num: usize, max_line_num_len: usize) -> String {
+fn maybe_anonymized(
+    renderer: &Renderer,
+    line_num: usize,
+    max_line_num_len: usize,
+    line_numbering: bool,
+) -> String {
     format!(
         "{:>max_line_num_len$}",
-        if renderer.anonymized_snippet_line_numbers {
+        if !line_numbering {
+            Cow::Borrowed("")
+        } else if renderer.anonymized_snippet_line_numbers {
             Cow::Borrowed(ANONYMIZED_LINE_NUM)
         } else {
             Cow::Owned(line_num.to_string())
@@ -2687,15 +2709,19 @@ fn pre_process<'a>(
                             .unwrap_or(cause.source.len())
                             .min(cause.source.len());
 
-                        max_line_num = Some(max(
-                            cause.line_start + newline_count(&cause.source[..end]),
-                            max_line_num.unwrap_or(0),
-                        ));
+                        if cause.line_numbering {
+                            max_line_num = Some(max(
+                                cause.line_start + newline_count(&cause.source[..end]),
+                                max_line_num.unwrap_or(0),
+                            ));
+                        }
                     } else {
-                        max_line_num = Some(max(
-                            cause.line_start + newline_count(&cause.source),
-                            max_line_num.unwrap_or(0),
-                        ));
+                        if cause.line_numbering {
+                            max_line_num = Some(max(
+                                cause.line_start + newline_count(&cause.source),
+                                max_line_num.unwrap_or(0),
+                            ));
+                        }
                     }
 
                     if primary_path.is_none() {
@@ -2727,14 +2753,18 @@ fn pre_process<'a>(
                                     DisplaySuggestion::None => l_start.line + nc,
                                     DisplaySuggestion::Add => l_start.line + nc,
                                 };
-                                max_line_num =
-                                    Some(max(sugg_max_line_num, max_line_num.unwrap_or(0)));
+                                if suggestion.line_numbering {
+                                    max_line_num =
+                                        Some(max(sugg_max_line_num, max_line_num.unwrap_or(0)));
+                                }
                             }
                         } else {
-                            max_line_num = Some(max(
-                                suggestion.line_start + newline_count(&complete),
-                                max_line_num.unwrap_or(0),
-                            ));
+                            if suggestion.line_numbering {
+                                max_line_num = Some(max(
+                                    suggestion.line_start + newline_count(&complete),
+                                    max_line_num.unwrap_or(0),
+                                ));
+                            }
                         }
 
                         elements.push(PreProcessedElement::Suggestion((
