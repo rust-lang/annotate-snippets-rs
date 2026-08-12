@@ -1,7 +1,9 @@
-use annotate_snippets::renderer::DecorStyle;
-use annotate_snippets::{AnnotationKind, Level, Renderer, Snippet};
+use annotate_snippets::{AnnotationKind, Level, Renderer, Snippet, renderer::DecorStyle};
 
-fn main() {
+use snapbox::{assert_data_eq, file};
+
+#[test]
+fn case() {
     let source = r#"//@ compile-flags: -Zterminal-urls=yes
 fn main() {
     let () = 4; //~ ERROR
@@ -27,6 +29,11 @@ fn main() {
                 ),
         )];
 
-    let renderer = Renderer::styled().decor_style(DecorStyle::Unicode);
-    anstream::println!("{}", renderer.render(report));
+    let expected_ascii = file!["id_hyperlink.ascii.term.svg": TermSvg];
+    let renderer = Renderer::styled();
+    assert_data_eq!(renderer.render(report), expected_ascii);
+
+    let expected_unicode = file!["id_hyperlink.unicode.term.svg": TermSvg];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(report), expected_unicode);
 }
