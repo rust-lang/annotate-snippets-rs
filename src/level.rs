@@ -83,6 +83,7 @@ impl<'a> Level<'a> {
         Title {
             level: self,
             id: None,
+            footnote_marker: None,
             text: text.into(),
             allows_styling: false,
         }
@@ -104,6 +105,7 @@ impl<'a> Level<'a> {
         Title {
             level: self,
             id: None,
+            footnote_marker: None,
             text: text.into(),
             allows_styling: true,
         }
