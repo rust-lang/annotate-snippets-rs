@@ -101,6 +101,7 @@ fn fixable_diagnostic_no_name() {
         .no_name()
         .primary_title("`os` imported but unused")
         .id("F401")
+        .footnote("[*]")
         .element(
             Snippet::source("import os\n")
                 .path("-")
@@ -112,7 +113,7 @@ Found 1 error.
 ";
 
     let expected_ascii = str![[r#"
-F401: `os` imported but unused
+F401[*]: `os` imported but unused
  --> -:1:8
   |
 1 | import os
@@ -129,7 +130,7 @@ Found 1 error.
     );
 
     let expected_unicode = str![[r#"
-F401: `os` imported but unused
+F401[*]: `os` imported but unused
   ╭▸ -:1:8
   │
 1 │ import os
@@ -146,7 +147,7 @@ Found 1 error.
     );
 
     let expected_no_graphics = str![[r#"
-F401: `os` imported but unused
+F401  footnote [*]: `os` imported but unused
  at -:1:8
 "#]];
     let renderer_no_graphics = renderer.no_graphics(true);
@@ -158,6 +159,7 @@ fn fixable_diagnostic() {
     let input = &[Level::ERROR
         .primary_title("`os` imported but unused")
         .id("F401")
+        .footnote("[*]")
         .element(
             Snippet::source("import os\n")
                 .path("fib.py")
@@ -169,7 +171,7 @@ Found 1 error.
 ";
 
     let expected_ascii = str![[r#"
-error[F401]: `os` imported but unused
+error[F401][*]: `os` imported but unused
  --> fib.py:1:8
   |
 1 | import os
@@ -186,7 +188,7 @@ Found 1 error.
     );
 
     let expected_unicode = str![[r#"
-error[F401]: `os` imported but unused
+error[F401][*]: `os` imported but unused
   ╭▸ fib.py:1:8
   │
 1 │ import os
@@ -203,7 +205,7 @@ Found 1 error.
     );
 
     let expected_no_graphics = str![[r#"
-error F401: `os` imported but unused
+error F401  footnote [*]: `os` imported but unused
  at fib.py:1:8
 "#]];
     let renderer_no_graphics = renderer.no_graphics(true);

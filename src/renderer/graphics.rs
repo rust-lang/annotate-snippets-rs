@@ -388,6 +388,11 @@ fn render_title(
             }
         }
 
+        if let Some(footnote_marker) = title.footnote_marker() {
+            buffer.append(buffer_msg_line_offset, footnote_marker, label_style);
+            label_width += str_width(footnote_marker);
+        }
+
         buffer.append(buffer_msg_line_offset, ": ", title_element_style);
         label_width += 2;
     }
@@ -2298,6 +2303,7 @@ fn draw_line_separator(renderer: &Renderer, buffer: &mut StyledBuffer, line: usi
 pub(crate) trait MessageOrTitle {
     fn level(&self) -> &Level<'_>;
     fn id(&self) -> Option<&Id<'_>>;
+    fn footnote_marker(&self) -> Option<&str>;
     fn text(&self) -> &str;
     fn allows_styling(&self) -> bool;
 }
@@ -2308,6 +2314,9 @@ impl MessageOrTitle for Title<'_> {
     }
     fn id(&self) -> Option<&Id<'_>> {
         self.id.as_ref()
+    }
+    fn footnote_marker(&self) -> Option<&str> {
+        self.footnote_marker.as_deref()
     }
     fn text(&self) -> &str {
         self.text.as_ref()
@@ -2322,6 +2331,9 @@ impl MessageOrTitle for Message<'_> {
         &self.level
     }
     fn id(&self) -> Option<&Id<'_>> {
+        None
+    }
+    fn footnote_marker(&self) -> Option<&str> {
         None
     }
     fn text(&self) -> &str {
