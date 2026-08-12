@@ -357,7 +357,7 @@ fn render_title(
     if level_is_visible || title.id().is_some() {
         if level_is_visible {
             buffer.append(buffer_msg_line_offset, title.level().as_str(), label_style);
-            label_width += title.level().as_str().len();
+            label_width += str_width(title.level().as_str());
         }
 
         if let Some(Id { id: Some(id), url }) = &title.id() {
@@ -375,7 +375,7 @@ fn render_title(
             buffer.append(buffer_msg_line_offset, &format!("{url}"), label_style);
             buffer.append(buffer_msg_line_offset, id, label_style);
             buffer.append(buffer_msg_line_offset, &format!("{url:#}"), label_style);
-            label_width += id.len();
+            label_width += str_width(id);
 
             if level_is_visible {
                 buffer.append(buffer_msg_line_offset, "]", label_style);

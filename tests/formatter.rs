@@ -5453,3 +5453,49 @@ error[E0308]: mismatched types
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn multi_byte_chars_in_level_name() {
+    let report = &[Group::with_title(
+        Level::ERROR
+            .with_name("Æíóü")
+            .primary_title("first line\nsecond line"),
+    )];
+
+    let expected_ascii = str![[r#"
+Æíóü: first line
+      second line
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(report), expected_ascii);
+
+    let expected_unicode = str![[r#"
+Æíóü: first line
+      second line
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(report), expected_unicode);
+}
+
+#[test]
+fn wide_chars_in_level_name() {
+    let report = &[Group::with_title(
+        Level::ERROR
+            .with_name("こんにちは")
+            .primary_title("first line\nsecond line"),
+    )];
+
+    let expected_ascii = str![[r#"
+こんにちは: first line
+            second line
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(report), expected_ascii);
+
+    let expected_unicode = str![[r#"
+こんにちは: first line
+            second line
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(report), expected_unicode);
+}
