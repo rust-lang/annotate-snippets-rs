@@ -86,3 +86,54 @@ help: It is recommended for `__eq__` to work with arbitrary objects, for example
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
 }
+
+#[test]
+fn fixable_diagnostic() {
+    let input = &[Level::ERROR
+        .no_name()
+        .primary_title("`os` imported but unused")
+        .id("F401")
+        .element(
+            Snippet::source("import os\n")
+                .path("-")
+                .annotation(AnnotationKind::Primary.span(7..9)),
+        )];
+    let suffix = "
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+";
+
+    let expected_ascii = str![[r#"
+F401: `os` imported but unused
+ --> -:1:8
+  |
+1 | import os
+  |        ^^
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(
+        format!("{}\n{suffix}", renderer.render(input)),
+        expected_ascii
+    );
+
+    let expected_unicode = str![[r#"
+F401: `os` imported but unused
+  ╭▸ -:1:8
+  │
+1 │ import os
+  ╰╴       ━━
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(
+        format!("{}\n{suffix}", renderer.render(input)),
+        expected_unicode
+    );
+}
