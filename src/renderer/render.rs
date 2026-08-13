@@ -31,7 +31,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
         render_short_message(renderer, groups).unwrap()
     } else {
-        let (max_line_num, og_primary_path, groups) = pre_process(groups);
+        let (max_line_num, report_primary_path, groups) = pre_process(groups);
         let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
             ANONYMIZED_LINE_NUM.len()
         } else {
@@ -164,7 +164,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
                             display_suggestion,
                             max_line_num_len,
                             &source_map,
-                            primary_path.or(og_primary_path),
+                            primary_path.or(report_primary_path),
                             matches_previous_suggestion,
                             is_first,
                             //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
@@ -2684,7 +2684,7 @@ fn pre_process<'a>(
     Vec<PreProcessedGroup<'a>>,
 ) {
     let mut max_line_num = None;
-    let mut og_primary_path = None;
+    let mut report_primary_path = None;
     let mut out = Vec::with_capacity(groups.len());
     for group in groups {
         let mut elements = Vec::with_capacity(group.elements.len());
@@ -2792,13 +2792,13 @@ fn pre_process<'a>(
             primary_path: primary_path.unwrap_or_default(),
             max_depth,
         };
-        if og_primary_path.is_none() && group.primary_path.is_some() {
-            og_primary_path = group.primary_path;
+        if report_primary_path.is_none() && group.primary_path.is_some() {
+            report_primary_path = group.primary_path;
         }
         out.push(group);
     }
 
-    (max_line_num, og_primary_path, out)
+    (max_line_num, report_primary_path, out)
 }
 
 fn newline_count(body: &str) -> usize {
