@@ -2752,29 +2752,27 @@ fn pre_process<'a>(
                             &sm,
                         );
 
-                        if suggestion.fold {
-                            if let Some(first) = spliced_lines.patches.first() {
-                                let (l_start, _) =
-                                    sm.span_to_locations(first.original_span.clone());
-                                let nc = newline_count(&spliced_lines.complete);
-                                let sugg_max_line_num = match display_suggestion {
-                                    DisplaySuggestion::Underline => l_start.line,
-                                    DisplaySuggestion::Diff => {
-                                        let file_lines = sm.span_to_lines(first.span.clone());
-                                        file_lines
-                                            .last()
-                                            .map_or(l_start.line + nc, |line| line.line_index)
-                                    }
-                                    DisplaySuggestion::None => l_start.line + nc,
-                                    DisplaySuggestion::Add => l_start.line + nc,
-                                };
-                                if suggestion.line_numbering {
+                        if suggestion.line_numbering {
+                            if suggestion.fold {
+                                if let Some(first) = spliced_lines.patches.first() {
+                                    let (l_start, _) =
+                                        sm.span_to_locations(first.original_span.clone());
+                                    let nc = newline_count(&spliced_lines.complete);
+                                    let sugg_max_line_num = match display_suggestion {
+                                        DisplaySuggestion::Underline => l_start.line,
+                                        DisplaySuggestion::Diff => {
+                                            let file_lines = sm.span_to_lines(first.span.clone());
+                                            file_lines
+                                                .last()
+                                                .map_or(l_start.line + nc, |line| line.line_index)
+                                        }
+                                        DisplaySuggestion::None => l_start.line + nc,
+                                        DisplaySuggestion::Add => l_start.line + nc,
+                                    };
                                     max_line_num =
                                         Some(max(sugg_max_line_num, max_line_num.unwrap_or(0)));
                                 }
-                            }
-                        } else {
-                            if suggestion.line_numbering {
+                            } else {
                                 max_line_num = Some(max(
                                     suggestion.line_start + newline_count(&spliced_lines.complete),
                                     max_line_num.unwrap_or(0),
