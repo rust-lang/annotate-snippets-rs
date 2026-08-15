@@ -1478,19 +1478,13 @@ fn emit_suggestion_default(
 ) {
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-    let SplicedLines {
-        complete,
-        patches,
-        highlights,
-        replaced_highlights,
-    } = spliced_lines;
-    let is_multiline = complete.lines().count() > 1;
+    let is_multiline = spliced_lines.complete.lines().count() > 1;
 
     if suggestion.path.as_ref() != primary_path
         && let Some(path) = suggestion.path.as_ref()
         && !matches_previous_suggestion
     {
-        let (loc, _) = sm.span_to_locations(patches[0].span.clone());
+        let (loc, _) = sm.span_to_locations(spliced_lines.patches[0].span.clone());
         // --> file.rs:line:col
         //  |
         for _ in 0..max_line_num_len {
@@ -1525,17 +1519,27 @@ fn emit_suggestion_default(
         row_num += 1;
     }
 
-    let lo = patches.iter().map(|p| p.span.start).min().unwrap();
-    let hi = patches.iter().map(|p| p.span.end).max().unwrap();
+    let lo = spliced_lines
+        .patches
+        .iter()
+        .map(|p| p.span.start)
+        .min()
+        .unwrap();
+    let hi = spliced_lines
+        .patches
+        .iter()
+        .map(|p| p.span.end)
+        .max()
+        .unwrap();
 
     let file_lines = sm.span_to_lines(lo..hi);
     let (line_start, line_end) = if suggestion.fold {
         // We use the original span to get original line_start
-        sm.span_to_locations(patches[0].original_span.clone())
+        sm.span_to_locations(spliced_lines.patches[0].original_span.clone())
     } else {
         sm.span_to_locations(0..sm.source.len())
     };
-    let mut lines = complete.lines();
+    let mut lines = spliced_lines.complete.lines();
     if lines.clone().next().is_none() {
         // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
         for line in line_start.line..=line_end.line {
@@ -1561,7 +1565,9 @@ fn emit_suggestion_default(
         row_num += line_end.line - line_start.line;
     }
     let mut unhighlighted_lines = Vec::new();
-    for (line_pos, (line, highlight_parts)) in lines.by_ref().zip(highlights).enumerate() {
+    for (line_pos, (line, highlight_parts)) in
+        lines.by_ref().zip(spliced_lines.highlights).enumerate()
+    {
         // Remember lines that are not highlighted to hide them if needed
         if highlight_parts.is_empty() && suggestion.fold {
             unhighlighted_lines.push((line_pos, line));
@@ -1651,7 +1657,7 @@ fn emit_suggestion_default(
             buffer,
             &mut row_num,
             &highlight_parts,
-            &replaced_highlights,
+            &spliced_lines.replaced_highlights,
             line_pos + line_start.line,
             line,
             show_code_change,
@@ -1670,7 +1676,7 @@ fn emit_suggestion_default(
     if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
         show_code_change
     {
-        for part in patches {
+        for part in spliced_lines.patches {
             let (span_start, span_end) = sm.span_to_locations(part.span.clone());
             let span_start_pos = span_start.display;
             let span_end_pos = span_end.display;
