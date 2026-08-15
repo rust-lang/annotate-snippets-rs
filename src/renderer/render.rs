@@ -2737,20 +2737,20 @@ fn pre_process<'a>(
                 }
                 Element::Suggestion(suggestion) => {
                     let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
-                    if let Some(SplicedLines {
-                        complete,
-                        patches,
-                        highlights,
-                        replaced_highlights,
-                    }) = sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
+                    if let Some(spliced_lines) =
+                        sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
                     {
-                        let display_suggestion = DisplaySuggestion::new(&complete, &patches, &sm);
+                        let display_suggestion = DisplaySuggestion::new(
+                            &spliced_lines.complete,
+                            &spliced_lines.patches,
+                            &sm,
+                        );
 
                         if suggestion.fold {
-                            if let Some(first) = patches.first() {
+                            if let Some(first) = spliced_lines.patches.first() {
                                 let (l_start, _) =
                                     sm.span_to_locations(first.original_span.clone());
-                                let nc = newline_count(&complete);
+                                let nc = newline_count(&spliced_lines.complete);
                                 let sugg_max_line_num = match display_suggestion {
                                     DisplaySuggestion::Underline => l_start.line,
                                     DisplaySuggestion::Diff => {
@@ -2770,7 +2770,7 @@ fn pre_process<'a>(
                         } else {
                             if suggestion.line_numbering {
                                 max_line_num = Some(max(
-                                    suggestion.line_start + newline_count(&complete),
+                                    suggestion.line_start + newline_count(&spliced_lines.complete),
                                     max_line_num.unwrap_or(0),
                                 ));
                             }
@@ -2779,12 +2779,7 @@ fn pre_process<'a>(
                         elements.push(PreProcessedElement::Suggestion((
                             suggestion,
                             sm,
-                            SplicedLines {
-                                complete,
-                                patches,
-                                highlights,
-                                replaced_highlights,
-                            },
+                            spliced_lines,
                             display_suggestion,
                         )));
                     }
