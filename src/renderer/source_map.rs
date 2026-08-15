@@ -557,7 +557,12 @@ impl<'a> SourceMap<'a> {
         if highlights.iter().all(|parts| parts.is_empty()) {
             None
         } else {
-            Some((buf, trimmed_patches, highlights, replaced_highlights))
+            Some(SplicedLines {
+                complete: buf,
+                patches: trimmed_patches,
+                highlights,
+                replaced_highlights,
+            })
         }
     }
 }
@@ -714,15 +719,15 @@ impl<'a> Iterator for CursorLines<'a> {
     }
 }
 
-pub(crate) type SplicedLines<'a> = (
-    String,
-    Vec<TrimmedPatch<'a>>,
+pub(crate) struct SplicedLines<'a> {
+    pub(crate) complete: String,
+    pub(crate) patches: Vec<TrimmedPatch<'a>>,
     // Char spans to highlight per line of the post-substitution output.
-    Vec<Vec<SubstitutionHighlight>>,
+    pub(crate) highlights: Vec<Vec<SubstitutionHighlight>>,
     // Char spans of the replaced (original) code, per original line in the
     // bounding range covered by the splice.
-    Vec<Vec<SubstitutionHighlight>>,
-);
+    pub(crate) replaced_highlights: Vec<Vec<SubstitutionHighlight>>,
+}
 
 /// Used to translate between `Span`s and byte positions within a single output line in highlighted
 /// code of structured suggestions.

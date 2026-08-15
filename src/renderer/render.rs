@@ -1478,7 +1478,12 @@ fn emit_suggestion_default(
 ) {
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-    let (complete, patches, highlights, replaced_highlights) = spliced_lines;
+    let SplicedLines {
+        complete,
+        patches,
+        highlights,
+        replaced_highlights,
+    } = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
     if suggestion.path.as_ref() != primary_path
@@ -2732,8 +2737,12 @@ fn pre_process<'a>(
                 }
                 Element::Suggestion(suggestion) => {
                     let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
-                    if let Some((complete, patches, highlights, replaced_highlights)) =
-                        sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
+                    if let Some(SplicedLines {
+                        complete,
+                        patches,
+                        highlights,
+                        replaced_highlights,
+                    }) = sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
                     {
                         let display_suggestion = DisplaySuggestion::new(&complete, &patches, &sm);
 
@@ -2770,7 +2779,12 @@ fn pre_process<'a>(
                         elements.push(PreProcessedElement::Suggestion((
                             suggestion,
                             sm,
-                            (complete, patches, highlights, replaced_highlights),
+                            SplicedLines {
+                                complete,
+                                patches,
+                                highlights,
+                                replaced_highlights,
+                            },
                             display_suggestion,
                         )));
                     }
