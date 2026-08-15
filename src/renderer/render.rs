@@ -1478,14 +1478,14 @@ fn emit_suggestion_default(
 ) {
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-    let (complete, parts, highlights, replaced_highlights) = spliced_lines;
+    let (complete, patches, highlights, replaced_highlights) = spliced_lines;
     let is_multiline = complete.lines().count() > 1;
 
     if suggestion.path.as_ref() != primary_path
         && let Some(path) = suggestion.path.as_ref()
         && !matches_previous_suggestion
     {
-        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+        let (loc, _) = sm.span_to_locations(patches[0].span.clone());
         // --> file.rs:line:col
         //  |
         for _ in 0..max_line_num_len {
@@ -1520,13 +1520,13 @@ fn emit_suggestion_default(
         row_num += 1;
     }
 
-    let lo = parts.iter().map(|p| p.span.start).min().unwrap();
-    let hi = parts.iter().map(|p| p.span.end).max().unwrap();
+    let lo = patches.iter().map(|p| p.span.start).min().unwrap();
+    let hi = patches.iter().map(|p| p.span.end).max().unwrap();
 
     let file_lines = sm.span_to_lines(lo..hi);
     let (line_start, line_end) = if suggestion.fold {
         // We use the original span to get original line_start
-        sm.span_to_locations(parts[0].original_span.clone())
+        sm.span_to_locations(patches[0].original_span.clone())
     } else {
         sm.span_to_locations(0..sm.source.len())
     };
@@ -1665,7 +1665,7 @@ fn emit_suggestion_default(
     if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
         show_code_change
     {
-        for part in parts {
+        for part in patches {
             let (span_start, span_end) = sm.span_to_locations(part.span.clone());
             let span_start_pos = span_start.display;
             let span_end_pos = span_end.display;
