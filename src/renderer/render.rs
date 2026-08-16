@@ -1478,14 +1478,13 @@ fn emit_suggestion_default(
 ) {
     let buffer_offset = buffer.num_lines();
     let mut row_num = buffer_offset + usize::from(!matches_previous_suggestion);
-    let (complete, parts, highlights, replaced_highlights) = spliced_lines;
-    let is_multiline = complete.lines().count() > 1;
+    let is_multiline = spliced_lines.complete.lines().count() > 1;
 
     if suggestion.path.as_ref() != primary_path
         && let Some(path) = suggestion.path.as_ref()
         && !matches_previous_suggestion
     {
-        let (loc, _) = sm.span_to_locations(parts[0].span.clone());
+        let (loc, _) = sm.span_to_locations(spliced_lines.patches[0].span.clone());
         // --> file.rs:line:col
         //  |
         for _ in 0..max_line_num_len {
@@ -1520,17 +1519,27 @@ fn emit_suggestion_default(
         row_num += 1;
     }
 
-    let lo = parts.iter().map(|p| p.span.start).min().unwrap();
-    let hi = parts.iter().map(|p| p.span.end).max().unwrap();
+    let lo = spliced_lines
+        .patches
+        .iter()
+        .map(|p| p.span.start)
+        .min()
+        .unwrap();
+    let hi = spliced_lines
+        .patches
+        .iter()
+        .map(|p| p.span.end)
+        .max()
+        .unwrap();
 
     let file_lines = sm.span_to_lines(lo..hi);
     let (line_start, line_end) = if suggestion.fold {
         // We use the original span to get original line_start
-        sm.span_to_locations(parts[0].original_span.clone())
+        sm.span_to_locations(spliced_lines.patches[0].original_span.clone())
     } else {
         sm.span_to_locations(0..sm.source.len())
     };
-    let mut lines = complete.lines();
+    let mut lines = spliced_lines.complete.lines();
     if lines.clone().next().is_none() {
         // Account for a suggestion to completely remove a line(s) with whitespace (#94192).
         for line in line_start.line..=line_end.line {
@@ -1556,7 +1565,9 @@ fn emit_suggestion_default(
         row_num += line_end.line - line_start.line;
     }
     let mut unhighlighted_lines = Vec::new();
-    for (line_pos, (line, highlight_parts)) in lines.by_ref().zip(highlights).enumerate() {
+    for (line_pos, (line, highlight_parts)) in
+        lines.by_ref().zip(spliced_lines.highlights).enumerate()
+    {
         // Remember lines that are not highlighted to hide them if needed
         if highlight_parts.is_empty() && suggestion.fold {
             unhighlighted_lines.push((line_pos, line));
@@ -1646,7 +1657,7 @@ fn emit_suggestion_default(
             buffer,
             &mut row_num,
             &highlight_parts,
-            &replaced_highlights,
+            &spliced_lines.replaced_highlights,
             line_pos + line_start.line,
             line,
             show_code_change,
@@ -1665,7 +1676,7 @@ fn emit_suggestion_default(
     if let DisplaySuggestion::Diff | DisplaySuggestion::Underline | DisplaySuggestion::Add =
         show_code_change
     {
-        for part in parts {
+        for part in spliced_lines.patches {
             let (span_start, span_end) = sm.span_to_locations(part.span.clone());
             let span_start_pos = span_start.display;
             let span_end_pos = span_end.display;
@@ -2732,36 +2743,38 @@ fn pre_process<'a>(
                 }
                 Element::Suggestion(suggestion) => {
                     let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
-                    if let Some((complete, patches, highlights, replaced_highlights)) =
+                    if let Some(spliced_lines) =
                         sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
                     {
-                        let display_suggestion = DisplaySuggestion::new(&complete, &patches, &sm);
+                        let display_suggestion = DisplaySuggestion::new(
+                            &spliced_lines.complete,
+                            &spliced_lines.patches,
+                            &sm,
+                        );
 
-                        if suggestion.fold {
-                            if let Some(first) = patches.first() {
-                                let (l_start, _) =
-                                    sm.span_to_locations(first.original_span.clone());
-                                let nc = newline_count(&complete);
-                                let sugg_max_line_num = match display_suggestion {
-                                    DisplaySuggestion::Underline => l_start.line,
-                                    DisplaySuggestion::Diff => {
-                                        let file_lines = sm.span_to_lines(first.span.clone());
-                                        file_lines
-                                            .last()
-                                            .map_or(l_start.line + nc, |line| line.line_index)
-                                    }
-                                    DisplaySuggestion::None => l_start.line + nc,
-                                    DisplaySuggestion::Add => l_start.line + nc,
-                                };
-                                if suggestion.line_numbering {
+                        if suggestion.line_numbering {
+                            if suggestion.fold {
+                                if let Some(first) = spliced_lines.patches.first() {
+                                    let (l_start, _) =
+                                        sm.span_to_locations(first.original_span.clone());
+                                    let nc = newline_count(&spliced_lines.complete);
+                                    let sugg_max_line_num = match display_suggestion {
+                                        DisplaySuggestion::Underline => l_start.line,
+                                        DisplaySuggestion::Diff => {
+                                            let file_lines = sm.span_to_lines(first.span.clone());
+                                            file_lines
+                                                .last()
+                                                .map_or(l_start.line + nc, |line| line.line_index)
+                                        }
+                                        DisplaySuggestion::None => l_start.line + nc,
+                                        DisplaySuggestion::Add => l_start.line + nc,
+                                    };
                                     max_line_num =
                                         Some(max(sugg_max_line_num, max_line_num.unwrap_or(0)));
                                 }
-                            }
-                        } else {
-                            if suggestion.line_numbering {
+                            } else {
                                 max_line_num = Some(max(
-                                    suggestion.line_start + newline_count(&complete),
+                                    suggestion.line_start + newline_count(&spliced_lines.complete),
                                     max_line_num.unwrap_or(0),
                                 ));
                             }
@@ -2770,7 +2783,7 @@ fn pre_process<'a>(
                         elements.push(PreProcessedElement::Suggestion((
                             suggestion,
                             sm,
-                            (complete, patches, highlights, replaced_highlights),
+                            spliced_lines,
                             display_suggestion,
                         )));
                     }
