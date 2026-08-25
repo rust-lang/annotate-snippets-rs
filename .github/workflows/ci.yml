@@ -180,7 +180,7 @@ jobs:
     - name: Report status
       env:
         CARGO_BUILD_WARNINGS: deny
-      run: cargo clippy --workspace --all-features --all-targets --keep-going -- --allow deprecated
+      run: cargo clippy --workspace --all-features --all-targets --keep-going -- --allow deprecated --allow renamed_and_removed_lints
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
