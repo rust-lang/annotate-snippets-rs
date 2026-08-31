@@ -18,7 +18,7 @@
 //! anstream::println!("{output}");
 //! ```
 
-pub(crate) mod render;
+pub(crate) mod graphics;
 pub(crate) mod source_map;
 pub(crate) mod stylesheet;
 
@@ -30,10 +30,10 @@ use alloc::string::String;
 
 use crate::Report;
 
-pub(crate) use render::ElementStyle;
-pub(crate) use render::UnderlineParts;
-pub(crate) use render::normalize_whitespace;
-pub(crate) use render::{LineAnnotation, LineAnnotationType, char_width, num_overlap};
+pub(crate) use graphics::ElementStyle;
+pub(crate) use graphics::UnderlineParts;
+pub(crate) use graphics::normalize_whitespace;
+pub(crate) use graphics::{LineAnnotation, LineAnnotationType, char_width, num_overlap};
 pub(crate) use stylesheet::Stylesheet;
 
 pub use anstyle::*;
@@ -229,7 +229,7 @@ impl Renderer {
 impl Renderer {
     /// Render a diagnostic [`Report`]
     pub fn render(&self, groups: Report<'_>) -> String {
-        render::render(self, groups)
+        graphics::render(self, groups)
     }
 }
 
