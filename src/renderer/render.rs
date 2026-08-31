@@ -36,7 +36,7 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
 }
 
 pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> String {
-    let (max_line_num, report_primary_path, groups) = pre_process(groups);
+    let (max_line_num, report_primary_path, groups) = preprocess(groups);
     let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
         ANONYMIZED_LINE_NUM.len()
     } else {
@@ -46,7 +46,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
     let group_len = groups.len();
     for (
         g,
-        PreProcessedGroup {
+        PreprocessedGroup {
             group,
             elements,
             primary_path,
@@ -71,12 +71,12 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
                 title,
                 max_line_num_len,
                 title_style,
-                matches!(peek, Some(PreProcessedElement::Message(_))),
+                matches!(peek, Some(PreprocessedElement::Message(_))),
                 buffer_msg_line_offset,
             );
             let buffer_msg_line_offset = buffer.num_lines();
 
-            if matches!(peek, Some(PreProcessedElement::Message(_))) {
+            if matches!(peek, Some(PreprocessedElement::Message(_))) {
                 draw_col_separator_no_space(
                     renderer,
                     &mut buffer,
@@ -99,7 +99,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
             let peek = message_iter.peek().map(|(_, s)| s);
             let is_first = i == 0;
             match section {
-                PreProcessedElement::Message(title) => {
+                PreprocessedElement::Message(title) => {
                     let title_style = TitleStyle::Secondary;
                     let buffer_msg_line_offset = buffer.num_lines();
                     render_title(
@@ -112,7 +112,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
                         buffer_msg_line_offset,
                     );
                 }
-                PreProcessedElement::Cause((cause, source_map, annotated_lines)) => {
+                PreprocessedElement::Cause((cause, source_map, annotated_lines)) => {
                     let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
                     seen_primary |= is_primary;
                     render_snippet_annotations(
@@ -131,7 +131,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
                     if g == 0 {
                         let current_line = buffer.num_lines();
                         match peek {
-                            Some(PreProcessedElement::Message(_)) => {
+                            Some(PreprocessedElement::Message(_)) => {
                                 draw_col_separator_no_space(
                                     renderer,
                                     &mut buffer,
@@ -149,7 +149,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
                         }
                     }
                 }
-                PreProcessedElement::Suggestion((
+                PreprocessedElement::Suggestion((
                     suggestion,
                     source_map,
                     spliced_lines,
@@ -172,14 +172,14 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
                         peek.is_some(),
                     );
 
-                    if matches!(peek, Some(PreProcessedElement::Suggestion(_))) {
+                    if matches!(peek, Some(PreprocessedElement::Suggestion(_))) {
                         last_suggestion_path = Some(suggestion.path.as_ref());
                     } else {
                         last_suggestion_path = None;
                     }
                 }
 
-                PreProcessedElement::Origin(origin) => {
+                PreprocessedElement::Origin(origin) => {
                     let buffer_msg_line_offset = buffer.num_lines();
                     let is_primary = primary_path == Some(&origin.path) && !seen_primary;
                     seen_primary |= is_primary;
@@ -203,7 +203,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
                         );
                     }
                 }
-                PreProcessedElement::Padding(_) => {
+                PreprocessedElement::Padding(_) => {
                     let current_line = buffer.num_lines();
                     if peek.is_none() {
                         draw_col_separator_end(
@@ -2659,14 +2659,14 @@ enum TitleStyle {
     Secondary,
 }
 
-struct PreProcessedGroup<'a> {
+struct PreprocessedGroup<'a> {
     group: &'a Group<'a>,
-    elements: Vec<PreProcessedElement<'a>>,
+    elements: Vec<PreprocessedElement<'a>>,
     primary_path: Option<&'a Cow<'a, str>>,
     max_depth: usize,
 }
 
-enum PreProcessedElement<'a> {
+enum PreprocessedElement<'a> {
     Message(&'a Message<'a>),
     Cause(
         (
@@ -2687,12 +2687,12 @@ enum PreProcessedElement<'a> {
     Padding(Padding),
 }
 
-fn pre_process<'a>(
+fn preprocess<'a>(
     groups: &'a [Group<'a>],
 ) -> (
     Option<usize>,
     Option<&'a Cow<'a, str>>,
-    Vec<PreProcessedGroup<'a>>,
+    Vec<PreprocessedGroup<'a>>,
 ) {
     let mut max_line_num = None;
     let mut report_primary_path = None;
@@ -2704,7 +2704,7 @@ fn pre_process<'a>(
         for element in &group.elements {
             match element {
                 Element::Message(message) => {
-                    elements.push(PreProcessedElement::Message(message));
+                    elements.push(PreprocessedElement::Message(message));
                 }
                 Element::Cause(cause) => {
                     let sm = SourceMap::new(&cause.source, cause.line_start);
@@ -2739,7 +2739,7 @@ fn pre_process<'a>(
                         primary_path = Some(cause.path.as_ref());
                     }
                     max_depth = max(depth, max_depth);
-                    elements.push(PreProcessedElement::Cause((cause, sm, annotated_lines)));
+                    elements.push(PreprocessedElement::Cause((cause, sm, annotated_lines)));
                 }
                 Element::Suggestion(suggestion) => {
                     let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
@@ -2780,7 +2780,7 @@ fn pre_process<'a>(
                             }
                         }
 
-                        elements.push(PreProcessedElement::Suggestion((
+                        elements.push(PreprocessedElement::Suggestion((
                             suggestion,
                             sm,
                             spliced_lines,
@@ -2792,14 +2792,14 @@ fn pre_process<'a>(
                     if primary_path.is_none() {
                         primary_path = Some(Some(&origin.path));
                     }
-                    elements.push(PreProcessedElement::Origin(origin));
+                    elements.push(PreprocessedElement::Origin(origin));
                 }
                 Element::Padding(padding) => {
-                    elements.push(PreProcessedElement::Padding(padding.clone()));
+                    elements.push(PreprocessedElement::Padding(padding.clone()));
                 }
             }
         }
-        let group = PreProcessedGroup {
+        let group = PreprocessedGroup {
             group,
             elements,
             primary_path: primary_path.unwrap_or_default(),
