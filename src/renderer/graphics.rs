@@ -13,16 +13,16 @@ use anstyle::Style;
 use super::DecorStyle;
 use super::Renderer;
 use super::margin::Margin;
+use super::preprocess::{DisplaySuggestion, Preprocessed, PreprocessedElement, PreprocessedGroup};
 use super::stylesheet::Stylesheet;
 use crate::level::{Level, LevelInner};
 use crate::renderer::source_map::{
-    AnnotatedLineInfo, LineInfo, Loc, SourceMap, SplicedLines, SubstitutionHighlight, TrimmedPatch,
+    AnnotatedLineInfo, LineInfo, Loc, SourceMap, SplicedLines, SubstitutionHighlight,
 };
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
 use crate::{
-    Annotation, AnnotationKind, Element, Group, Message, Origin, Padding, Patch, Report, Snippet,
-    Title,
+    Annotation, AnnotationKind, Element, Group, Message, Origin, Patch, Report, Snippet, Title,
 };
 
 const ANONYMIZED_LINE_NUM: &str = "LL";
@@ -31,206 +31,210 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
         render_short_message(renderer, groups).unwrap()
     } else {
-        let (max_line_num, report_primary_path, groups) = pre_process(groups);
-        let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
-            ANONYMIZED_LINE_NUM.len()
-        } else {
-            num_decimal_digits(max_line_num)
-        };
-        let mut out_string = String::new();
-        let group_len = groups.len();
-        for (
-            g,
-            PreProcessedGroup {
-                group,
-                elements,
-                primary_path,
-                max_depth,
-            },
-        ) in groups.into_iter().enumerate()
-        {
-            let mut buffer = StyledBuffer::new();
-            let level = group.primary_level.clone();
-            let mut message_iter = elements.into_iter().enumerate().peekable();
-            if let Some(title) = &group.title {
-                let peek = message_iter.peek().map(|(_, s)| s);
-                let title_style = if title.allows_styling {
-                    TitleStyle::Header
-                } else {
-                    TitleStyle::MainHeader
-                };
-                let buffer_msg_line_offset = buffer.num_lines();
-                render_title(
+        render_full_message(renderer, groups)
+    }
+}
+
+pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> String {
+    let Preprocessed {
+        max_line_num,
+        report_primary_path,
+        groups,
+    } = Preprocessed::preprocess(groups);
+    let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
+        ANONYMIZED_LINE_NUM.len()
+    } else {
+        num_decimal_digits(max_line_num)
+    };
+    let mut out_string = String::new();
+    let group_len = groups.len();
+    for (
+        g,
+        PreprocessedGroup {
+            group,
+            elements,
+            primary_path,
+            max_depth,
+        },
+    ) in groups.into_iter().enumerate()
+    {
+        let mut buffer = StyledBuffer::new();
+        let level = group.primary_level.clone();
+        let mut message_iter = elements.into_iter().enumerate().peekable();
+        if let Some(title) = &group.title {
+            let peek = message_iter.peek().map(|(_, s)| s);
+            let title_style = if title.allows_styling {
+                TitleStyle::Header
+            } else {
+                TitleStyle::MainHeader
+            };
+            let buffer_msg_line_offset = buffer.num_lines();
+            render_title(
+                renderer,
+                &mut buffer,
+                title,
+                max_line_num_len,
+                title_style,
+                matches!(peek, Some(PreprocessedElement::Message(_))),
+                buffer_msg_line_offset,
+            );
+            let buffer_msg_line_offset = buffer.num_lines();
+
+            if matches!(peek, Some(PreprocessedElement::Message(_))) {
+                draw_col_separator_no_space(
                     renderer,
                     &mut buffer,
-                    title,
-                    max_line_num_len,
-                    title_style,
-                    matches!(peek, Some(PreProcessedElement::Message(_))),
                     buffer_msg_line_offset,
+                    max_line_num_len + 1,
                 );
-                let buffer_msg_line_offset = buffer.num_lines();
-
-                if matches!(peek, Some(PreProcessedElement::Message(_))) {
-                    draw_col_separator_no_space(
-                        renderer,
-                        &mut buffer,
-                        buffer_msg_line_offset,
-                        max_line_num_len + 1,
-                    );
-                }
-                if peek.is_none()
-                    && title_style == TitleStyle::MainHeader
-                    && g == 0
-                    && group_len > 1
-                {
-                    draw_col_separator_end(
-                        renderer,
-                        &mut buffer,
-                        buffer_msg_line_offset,
-                        max_line_num_len + 1,
-                    );
-                }
             }
-            let mut seen_primary = false;
-            let mut last_suggestion_path = None;
-            while let Some((i, section)) = message_iter.next() {
-                let peek = message_iter.peek().map(|(_, s)| s);
-                let is_first = i == 0;
-                match section {
-                    PreProcessedElement::Message(title) => {
-                        let title_style = TitleStyle::Secondary;
-                        let buffer_msg_line_offset = buffer.num_lines();
-                        render_title(
-                            renderer,
-                            &mut buffer,
-                            title,
-                            max_line_num_len,
-                            title_style,
-                            peek.is_some(),
-                            buffer_msg_line_offset,
-                        );
-                    }
-                    PreProcessedElement::Cause((cause, source_map, annotated_lines)) => {
-                        let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
-                        seen_primary |= is_primary;
-                        render_snippet_annotations(
-                            renderer,
-                            &mut buffer,
-                            max_line_num_len,
-                            cause,
-                            is_primary,
-                            &source_map,
-                            &annotated_lines,
-                            max_depth,
-                            peek.is_some() || (g == 0 && group_len > 1),
-                            is_first,
-                        );
+            if peek.is_none() && title_style == TitleStyle::MainHeader && g == 0 && group_len > 1 {
+                draw_col_separator_end(
+                    renderer,
+                    &mut buffer,
+                    buffer_msg_line_offset,
+                    max_line_num_len + 1,
+                );
+            }
+        }
+        let mut seen_primary = false;
+        let mut last_suggestion_path = None;
+        while let Some((i, section)) = message_iter.next() {
+            let peek = message_iter.peek().map(|(_, s)| s);
+            let is_first = i == 0;
+            match section {
+                PreprocessedElement::Message(title) => {
+                    let title_style = TitleStyle::Secondary;
+                    let buffer_msg_line_offset = buffer.num_lines();
+                    render_title(
+                        renderer,
+                        &mut buffer,
+                        title,
+                        max_line_num_len,
+                        title_style,
+                        peek.is_some(),
+                        buffer_msg_line_offset,
+                    );
+                }
+                PreprocessedElement::Cause((cause, source_map, annotated_lines)) => {
+                    let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
+                    seen_primary |= is_primary;
+                    render_snippet_annotations(
+                        renderer,
+                        &mut buffer,
+                        max_line_num_len,
+                        cause,
+                        is_primary,
+                        &source_map,
+                        &annotated_lines,
+                        max_depth,
+                        peek.is_some() || (g == 0 && group_len > 1),
+                        is_first,
+                    );
 
-                        if g == 0 {
-                            let current_line = buffer.num_lines();
-                            match peek {
-                                Some(PreProcessedElement::Message(_)) => {
-                                    draw_col_separator_no_space(
-                                        renderer,
-                                        &mut buffer,
-                                        current_line,
-                                        max_line_num_len + 1,
-                                    );
-                                }
-                                None if group_len > 1 => draw_col_separator_end(
+                    if g == 0 {
+                        let current_line = buffer.num_lines();
+                        match peek {
+                            Some(PreprocessedElement::Message(_)) => {
+                                draw_col_separator_no_space(
                                     renderer,
                                     &mut buffer,
                                     current_line,
                                     max_line_num_len + 1,
-                                ),
-                                _ => {}
+                                );
                             }
-                        }
-                    }
-                    PreProcessedElement::Suggestion((
-                        suggestion,
-                        source_map,
-                        spliced_lines,
-                        display_suggestion,
-                    )) => {
-                        let matches_previous_suggestion =
-                            last_suggestion_path == Some(suggestion.path.as_ref());
-                        emit_suggestion_default(
-                            renderer,
-                            &mut buffer,
-                            suggestion,
-                            spliced_lines,
-                            display_suggestion,
-                            max_line_num_len,
-                            &source_map,
-                            primary_path.or(report_primary_path),
-                            matches_previous_suggestion,
-                            is_first,
-                            //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
-                            peek.is_some(),
-                        );
-
-                        if matches!(peek, Some(PreProcessedElement::Suggestion(_))) {
-                            last_suggestion_path = Some(suggestion.path.as_ref());
-                        } else {
-                            last_suggestion_path = None;
-                        }
-                    }
-
-                    PreProcessedElement::Origin(origin) => {
-                        let buffer_msg_line_offset = buffer.num_lines();
-                        let is_primary = primary_path == Some(&origin.path) && !seen_primary;
-                        seen_primary |= is_primary;
-                        render_origin(
-                            renderer,
-                            &mut buffer,
-                            max_line_num_len,
-                            origin,
-                            is_primary,
-                            is_first,
-                            peek.is_none(),
-                            buffer_msg_line_offset,
-                        );
-                        let current_line = buffer.num_lines();
-                        if g == 0 && peek.is_none() && group_len > 1 {
-                            draw_col_separator_end(
+                            None if group_len > 1 => draw_col_separator_end(
                                 renderer,
                                 &mut buffer,
                                 current_line,
                                 max_line_num_len + 1,
-                            );
-                        }
-                    }
-                    PreProcessedElement::Padding(_) => {
-                        let current_line = buffer.num_lines();
-                        if peek.is_none() {
-                            draw_col_separator_end(
-                                renderer,
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
-                        } else {
-                            draw_col_separator_no_space(
-                                renderer,
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
+                            ),
+                            _ => {}
                         }
                     }
                 }
-            }
-            buffer
-                .render(&level, &renderer.stylesheet, &mut out_string)
-                .unwrap();
-            if g != group_len - 1 {
-                out_string.push('\n');
+                PreprocessedElement::Suggestion((
+                    suggestion,
+                    source_map,
+                    spliced_lines,
+                    display_suggestion,
+                )) => {
+                    let matches_previous_suggestion =
+                        last_suggestion_path == Some(suggestion.path.as_ref());
+                    emit_suggestion_default(
+                        renderer,
+                        &mut buffer,
+                        suggestion,
+                        spliced_lines,
+                        display_suggestion,
+                        max_line_num_len,
+                        &source_map,
+                        primary_path.or(report_primary_path),
+                        matches_previous_suggestion,
+                        is_first,
+                        //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
+                        peek.is_some(),
+                    );
+
+                    if matches!(peek, Some(PreprocessedElement::Suggestion(_))) {
+                        last_suggestion_path = Some(suggestion.path.as_ref());
+                    } else {
+                        last_suggestion_path = None;
+                    }
+                }
+
+                PreprocessedElement::Origin(origin) => {
+                    let buffer_msg_line_offset = buffer.num_lines();
+                    let is_primary = primary_path == Some(&origin.path) && !seen_primary;
+                    seen_primary |= is_primary;
+                    render_origin(
+                        renderer,
+                        &mut buffer,
+                        max_line_num_len,
+                        origin,
+                        is_primary,
+                        is_first,
+                        peek.is_none(),
+                        buffer_msg_line_offset,
+                    );
+                    let current_line = buffer.num_lines();
+                    if g == 0 && peek.is_none() && group_len > 1 {
+                        draw_col_separator_end(
+                            renderer,
+                            &mut buffer,
+                            current_line,
+                            max_line_num_len + 1,
+                        );
+                    }
+                }
+                PreprocessedElement::Padding(_) => {
+                    let current_line = buffer.num_lines();
+                    if peek.is_none() {
+                        draw_col_separator_end(
+                            renderer,
+                            &mut buffer,
+                            current_line,
+                            max_line_num_len + 1,
+                        );
+                    } else {
+                        draw_col_separator_no_space(
+                            renderer,
+                            &mut buffer,
+                            current_line,
+                            max_line_num_len + 1,
+                        );
+                    }
+                }
             }
         }
-        out_string
+        buffer
+            .render(&level, &renderer.stylesheet, &mut out_string)
+            .unwrap();
+        if g != group_len - 1 {
+            out_string.push('\n');
+        }
     }
+    out_string
 }
 
 fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<String, fmt::Error> {
@@ -2495,39 +2499,6 @@ impl LineAnnotation<'_> {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub(crate) enum DisplaySuggestion {
-    Underline,
-    Diff,
-    None,
-    Add,
-}
-
-impl DisplaySuggestion {
-    fn new(complete: &str, patches: &[TrimmedPatch<'_>], sm: &SourceMap<'_>) -> Self {
-        let has_deletion = patches
-            .iter()
-            .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
-        let is_multiline = complete.lines().count() > 1;
-        if has_deletion && !is_multiline {
-            Self::Diff
-        } else if patches.len() == 1
-            && patches.first().is_some_and(|p| {
-                p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
-            })
-        {
-            // We are adding a line(s) of code before code that was already there.
-            Self::Add
-        } else if (patches.len() != 1 || patches[0].replacement.trim() != complete.trim())
-            && !is_multiline
-        {
-            Self::Underline
-        } else {
-            Self::None
-        }
-    }
-}
-
 // We replace some characters so the CLI output is always consistent and underlines aligned.
 // Keep the following list in sync with `rustc_span::char_width`.
 const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
@@ -2659,175 +2630,6 @@ enum TitleStyle {
     Secondary,
 }
 
-struct PreProcessedGroup<'a> {
-    group: &'a Group<'a>,
-    elements: Vec<PreProcessedElement<'a>>,
-    primary_path: Option<&'a Cow<'a, str>>,
-    max_depth: usize,
-}
-
-enum PreProcessedElement<'a> {
-    Message(&'a Message<'a>),
-    Cause(
-        (
-            &'a Snippet<'a, Annotation<'a>>,
-            SourceMap<'a>,
-            Vec<AnnotatedLineInfo<'a>>,
-        ),
-    ),
-    Suggestion(
-        (
-            &'a Snippet<'a, Patch<'a>>,
-            SourceMap<'a>,
-            SplicedLines<'a>,
-            DisplaySuggestion,
-        ),
-    ),
-    Origin(&'a Origin<'a>),
-    Padding(Padding),
-}
-
-fn pre_process<'a>(
-    groups: &'a [Group<'a>],
-) -> (
-    Option<usize>,
-    Option<&'a Cow<'a, str>>,
-    Vec<PreProcessedGroup<'a>>,
-) {
-    let mut max_line_num = None;
-    let mut report_primary_path = None;
-    let mut out = Vec::with_capacity(groups.len());
-    for group in groups {
-        let mut elements = Vec::with_capacity(group.elements.len());
-        let mut primary_path = None;
-        let mut max_depth = 0;
-        for element in &group.elements {
-            match element {
-                Element::Message(message) => {
-                    elements.push(PreProcessedElement::Message(message));
-                }
-                Element::Cause(cause) => {
-                    let sm = SourceMap::new(&cause.source, cause.line_start);
-                    let (depth, annotated_lines) =
-                        sm.annotated_lines(cause.markers.clone(), cause.fold);
-
-                    if cause.fold {
-                        let end = cause
-                            .markers
-                            .iter()
-                            .map(|a| a.span.end)
-                            .max()
-                            .unwrap_or(cause.source.len())
-                            .min(cause.source.len());
-
-                        if cause.line_numbering {
-                            max_line_num = Some(max(
-                                cause.line_start + newline_count(&cause.source[..end]),
-                                max_line_num.unwrap_or(0),
-                            ));
-                        }
-                    } else {
-                        if cause.line_numbering {
-                            max_line_num = Some(max(
-                                cause.line_start + newline_count(&cause.source),
-                                max_line_num.unwrap_or(0),
-                            ));
-                        }
-                    }
-
-                    if primary_path.is_none() {
-                        primary_path = Some(cause.path.as_ref());
-                    }
-                    max_depth = max(depth, max_depth);
-                    elements.push(PreProcessedElement::Cause((cause, sm, annotated_lines)));
-                }
-                Element::Suggestion(suggestion) => {
-                    let sm = SourceMap::new(&suggestion.source, suggestion.line_start);
-                    if let Some(spliced_lines) =
-                        sm.splice_lines(suggestion.markers.clone(), suggestion.fold)
-                    {
-                        let display_suggestion = DisplaySuggestion::new(
-                            &spliced_lines.complete,
-                            &spliced_lines.patches,
-                            &sm,
-                        );
-
-                        if suggestion.line_numbering {
-                            if suggestion.fold {
-                                if let Some(first) = spliced_lines.patches.first() {
-                                    let (l_start, _) =
-                                        sm.span_to_locations(first.original_span.clone());
-                                    let nc = newline_count(&spliced_lines.complete);
-                                    let sugg_max_line_num = match display_suggestion {
-                                        DisplaySuggestion::Underline => l_start.line,
-                                        DisplaySuggestion::Diff => {
-                                            let file_lines = sm.span_to_lines(first.span.clone());
-                                            file_lines
-                                                .last()
-                                                .map_or(l_start.line + nc, |line| line.line_index)
-                                        }
-                                        DisplaySuggestion::None => l_start.line + nc,
-                                        DisplaySuggestion::Add => l_start.line + nc,
-                                    };
-                                    max_line_num =
-                                        Some(max(sugg_max_line_num, max_line_num.unwrap_or(0)));
-                                }
-                            } else {
-                                max_line_num = Some(max(
-                                    suggestion.line_start + newline_count(&spliced_lines.complete),
-                                    max_line_num.unwrap_or(0),
-                                ));
-                            }
-                        }
-
-                        elements.push(PreProcessedElement::Suggestion((
-                            suggestion,
-                            sm,
-                            spliced_lines,
-                            display_suggestion,
-                        )));
-                    }
-                }
-                Element::Origin(origin) => {
-                    if primary_path.is_none() {
-                        primary_path = Some(Some(&origin.path));
-                    }
-                    elements.push(PreProcessedElement::Origin(origin));
-                }
-                Element::Padding(padding) => {
-                    elements.push(PreProcessedElement::Padding(padding.clone()));
-                }
-            }
-        }
-        let group = PreProcessedGroup {
-            group,
-            elements,
-            primary_path: primary_path.unwrap_or_default(),
-            max_depth,
-        };
-        if report_primary_path.is_none() && group.primary_path.is_some() {
-            report_primary_path = group.primary_path;
-        }
-        out.push(group);
-    }
-
-    (max_line_num, report_primary_path, out)
-}
-
-fn newline_count(body: &str) -> usize {
-    #[cfg(feature = "simd")]
-    {
-        // Trailing newlines do not count towards the number of lines
-        // (this is based into `str::lines`)
-        let trailing_newline = body.ends_with('\n');
-        memchr::memchr_iter(b'\n', body.as_bytes()).count() - usize::from(trailing_newline)
-    }
-    #[cfg(not(feature = "simd"))]
-    {
-        body.lines().count().saturating_sub(1)
-    }
-}
-
 struct Hyperlink<D: fmt::Display> {
     url: Option<D>,
 }
@@ -2859,7 +2661,7 @@ impl<D: fmt::Display> fmt::Display for Hyperlink<D> {
 
 #[cfg(test)]
 mod test {
-    use super::{OUTPUT_REPLACEMENTS, newline_count};
+    use super::OUTPUT_REPLACEMENTS;
     use snapbox::IntoData;
 
     fn format_replacements(replacements: Vec<(char, &str)>) -> String {
@@ -2880,35 +2682,5 @@ mod test {
         let expected = format_replacements(expected);
         let actual = format_replacements(OUTPUT_REPLACEMENTS.to_owned());
         snapbox::assert_data_eq!(actual, expected.into_data().raw());
-    }
-
-    #[test]
-    fn ensure_newline_count_correct() {
-        let source = r#"
-                cargo-features = ["path-bases"]
-
-                [package]
-                name = "foo"
-                version = "0.5.0"
-                authors = ["wycats@example.com"]
-
-                [dependencies]
-                bar = { base = '^^not-valid^^', path = 'bar' }
-            "#;
-        assert_eq!(newline_count(source), 10);
-
-        assert_eq!(newline_count(""), 0);
-
-        assert_eq!(newline_count("one"), 0);
-
-        assert_eq!(newline_count("one\n"), 0);
-
-        assert_eq!(newline_count("one\ntwo"), 1);
-
-        assert_eq!(newline_count("one\ntwo\n"), 1);
-
-        assert_eq!(newline_count("one\n\n"), 1);
-
-        assert_eq!(newline_count("one\r\ntwo\r\n"), 1);
     }
 }
