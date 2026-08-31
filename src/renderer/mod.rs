@@ -23,6 +23,7 @@ pub(crate) mod source_map;
 pub(crate) mod stylesheet;
 
 mod margin;
+mod preprocess;
 mod styled_buffer;
 
 use alloc::string::String;
