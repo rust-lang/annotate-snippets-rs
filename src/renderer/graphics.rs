@@ -464,40 +464,40 @@ fn render_origin(
         for _ in 0..max_line_num_len {
             buffer.append(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
         }
-    }
 
-    if is_primary && !renderer.short_message {
-        buffer.append(
-            buffer_msg_line_offset,
-            renderer.decor_style.file_start(is_first, alone),
-            ElementStyle::LineNumber,
-        );
-    } else if !renderer.short_message {
-        // if !origin.standalone {
-        //     // Add spacing line, as shown:
-        //     //   --> $DIR/file:54:15
-        //     //    |
-        //     // LL |         code
-        //     //    |         ^^^^
-        //     //    | (<- It prints *this* line)
-        //     //   ::: $DIR/other_file.rs:15:5
-        //     //    |
-        //     // LL |     code
-        //     //    |     ----
-        //     draw_col_separator_no_space(renderer,
-        //         buffer,
-        //         buffer_msg_line_offset,
-        //         max_line_num_len + 1,
-        //     );
-        //
-        //     buffer_msg_line_offset += 1;
-        // }
-        // Then, the secondary file indicator
-        buffer.append(
-            buffer_msg_line_offset,
-            renderer.decor_style.secondary_file_start(),
-            ElementStyle::LineNumber,
-        );
+        if is_primary {
+            buffer.append(
+                buffer_msg_line_offset,
+                renderer.decor_style.file_start(is_first, alone),
+                ElementStyle::LineNumber,
+            );
+        } else {
+            // if !origin.standalone {
+            //     // Add spacing line, as shown:
+            //     //   --> $DIR/file:54:15
+            //     //    |
+            //     // LL |         code
+            //     //    |         ^^^^
+            //     //    | (<- It prints *this* line)
+            //     //   ::: $DIR/other_file.rs:15:5
+            //     //    |
+            //     // LL |     code
+            //     //    |     ----
+            //     draw_col_separator_no_space(renderer,
+            //         buffer,
+            //         buffer_msg_line_offset,
+            //         max_line_num_len + 1,
+            //     );
+            //
+            //     buffer_msg_line_offset += 1;
+            // }
+            // Then, the secondary file indicator
+            buffer.append(
+                buffer_msg_line_offset,
+                renderer.decor_style.secondary_file_start(),
+                ElementStyle::LineNumber,
+            );
+        }
     }
 
     let str = {
