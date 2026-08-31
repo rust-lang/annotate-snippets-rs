@@ -31,6 +31,12 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
     if renderer.short_message {
         render_short_message(renderer, groups).unwrap()
     } else {
+        render_full_message(renderer, groups)
+    }
+}
+
+pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> String {
+    {
         let (max_line_num, report_primary_path, groups) = pre_process(groups);
         let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
             ANONYMIZED_LINE_NUM.len()
