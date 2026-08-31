@@ -292,7 +292,8 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
                 }
             }
 
-            render_origin(renderer, &mut buffer, 0, &origin, true, true, true, 0);
+            let str = format_origin(&origin, renderer.anonymized_origin_line_numbers);
+            buffer.append(0, &str, ElementStyle::LineAndColumn);
             buffer.append(0, ": ", ElementStyle::LineAndColumn);
         }
     }
