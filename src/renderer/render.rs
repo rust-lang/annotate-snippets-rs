@@ -40,7 +40,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
         max_line_num,
         report_primary_path,
         groups,
-    } = preprocess(groups);
+    } = Preprocessed::preprocess(groups);
     let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
         ANONYMIZED_LINE_NUM.len()
     } else {
@@ -2667,6 +2667,12 @@ struct Preprocessed<'a> {
     max_line_num: Option<usize>,
     report_primary_path: Option<&'a Cow<'a, str>>,
     groups: Vec<PreprocessedGroup<'a>>,
+}
+
+impl Preprocessed<'_> {
+    fn preprocess<'a>(groups: &'a [Group<'a>]) -> Preprocessed<'a> {
+        preprocess(groups)
+    }
 }
 
 struct PreprocessedGroup<'a> {
