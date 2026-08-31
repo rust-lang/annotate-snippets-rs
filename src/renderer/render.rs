@@ -36,207 +36,201 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
 }
 
 pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> String {
+    let (max_line_num, report_primary_path, groups) = pre_process(groups);
+    let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
+        ANONYMIZED_LINE_NUM.len()
+    } else {
+        num_decimal_digits(max_line_num)
+    };
+    let mut out_string = String::new();
+    let group_len = groups.len();
+    for (
+        g,
+        PreProcessedGroup {
+            group,
+            elements,
+            primary_path,
+            max_depth,
+        },
+    ) in groups.into_iter().enumerate()
     {
-        let (max_line_num, report_primary_path, groups) = pre_process(groups);
-        let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
-            ANONYMIZED_LINE_NUM.len()
-        } else {
-            num_decimal_digits(max_line_num)
-        };
-        let mut out_string = String::new();
-        let group_len = groups.len();
-        for (
-            g,
-            PreProcessedGroup {
-                group,
-                elements,
-                primary_path,
-                max_depth,
-            },
-        ) in groups.into_iter().enumerate()
-        {
-            let mut buffer = StyledBuffer::new();
-            let level = group.primary_level.clone();
-            let mut message_iter = elements.into_iter().enumerate().peekable();
-            if let Some(title) = &group.title {
-                let peek = message_iter.peek().map(|(_, s)| s);
-                let title_style = if title.allows_styling {
-                    TitleStyle::Header
-                } else {
-                    TitleStyle::MainHeader
-                };
-                let buffer_msg_line_offset = buffer.num_lines();
-                render_title(
+        let mut buffer = StyledBuffer::new();
+        let level = group.primary_level.clone();
+        let mut message_iter = elements.into_iter().enumerate().peekable();
+        if let Some(title) = &group.title {
+            let peek = message_iter.peek().map(|(_, s)| s);
+            let title_style = if title.allows_styling {
+                TitleStyle::Header
+            } else {
+                TitleStyle::MainHeader
+            };
+            let buffer_msg_line_offset = buffer.num_lines();
+            render_title(
+                renderer,
+                &mut buffer,
+                title,
+                max_line_num_len,
+                title_style,
+                matches!(peek, Some(PreProcessedElement::Message(_))),
+                buffer_msg_line_offset,
+            );
+            let buffer_msg_line_offset = buffer.num_lines();
+
+            if matches!(peek, Some(PreProcessedElement::Message(_))) {
+                draw_col_separator_no_space(
                     renderer,
                     &mut buffer,
-                    title,
-                    max_line_num_len,
-                    title_style,
-                    matches!(peek, Some(PreProcessedElement::Message(_))),
                     buffer_msg_line_offset,
+                    max_line_num_len + 1,
                 );
-                let buffer_msg_line_offset = buffer.num_lines();
-
-                if matches!(peek, Some(PreProcessedElement::Message(_))) {
-                    draw_col_separator_no_space(
-                        renderer,
-                        &mut buffer,
-                        buffer_msg_line_offset,
-                        max_line_num_len + 1,
-                    );
-                }
-                if peek.is_none()
-                    && title_style == TitleStyle::MainHeader
-                    && g == 0
-                    && group_len > 1
-                {
-                    draw_col_separator_end(
-                        renderer,
-                        &mut buffer,
-                        buffer_msg_line_offset,
-                        max_line_num_len + 1,
-                    );
-                }
             }
-            let mut seen_primary = false;
-            let mut last_suggestion_path = None;
-            while let Some((i, section)) = message_iter.next() {
-                let peek = message_iter.peek().map(|(_, s)| s);
-                let is_first = i == 0;
-                match section {
-                    PreProcessedElement::Message(title) => {
-                        let title_style = TitleStyle::Secondary;
-                        let buffer_msg_line_offset = buffer.num_lines();
-                        render_title(
-                            renderer,
-                            &mut buffer,
-                            title,
-                            max_line_num_len,
-                            title_style,
-                            peek.is_some(),
-                            buffer_msg_line_offset,
-                        );
-                    }
-                    PreProcessedElement::Cause((cause, source_map, annotated_lines)) => {
-                        let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
-                        seen_primary |= is_primary;
-                        render_snippet_annotations(
-                            renderer,
-                            &mut buffer,
-                            max_line_num_len,
-                            cause,
-                            is_primary,
-                            &source_map,
-                            &annotated_lines,
-                            max_depth,
-                            peek.is_some() || (g == 0 && group_len > 1),
-                            is_first,
-                        );
+            if peek.is_none() && title_style == TitleStyle::MainHeader && g == 0 && group_len > 1 {
+                draw_col_separator_end(
+                    renderer,
+                    &mut buffer,
+                    buffer_msg_line_offset,
+                    max_line_num_len + 1,
+                );
+            }
+        }
+        let mut seen_primary = false;
+        let mut last_suggestion_path = None;
+        while let Some((i, section)) = message_iter.next() {
+            let peek = message_iter.peek().map(|(_, s)| s);
+            let is_first = i == 0;
+            match section {
+                PreProcessedElement::Message(title) => {
+                    let title_style = TitleStyle::Secondary;
+                    let buffer_msg_line_offset = buffer.num_lines();
+                    render_title(
+                        renderer,
+                        &mut buffer,
+                        title,
+                        max_line_num_len,
+                        title_style,
+                        peek.is_some(),
+                        buffer_msg_line_offset,
+                    );
+                }
+                PreProcessedElement::Cause((cause, source_map, annotated_lines)) => {
+                    let is_primary = primary_path == cause.path.as_ref() && !seen_primary;
+                    seen_primary |= is_primary;
+                    render_snippet_annotations(
+                        renderer,
+                        &mut buffer,
+                        max_line_num_len,
+                        cause,
+                        is_primary,
+                        &source_map,
+                        &annotated_lines,
+                        max_depth,
+                        peek.is_some() || (g == 0 && group_len > 1),
+                        is_first,
+                    );
 
-                        if g == 0 {
-                            let current_line = buffer.num_lines();
-                            match peek {
-                                Some(PreProcessedElement::Message(_)) => {
-                                    draw_col_separator_no_space(
-                                        renderer,
-                                        &mut buffer,
-                                        current_line,
-                                        max_line_num_len + 1,
-                                    );
-                                }
-                                None if group_len > 1 => draw_col_separator_end(
+                    if g == 0 {
+                        let current_line = buffer.num_lines();
+                        match peek {
+                            Some(PreProcessedElement::Message(_)) => {
+                                draw_col_separator_no_space(
                                     renderer,
                                     &mut buffer,
                                     current_line,
                                     max_line_num_len + 1,
-                                ),
-                                _ => {}
+                                );
                             }
-                        }
-                    }
-                    PreProcessedElement::Suggestion((
-                        suggestion,
-                        source_map,
-                        spliced_lines,
-                        display_suggestion,
-                    )) => {
-                        let matches_previous_suggestion =
-                            last_suggestion_path == Some(suggestion.path.as_ref());
-                        emit_suggestion_default(
-                            renderer,
-                            &mut buffer,
-                            suggestion,
-                            spliced_lines,
-                            display_suggestion,
-                            max_line_num_len,
-                            &source_map,
-                            primary_path.or(report_primary_path),
-                            matches_previous_suggestion,
-                            is_first,
-                            //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
-                            peek.is_some(),
-                        );
-
-                        if matches!(peek, Some(PreProcessedElement::Suggestion(_))) {
-                            last_suggestion_path = Some(suggestion.path.as_ref());
-                        } else {
-                            last_suggestion_path = None;
-                        }
-                    }
-
-                    PreProcessedElement::Origin(origin) => {
-                        let buffer_msg_line_offset = buffer.num_lines();
-                        let is_primary = primary_path == Some(&origin.path) && !seen_primary;
-                        seen_primary |= is_primary;
-                        render_origin(
-                            renderer,
-                            &mut buffer,
-                            max_line_num_len,
-                            origin,
-                            is_primary,
-                            is_first,
-                            peek.is_none(),
-                            buffer_msg_line_offset,
-                        );
-                        let current_line = buffer.num_lines();
-                        if g == 0 && peek.is_none() && group_len > 1 {
-                            draw_col_separator_end(
+                            None if group_len > 1 => draw_col_separator_end(
                                 renderer,
                                 &mut buffer,
                                 current_line,
                                 max_line_num_len + 1,
-                            );
-                        }
-                    }
-                    PreProcessedElement::Padding(_) => {
-                        let current_line = buffer.num_lines();
-                        if peek.is_none() {
-                            draw_col_separator_end(
-                                renderer,
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
-                        } else {
-                            draw_col_separator_no_space(
-                                renderer,
-                                &mut buffer,
-                                current_line,
-                                max_line_num_len + 1,
-                            );
+                            ),
+                            _ => {}
                         }
                     }
                 }
-            }
-            buffer
-                .render(&level, &renderer.stylesheet, &mut out_string)
-                .unwrap();
-            if g != group_len - 1 {
-                out_string.push('\n');
+                PreProcessedElement::Suggestion((
+                    suggestion,
+                    source_map,
+                    spliced_lines,
+                    display_suggestion,
+                )) => {
+                    let matches_previous_suggestion =
+                        last_suggestion_path == Some(suggestion.path.as_ref());
+                    emit_suggestion_default(
+                        renderer,
+                        &mut buffer,
+                        suggestion,
+                        spliced_lines,
+                        display_suggestion,
+                        max_line_num_len,
+                        &source_map,
+                        primary_path.or(report_primary_path),
+                        matches_previous_suggestion,
+                        is_first,
+                        //matches!(peek, Some(Element::Message(_) | Element::Padding(_))),
+                        peek.is_some(),
+                    );
+
+                    if matches!(peek, Some(PreProcessedElement::Suggestion(_))) {
+                        last_suggestion_path = Some(suggestion.path.as_ref());
+                    } else {
+                        last_suggestion_path = None;
+                    }
+                }
+
+                PreProcessedElement::Origin(origin) => {
+                    let buffer_msg_line_offset = buffer.num_lines();
+                    let is_primary = primary_path == Some(&origin.path) && !seen_primary;
+                    seen_primary |= is_primary;
+                    render_origin(
+                        renderer,
+                        &mut buffer,
+                        max_line_num_len,
+                        origin,
+                        is_primary,
+                        is_first,
+                        peek.is_none(),
+                        buffer_msg_line_offset,
+                    );
+                    let current_line = buffer.num_lines();
+                    if g == 0 && peek.is_none() && group_len > 1 {
+                        draw_col_separator_end(
+                            renderer,
+                            &mut buffer,
+                            current_line,
+                            max_line_num_len + 1,
+                        );
+                    }
+                }
+                PreProcessedElement::Padding(_) => {
+                    let current_line = buffer.num_lines();
+                    if peek.is_none() {
+                        draw_col_separator_end(
+                            renderer,
+                            &mut buffer,
+                            current_line,
+                            max_line_num_len + 1,
+                        );
+                    } else {
+                        draw_col_separator_no_space(
+                            renderer,
+                            &mut buffer,
+                            current_line,
+                            max_line_num_len + 1,
+                        );
+                    }
+                }
             }
         }
-        out_string
+        buffer
+            .render(&level, &renderer.stylesheet, &mut out_string)
+            .unwrap();
+        if g != group_len - 1 {
+            out_string.push('\n');
+        }
     }
+    out_string
 }
 
 fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<String, fmt::Error> {
