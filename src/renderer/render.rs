@@ -36,7 +36,11 @@ pub(crate) fn render(renderer: &Renderer, groups: Report<'_>) -> String {
 }
 
 pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> String {
-    let (max_line_num, report_primary_path, groups) = preprocess(groups);
+    let Preprocessed {
+        max_line_num,
+        report_primary_path,
+        groups,
+    } = preprocess(groups);
     let max_line_num_len = if renderer.anonymized_snippet_line_numbers {
         ANONYMIZED_LINE_NUM.len()
     } else {
@@ -2659,6 +2663,12 @@ enum TitleStyle {
     Secondary,
 }
 
+struct Preprocessed<'a> {
+    max_line_num: Option<usize>,
+    report_primary_path: Option<&'a Cow<'a, str>>,
+    groups: Vec<PreprocessedGroup<'a>>,
+}
+
 struct PreprocessedGroup<'a> {
     group: &'a Group<'a>,
     elements: Vec<PreprocessedElement<'a>>,
@@ -2687,13 +2697,7 @@ enum PreprocessedElement<'a> {
     Padding(Padding),
 }
 
-fn preprocess<'a>(
-    groups: &'a [Group<'a>],
-) -> (
-    Option<usize>,
-    Option<&'a Cow<'a, str>>,
-    Vec<PreprocessedGroup<'a>>,
-) {
+fn preprocess<'a>(groups: &'a [Group<'a>]) -> Preprocessed<'a> {
     let mut max_line_num = None;
     let mut report_primary_path = None;
     let mut out = Vec::with_capacity(groups.len());
@@ -2811,7 +2815,11 @@ fn preprocess<'a>(
         out.push(group);
     }
 
-    (max_line_num, report_primary_path, out)
+    Preprocessed {
+        max_line_num,
+        report_primary_path,
+        groups: out,
+    }
 }
 
 fn newline_count(body: &str) -> usize {
