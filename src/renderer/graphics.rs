@@ -292,7 +292,8 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
                 }
             }
 
-            render_origin(renderer, &mut buffer, 0, &origin, true, true, true, 0);
+            let str = format_origin(&origin, renderer.anonymized_origin_line_numbers);
+            buffer.append(0, &str, ElementStyle::LineAndColumn);
             buffer.append(0, ": ", ElementStyle::LineAndColumn);
         }
     }
@@ -464,60 +465,62 @@ fn render_origin(
         for _ in 0..max_line_num_len {
             buffer.append(buffer_msg_line_offset, " ", ElementStyle::NoStyle);
         }
-    }
 
-    if is_primary && !renderer.short_message {
-        buffer.append(
-            buffer_msg_line_offset,
-            renderer.decor_style.file_start(is_first, alone),
-            ElementStyle::LineNumber,
-        );
-    } else if !renderer.short_message {
-        // if !origin.standalone {
-        //     // Add spacing line, as shown:
-        //     //   --> $DIR/file:54:15
-        //     //    |
-        //     // LL |         code
-        //     //    |         ^^^^
-        //     //    | (<- It prints *this* line)
-        //     //   ::: $DIR/other_file.rs:15:5
-        //     //    |
-        //     // LL |     code
-        //     //    |     ----
-        //     draw_col_separator_no_space(renderer,
-        //         buffer,
-        //         buffer_msg_line_offset,
-        //         max_line_num_len + 1,
-        //     );
-        //
-        //     buffer_msg_line_offset += 1;
-        // }
-        // Then, the secondary file indicator
-        buffer.append(
-            buffer_msg_line_offset,
-            renderer.decor_style.secondary_file_start(),
-            ElementStyle::LineNumber,
-        );
-    }
-
-    let str = {
-        use core::fmt::Write as _;
-
-        let mut buffer = origin.path.as_ref().to_owned();
-        if let Some(line) = origin.line {
-            if renderer.anonymized_origin_line_numbers {
-                let line = ANONYMIZED_LINE_NUM;
-                write!(&mut buffer, ":{line}").unwrap();
-            } else {
-                write!(&mut buffer, ":{line}").unwrap();
-            }
-            if let Some(col) = origin.char_column {
-                write!(&mut buffer, ":{col}").unwrap();
-            }
+        if is_primary {
+            buffer.append(
+                buffer_msg_line_offset,
+                renderer.decor_style.file_start(is_first, alone),
+                ElementStyle::LineNumber,
+            );
+        } else {
+            // if !origin.standalone {
+            //     // Add spacing line, as shown:
+            //     //   --> $DIR/file:54:15
+            //     //    |
+            //     // LL |         code
+            //     //    |         ^^^^
+            //     //    | (<- It prints *this* line)
+            //     //   ::: $DIR/other_file.rs:15:5
+            //     //    |
+            //     // LL |     code
+            //     //    |     ----
+            //     draw_col_separator_no_space(renderer,
+            //         buffer,
+            //         buffer_msg_line_offset,
+            //         max_line_num_len + 1,
+            //     );
+            //
+            //     buffer_msg_line_offset += 1;
+            // }
+            // Then, the secondary file indicator
+            buffer.append(
+                buffer_msg_line_offset,
+                renderer.decor_style.secondary_file_start(),
+                ElementStyle::LineNumber,
+            );
         }
-        buffer
-    };
+    }
+
+    let str = format_origin(origin, renderer.anonymized_origin_line_numbers);
     buffer.append(buffer_msg_line_offset, &str, ElementStyle::LineAndColumn);
+}
+
+fn format_origin(origin: &Origin<'_>, anonymized_origin_line_numbers: bool) -> String {
+    use core::fmt::Write as _;
+
+    let mut buffer = origin.path.as_ref().to_owned();
+    if let Some(line) = origin.line {
+        if anonymized_origin_line_numbers {
+            let line = ANONYMIZED_LINE_NUM;
+            write!(&mut buffer, ":{line}").unwrap();
+        } else {
+            write!(&mut buffer, ":{line}").unwrap();
+        }
+        if let Some(col) = origin.char_column {
+            write!(&mut buffer, ":{col}").unwrap();
+        }
+    }
+    buffer
 }
 
 #[allow(clippy::too_many_arguments, reason = "All arguments are necessary")]
@@ -1496,14 +1499,10 @@ fn emit_suggestion_default(
         }
         let arrow = renderer.decor_style.file_start(is_first, false);
         buffer.append(row_num - 1, arrow, ElementStyle::LineNumber);
-        let display_col = loc.char + 1;
-        let message = if renderer.anonymized_origin_line_numbers {
-            let display_line = ANONYMIZED_LINE_NUM;
-            format!("{path}:{display_line}:{display_col}")
-        } else {
-            let display_line = loc.line;
-            format!("{path}:{display_line}:{display_col}")
-        };
+        let mut origin = Origin::path(path.as_ref());
+        origin.line = Some(loc.line);
+        origin.char_column = Some(loc.char + 1);
+        let message = format_origin(&origin, renderer.anonymized_origin_line_numbers);
         buffer.append(row_num - 1, &message, ElementStyle::LineAndColumn);
 
         draw_col_separator_no_space(renderer, buffer, row_num, max_line_num_len + 1);
