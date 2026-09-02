@@ -161,6 +161,7 @@ pub struct Padding;
 pub struct Title<'a> {
     pub(crate) level: Level<'a>,
     pub(crate) id: Option<Id<'a>>,
+    pub(crate) footnote_marker: Option<Cow<'a, str>>,
     pub(crate) text: Cow<'a, str>,
     pub(crate) allows_styling: bool,
 }
@@ -191,6 +192,22 @@ impl<'a> Title<'a> {
     /// </div>
     pub fn id_url(mut self, url: impl Into<Cow<'a, str>>) -> Self {
         self.id.get_or_insert(Id::default()).url = Some(url.into());
+        self
+    }
+
+    /// Append a footnote marker to the title
+    ///
+    /// The caller is responsible for rendering the footnote.
+    ///
+    /// <div class="warning">
+    ///
+    /// Text passed to this function is considered "untrusted input", as such
+    /// all text is passed through a normalization function. Styled text is
+    /// not allowed to be passed to this function.
+    ///
+    /// </div>
+    pub fn footnote(mut self, marker: impl Into<OptionCow<'a>>) -> Self {
+        self.footnote_marker = marker.into().0;
         self
     }
 
