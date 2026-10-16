@@ -32,6 +32,13 @@ error: oops
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at <current file>:2:8: oops
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -62,6 +69,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:7: world
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -96,6 +110,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:3 to 2:4: Good morning
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -131,6 +152,14 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:1: Sushi1
+  on line 2, column 3: Sushi2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -161,6 +190,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:7: New world
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -176,6 +212,10 @@ fn test_format_title() {
     let expected_unicode = str!["error[E0001]: This is a title"];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str!["error E0001: This is a title"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -206,6 +246,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 5402
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -253,6 +300,14 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file1.rs:5402
+ at file2.rs:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -291,6 +346,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 5403, column 8: Test annotation
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -313,6 +375,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ error: This __is__ a title
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -339,6 +408,14 @@ help: a way to fix this
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: the core problem
+note: more information
+help: a way to fix this
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -363,11 +440,29 @@ help: a way to fix this
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: the core problem
+note: more information
+help: a way to fix this
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
 #[should_panic(expected = "Annotation range `0..7` is beyond the end of buffer `5`")]
 fn test_i26() {
+    check_test_i26(Renderer::plain());
+}
+
+#[test]
+#[should_panic(expected = "Annotation range `0..7` is beyond the end of buffer `5`")]
+fn test_i26_no_graphics() {
+    check_test_i26(Renderer::plain().no_graphics(true));
+}
+
+fn check_test_i26(renderer: Renderer) {
     let source = "short";
     let label = "label";
     let input = &[Level::ERROR.primary_title("").element(
@@ -377,7 +472,6 @@ fn test_i26() {
                 .label(label),
         ),
     )];
-    let renderer = Renderer::plain();
     let _ = renderer.render(input);
 }
 
@@ -408,6 +502,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 56
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -435,6 +536,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 1: Example string
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -469,6 +577,14 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 1: Example string
+ on line 1: Second line
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -497,6 +613,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file.rs:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -530,6 +653,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 56
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -569,6 +699,13 @@ LL │ abc
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at foo.txt:56:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -608,6 +745,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at foo.txt:LL:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -641,6 +785,13 @@ error: dummy
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: dummy
+ at file/path:4:1 to 5:4
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -677,6 +828,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:1 to 4:8
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -713,6 +871,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -746,6 +911,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:1 to 4:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -786,6 +958,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:2 to 2:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -817,6 +996,13 @@ error: bad
 
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: bad
+ at test.txt:1:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -853,6 +1039,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -888,6 +1081,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2 to 4:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -923,6 +1123,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:3 to 4:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -959,6 +1166,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:3
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -999,6 +1213,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:4 to 2:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1034,6 +1255,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2 to 4:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1069,6 +1297,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:3 to 4:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1104,6 +1339,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2 to 4:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1144,6 +1386,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at <current file>:1:4 to 2:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1181,6 +1430,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2 to 5:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1221,6 +1477,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:3 to 4:3
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1258,6 +1521,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:3 to 5:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1293,6 +1563,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2 to 4:3
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1328,6 +1605,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ at file/path:3:2 to 4:3
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1373,6 +1657,14 @@ error: unused optional dependency
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unused optional dependency
+ at Cargo.toml:4:1: I need this to be really long so I can test overlaps
+  on line 4, column 28: This should also be long but not too long
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1427,6 +1719,14 @@ error: unused optional dependency
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unused optional dependency
+ on line 4, column 42 to line 7, column 43: I need this to be really long so I can test overlaps
+ on line 4, column 28: This should also be long but not too long
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1492,6 +1792,15 @@ error: unused optional dependency
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unused optional dependency
+ on line 4, column 9 to line 7, column 26: I need this to be really long so I can test overlaps
+ on line 4, column 42 to line 7, column 43: I need this to be really long so I can test overlaps
+ on line 4, column 28: This should also be long but not too long
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1569,6 +1878,16 @@ error: unused optional dependency
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unused optional dependency
+ on line 4, column 9 to line 7, column 26: I need this to be really long so I can test overlaps
+ on line 4, column 42 to line 7, column 43: I need this to be really long so I can test overlaps
+ on line 5, column 4 to line 8, column 5: I need this to be really long so I can test overlaps
+ on line 4, column 28: This should also be long but not too long
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1608,6 +1927,13 @@ error: title
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: title
+ at origin.txt:3:1: annotation
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1651,6 +1977,13 @@ error: title
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: title
+ at origin.txt:3:2: annotation
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1700,6 +2033,18 @@ help: you might have meant to use one of the following enum variants
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0423: expected value, found enum `A`
+ on line 1
+help: you might have meant to use one of the following enum variants
+ option 1
+  on line 1, column 5 to column 6 replace with: (A::Tuple())
+ option 2
+  on line 1, column 6 add: ::Unit
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1791,6 +2136,19 @@ help: the following traits which provide `pick` are implemented but not in scope
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0599: no method named `pick` found for struct `Chaenomeles` in the current scope
+ on line 18, column 25: method not found in `Chaenomeles`
+ on line 3: method `pick` not found for this struct
+help: the following traits which provide `pick` are implemented but not in scope; perhaps you want to import one of them
+ option 1
+  on line 2, column 1 add: use banana::Apple;
+ option 2
+  on line 2, column 1 add: use banana::Peach;
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1844,6 +2202,16 @@ help: make these changes and things will work
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0423: expected value, found enum `A`
+ on line 1
+help: make these changes and things will work
+ on line 1, column 5 to column 6 replace with: (A::Tuple())
+ on line 1, column 7 to column 10 replace with: bar
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1896,6 +2264,16 @@ help: make these changes and things will work
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0423: Found `ThisIsVeryLong`
+ on line 1
+help: make these changes and things will work
+ on line 1, column 5 to column 19 replace with: (A::Tuple())
+ on line 1, column 20 to column 23 replace with: bar
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -1996,6 +2374,20 @@ help: try explicitly pass `&Self` into the Closure as an argument
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0502: cannot borrow `*self` as mutable because it is also borrowed as immutable
+ on line 2, column 13: immutable borrow occurs here
+ on line 3: first borrow occurs due to use of `*self` in closure
+ on line 5: mutable borrow occurs here
+ on line 6: immutable borrow later used here
+help: try explicitly pass `&Self` into the Closure as an argument
+ on line 2, column 14 add: this: &Self
+ on line 3, column 9 to column 13 replace with: this
+ on line 6, column 7 add: self
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2090,6 +2482,20 @@ help: if you want to call `next` on a iterator within the loop, consider using `
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0499: cannot borrow `chars` as mutable more than once at a time
+ on line 5: second mutable borrow occurs here
+ on line 4, column 15: first mutable borrow occurs here
+ on line 4, column 15: first borrow later used here
+help: if you want to call `next` on a iterator within the loop, consider using `while let`
+ on line 4, column 5 to column 9 replace with: let iter = chars.by_ref();
+    while let Some(
+ on line 4, column 11 to column 29 replace with: ) = iter.next()
+ on line 5, column 9 to column 14 replace with: iter
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2178,6 +2584,19 @@ help: if you import `cell`, refer to it directly
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0433: failed to resolve: use of undeclared crate or module `st`
+ on line 13, column 10: use of undeclared crate or module `st`
+help: there is a crate or module with a similar name
+ on line 13, column 12 add: d
+help: consider importing this module
+ on line 2, column 1 add: use std::cell;
+help: if you import `cell`, refer to it directly
+ on line 13, column 10
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2261,6 +2680,16 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: the size for values of type `T` cannot be known at compilation time
+ on line 4, column 16: doesn't have a size known at compile-time
+ on line 4, column 8: this type parameter needs to be `Sized`
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+ on line 6, column 1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2406,6 +2835,22 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: the size for values of type `T` cannot be known at compilation time
+ at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:4:16: doesn't have a size known at compile-time
+  on line 4, column 8: this type parameter needs to be `Sized`
+note: required by an implicit `Sized` bound in `Wrapper`
+ at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16: required by the implicit `Sized` requirement on this type parameter in `Wrapper`
+help: you could relax the implicit `Sized` bound on `T` if it were used through indirection like `&T` or `Box<T>`
+ at $DIR/removal-of-multiline-trait-bound-in-where-clause.rs:2:16: this could be changed to `T: ?Sized`...
+  on line 2, column 19: ...if indirection were used here: `Box<T>`
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+ on line 6, column 5
+ on line 10, column 10 add: + Send
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2475,6 +2920,15 @@ help: consider removing the `?Sized` bound to make the type parameter `Sized`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: the size for values of type `T` cannot be known at compilation time
+help: consider removing the `?Sized` bound to make the type parameter `Sized`
+ on line 8, column 3
+ on line 11, column 4
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2582,6 +3036,16 @@ note: expected this to be `Foo`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0271: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
+ at $DIR/E0271.rs:20:5 to 32:6: type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
+note: expected this to be `Foo`
+ at $DIR/E0271.rs:10:18
+ note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2694,6 +3158,17 @@ note: expected this to be `Foo`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0271: type mismatch resolving `<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ...>>, ...>>, ...> as Future>::Error == Foo`
+ at $DIR/E0271.rs:20:5 to 32:6: type mismatch resolving `<Result<Result<(), Result<Result<(), ...>, ...>>, ...> as Future>::Error == Foo`
+note: expected this to be `Foo`
+ at $DIR/E0271.rs:10:18
+ note: required for the cast from `Box<Result<Result<(), Result<Result<(), Result<Result<(), Option<{integer}>>, ()>>, ()>>, ()>>` to `Box<(dyn Future<Error = Foo> + 'static)>`
+ note: a second note
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2882,6 +3357,18 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/long-E0308.rs:48:9 to 52:35: expected `Atype<Btype<Ctype<..., i32>, i32>, i32>`, found `Result<Result<Result<..., _>, _>, _>`
+  on line 24, column 12 to line 48, column 6: expected due to this
+ note: expected struct `Atype<Btype<..., i32>, i32>`
+            found enum `Result<Result<..., _>, _>`
+ note: the full name for the type has been written to '$TEST_BUILD_DIR/$FILE.long-type-hash.txt'
+ note: consider using `--verbose` to print the full type name to the console
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -2984,6 +3471,18 @@ note: function defined here
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/unicode-output.rs:23:11: one type is more general than the other
+  on line 23: arguments to this function are incorrect
+ note: expected fn pointer `for<'a> fn(Box<(dyn Any + Send + 'a)>) -> Pin<_>`
+             found fn item `fn(Box<(dyn Any + Send + 'static)>) -> Pin<_> {wrapped_fn}`
+note: function defined here
+ at $DIR/unicode-output.rs:12:10 to 14:4
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 // This tests that an ellipsis is not inserted into Unicode text when a line
@@ -3027,6 +3526,13 @@ error: title
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: title
+ on line 3, column 11 to line 5: annotation
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3056,6 +3562,10 @@ fn trim_unicode_annotate_ascii_end_with_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 170: expected item"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3080,6 +3590,10 @@ fn trim_unicode_annotate_ascii_end_no_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 170"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3109,6 +3623,10 @@ fn trim_unicode_annotate_unicode_end_with_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 170: expected item"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3133,6 +3651,10 @@ fn trim_unicode_annotate_unicode_end_no_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 170"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3162,6 +3684,10 @@ fn trim_unicode_annotate_unicode_middle_with_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 86: expected item"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3186,6 +3712,10 @@ fn trim_unicode_annotate_unicode_middle_no_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 86"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3215,6 +3745,10 @@ fn trim_ascii_annotate_ascii_end_with_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 335: expected item"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3239,6 +3773,10 @@ fn trim_ascii_annotate_ascii_end_no_label() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1, column 335"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3292,6 +3830,14 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/non-whitespace-trimming-unicode.rs:4:415: expected `()`, found integer
+  on line 4, column 410: expected due to this
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3372,6 +3918,18 @@ help: create an owned `String` from a string reference
 
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0369: cannot add `&str` to `&str`
+ at $DIR/non-1-width-unicode-multiline-label.rs:7:260: `+` cannot be used to concatenate two `&str` strings
+  on line 7, column 245: &str
+  on line 7, column 262: &str
+ note: string concatenation requires an owned `String` on the left
+help: create an owned `String` from a string reference
+ on line 7, column 259 add: .to_owned()
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3436,6 +3994,16 @@ note: byte `193` is not valid utf-8
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: couldn't read `$DIR/not-utf8.bin`: stream did not contain valid UTF-8
+ at $DIR/not-utf8.rs:6:5
+note: byte `193` is not valid utf-8
+ at $DIR/not-utf8.bin:1:1
+ note: this error originates in the macro `include` (in Nightly builds, run with -Z macro-backtrace for more info)
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3454,6 +4022,10 @@ fn test_format_no_severity() {
     let expected_unicode = str!["E0001: This is a title"];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str!["E0001: This is a title"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3469,6 +4041,10 @@ fn test_format_no_id() {
     let expected_unicode = str!["error: This is a title"];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str!["error: This is a title"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3484,6 +4060,10 @@ fn test_format_no_severity_or_id() {
     let expected_unicode = str!["This is a title"];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str!["This is a title"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3545,6 +4125,16 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/mismatched-types.rs:3:19: expected `&str`, found `&[u8; 0]`
+  on line 3, column 12: expected due to this
+expected reference `&str`
+found reference `&'static [u8; 0]`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3606,6 +4196,16 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/mismatched-types.rs:3:19: expected `&str`, found `&[u8; 0]`
+  on line 3, column 12: expected due to this
+ custom: expected reference `&str`
+         found reference `&'static [u8; 0]`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3712,6 +4312,16 @@ suggestion[S0123]: use `break` on its own without a value inside this `while` lo
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0571: `break` with value from a `while` loop
+ at $DIR/issue-114529-illegal-break-with-value.rs:22:9 to 24:11: can only break with a value inside `loop` or breakable block
+  on line 21: you can't `break` with a value in a `while` loop
+suggestion S0123: use `break` on its own without a value inside this `while` loop
+ on line 22, column 9 to line 24, column 11 replace with: break
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3765,6 +4375,13 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: the size for values of type `T` cannot be known at compilation time
+ on line 9
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3802,6 +4419,10 @@ fn empty_span_start_line() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![" on line 9: E112"];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3888,6 +4509,20 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+ at lint_example.rs:3:11
+ warning: this changes meaning in Rust 2021
+ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+ on line 5, column 11 to column 20 replace with: iter
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+ on line 5, column 45 add:  // Span after line end
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -3980,6 +4615,20 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+ at lint_example.rs:3:11
+ warning: this changes meaning in Rust 2021
+ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+ on line 3, column 11 to column 20 replace with: iter
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+ on line 3, column 46 add:  // Span after line end
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4072,11 +4721,35 @@ help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicit
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: this method call resolves to `<&[T; N] as IntoIterator>::into_iter` (due to backwards compatibility), but will resolve to `<[T; N] as IntoIterator>::into_iter` in Rust 2021
+ at lint_example.rs:3:11
+ warning: this changes meaning in Rust 2021
+ note: for more information, see <https://doc.rust-lang.org/nightly/edition-guide/rust-2021/IntoIterator-for-arrays.html>
+ note: `#[warn(array_into_iter)]` on by default
+help: use `.iter()` instead of `.into_iter()` to avoid ambiguity
+ on line 3, column 11 to column 20 replace with: iter
+help: or use `IntoIterator::into_iter(..)` instead of `.into_iter()` to explicitly iterate by value
+ on line 3, column 46 add:  // Span after line end
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
 #[should_panic = "Patch span `47..47` is beyond the end of buffer `45`"]
 fn suggestion_span_bigger_than_source() {
+    check_suggestion_span_bigger_than_source(Renderer::plain());
+}
+
+#[test]
+#[should_panic(expected = "Patch span `47..47` is beyond the end of buffer `45`")]
+fn suggestion_span_bigger_than_source_no_graphics() {
+    check_suggestion_span_bigger_than_source(Renderer::plain().no_graphics(true));
+}
+
+fn check_suggestion_span_bigger_than_source(renderer: Renderer) {
     let snippet_source = r#"#![allow(unused)]
 fn main() {
 [1, 2, 3].into_iter().for_each(|n| { *n; });
@@ -4119,7 +4792,6 @@ fn main() {
         ),
     ];
 
-    let renderer = Renderer::plain();
     renderer.render(input);
 }
 
@@ -4149,6 +4821,13 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 1, column 5: annotation
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4192,6 +4871,14 @@ error:
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: 
+ on line 1, column 5: annotation
+ on line 1, column 5: annotation
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4247,6 +4934,13 @@ error[E0282]: type annotations needed
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0282: type annotations needed
+ at $DIR/issue-42234-unknown-receiver-type.rs:12:10: cannot infer type of the type parameter `S` declared on the method `sum`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4323,6 +5017,15 @@ help: consider specifying the generic argument
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0282: type annotations needed
+ at $DIR/issue-42234-unknown-receiver-type.rs:12:10: cannot infer type of the type parameter `S` declared on the method `sum`
+help: consider specifying the generic argument
+ on line 23, column 13 to column 18 replace with: ::<GENERIC_ARG>
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4395,6 +5098,15 @@ help: consider specifying the generic argument
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0282: type annotations needed
+ at $DIR/issue-42234-unknown-receiver-type.rs:12:10: cannot infer type of the type parameter `S` declared on the method `sum`
+help: consider specifying the generic argument
+ on line 23, column 18
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4441,6 +5153,13 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: the size for values of type `T` cannot be known at compilation time
+ on line 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4487,6 +5206,13 @@ error[E0277]: the size for values of type `T` cannot be known at compilation tim
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0277: the size for values of type `T` cannot be known at compilation time
+ on line 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4559,6 +5285,14 @@ error[E0609]: no field `field` on type `Thing`
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0609: no field `field` on type `Thing`
+ note: a `Title` then a `Message`!?!?
+ at $DIR/too-many-field-suggestions.rs:26:7: unknown field
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4605,6 +5339,13 @@ error: invalid character `^` in path base name: `^^not-valid^^`, the first chara
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: invalid character `^` in path base name: `^^not-valid^^`, the first character must be a Unicode XID start character (most letters or `_`)
+ at Cargo.toml:10:24
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4646,6 +5387,13 @@ error: showing how tabs are rendered
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: showing how tabs are rendered
+ at tabbed.txt:2:2
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4690,6 +5438,14 @@ warning: whatever
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: whatever
+ at whatever:1:1 to 3:22: blah
+  on line 1 to line 3, column 22: blah
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -4733,6 +5489,13 @@ error: ensure single line at line 0 rendered correctly with group line lined up
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: ensure single line at line 0 rendered correctly with group line lined up
+ at Cargo.toml:0:8: unexpected token
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4841,6 +5604,19 @@ help: provide the argument
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0061: this function takes 6 arguments but 5 arguments were supplied
+ at $DIR/trimmed_multiline_suggestion.rs:5:5
+  on line 7: argument #2 of type `char` is missing
+note: function defined here
+ at $DIR/trimmed_multiline_suggestion.rs:1:4
+help: provide the argument
+ on line 7, column 9 add: /* char */,
+        
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -4945,6 +5721,17 @@ help: add a `;` here
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: consider adding a `;` to the last statement for consistent formatting
+ at tests/ui/semicolon_if_nothing_returned_testing.rs:4:5 to 10:7
+note: the lint level is defined here
+ at tests/ui/semicolon_if_nothing_returned_testing.rs:2:9
+help: add a `;` here
+ on line 10, column 7 add: ;
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5046,6 +5833,17 @@ help: provide the argument
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0061: this function takes 6 arguments but 5 arguments were supplied
+ at $DIR/trimmed_multiline_suggestion.rs:3:5
+  on line 5: argument #2 of type `char` is missing
+help: provide the argument
+ on line 5, column 9 add: /* char */,
+        
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5146,6 +5944,15 @@ help: consider importing this module
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0433: failed to resolve: use of undeclared crate or module `st`
+ on line 13, column 10: use of undeclared crate or module `st`
+help: consider importing this module
+ on line 2, column 1 add: use std::cell;
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5195,6 +6002,69 @@ help: consider importing this module instead
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+ at /tmp/test.rs:1:5: no `sync` in the root
+help: consider importing this module instead
+ on line 1, column 5 add: std::
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn remove_whole_line() {
+    let source = r#"    code    "#;
+    let input = &[
+        Group::with_level(Level::ERROR).element(
+            Snippet::source(source)
+                .path("/tmp/test.rs")
+                .annotation(AnnotationKind::Primary.span(4..8).label("the code")),
+        ),
+        Level::HELP.secondary_title("replace the code").element(
+            Snippet::source(source)
+                .path("/tmp/test.rs")
+                .patch(Patch::new(4..8, "replaced")),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+ --> /tmp/test.rs:1:5
+  |
+1 |     code    
+  |     ^^^^ the code
+  |
+help: replace the code
+  |
+1 -     code    
+1 +     replaced    
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+  ╭▸ /tmp/test.rs:1:5
+  │
+1 │     code    
+  │     ━━━━ the code
+  ╰╴
+help: replace the code
+  ╭╴
+1 -     code    
+1 +     replaced    
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+ at /tmp/test.rs:1:5: the code
+help: replace the code
+ on line 1, column 5 to column 9 replace with: replaced
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5228,6 +6098,13 @@ warning: variable does not need to be mutable
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+warning: variable does not need to be mutable
+ at ice.rs:1:18: help: remove this `mut`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5302,6 +6179,16 @@ help: consider making `bar` public
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0624: method `five_years` is private
+ at lib.rs:1:9: private method
+ at other.rs:1:4: private method defined here
+help: consider making `bar` public
+ at other.rs:1:1 add: pub 
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5359,6 +6246,14 @@ error[test-diagnostics]: main diagnostic message
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error test-diagnostics: main diagnostic message
+ at animals:1:1
+ at animals:3:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5399,6 +6294,13 @@ error[test-diagnostic]: main diagnostic message
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error test-diagnostic: main diagnostic message
+ at spacey-animals:8:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5452,6 +6354,14 @@ error[E0308]: mismatched types
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0308: mismatched types
+ at $DIR/terminal_urls.rs:3:9: expected integer, found `()`
+  on line 3, column 14: this expression has type `{integer}`
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
 
 #[test]
@@ -5475,6 +6385,13 @@ fn multi_byte_chars_in_level_name() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+Æíóü: first line
+      second line
+"#]];
+    let renderer = Renderer::plain().no_graphics(true);
+    assert_data_eq!(renderer.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -5498,6 +6415,13 @@ fn wide_chars_in_level_name() {
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+こんにちは: first line
+            second line
+"#]];
+    let renderer = Renderer::plain().no_graphics(true);
+    assert_data_eq!(renderer.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -5532,6 +6456,13 @@ error: unknown start of token:  
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: unknown start of token:  
+ at $DIR/emitter-overflow-bad-whitespace.rs:10:1
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -5557,6 +6488,10 @@ fn annotate_middle_long_whitespace() {
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1"];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
 
 #[test]
@@ -5585,4 +6520,8 @@ fn annotate_start_long_whitespace_and_text_after() {
 "#]];
     let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![" on line 1"];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }

@@ -15,6 +15,7 @@ mod highlight_first_line_tab_371;
 mod highlight_source;
 mod highlight_source_multi_width_chars;
 mod highlight_source_zero_width_chars;
+mod id_hyperlink;
 mod issue_9;
 mod multiline_removal_indent;
 mod multiline_removal_last_line_tabs;
