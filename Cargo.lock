@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "annotate-snippets"
-version = "0.12.16"
+version = "0.12.17"
 dependencies = [
  "annotate-snippets",
  "anstream",
