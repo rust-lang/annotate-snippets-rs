@@ -162,6 +162,28 @@ impl Renderer {
         }
     }
 
+    /// Render a `Report` without source snippets or graphical decorations
+    ///
+    /// The output is primarily designed for Text-To-Speech and Braille
+    /// displays. It also provides a more detailed alternative to
+    /// [`Renderer::short_message`].
+    ///
+    /// We recommend that applications enable this format when `NO_GRAPHICS=1`
+    /// is set in the environment.
+    ///
+    /// <div class="warning">
+    ///
+    /// This format supports colors and hyperlinks.
+    ///
+    /// [`Renderer::plain`] can be used to disable colors and hyperlinks.
+    ///
+    /// </div>
+    ///
+    /// # Example output
+    ///
+    /// ```text
+    #[doc = include_str!("../../examples/no_graphics.txt")]
+    /// ```
     pub const fn no_graphics(mut self, no_graphics: bool) -> Self {
         self.no_graphics = no_graphics;
         self

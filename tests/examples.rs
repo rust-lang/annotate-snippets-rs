@@ -71,6 +71,13 @@ fn multi_suggestion() {
 }
 
 #[test]
+fn no_graphics() {
+    let target = "no_graphics";
+    let expected = snapbox::file!["../examples/no_graphics.txt": Text];
+    assert_example(target, expected);
+}
+
+#[test]
 fn struct_name_as_context() {
     let target = "struct_name_as_context";
     let expected = snapbox::file!["../examples/struct_name_as_context.svg": TermSvg];
