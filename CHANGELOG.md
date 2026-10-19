@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.17] - 2026-10-18
+
+### Added
+
+- `Renderer::no_graphics` is a new text only renderer mode, meant to be less verbose, and usable by users relying on Text-To-Speech and Braille displays [#489](https://github.com/rust-lang/annotate-snippets-rs/pull/489)
+- New `hyperlink` flag on `Renderer` to override whether hyperlinks should be emitted [#456](https://github.com/rust-lang/annotate-snippets-rs/pull/456)
+- `Renderer::anonymized_snippet_line_numbers` replaces line numbers in the gutter, previously `Renderer::anonymized_line_numbers` was the method for this [#457](https://github.com/rust-lang/annotate-snippets-rs/pull/457)
+- `Renderer::anonymized_origin_line_numbers` replaces line numbers in the origin with `LL` [#457](https://github.com/rust-lang/annotate-snippets-rs/pull/457)
+- `Snippet::line_numbering` controls whether line numbers are shown in the gutter [#462](https://github.com/rust-lang/annotate-snippets-rs/pull/462)
+
+### Changed
+
+- The Unicode character used when a line is elided was changed from `‡` to `┆` [#418](https://github.com/rust-lang/annotate-snippets-rs/pull/418)
+- Optimized the rendering code [#437](https://github.com/rust-lang/annotate-snippets-rs/pull/437) [#440](https://github.com/rust-lang/annotate-snippets-rs/pull/440) [#463](https://github.com/rust-lang/annotate-snippets-rs/pull/463)
+- Increased the minimum supported Rust version to `1.88.0` [#439](https://github.com/rust-lang/annotate-snippets-rs/pull/439)
+
+### Deprecated
+
+- `Renderer::anonymized_line_numbers` has been deprecated in favor of `Renderer::anonymized_snippet_line_numbers` [#457](https://github.com/rust-lang/annotate-snippets-rs/pull/457)
+
+### Fixed
+
+- Pick correct origin for non-folded secondary snippets [#444](https://github.com/rust-lang/annotate-snippets-rs/pull/444)
+- Make `simd` feature's gutter indentations calculation handle trailing newlines [#446](https://github.com/rust-lang/annotate-snippets-rs/pull/446)
+- `Renderer::plain()` no longer emits hyperlinks by default. Use `.hyperlink(true)` to enable them [#456](https://github.com/rust-lang/annotate-snippets-rs/pull/456)
+- Don't indent gutter for non-existent line numbers [#458](https://github.com/rust-lang/annotate-snippets-rs/pull/458)
+- Don't hide `id` when `Level::no_name` is set [#461](https://github.com/rust-lang/annotate-snippets-rs/pull/461)
+- Correctly align continuation lines when Level has wide or multibyte chars [#469](https://github.com/rust-lang/annotate-snippets-rs/pull/469)
+- No longer trim long whitespace at the beginning of a line when the whitespace is being annotated [#486](https://github.com/rust-lang/annotate-snippets-rs/pull/486)
+- Correctly trim leading whitespace of multiline annotations [#486](https://github.com/rust-lang/annotate-snippets-rs/pull/486)
+
 ## [0.12.16] - 2026-05-06
 
 ### Fixed
@@ -322,7 +353,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.16...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.17...HEAD
+[0.12.17]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.16...0.12.17
 [0.12.16]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.15...0.12.16
 [0.12.15]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.14...0.12.15
 [0.12.14]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.13...0.12.14
