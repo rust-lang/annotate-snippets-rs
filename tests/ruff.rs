@@ -82,4 +82,15 @@ help: It is recommended for `__eq__` to work with arbitrary objects, for example
 "#]];
     let renderer = renderer.decor_style(DecorStyle::Unicode);
     assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error invalid-method-override: Invalid override of method `__eq__`
+ at src/mdtest_snippet.py:6:9: Definition is incompatible with `object.__eq__`
+info: incompatible return types: `NotBoolable` is not assignable to `bool`
+help: This violates the Liskov Substitution Principle
+help: It is recommended for `__eq__` to work with arbitrary objects, for example:
+ on line 1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
