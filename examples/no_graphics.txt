@@ -1,0 +1,8 @@
+error E0308: mismatched types
+ at $DIR/bad-hex-float-lit.rs:2:19: expected `f32`, found integer
+  on line 2, column 13: expected due to this
+help: rewrite this as a decimal floating point literal, or use `as` to turn a hex literal into a float
+ option 1
+  on line 2, column 19 to column 27 replace with: 0xAB as f32
+ option 2
+  on line 2, column 19 to column 27 replace with: 171_f32
