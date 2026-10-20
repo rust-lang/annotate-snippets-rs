@@ -94,3 +94,120 @@ help: It is recommended for `__eq__` to work with arbitrary objects, for example
     let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
 }
+
+#[test]
+fn fixable_diagnostic_no_name() {
+    let input = &[Level::ERROR
+        .no_name()
+        .primary_title("`os` imported but unused")
+        .id("F401")
+        .footnote("[*]")
+        .element(
+            Snippet::source("import os\n")
+                .path("-")
+                .annotation(AnnotationKind::Primary.span(7..9)),
+        )];
+    let suffix = "
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+";
+
+    let expected_ascii = str![[r#"
+F401[*]: `os` imported but unused
+ --> -:1:8
+  |
+1 | import os
+  |        ^^
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(
+        format!("{}\n{suffix}", renderer.render(input)),
+        expected_ascii
+    );
+
+    let expected_unicode = str![[r#"
+F401[*]: `os` imported but unused
+  ╭▸ -:1:8
+  │
+1 │ import os
+  ╰╴       ━━
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(
+        format!("{}\n{suffix}", renderer.render(input)),
+        expected_unicode
+    );
+
+    let expected_no_graphics = str![[r#"
+F401  footnote [*]: `os` imported but unused
+ at -:1:8
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn fixable_diagnostic() {
+    let input = &[Level::ERROR
+        .primary_title("`os` imported but unused")
+        .id("F401")
+        .footnote("[*]")
+        .element(
+            Snippet::source("import os\n")
+                .path("fib.py")
+                .annotation(AnnotationKind::Primary.span(7..9)),
+        )];
+    let suffix = "
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+";
+
+    let expected_ascii = str![[r#"
+error[F401][*]: `os` imported but unused
+ --> fib.py:1:8
+  |
+1 | import os
+  |        ^^
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(
+        format!("{}\n{suffix}", renderer.render(input)),
+        expected_ascii
+    );
+
+    let expected_unicode = str![[r#"
+error[F401][*]: `os` imported but unused
+  ╭▸ fib.py:1:8
+  │
+1 │ import os
+  ╰╴       ━━
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(
+        format!("{}\n{suffix}", renderer.render(input)),
+        expected_unicode
+    );
+
+    let expected_no_graphics = str![[r#"
+error F401  footnote [*]: `os` imported but unused
+ at fib.py:1:8
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}

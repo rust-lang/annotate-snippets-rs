@@ -392,6 +392,17 @@ fn render_title(
             write!(buffer, "{label_style}{url}{id}{url:#}{label_style:#}")?;
             label_width += str_width(id);
         }
+
+        if let Some(footnote_marker) = title.footnote_marker() {
+            let descr = " footnote ";
+            label_width += str_width(descr);
+            write!(
+                buffer,
+                "{label_style} {descr}{footnote_marker}{label_style:#}"
+            )?;
+            label_width += str_width(footnote_marker);
+        }
+
         // error EXXXX: message
         //            ^
         write!(buffer, "{title_element_style}: {title_element_style:#}")?;
