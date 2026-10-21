@@ -449,29 +449,25 @@ fn render_path(
         }
     });
 
-    match (path, line, col) {
-        (Some(path), Some(line), Some(col)) => {
-            // `at $DIR/file.txt:LL:CC`
-            write!(output, "at {path}:{line}:{col}")?;
-        }
-        (Some(path), Some(line), None) => {
+    if let Some(path) = path {
+        // `at $DIR/file.txt`
+        write!(output, "at {path}")?;
+        if let Some(line) = line {
             // `at $DIR/file.txt:LL`
-            write!(output, "at {path}:{line}")?;
+            write!(output, ":{line}")?;
+            if let Some(col) = col {
+                // `at $DIR/file.txt:LL:CC`
+                write!(output, ":{col}")?;
+            }
         }
-        (Some(path), None, _) => {
-            // `at $DIR/file.txt`
-            write!(output, "at {path}")?;
-        }
-        (None, Some(line), Some(col)) => {
-            // We are not printing the path, so instead we show
+    } else if let Some(line) = line {
+        // We are not printing the path, so instead we show
+        // ` on line LL`
+        write!(output, "on line {line}")?;
+        if let Some(col) = col {
             // ` on line LL, column CC`.
-            write!(output, "on line {line}, column {col}")?;
+            write!(output, ", column {col}")?;
         }
-        (None, Some(line), None) => {
-            // ` on line LL`
-            write!(output, "on line {line}")?;
-        }
-        (None, None, _) => {}
     }
     Ok(())
 }
