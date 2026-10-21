@@ -42,6 +42,7 @@ fn example_code() {
                 .fold(false),
             ),
     ];
+
     let expected_ascii = str![[r#"
 error[invalid-method-override]: Invalid override of method `__eq__`
  --> src/mdtest_snippet.py:6:9
@@ -59,7 +60,6 @@ help: It is recommended for `__eq__` to work with arbitrary objects, for example
   |         return <logic to compare two `A` instances>
   |
 "#]];
-
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
