@@ -644,7 +644,7 @@ error: oops
 
     let expected_no_graphics = str![[r#"
 error: oops
- at file.rs, column 7
+ at file.rs
 "#]];
     let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);

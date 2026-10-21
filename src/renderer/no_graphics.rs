@@ -458,7 +458,7 @@ fn render_path(
             // `at $DIR/file.txt:LL`
             write!(output, "at {path}:{line}")?;
         }
-        (Some(path), None, None) => {
+        (Some(path), None, _) => {
             // `at $DIR/file.txt`
             write!(output, "at {path}")?;
         }
@@ -471,15 +471,7 @@ fn render_path(
             // ` on line LL`
             write!(output, "on line {line}")?;
         }
-        (None, None, Some(col)) => {
-            // ` on column CC`
-            write!(output, "on column {col}")?;
-        }
-        (Some(path), None, Some(col)) => {
-            // This condition should never have been called.
-            write!(output, "at {path}, column {col}")?;
-        }
-        (None, None, None) => {}
+        (None, None, _) => {}
     }
     Ok(())
 }
