@@ -769,8 +769,11 @@ impl<'a> TrimmedPatch<'a> {
     }
 
     fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
-        sm.span_to_snippet(self.span.clone())
-            .map_or(!self.span.is_empty(), |snippet| !snippet.trim().is_empty())
+        if let Some(snippet) = sm.span_to_snippet(self.span.clone()) {
+            !snippet.trim().is_empty()
+        } else {
+            !self.span.is_empty()
+        }
     }
 }
 
