@@ -1,5 +1,5 @@
 use annotate_snippets::{
-    Annotation, AnnotationKind, Group, Level, Padding, Patch, Renderer, Snippet,
+    Annotation, AnnotationKind, Group, Level, Origin, Padding, Patch, Renderer, Snippet,
 };
 
 use annotate_snippets::renderer::DecorStyle;
@@ -617,6 +617,34 @@ error:
     let expected_no_graphics = str![[r#"
 error: 
  at file.rs:1
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn origin_column_without_line() {
+    let input = &[Level::ERROR
+        .primary_title("oops")
+        .element(Origin::path("file.rs").char_column(7))];
+
+    let expected_ascii = str![[r#"
+error: oops
+--> file.rs
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+ ─▸ file.rs
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at file.rs
 "#]];
     let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
