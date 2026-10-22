@@ -17,7 +17,7 @@ use super::preprocess::{DisplaySuggestion, Preprocessed, PreprocessedElement, Pr
 use super::stylesheet::Stylesheet;
 use crate::level::{Level, LevelInner};
 use crate::renderer::source_map::{
-    AnnotatedLineInfo, LineInfo, Loc, SourceMap, SplicedLines, SubstitutionHighlight,
+    AnnotatedLineInfo, LineInfo, Loc, PatchKind, SourceMap, SplicedLines, SubstitutionHighlight,
 };
 use crate::renderer::styled_buffer::StyledBuffer;
 use crate::snippet::Id;
@@ -1736,7 +1736,7 @@ fn emit_suggestion_default(
                     buffer.putc(
                         row_num,
                         (padding.cast_signed() + p).cast_unsigned(),
-                        if part.is_addition(sm) {
+                        if matches!(part.kind(sm), Some(PatchKind::Insertion)) {
                             '+'
                         } else {
                             renderer.decor_style.diff()

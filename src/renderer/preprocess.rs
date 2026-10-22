@@ -2,7 +2,7 @@ use alloc::borrow::Cow;
 use alloc::vec::Vec;
 use core::cmp::max;
 
-use super::source_map::{AnnotatedLineInfo, SourceMap, SplicedLines, TrimmedPatch};
+use super::source_map::{AnnotatedLineInfo, PatchKind, SourceMap, SplicedLines, TrimmedPatch};
 use crate::{Annotation, Element, Group, Message, Origin, Padding, Patch, Snippet};
 
 pub(crate) struct Preprocessed<'a> {
@@ -194,9 +194,9 @@ pub(crate) enum DisplaySuggestion {
 
 impl DisplaySuggestion {
     fn new(complete: &str, patches: &[TrimmedPatch<'_>], sm: &SourceMap<'_>) -> Self {
-        let has_deletion = patches
-            .iter()
-            .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
+        let has_deletion = patches.iter().any(|p| {
+            matches!(p.kind(sm), Some(PatchKind::Deletion)) || p.is_destructive_replacement(sm)
+        });
         let is_multiline = complete.lines().count() > 1;
         if has_deletion && !is_multiline {
             Self::Diff

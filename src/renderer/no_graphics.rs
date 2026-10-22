@@ -8,6 +8,7 @@ use super::graphics::{Hyperlink, MessageOrTitle, TitleStyle, str_width};
 use super::preprocess::{Preprocessed, PreprocessedElement, PreprocessedGroup};
 use super::{ElementStyle, Stylesheet, normalize_whitespace};
 use crate::renderer::graphics::ANONYMIZED_LINE_NUM;
+use crate::renderer::source_map::PatchKind;
 use crate::{AnnotationKind, Id, Renderer, Report};
 
 /// Render all errors from a `Report` as text only.
@@ -239,13 +240,13 @@ pub(crate) fn render_no_graphics(
                         let (lo, hi) = sm.span_to_locations(patch.span.start..patch.span.end);
 
                         let has_replacement = !patch.replacement.trim().is_empty();
-                        let is_addition = patch.is_addition(&sm);
+                        let patch_kind = patch.kind(&sm);
                         if !output.is_empty() {
                             writeln!(output)?;
                         }
                         write!(output, "{padding}")?;
 
-                        if has_replacement && !is_addition {
+                        if has_replacement && !matches!(patch_kind, Some(PatchKind::Insertion)) {
                             render_path(
                                 &mut output,
                                 path,
@@ -288,7 +289,11 @@ pub(crate) fn render_no_graphics(
                         }
 
                         if has_replacement {
-                            let action = if is_addition { "add" } else { "replace with" };
+                            let action = if matches!(patch_kind, Some(PatchKind::Insertion)) {
+                                "add"
+                            } else {
+                                "replace with"
+                            };
                             write!(output, " {action}: ")?;
 
                             let st = ElementStyle::Addition

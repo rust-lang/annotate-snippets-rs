@@ -745,16 +745,18 @@ pub(crate) struct TrimmedPatch<'a> {
 }
 
 impl<'a> TrimmedPatch<'a> {
-    pub(crate) fn is_addition(&self, sm: &SourceMap<'_>) -> bool {
-        !self.replacement.is_empty() && !self.replaces_meaningful_content(sm)
-    }
+    pub(crate) fn kind(&self, sm: &SourceMap<'_>) -> Option<PatchKind> {
+        let replaces_meaningful_content = self.replaces_meaningful_content(sm);
 
-    pub(crate) fn is_deletion(&self, sm: &SourceMap<'_>) -> bool {
-        self.replacement.trim().is_empty() && self.replaces_meaningful_content(sm)
-    }
-
-    pub(crate) fn is_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        !self.replacement.is_empty() && self.replaces_meaningful_content(sm)
+        if !self.replacement.is_empty() && !replaces_meaningful_content {
+            Some(PatchKind::Insertion)
+        } else if self.replacement.trim().is_empty() && replaces_meaningful_content {
+            Some(PatchKind::Deletion)
+        } else if !self.replacement.is_empty() && replaces_meaningful_content {
+            Some(PatchKind::Replacement)
+        } else {
+            None
+        }
     }
 
     /// Whether this is a replacement that overwrites source with a snippet
@@ -762,7 +764,7 @@ impl<'a> TrimmedPatch<'a> {
     /// replacing "abc" with "abcde" is not destructive, but replacing it
     /// it with "abx" is, since the "c" character is lost.
     pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        self.is_replacement(sm)
+        matches!(self.kind(sm), Some(PatchKind::Replacement))
             && sm
                 .span_to_snippet(self.span.clone())
                 .is_none_or(|s| as_substr(s.trim(), self.replacement.trim()).is_none())
@@ -775,6 +777,12 @@ impl<'a> TrimmedPatch<'a> {
             !self.span.is_empty()
         }
     }
+}
+
+pub(crate) enum PatchKind {
+    Insertion,
+    Deletion,
+    Replacement,
 }
 
 /// Given an original string like `AACC`, and a suggestion like `AABBCC`, try to detect
