@@ -194,7 +194,7 @@ pub(crate) enum DisplaySuggestion {
 impl DisplaySuggestion {
     fn new(complete: &str, patches: &[TrimmedPatch<'_>], sm: &SourceMap<'_>) -> Self {
         let has_deletion = patches.iter().any(|p| {
-            matches!(p.kind(sm), Some(PatchKind::Deletion)) || p.is_destructive_replacement(sm)
+            matches!(p.kind(), Some(PatchKind::Deletion)) || p.is_destructive_replacement(sm)
         });
         let is_multiline = complete.lines().count() > 1;
         if has_deletion && !is_multiline {

@@ -742,6 +742,7 @@ pub(crate) struct TrimmedPatch<'a> {
     original_span: Range<usize>,
     span: Range<usize>,
     replacement: Cow<'a, str>,
+    kind: Option<PatchKind>,
 }
 
 impl<'a> TrimmedPatch<'a> {
@@ -762,10 +763,24 @@ impl<'a> TrimmedPatch<'a> {
             replacement = Cow::Owned(substr.to_owned());
         }
 
+        let replaces_meaningful_content = source
+            .get(span.clone())
+            .map_or_else(|| !span.is_empty(), |snippet| !snippet.trim().is_empty());
+        let kind = if !replacement.is_empty() && !replaces_meaningful_content {
+            Some(PatchKind::Insertion)
+        } else if replacement.trim().is_empty() && replaces_meaningful_content {
+            Some(PatchKind::Deletion)
+        } else if !replacement.is_empty() && replaces_meaningful_content {
+            Some(PatchKind::Replacement)
+        } else {
+            None
+        };
+
         Self {
             original_span,
             span,
             replacement,
+            kind,
         }
     }
 
@@ -781,18 +796,8 @@ impl<'a> TrimmedPatch<'a> {
         &self.replacement
     }
 
-    pub(crate) fn kind(&self, sm: &SourceMap<'_>) -> Option<PatchKind> {
-        let replaces_meaningful_content = self.replaces_meaningful_content(sm);
-
-        if !self.replacement.is_empty() && !replaces_meaningful_content {
-            Some(PatchKind::Insertion)
-        } else if self.replacement.trim().is_empty() && replaces_meaningful_content {
-            Some(PatchKind::Deletion)
-        } else if !self.replacement.is_empty() && replaces_meaningful_content {
-            Some(PatchKind::Replacement)
-        } else {
-            None
-        }
+    pub(crate) fn kind(&self) -> Option<PatchKind> {
+        self.kind
     }
 
     /// Whether this is a replacement that overwrites source with a snippet
@@ -800,21 +805,14 @@ impl<'a> TrimmedPatch<'a> {
     /// replacing "abc" with "abcde" is not destructive, but replacing it
     /// it with "abx" is, since the "c" character is lost.
     pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        matches!(self.kind(sm), Some(PatchKind::Replacement))
+        matches!(self.kind(), Some(PatchKind::Replacement))
             && sm
                 .span_to_snippet(self.span.clone())
                 .is_none_or(|s| as_substr(s.trim(), self.replacement.trim()).is_none())
     }
-
-    fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
-        if let Some(snippet) = sm.span_to_snippet(self.span.clone()) {
-            !snippet.trim().is_empty()
-        } else {
-            !self.span.is_empty()
-        }
-    }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum PatchKind {
     Insertion,
     Deletion,

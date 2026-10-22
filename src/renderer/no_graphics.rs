@@ -240,7 +240,7 @@ pub(crate) fn render_no_graphics(
                         let (lo, hi) = sm.span_to_locations(patch.span());
 
                         let has_replacement = !patch.replacement().trim().is_empty();
-                        let patch_kind = patch.kind(&sm);
+                        let patch_kind = patch.kind();
                         if !output.is_empty() {
                             writeln!(output)?;
                         }

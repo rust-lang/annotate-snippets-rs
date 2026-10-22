@@ -1736,7 +1736,7 @@ fn emit_suggestion_default(
                     buffer.putc(
                         row_num,
                         (padding.cast_signed() + p).cast_unsigned(),
-                        if matches!(part.kind(sm), Some(PatchKind::Insertion)) {
+                        if matches!(part.kind(), Some(PatchKind::Insertion)) {
                             '+'
                         } else {
                             renderer.decor_style.diff()
