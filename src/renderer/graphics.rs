@@ -1,7 +1,6 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
 use alloc::borrow::Cow;
-use alloc::borrow::ToOwned;
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
@@ -185,7 +184,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
 
                 PreprocessedElement::Origin(origin) => {
                     let buffer_msg_line_offset = buffer.num_lines();
-                    let is_primary = primary_path == Some(&origin.path) && !seen_primary;
+                    let is_primary = primary_path == origin.path.as_ref() && !seen_primary;
                     seen_primary |= is_primary;
                     render_origin(
                         renderer,
@@ -511,7 +510,10 @@ fn render_origin(
 fn format_origin(origin: &Origin<'_>, anonymized_origin_line_numbers: bool) -> String {
     use core::fmt::Write as _;
 
-    let mut buffer = origin.path.as_ref().to_owned();
+    let mut buffer = String::new();
+    if let Some(path) = &origin.path {
+        write!(&mut buffer, "{path}").unwrap();
+    }
     if let Some(line) = origin.line {
         if anonymized_origin_line_numbers {
             let line = ANONYMIZED_LINE_NUM;

@@ -311,7 +311,7 @@ pub(crate) fn render_no_graphics(
                     write!(output, " ")?;
                     render_path(
                         &mut output,
-                        Some(&origin.path),
+                        origin.path.as_deref(),
                         origin.line,
                         origin.char_column,
                         renderer.anonymized_origin_line_numbers,
