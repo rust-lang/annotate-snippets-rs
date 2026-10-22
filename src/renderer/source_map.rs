@@ -1,4 +1,4 @@
-use alloc::borrow::Cow;
+use alloc::borrow::{Cow, ToOwned};
 use alloc::string::String;
 use alloc::{vec, vec::Vec};
 use core::cmp::{max, min};
@@ -451,7 +451,7 @@ impl<'a> SourceMap<'a> {
             // If this is a replacement of, e.g. `"a"` into `"ab"`, adjust the
             // suggestion and snippet to look as if we just suggested to add
             // `"b"`, which is typically much easier for the user to understand.
-            .map(|part| part.trim_trivial_replacements(self.source))
+            .map(|part| TrimmedPatch::new(part, self.source))
             .collect::<Vec<_>>();
         let mut line_highlight = vec![];
         // We need to keep track of the difference between the existing code and the added
@@ -745,6 +745,30 @@ pub(crate) struct TrimmedPatch<'a> {
 }
 
 impl<'a> TrimmedPatch<'a> {
+    /// Try to turn a replacement into an addition when the span that is being
+    /// overwritten matches either the prefix or suffix of the replacement.
+    fn new(patch: Patch<'a>, source: &str) -> Self {
+        let mut trimmed = Self {
+            original_span: patch.span.clone(),
+            span: patch.span,
+            replacement: patch.replacement,
+        };
+
+        if trimmed.replacement.is_empty() {
+            return trimmed;
+        }
+        let Some(snippet) = source.get(trimmed.original_span.clone()) else {
+            return trimmed;
+        };
+
+        if let Some((prefix, substr, suffix)) = as_substr(snippet, &trimmed.replacement) {
+            trimmed.span = trimmed.original_span.start + prefix
+                ..trimmed.original_span.end.saturating_sub(suffix);
+            trimmed.replacement = Cow::Owned(substr.to_owned());
+        }
+        trimmed
+    }
+
     pub(crate) fn kind(&self, sm: &SourceMap<'_>) -> Option<PatchKind> {
         let replaces_meaningful_content = self.replaces_meaningful_content(sm);
 
@@ -789,10 +813,7 @@ pub(crate) enum PatchKind {
 /// the case where a substring of the suggestion is "sandwiched" in the original, like
 /// `BB` is. Return the length of the prefix, the "trimmed" suggestion, and the length
 /// of the suffix.
-pub(crate) fn as_substr<'a>(
-    original: &'a str,
-    suggestion: &'a str,
-) -> Option<(usize, &'a str, usize)> {
+fn as_substr<'a>(original: &'a str, suggestion: &'a str) -> Option<(usize, &'a str, usize)> {
     if let Some(stripped) = suggestion.strip_prefix(original) {
         Some((original.len(), stripped, 0))
     } else if let Some(stripped) = suggestion.strip_suffix(original) {

@@ -1,12 +1,11 @@
 //! Structures used as an input for the library.
 
-use alloc::borrow::{Cow, ToOwned};
+use alloc::borrow::Cow;
 use alloc::string::String;
 use alloc::{vec, vec::Vec};
 use core::ops::Range;
 
 use crate::Level;
-use crate::renderer::source_map::{TrimmedPatch, as_substr};
 
 pub(crate) const ERROR_TXT: &str = "error";
 pub(crate) const HELP_TXT: &str = "help";
@@ -467,30 +466,6 @@ impl<'a> Patch<'a> {
             span,
             replacement: replacement.into(),
         }
-    }
-
-    /// Try to turn a replacement into an addition when the span that is being
-    /// overwritten matches either the prefix or suffix of the replacement.
-    pub(crate) fn trim_trivial_replacements(self, source: &str) -> TrimmedPatch<'a> {
-        let mut trimmed = TrimmedPatch {
-            original_span: self.span.clone(),
-            span: self.span,
-            replacement: self.replacement,
-        };
-
-        if trimmed.replacement.is_empty() {
-            return trimmed;
-        }
-        let Some(snippet) = source.get(trimmed.original_span.clone()) else {
-            return trimmed;
-        };
-
-        if let Some((prefix, substr, suffix)) = as_substr(snippet, &trimmed.replacement) {
-            trimmed.span = trimmed.original_span.start + prefix
-                ..trimmed.original_span.end.saturating_sub(suffix);
-            trimmed.replacement = Cow::Owned(substr.to_owned());
-        }
-        trimmed
     }
 }
 
