@@ -748,25 +748,25 @@ impl<'a> TrimmedPatch<'a> {
     /// Try to turn a replacement into an addition when the span that is being
     /// overwritten matches either the prefix or suffix of the replacement.
     fn new(patch: Patch<'a>, source: &str) -> Self {
-        let mut trimmed = Self {
-            original_span: patch.span.clone(),
-            span: patch.span,
-            replacement: patch.replacement,
-        };
+        let Patch {
+            mut span,
+            mut replacement,
+        } = patch;
+        let original_span = span.clone();
 
-        if trimmed.replacement.is_empty() {
-            return trimmed;
+        if !replacement.is_empty()
+            && let Some(snippet) = source.get(span.clone())
+            && let Some((prefix, substr, suffix)) = as_substr(snippet, &replacement)
+        {
+            span = span.start + prefix..span.end.saturating_sub(suffix);
+            replacement = Cow::Owned(substr.to_owned());
         }
-        let Some(snippet) = source.get(trimmed.original_span.clone()) else {
-            return trimmed;
-        };
 
-        if let Some((prefix, substr, suffix)) = as_substr(snippet, &trimmed.replacement) {
-            trimmed.span = trimmed.original_span.start + prefix
-                ..trimmed.original_span.end.saturating_sub(suffix);
-            trimmed.replacement = Cow::Owned(substr.to_owned());
+        Self {
+            original_span,
+            span,
+            replacement,
         }
-        trimmed
     }
 
     pub(crate) fn original_span(&self) -> Range<usize> {
