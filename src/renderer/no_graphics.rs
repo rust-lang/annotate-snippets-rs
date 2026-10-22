@@ -237,9 +237,9 @@ pub(crate) fn render_no_graphics(
                     };
 
                     for patch in spliced_lines.patches.iter() {
-                        let (lo, hi) = sm.span_to_locations(patch.span.start..patch.span.end);
+                        let (lo, hi) = sm.span_to_locations(patch.span());
 
-                        let has_replacement = !patch.replacement.trim().is_empty();
+                        let has_replacement = !patch.replacement().trim().is_empty();
                         let patch_kind = patch.kind(&sm);
                         if !output.is_empty() {
                             writeln!(output)?;
@@ -270,7 +270,7 @@ pub(crate) fn render_no_graphics(
                                 && let Some(pre) = line.get(..lo.byte)
                                 && pre.chars().all(|c| c.is_whitespace())
                                 && let Some(post) = line.get(hi.byte..)
-                                && (patch.replacement.lines().count() > 1
+                                && (patch.replacement().lines().count() > 1
                                     || post.chars().all(|c| c.is_whitespace()))
                             {
                                 // We are changing the whole text in the line, no need to mention the
@@ -302,7 +302,7 @@ pub(crate) fn render_no_graphics(
                             write!(
                                 output,
                                 "{st}{}{st:#}",
-                                normalize_whitespace(patch.replacement.trim_end_matches('\n'))
+                                normalize_whitespace(patch.replacement().trim_end_matches('\n'))
                             )?;
                         }
                     }

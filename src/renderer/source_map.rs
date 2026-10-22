@@ -739,9 +739,9 @@ pub(crate) struct SubstitutionHighlight {
 
 #[derive(Clone, Debug)]
 pub(crate) struct TrimmedPatch<'a> {
-    pub(crate) original_span: Range<usize>,
-    pub(crate) span: Range<usize>,
-    pub(crate) replacement: Cow<'a, str>,
+    original_span: Range<usize>,
+    span: Range<usize>,
+    replacement: Cow<'a, str>,
 }
 
 impl<'a> TrimmedPatch<'a> {
@@ -767,6 +767,18 @@ impl<'a> TrimmedPatch<'a> {
             trimmed.replacement = Cow::Owned(substr.to_owned());
         }
         trimmed
+    }
+
+    pub(crate) fn original_span(&self) -> Range<usize> {
+        self.original_span.clone()
+    }
+
+    pub(crate) fn span(&self) -> Range<usize> {
+        self.span.clone()
+    }
+
+    pub(crate) fn replacement(&self) -> &str {
+        &self.replacement
     }
 
     pub(crate) fn kind(&self, sm: &SourceMap<'_>) -> Option<PatchKind> {

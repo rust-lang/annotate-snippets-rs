@@ -1502,7 +1502,7 @@ fn emit_suggestion_default(
         && let Some(path) = suggestion.path.as_ref()
         && !matches_previous_suggestion
     {
-        let (loc, _) = sm.span_to_locations(spliced_lines.patches[0].span.clone());
+        let (loc, _) = sm.span_to_locations(spliced_lines.patches[0].span());
         // --> file.rs:line:col
         //  |
         for _ in 0..max_line_num_len {
@@ -1536,20 +1536,20 @@ fn emit_suggestion_default(
     let lo = spliced_lines
         .patches
         .iter()
-        .map(|p| p.span.start)
+        .map(|p| p.span().start)
         .min()
         .unwrap();
     let hi = spliced_lines
         .patches
         .iter()
-        .map(|p| p.span.end)
+        .map(|p| p.span().end)
         .max()
         .unwrap();
 
     let file_lines = sm.span_to_lines(lo..hi);
     let (line_start, line_end) = if suggestion.fold {
         // We use the original span to get original line_start
-        sm.span_to_locations(spliced_lines.patches[0].original_span.clone())
+        sm.span_to_locations(spliced_lines.patches[0].original_span())
     } else {
         sm.span_to_locations(0..sm.source.len())
     };
@@ -1691,28 +1691,28 @@ fn emit_suggestion_default(
         show_code_change
     {
         for part in spliced_lines.patches {
-            let (span_start, span_end) = sm.span_to_locations(part.span.clone());
+            let (span_start, span_end) = sm.span_to_locations(part.span());
             let span_start_pos = span_start.display;
             let span_end_pos = span_end.display;
 
             // If this addition is _only_ whitespace, then don't trim it,
             // or else we're just not rendering anything.
-            let is_whitespace_addition = part.replacement.trim().is_empty();
+            let is_whitespace_addition = part.replacement().trim().is_empty();
 
             // Do not underline the leading...
             let start = if is_whitespace_addition {
                 0
             } else {
-                part.replacement
+                part.replacement()
                     .len()
-                    .saturating_sub(part.replacement.trim_start().len())
+                    .saturating_sub(part.replacement().trim_start().len())
             };
             // ...or trailing spaces. Account for substitutions containing unicode
             // characters.
             let sub_len: usize = str_width(if is_whitespace_addition {
-                &part.replacement
+                part.replacement()
             } else {
-                part.replacement.trim()
+                part.replacement().trim()
             });
 
             let offset: isize = offsets
@@ -1747,7 +1747,7 @@ fn emit_suggestion_default(
             }
 
             // length of the code after substitution
-            let full_sub_len = str_width(&part.replacement).cast_signed();
+            let full_sub_len = str_width(part.replacement()).cast_signed();
 
             // length of the code to be substituted
             let snippet_len = span_end_pos.cast_signed() - span_start_pos.cast_signed();
