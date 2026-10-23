@@ -1,4 +1,4 @@
-use alloc::borrow::Cow;
+use alloc::borrow::{Cow, ToOwned};
 use alloc::string::String;
 use alloc::{vec, vec::Vec};
 use core::cmp::{max, min};
@@ -451,7 +451,7 @@ impl<'a> SourceMap<'a> {
             // If this is a replacement of, e.g. `"a"` into `"ab"`, adjust the
             // suggestion and snippet to look as if we just suggested to add
             // `"b"`, which is typically much easier for the user to understand.
-            .map(|part| part.trim_trivial_replacements(self.source))
+            .map(|part| TrimmedPatch::new(part, self.source))
             .collect::<Vec<_>>();
         let mut line_highlight = vec![];
         // We need to keep track of the difference between the existing code and the added
@@ -739,22 +739,65 @@ pub(crate) struct SubstitutionHighlight {
 
 #[derive(Clone, Debug)]
 pub(crate) struct TrimmedPatch<'a> {
-    pub(crate) original_span: Range<usize>,
-    pub(crate) span: Range<usize>,
-    pub(crate) replacement: Cow<'a, str>,
+    original_span: Range<usize>,
+    span: Range<usize>,
+    replacement: Cow<'a, str>,
+    kind: Option<PatchKind>,
 }
 
 impl<'a> TrimmedPatch<'a> {
-    pub(crate) fn is_addition(&self, sm: &SourceMap<'_>) -> bool {
-        !self.replacement.is_empty() && !self.replaces_meaningful_content(sm)
+    /// Try to turn a replacement into an addition when the span that is being
+    /// overwritten matches either the prefix or suffix of the replacement.
+    fn new(patch: Patch<'a>, source: &str) -> Self {
+        let Patch {
+            mut span,
+            mut replacement,
+        } = patch;
+        let original_span = span.clone();
+
+        if !replacement.is_empty()
+            && let Some(snippet) = source.get(span.clone())
+            && let Some((prefix, substr, suffix)) = as_substr(snippet, &replacement)
+        {
+            span = span.start + prefix..span.end.saturating_sub(suffix);
+            replacement = Cow::Owned(substr.to_owned());
+        }
+
+        let replaces_meaningful_content = source
+            .get(span.clone())
+            .map_or_else(|| !span.is_empty(), |snippet| !snippet.trim().is_empty());
+        let kind = if !replacement.is_empty() && !replaces_meaningful_content {
+            Some(PatchKind::Insertion)
+        } else if replacement.trim().is_empty() && replaces_meaningful_content {
+            Some(PatchKind::Deletion)
+        } else if !replacement.is_empty() && replaces_meaningful_content {
+            Some(PatchKind::Replacement)
+        } else {
+            None
+        };
+
+        Self {
+            original_span,
+            span,
+            replacement,
+            kind,
+        }
     }
 
-    pub(crate) fn is_deletion(&self, sm: &SourceMap<'_>) -> bool {
-        self.replacement.trim().is_empty() && self.replaces_meaningful_content(sm)
+    pub(crate) fn original_span(&self) -> Range<usize> {
+        self.original_span.clone()
     }
 
-    pub(crate) fn is_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        !self.replacement.is_empty() && self.replaces_meaningful_content(sm)
+    pub(crate) fn span(&self) -> Range<usize> {
+        self.span.clone()
+    }
+
+    pub(crate) fn replacement(&self) -> &str {
+        &self.replacement
+    }
+
+    pub(crate) fn kind(&self) -> Option<PatchKind> {
+        self.kind
     }
 
     /// Whether this is a replacement that overwrites source with a snippet
@@ -762,26 +805,25 @@ impl<'a> TrimmedPatch<'a> {
     /// replacing "abc" with "abcde" is not destructive, but replacing it
     /// it with "abx" is, since the "c" character is lost.
     pub(crate) fn is_destructive_replacement(&self, sm: &SourceMap<'_>) -> bool {
-        self.is_replacement(sm)
+        matches!(self.kind(), Some(PatchKind::Replacement))
             && sm
                 .span_to_snippet(self.span.clone())
                 .is_none_or(|s| as_substr(s.trim(), self.replacement.trim()).is_none())
     }
+}
 
-    fn replaces_meaningful_content(&self, sm: &SourceMap<'_>) -> bool {
-        sm.span_to_snippet(self.span.clone())
-            .map_or(!self.span.is_empty(), |snippet| !snippet.trim().is_empty())
-    }
+#[derive(Copy, Clone, Debug)]
+pub(crate) enum PatchKind {
+    Insertion,
+    Deletion,
+    Replacement,
 }
 
 /// Given an original string like `AACC`, and a suggestion like `AABBCC`, try to detect
 /// the case where a substring of the suggestion is "sandwiched" in the original, like
 /// `BB` is. Return the length of the prefix, the "trimmed" suggestion, and the length
 /// of the suffix.
-pub(crate) fn as_substr<'a>(
-    original: &'a str,
-    suggestion: &'a str,
-) -> Option<(usize, &'a str, usize)> {
+fn as_substr<'a>(original: &'a str, suggestion: &'a str) -> Option<(usize, &'a str, usize)> {
     if let Some(stripped) = suggestion.strip_prefix(original) {
         Some((original.len(), stripped, 0))
     } else if let Some(stripped) = suggestion.strip_suffix(original) {

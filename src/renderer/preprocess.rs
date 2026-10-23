@@ -2,7 +2,7 @@ use alloc::borrow::Cow;
 use alloc::vec::Vec;
 use core::cmp::max;
 
-use super::source_map::{AnnotatedLineInfo, SourceMap, SplicedLines, TrimmedPatch};
+use super::source_map::{AnnotatedLineInfo, PatchKind, SourceMap, SplicedLines, TrimmedPatch};
 use crate::{Annotation, Element, Group, Message, Origin, Padding, Patch, Snippet};
 
 pub(crate) struct Preprocessed<'a> {
@@ -107,13 +107,12 @@ fn preprocess<'a>(groups: &'a [Group<'a>]) -> Preprocessed<'a> {
                         if suggestion.line_numbering {
                             if suggestion.fold {
                                 if let Some(first) = spliced_lines.patches.first() {
-                                    let (l_start, _) =
-                                        sm.span_to_locations(first.original_span.clone());
+                                    let (l_start, _) = sm.span_to_locations(first.original_span());
                                     let nc = newline_count(&spliced_lines.complete);
                                     let sugg_max_line_num = match display_suggestion {
                                         DisplaySuggestion::Underline => l_start.line,
                                         DisplaySuggestion::Diff => {
-                                            let file_lines = sm.span_to_lines(first.span.clone());
+                                            let file_lines = sm.span_to_lines(first.span());
                                             file_lines
                                                 .last()
                                                 .map_or(l_start.line + nc, |line| line.line_index)
@@ -194,20 +193,20 @@ pub(crate) enum DisplaySuggestion {
 
 impl DisplaySuggestion {
     fn new(complete: &str, patches: &[TrimmedPatch<'_>], sm: &SourceMap<'_>) -> Self {
-        let has_deletion = patches
-            .iter()
-            .any(|p| p.is_deletion(sm) || p.is_destructive_replacement(sm));
+        let has_deletion = patches.iter().any(|p| {
+            matches!(p.kind(), Some(PatchKind::Deletion)) || p.is_destructive_replacement(sm)
+        });
         let is_multiline = complete.lines().count() > 1;
         if has_deletion && !is_multiline {
             Self::Diff
         } else if patches.len() == 1
             && patches.first().is_some_and(|p| {
-                p.replacement.ends_with('\n') && p.replacement.trim() == complete.trim()
+                p.replacement().ends_with('\n') && p.replacement().trim() == complete.trim()
             })
         {
             // We are adding a line(s) of code before code that was already there.
             Self::Add
-        } else if (patches.len() != 1 || patches[0].replacement.trim() != complete.trim())
+        } else if (patches.len() != 1 || patches[0].replacement().trim() != complete.trim())
             && !is_multiline
         {
             Self::Underline
