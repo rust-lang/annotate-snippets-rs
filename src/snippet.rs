@@ -307,6 +307,14 @@ impl<'a, T: Clone> Snippet<'a, T> {
         self.fold = fold;
         self
     }
+
+    pub(crate) fn to_origin(&self) -> Option<Origin<'_>> {
+        Some(Origin {
+            path: self.path.as_ref()?.clone(),
+            line: None,
+            char_column: None,
+        })
+    }
 }
 
 impl<'a> Snippet<'a, Annotation<'a>> {
