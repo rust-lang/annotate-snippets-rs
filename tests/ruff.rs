@@ -1,6 +1,5 @@
-use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Renderer, Snippet};
-
 use annotate_snippets::renderer::DecorStyle;
+use annotate_snippets::{Annotation, AnnotationKind, Group, Level, Patch, Renderer, Snippet};
 use snapbox::{assert_data_eq, str};
 
 #[test]
@@ -42,6 +41,7 @@ fn example_code() {
                 .fold(false),
             ),
     ];
+
     let expected_ascii = str![[r#"
 error[invalid-method-override]: Invalid override of method `__eq__`
  --> src/mdtest_snippet.py:6:9
@@ -59,7 +59,6 @@ help: It is recommended for `__eq__` to work with arbitrary objects, for example
   |         return <logic to compare two `A` instances>
   |
 "#]];
-
     let renderer = Renderer::plain();
     assert_data_eq!(renderer.render(input), expected_ascii);
 
@@ -207,6 +206,541 @@ Found 1 error.
     let expected_no_graphics = str![[r#"
 error F401  footnote [*]: `os` imported but unused
  at fib.py:1:8
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn snippet_with_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[Level::ERROR.primary_title("oops").element(
+        Snippet::source(source)
+            .section("cell 1")
+            .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+    )];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ cell 1:2:8
+  │
+2 │ Second oops line
+  ╰╴       ━━━━ oops
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ in cell 1, on line 2, column 8: oops
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn snippet_with_path_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[Level::ERROR.primary_title("oops").element(
+        Snippet::source(source)
+            .path("foo.ipynb")
+            .section("cell 1")
+            .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+    )];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> foo.ipynb:cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ foo.ipynb:cell 1:2:8
+  │
+2 │ Second oops line
+  ╰╴       ━━━━ oops
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at foo.ipynb:cell 1:2:8: oops
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn patch_with_primary_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[
+        Level::ERROR.primary_title("oops").element(
+            Snippet::source(source)
+                .section("cell 1")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+        Level::HELP
+            .secondary_title("remove the entry")
+            .element(
+                Snippet::source(source)
+                    .section("cell 1")
+                    .patch(Patch::new(19..24, "")),
+            )
+            .element(
+                Snippet::source(source)
+                    .section("cell 1")
+                    .patch(Patch::new(23..28, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+help: remove the entry
+  |
+2 - Second oops line
+2 + Second line
+  |
+2 - Second oops line
+2 + Second oops
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ cell 1:2:8
+  │
+2 │ Second oops line
+  │        ━━━━ oops
+  ╰╴
+help: remove the entry
+  ╭╴
+2 - Second oops line
+2 + Second line
+  ├╴
+2 - Second oops line
+2 + Second oops
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ in cell 1, on line 2, column 8: oops
+help: remove the entry
+ option 1
+  in cell 1, on line 2, column 8
+ option 2
+  in cell 1, on line 2, column 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn patch_with_primary_path_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[
+        Level::ERROR.primary_title("oops").element(
+            Snippet::source(source)
+                .path("foo.ipynb")
+                .section("cell 1")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+        Level::HELP
+            .secondary_title("remove the entry")
+            .element(
+                Snippet::source(source)
+                    .path("foo.ipynb")
+                    .section("cell 1")
+                    .patch(Patch::new(19..24, "")),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("foo.ipynb")
+                    .section("cell 1")
+                    .patch(Patch::new(23..28, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> foo.ipynb:cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+help: remove the entry
+  |
+2 - Second oops line
+2 + Second line
+  |
+2 - Second oops line
+2 + Second oops
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ foo.ipynb:cell 1:2:8
+  │
+2 │ Second oops line
+  │        ━━━━ oops
+  ╰╴
+help: remove the entry
+  ╭╴
+2 - Second oops line
+2 + Second line
+  ├╴
+2 - Second oops line
+2 + Second oops
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at foo.ipynb:cell 1:2:8: oops
+help: remove the entry
+ option 1
+  in cell 1, on line 2, column 8
+ option 2
+  in cell 1, on line 2, column 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn patch_with_primary_path_incrementing_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[
+        Level::ERROR.primary_title("oops").element(
+            Snippet::source(source)
+                .path("foo.ipynb")
+                .section("cell 1")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+        Level::HELP
+            .secondary_title("remove the entry")
+            .element(
+                Snippet::source(source)
+                    .path("foo.ipynb")
+                    .section("cell 1")
+                    .patch(Patch::new(19..24, "")),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("foo.ipynb")
+                    .section("cell 2")
+                    .patch(Patch::new(23..28, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> foo.ipynb:cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+help: remove the entry
+  |
+2 - Second oops line
+2 + Second line
+  |
+2 - Second oops line
+2 + Second oops
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ foo.ipynb:cell 1:2:8
+  │
+2 │ Second oops line
+  │        ━━━━ oops
+  ╰╴
+help: remove the entry
+  ╭╴
+2 - Second oops line
+2 + Second line
+  ├╴
+2 - Second oops line
+2 + Second oops
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at foo.ipynb:cell 1:2:8: oops
+help: remove the entry
+ option 1
+  in cell 1, on line 2, column 8
+ option 2
+  in cell 2, on line 2, column 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn patch_with_other_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[
+        Level::ERROR.primary_title("oops").element(
+            Snippet::source(source)
+                .section("cell 1")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+        Level::HELP
+            .secondary_title("remove the entry")
+            .element(
+                Snippet::source(source)
+                    .section("cell 2")
+                    .patch(Patch::new(19..24, "")),
+            )
+            .element(
+                Snippet::source(source)
+                    .section("cell 2")
+                    .patch(Patch::new(23..28, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+help: remove the entry
+  |
+2 - Second oops line
+2 + Second line
+  |
+2 - Second oops line
+2 + Second oops
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ cell 1:2:8
+  │
+2 │ Second oops line
+  │        ━━━━ oops
+  ╰╴
+help: remove the entry
+  ╭╴
+2 - Second oops line
+2 + Second line
+  ├╴
+2 - Second oops line
+2 + Second oops
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ in cell 1, on line 2, column 8: oops
+help: remove the entry
+ option 1
+  in cell 2, on line 2, column 8
+ option 2
+  in cell 2, on line 2, column 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn patch_with_other_path_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[
+        Level::ERROR.primary_title("oops").element(
+            Snippet::source(source)
+                .path("foo.ipynb")
+                .section("cell 1")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+        Level::HELP
+            .secondary_title("remove the entry")
+            .element(
+                Snippet::source(source)
+                    .path("bar.ipynb")
+                    .section("cell 2")
+                    .patch(Patch::new(19..24, "")),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("bar.ipynb")
+                    .section("cell 2")
+                    .patch(Patch::new(23..28, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> foo.ipynb:cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+help: remove the entry
+ --> bar.ipynb:cell 2:2:8
+  |
+2 - Second oops line
+2 + Second line
+  |
+2 - Second oops line
+2 + Second oops
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ foo.ipynb:cell 1:2:8
+  │
+2 │ Second oops line
+  │        ━━━━ oops
+  ╰╴
+help: remove the entry
+  ╭▸ bar.ipynb:cell 2:2:8
+  │
+2 - Second oops line
+2 + Second line
+  ├╴
+2 - Second oops line
+2 + Second oops
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at foo.ipynb:cell 1:2:8: oops
+help: remove the entry
+ option 1
+  at bar.ipynb:cell 2:2:8
+ option 2
+  in cell 2, on line 2, column 12
+"#]];
+    let renderer_no_graphics = renderer.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);
+}
+
+#[test]
+fn patch_with_other_path_incrementing_cell() {
+    let source = "First line\r\nSecond oops line";
+    let input = &[
+        Level::ERROR.primary_title("oops").element(
+            Snippet::source(source)
+                .path("foo.ipynb")
+                .section("cell 1")
+                .annotation(AnnotationKind::Primary.span(19..23).label("oops")),
+        ),
+        Level::HELP
+            .secondary_title("remove the entry")
+            .element(
+                Snippet::source(source)
+                    .path("bar.ipynb")
+                    .section("cell 2")
+                    .patch(Patch::new(19..24, "")),
+            )
+            .element(
+                Snippet::source(source)
+                    .path("bar.ipynb")
+                    .section("cell 3")
+                    .patch(Patch::new(23..28, "")),
+            ),
+    ];
+
+    let expected_ascii = str![[r#"
+error: oops
+ --> foo.ipynb:cell 1:2:8
+  |
+2 | Second oops line
+  |        ^^^^ oops
+  |
+help: remove the entry
+ --> bar.ipynb:cell 2:2:8
+  |
+2 - Second oops line
+2 + Second line
+  |
+2 - Second oops line
+2 + Second oops
+  |
+"#]];
+    let renderer = Renderer::plain();
+    assert_data_eq!(renderer.render(input), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error: oops
+  ╭▸ foo.ipynb:cell 1:2:8
+  │
+2 │ Second oops line
+  │        ━━━━ oops
+  ╰╴
+help: remove the entry
+  ╭▸ bar.ipynb:cell 2:2:8
+  │
+2 - Second oops line
+2 + Second line
+  ├╴
+2 - Second oops line
+2 + Second oops
+  ╰╴
+"#]];
+    let renderer = renderer.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer.render(input), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error: oops
+ at foo.ipynb:cell 1:2:8: oops
+help: remove the entry
+ option 1
+  at bar.ipynb:cell 2:2:8
+ option 2
+  in cell 3, on line 2, column 12
 "#]];
     let renderer_no_graphics = renderer.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(input), expected_no_graphics);

@@ -142,7 +142,7 @@ fn preprocess<'a>(groups: &'a [Group<'a>]) -> Preprocessed<'a> {
                 }
                 Element::Origin(origin) => {
                     if primary_path.is_none() {
-                        primary_path = Some(Some(&origin.path));
+                        primary_path = Some(origin.path.as_ref());
                     }
                     elements.push(PreprocessedElement::Origin(origin));
                 }

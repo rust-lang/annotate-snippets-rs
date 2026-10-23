@@ -1,7 +1,6 @@
 // Most of this file is adapted from https://github.com/rust-lang/rust/blob/160905b6253f42967ed4aef4b98002944c7df24c/compiler/rustc_errors/src/emitter.rs
 
 use alloc::borrow::Cow;
-use alloc::borrow::ToOwned;
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
 use alloc::{format, vec, vec::Vec};
@@ -185,7 +184,7 @@ pub(crate) fn render_full_message(renderer: &Renderer, groups: Report<'_>) -> St
 
                 PreprocessedElement::Origin(origin) => {
                     let buffer_msg_line_offset = buffer.num_lines();
-                    let is_primary = primary_path == Some(&origin.path) && !seen_primary;
+                    let is_primary = primary_path == origin.path.as_ref() && !seen_primary;
                     seen_primary |= is_primary;
                     render_origin(
                         renderer,
@@ -270,9 +269,7 @@ fn render_short_message(renderer: &Renderer, groups: &[Group<'_>]) -> Result<Str
             labels = Some(labels_inner);
         }
 
-        if let Some(path) = &cause.path {
-            let mut origin = Origin::path(path.as_ref());
-
+        if let Some(mut origin) = cause.to_origin() {
             let source_map = SourceMap::new(&cause.source, cause.line_start);
             let (_depth, annotated_lines) =
                 source_map.annotated_lines(cause.markers.clone(), cause.fold);
@@ -513,7 +510,16 @@ fn render_origin(
 fn format_origin(origin: &Origin<'_>, anonymized_origin_line_numbers: bool) -> String {
     use core::fmt::Write as _;
 
-    let mut buffer = origin.path.as_ref().to_owned();
+    let mut buffer = String::new();
+    if let Some(path) = &origin.path {
+        write!(&mut buffer, "{path}").unwrap();
+    }
+    if let Some(section) = &origin.section {
+        if !buffer.is_empty() {
+            write!(&mut buffer, ":").unwrap();
+        }
+        write!(&mut buffer, "{section}").unwrap();
+    }
     if let Some(line) = origin.line {
         if anonymized_origin_line_numbers {
             let line = ANONYMIZED_LINE_NUM;
@@ -541,8 +547,7 @@ fn render_snippet_annotations(
     is_cont: bool,
     is_first: bool,
 ) {
-    if let Some(path) = &snippet.path {
-        let mut origin = Origin::path(path.as_ref());
+    if let Some(mut origin) = snippet.to_origin() {
         // print out the span location and spacer before we print the annotated source
         // to do this, we need to know if this span will be primary
         //let is_primary = primary_path == Some(&origin.path);
@@ -1499,7 +1504,7 @@ fn emit_suggestion_default(
     let is_multiline = spliced_lines.complete.lines().count() > 1;
 
     if suggestion.path.as_ref() != primary_path
-        && let Some(path) = suggestion.path.as_ref()
+        && let Some(mut origin) = suggestion.to_origin()
         && !matches_previous_suggestion
     {
         let (loc, _) = sm.span_to_locations(spliced_lines.patches[0].span.clone());
@@ -1510,7 +1515,6 @@ fn emit_suggestion_default(
         }
         let arrow = renderer.decor_style.file_start(is_first, false);
         buffer.append(row_num - 1, arrow, ElementStyle::LineNumber);
-        let mut origin = Origin::path(path.as_ref());
         origin.line = Some(loc.line);
         origin.char_column = Some(loc.char + 1);
         let message = format_origin(&origin, renderer.anonymized_origin_line_numbers);

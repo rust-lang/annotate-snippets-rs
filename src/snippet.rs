@@ -241,6 +241,7 @@ pub struct Message<'a> {
 #[derive(Clone, Debug)]
 pub struct Snippet<'a, T> {
     pub(crate) path: Option<Cow<'a, str>>,
+    pub(crate) section: Option<Cow<'a, str>>,
     pub(crate) line_start: usize,
     pub(crate) source: Cow<'a, str>,
     pub(crate) markers: Vec<T>,
@@ -261,6 +262,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
     pub fn source(source: impl Into<Cow<'a, str>>) -> Self {
         Self {
             path: None,
+            section: None,
             line_start: 1,
             source: source.into(),
             markers: vec![],
@@ -298,6 +300,14 @@ impl<'a, T: Clone> Snippet<'a, T> {
         self
     }
 
+    /// A named section that [`Origin::line`] is relative to within a container format
+    ///
+    /// e.g. Jypyter cells can be `"cell 1"`
+    pub fn section(mut self, section: impl Into<OptionCow<'a>>) -> Self {
+        self.section = section.into().0;
+        self
+    }
+
     /// Control whether lines without [`Annotation`]s are shown
     ///
     /// The default is `fold(true)`, collapsing uninteresting lines.
@@ -306,6 +316,18 @@ impl<'a, T: Clone> Snippet<'a, T> {
     pub fn fold(mut self, fold: bool) -> Self {
         self.fold = fold;
         self
+    }
+
+    pub(crate) fn to_origin(&self) -> Option<Origin<'_>> {
+        if self.path.is_none() && self.section.is_none() {
+            return None;
+        }
+        Some(Origin {
+            path: self.path.clone(),
+            section: self.section.clone(),
+            line: None,
+            char_column: None,
+        })
     }
 }
 
@@ -511,7 +533,8 @@ impl<'a> Patch<'a> {
 /// ```
 #[derive(Clone, Debug)]
 pub struct Origin<'a> {
-    pub(crate) path: Cow<'a, str>,
+    pub(crate) path: Option<Cow<'a, str>>,
+    pub(crate) section: Option<Cow<'a, str>>,
     pub(crate) line: Option<usize>,
     pub(crate) char_column: Option<usize>,
 }
@@ -526,10 +549,19 @@ impl<'a> Origin<'a> {
     /// </div>
     pub fn path(path: impl Into<Cow<'a, str>>) -> Self {
         Self {
-            path: path.into(),
+            path: Some(path.into()),
+            section: None,
             line: None,
             char_column: None,
         }
+    }
+
+    /// A named section that [`Origin::line`] is relative to within a container format
+    ///
+    /// e.g. Jypyter cells can be `"cell 1"`
+    pub fn section(mut self, section: impl Into<OptionCow<'a>>) -> Self {
+        self.section = section.into().0;
+        self
     }
 
     /// Set the default line number to display
