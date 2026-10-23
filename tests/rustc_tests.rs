@@ -6976,3 +6976,111 @@ error E0308: mismatched types
     let renderer_no_graphics = renderer_unicode.no_graphics(true);
     assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
 }
+
+#[test]
+fn underline_replacements_that_become_nondesctructive_with_trimmed_whitespace() {
+    let source = r#"
+struct Dog {
+    name: String,
+    age: u32,
+}
+
+fn main() {
+    let d = Dog { name: "Rusty".to_string(), age: 8 };
+    match d {
+        // trailing comma with weird whitespace
+        Dog { name: x  , } => {}
+    }
+}
+"#;
+    let help1 = "include the missing field in the pattern";
+    let help2 = "if you don't care about this missing field, you can explicitly ignore it";
+    let help3 = "or always ignore missing fields here";
+
+    let report: &[Group<'_>] = &[
+        Level::ERROR
+            .primary_title("pattern does not mention field `age`")
+            .id("E0027")
+            .element(
+                Snippet::source(source).path("$DIR/E0027.rs").annotation(
+                    AnnotationKind::Primary
+                        .span(186..204)
+                        .label("missing field `age`"),
+                ),
+            ),
+        Level::HELP.secondary_title(help1).element(
+            Snippet::source(source)
+                .path("$DIR/E0027.rs")
+                .patch(Patch::new(199..204, ", age }")),
+        ),
+        Level::HELP.secondary_title(help2).element(
+            Snippet::source(source)
+                .path("$DIR/E0027.rs")
+                .patch(Patch::new(199..204, ", age: _ }")),
+        ),
+        Level::HELP.secondary_title(help3).element(
+            Snippet::source(source)
+                .path("$DIR/E0027.rs")
+                .patch(Patch::new(199..204, ", .. }")),
+        ),
+    ];
+
+    let expected_ascii = str![[r#"
+error[E0027]: pattern does not mention field `age`
+  --> $DIR/E0027.rs:11:9
+   |
+11 |         Dog { name: x  , } => {}
+   |         ^^^^^^^^^^^^^^^^^^ missing field `age`
+   |
+help: include the missing field in the pattern
+   |
+11 |         Dog { name: x, age } => {}
+   |                      ~~~~~~~
+help: if you don't care about this missing field, you can explicitly ignore it
+   |
+11 |         Dog { name: x, age: _ } => {}
+   |                      ~~~~~~~~~~
+help: or always ignore missing fields here
+   |
+11 |         Dog { name: x, .. } => {}
+   |                      ~~~~~~
+"#]];
+    let renderer_ascii = Renderer::plain().term_width(60);
+    assert_data_eq!(renderer_ascii.render(report), expected_ascii);
+
+    let expected_unicode = str![[r#"
+error[E0027]: pattern does not mention field `age`
+   ╭▸ $DIR/E0027.rs:11:9
+   │
+11 │         Dog { name: x  , } => {}
+   │         ━━━━━━━━━━━━━━━━━━ missing field `age`
+   ╰╴
+help: include the missing field in the pattern
+   ╭╴
+11 │         Dog { name: x, age } => {}
+   ╰╴                     ±±±±±±±
+help: if you don't care about this missing field, you can explicitly ignore it
+   ╭╴
+11 │         Dog { name: x, age: _ } => {}
+   ╰╴                     ±±±±±±±±±±
+help: or always ignore missing fields here
+   ╭╴
+11 │         Dog { name: x, .. } => {}
+   ╰╴                     ±±±±±±
+"#]];
+    let renderer_unicode = renderer_ascii.decor_style(DecorStyle::Unicode);
+    assert_data_eq!(renderer_unicode.render(report), expected_unicode);
+
+    let expected_no_graphics = str![[r#"
+error E0027: pattern does not mention field `age`
+ at $DIR/E0027.rs:11:9: missing field `age`
+help: include the missing field in the pattern
+ on line 11, column 22 to column 27 replace with: , age }
+help: if you don't care about this missing field, you can explicitly ignore it
+ on line 11, column 22 to column 27 replace with: , age: _ }
+help: or always ignore missing fields here
+ on line 11, column 22 to column 27 replace with: , .. }
+"#]];
+    let renderer_no_graphics = renderer_unicode.no_graphics(true);
+    assert_data_eq!(renderer_no_graphics.render(report), expected_no_graphics);
+}
