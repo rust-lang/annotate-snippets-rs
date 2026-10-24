@@ -24,9 +24,9 @@
 </tspan>
     <tspan x="10px" y="46px"><tspan> at $DIR/multiline-removal-suggestion.rs:21:8: `(bool, HashSet&lt;u8&gt;)` is not an iterator</tspan>
 </tspan>
-    <tspan x="10px" y="64px"><tspan> </tspan><tspan class="bold">help</tspan><tspan>: the trait `Iterator` is not implemented for `(bool, HashSet&lt;u8&gt;)`</tspan>
+    <tspan x="10px" y="64px"><tspan> </tspan><tspan class="fg-bright-cyan bold">help</tspan><tspan>: the trait `Iterator` is not implemented for `(bool, HashSet&lt;u8&gt;)`</tspan>
 </tspan>
-    <tspan x="10px" y="82px"><tspan> </tspan><tspan class="bold">note</tspan><tspan>: required for `(bool, HashSet&lt;u8&gt;)` to implement `IntoIterator`</tspan>
+    <tspan x="10px" y="82px"><tspan> </tspan><tspan class="fg-bright-green bold">note</tspan><tspan>: required for `(bool, HashSet&lt;u8&gt;)` to implement `IntoIterator`</tspan>
 </tspan>
     <tspan x="10px" y="100px"><tspan class="fg-bright-green bold">note</tspan><tspan>: required by a bound in `flatten`</tspan>
 </tspan>

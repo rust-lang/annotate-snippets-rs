@@ -350,7 +350,10 @@ fn render_title(
                 max_line_num_len + 1,
                 is_cont,
             );
-            (ElementStyle::MainHeaderMsg, ElementStyle::NoStyle)
+            (
+                ElementStyle::Level(title.level().level),
+                ElementStyle::NoStyle,
+            )
         }
     };
 
