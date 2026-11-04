@@ -3,6 +3,7 @@
     .fg { fill: #AAAAAA }
     .bg { fill: #000000 }
     .fg-bright-blue { fill: #5555FF }
+    .fg-bright-cyan { fill: #55FFFF }
     .fg-bright-red { fill: #FF5555 }
     .container {
       padding: 0 10px;
@@ -35,7 +36,7 @@
 </tspan>
     <tspan x="10px" y="154px"><tspan>  </tspan><tspan class="fg-bright-blue bold">│</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan>  </tspan><tspan class="fg-bright-blue bold">╰ </tspan><tspan class="bold">help</tspan><tspan>: unlike in C++, Java, and C#, functions are declared in `impl` blocks</tspan>
+    <tspan x="10px" y="172px"><tspan>  </tspan><tspan class="fg-bright-blue bold">╰ </tspan><tspan class="fg-bright-cyan bold">help</tspan><tspan>: unlike in C++, Java, and C#, functions are declared in `impl` blocks</tspan>
 </tspan>
     <tspan x="10px" y="190px">
 </tspan>

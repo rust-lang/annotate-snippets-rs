@@ -33,9 +33,9 @@
 </tspan>
     <tspan x="10px" y="118px"><tspan>   </tspan><tspan class="fg-bright-blue bold">│</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan>   </tspan><tspan class="fg-bright-blue bold">├ </tspan><tspan class="bold">help</tspan><tspan>: the trait `Iterator` is not implemented for `(bool, HashSet&lt;u8&gt;)`</tspan>
+    <tspan x="10px" y="136px"><tspan>   </tspan><tspan class="fg-bright-blue bold">├ </tspan><tspan class="fg-bright-cyan bold">help</tspan><tspan>: the trait `Iterator` is not implemented for `(bool, HashSet&lt;u8&gt;)`</tspan>
 </tspan>
-    <tspan x="10px" y="154px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰ </tspan><tspan class="bold">note</tspan><tspan>: required for `(bool, HashSet&lt;u8&gt;)` to implement `IntoIterator`</tspan>
+    <tspan x="10px" y="154px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰ </tspan><tspan class="fg-bright-green bold">note</tspan><tspan>: required for `(bool, HashSet&lt;u8&gt;)` to implement `IntoIterator`</tspan>
 </tspan>
     <tspan x="10px" y="172px"><tspan class="fg-bright-green bold">note</tspan><tspan>: required by a bound in `flatten`</tspan>
 </tspan>

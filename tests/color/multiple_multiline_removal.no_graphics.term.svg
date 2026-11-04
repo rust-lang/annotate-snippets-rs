@@ -28,9 +28,9 @@
 </tspan>
     <tspan x="10px" y="82px"><tspan> at $SRC_DIR/alloc/src/boxed.rs:234:2</tspan>
 </tspan>
-    <tspan x="10px" y="100px"><tspan> </tspan><tspan class="bold">note</tspan><tspan>: private field</tspan>
+    <tspan x="10px" y="100px"><tspan> </tspan><tspan class="fg-bright-green bold">note</tspan><tspan>: private field</tspan>
 </tspan>
-    <tspan x="10px" y="118px"><tspan> </tspan><tspan class="bold">note</tspan><tspan>: private field</tspan>
+    <tspan x="10px" y="118px"><tspan> </tspan><tspan class="fg-bright-green bold">note</tspan><tspan>: private field</tspan>
 </tspan>
     <tspan x="10px" y="136px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: you might have meant to use an associated function to build this type</tspan>
 </tspan>

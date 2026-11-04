@@ -17,6 +17,7 @@ mod highlight_source_multi_width_chars;
 mod highlight_source_zero_width_chars;
 mod id_hyperlink;
 mod issue_9;
+mod message_labels_use_level_style;
 mod multiline_removal_indent;
 mod multiline_removal_last_line_tabs;
 mod multiline_removal_suggestion;
