@@ -86,7 +86,7 @@ fn struct_name_as_context() {
 
 #[track_caller]
 fn assert_example(target: &str, expected: snapbox::Data) {
-    let bin_path = snapbox::cmd::compile_example(target, ["--features=testing-colors"]).unwrap();
+    let bin_path = snapbox::cmd::compile_example(target, []).unwrap();
     snapbox::cmd::Command::new(bin_path)
         .env("CLICOLOR_FORCE", "1")
         .assert()

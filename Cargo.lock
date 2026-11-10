@@ -6,7 +6,6 @@ version = 4
 name = "annotate-snippets"
 version = "0.12.17"
 dependencies = [
- "annotate-snippets",
  "anstream",
  "anstyle",
  "divan",
