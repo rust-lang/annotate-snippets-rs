@@ -88,12 +88,8 @@
 //!
 //! - `simd` - Speeds up folding
 //!
-//! - `testing-colors` - Makes [Renderer::styled] colors OS independent, which
-//! allows for easier testing when testing colored output. It should be added as
-//! a feature in `[dev-dependencies]`, which can be done with the following command:
-//! ```text
-//! cargo add annotate-snippets --dev --feature testing-colors
-//! ```
+//! - `testing-colors` - This feature is deprecated and no longer has any
+//! effect, as [Renderer::styled] was changed to use the same colors for all OS.
 
 #![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
