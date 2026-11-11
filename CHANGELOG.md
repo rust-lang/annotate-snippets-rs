@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.12.18] - 2026-11-10
+
+### Added
+
+- `Title::footnote` appends a footnote marker to a title [#470](https://github.com/rust-lang/annotate-snippets-rs/pull/470)
+  - The caller is responsible for rendering the footnote
+- `Origin::section` and `Snippet::section` allow adding a named section that `Origin::line` is relative to e.g. a cell within a Jupyter notebook [#495](https://github.com/rust-lang/annotate-snippets-rs/pull/495)
+
+### Changed
+
+- `Renderer::styled` now uses the same colors for all OSes, as the special cases for Windows were removed [#506](https://github.com/rust-lang/annotate-snippets-rs/pull/506)
+
+### Deprecated
+
+- The `testing-colors` feature has been deprecated and no longer has any effect [#506](https://github.com/rust-lang/annotate-snippets-rs/pull/506)
+
+### Fixed
+
+- `no-graphics`: Don't show the char column if an `Origin` has no `line` [#494](https://github.com/rust-lang/annotate-snippets-rs/pull/494)
+
 ## [0.12.17] - 2026-10-18
 
 ### Added
@@ -353,7 +373,8 @@ Note that the top-level type changed from `Message` to `Report`.
 - Update the syntax to Rust 2018 idioms. (#4)
 
 <!-- next-url -->
-[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.17...HEAD
+[Unreleased]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.18...HEAD
+[0.12.18]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.17...0.12.18
 [0.12.17]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.16...0.12.17
 [0.12.16]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.15...0.12.16
 [0.12.15]: https://github.com/rust-lang/annotate-snippets-rs/compare/0.12.14...0.12.15
