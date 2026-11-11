@@ -301,7 +301,7 @@ impl<'a, T: Clone> Snippet<'a, T> {
 
     /// A named section that [`Origin::line`] is relative to within a container format
     ///
-    /// e.g. Jypyter cells can be `"cell 1"`
+    /// e.g. Jupyter cells can be `"cell 1"`
     pub fn section(mut self, section: impl Into<OptionCow<'a>>) -> Self {
         self.section = section.into().0;
         self
@@ -533,7 +533,7 @@ impl<'a> Origin<'a> {
 
     /// A named section that [`Origin::line`] is relative to within a container format
     ///
-    /// e.g. Jypyter cells can be `"cell 1"`
+    /// e.g. Jupyter cells can be `"cell 1"`
     pub fn section(mut self, section: impl Into<OptionCow<'a>>) -> Self {
         self.section = section.into().0;
         self
