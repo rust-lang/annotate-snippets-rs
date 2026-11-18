@@ -2,9 +2,9 @@
 
 > Format diagnostic reports, including highlighting snippets of text
 
-[![crates.io](https://img.shields.io/crates/v/annotate-snippets.svg)](https://crates.io/crates/annotate-snippets)
-[![documentation](https://img.shields.io/badge/docs-main-blue.svg)][Documentation]
-![build status](https://github.com/rust-lang/annotate-snippets-rs/actions/workflows/ci.yml/badge.svg)
+[![Documentation](https://img.shields.io/badge/docs-main-blue.svg)][Documentation]
+![License](https://img.shields.io/crates/l/annotate-snippets.svg)
+[![Crates Status](https://img.shields.io/crates/v/annotate-snippets.svg)](https://crates.io/crates/annotate-snippets)
 
 ![Screenshot](./examples/expected_type.svg)
 
