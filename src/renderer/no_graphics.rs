@@ -365,7 +365,10 @@ fn render_title(
             ElementStyle::Level(title.level().level),
             ElementStyle::HeaderMsg,
         ),
-        TitleStyle::Message => (ElementStyle::MainHeaderMsg, ElementStyle::NoStyle),
+        TitleStyle::Message => (
+            ElementStyle::Level(title.level().level),
+            ElementStyle::NoStyle,
+        ),
     };
     let label_style = label_style.color_spec(title.level(), stylesheet);
     let title_element_style = title_element_style.color_spec(title.level(), stylesheet);

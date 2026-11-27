@@ -33,7 +33,7 @@
 </tspan>
     <tspan x="10px" y="118px"><tspan>   </tspan><tspan class="fg-bright-blue bold">│</tspan>
 </tspan>
-    <tspan x="10px" y="136px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰ </tspan><tspan class="bold">note</tspan><tspan>: private fields `0` and `1` that were not provided</tspan>
+    <tspan x="10px" y="136px"><tspan>   </tspan><tspan class="fg-bright-blue bold">╰ </tspan><tspan class="fg-bright-green bold">note</tspan><tspan>: private fields `0` and `1` that were not provided</tspan>
 </tspan>
     <tspan x="10px" y="154px"><tspan class="fg-bright-cyan bold">help</tspan><tspan>: you might have meant to use an associated function to build this type</tspan>
 </tspan>
