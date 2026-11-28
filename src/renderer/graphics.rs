@@ -2591,6 +2591,9 @@ pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
     let mut output = String::with_capacity(s.len());
     let mut start = 0;
     for (i, ch) in s.char_indices() {
+        if ch.is_ascii_graphic() || ch == ' ' {
+            continue;
+        }
         let replacement = match OUTPUT_REPLACEMENTS.binary_search_by_key(&ch, |(k, _)| *k) {
             Ok(index) => OUTPUT_REPLACEMENTS[index].1,
             Err(_) => continue,
