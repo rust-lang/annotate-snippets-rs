@@ -2581,14 +2581,7 @@ pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
         return Cow::Borrowed(s);
     }
 
-    if !s
-        .chars()
-        .any(|user| OUTPUT_REPLACEMENTS.iter().any(|(bad, _)| user == *bad))
-    {
-        return Cow::Borrowed(s);
-    }
-
-    let mut output = String::with_capacity(s.len());
+    let mut normalized = None;
     let mut start = 0;
     for (i, ch) in s.char_indices() {
         if ch.is_ascii_graphic() || ch == ' ' {
@@ -2598,12 +2591,20 @@ pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
             Ok(index) => OUTPUT_REPLACEMENTS[index].1,
             Err(_) => continue,
         };
+        // Reserve space for the first replacement and the rest of the input.
+        let output = normalized.get_or_insert_with(|| {
+            String::with_capacity(s.len() - ch.len_utf8() + replacement.len())
+        });
         output.push_str(&s[start..i]);
         output.push_str(replacement);
         start = i + ch.len_utf8();
     }
-    output.push_str(&s[start..]);
-    Cow::Owned(output)
+    if let Some(mut output) = normalized {
+        output.push_str(&s[start..]);
+        Cow::Owned(output)
+    } else {
+        Cow::Borrowed(s)
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
