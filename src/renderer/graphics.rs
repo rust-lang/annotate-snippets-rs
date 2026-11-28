@@ -2588,17 +2588,19 @@ pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
         return Cow::Borrowed(s);
     }
 
-    // Scan the input string for a character in the ordered table above.
-    // If it's present, replace it with its alternative string (it can be more than 1 char!).
-    // Otherwise, retain the input char.
-    let normalized = s.chars().fold(String::with_capacity(s.len()), |mut s, c| {
-        match OUTPUT_REPLACEMENTS.binary_search_by_key(&c, |(k, _)| *k) {
-            Ok(i) => s.push_str(OUTPUT_REPLACEMENTS[i].1),
-            _ => s.push(c),
-        }
-        s
-    });
-    Cow::Owned(normalized)
+    let mut output = String::with_capacity(s.len());
+    let mut start = 0;
+    for (i, ch) in s.char_indices() {
+        let replacement = match OUTPUT_REPLACEMENTS.binary_search_by_key(&ch, |(k, _)| *k) {
+            Ok(index) => OUTPUT_REPLACEMENTS[index].1,
+            Err(_) => continue,
+        };
+        output.push_str(&s[start..i]);
+        output.push_str(replacement);
+        start = i + ch.len_utf8();
+    }
+    output.push_str(&s[start..]);
+    Cow::Owned(output)
 }
 
 #[derive(Clone, Copy, Debug, PartialOrd, Ord, PartialEq, Eq)]
