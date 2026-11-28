@@ -2571,6 +2571,16 @@ const OUTPUT_REPLACEMENTS: &[(char, &str)] = &[
 ];
 
 pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
+    // All non-ASCII characters in OUTPUT_REPLACEMENTS start with 0xE2 in UTF-8.
+    let mut may_need_replacement = false;
+    for byte in s.bytes() {
+        let control = byte.is_ascii_control() && byte != b'\n';
+        may_need_replacement |= control | (byte == 0xe2);
+    }
+    if !may_need_replacement {
+        return Cow::Borrowed(s);
+    }
+
     if !s
         .chars()
         .any(|user| OUTPUT_REPLACEMENTS.iter().any(|(bad, _)| user == *bad))
