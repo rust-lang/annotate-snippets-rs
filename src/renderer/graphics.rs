@@ -2682,8 +2682,31 @@ impl<D: fmt::Display> fmt::Display for Hyperlink<D> {
 
 #[cfg(test)]
 mod test {
-    use super::OUTPUT_REPLACEMENTS;
+    use alloc::borrow::Cow;
+
+    use super::{OUTPUT_REPLACEMENTS, normalize_whitespace};
     use snapbox::IntoData;
+
+    #[test]
+    fn normalization_covers_all_output_replacements() {
+        for &(ch, replacement) in OUTPUT_REPLACEMENTS {
+            assert_eq!(normalize_whitespace(&ch.to_string()), replacement);
+        }
+    }
+
+    #[test]
+    fn normalization_preserves_text_between_replacements() {
+        assert_eq!(
+            normalize_whitespace("\u{200d}α\t\u{001b}\nβ\u{007f}\u{202e}γ"),
+            "α    ␛\nβ␡�γ"
+        );
+    }
+
+    #[test]
+    fn printable_text_with_matching_lead_bytes_stays_borrowed() {
+        let text = "© →";
+        assert!(matches!(normalize_whitespace(text), Cow::Borrowed(_)));
+    }
 
     fn format_replacements(replacements: Vec<(char, &str)>) -> String {
         replacements
